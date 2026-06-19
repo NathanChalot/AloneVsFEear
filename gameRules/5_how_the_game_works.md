@@ -1,0 +1,596 @@
+## How the Game Works
+
+After creating your character, select a mission by rolling d6 on the Mission Table. This will give you a general goal to accomplish. When you complete that mission, you will receive the listed rewards. If your character survives, you will continue to play this  character  in future  missions.  If  s/he  dies,  you will have to create a new one. The final  Campaign  goal  is  to  close  7 hell gates. Once that is done (this will  happen  over  the  course  of multiple  missions),  you  win  the game.
+
+## Movement and Mapping
+
+You move through a town represented  by  a  chart  with  30 boxes, each representing a part of town.  You  start  in  a  box  of  your choice  and  each  turn  may  move from any box to any neighboring box.  You  may  move  diagonally  if you wish. A box represents roughly 2 hours of walking. You do not have to roll for content for the first box. Every  time  you  move  in  a  box, number it (1, 2, 3 etc) in the small white circle at the bottom right of the box. Number the first box as 1. This  helps  to  keep  track  of  time, food  consumption  (normally,  1
+
+Food  every 5 boxes) and the duration  of  certain  game  effects that  last  for  a  limited  number  of boxes. When  you  enter  a  new box, roll on the Town Exploration table  to  determine  what  is  in that box. Each result lets you roll on the appropriate table to determine what you encounter. For example,  if  the  Town  Exploration table gives you a House result, you roll  on  the  House  table.  In  some cases, you are given a choice: just follow  your  instinct.    Annotate  in the box what is there (house, place of  worship,  any  encounters,  etc.). The layout of the town will thus be discovered a little at a time as you move  through  its  landmarks  and neighborhoods. Rolls on sub tables will  give  you  side  missions,  goals, or ask you to make choices.
+
+If you visit all the boxes on a sheet and  you  haven't  completed  your mission yet, just attach a new paper sheet and continue there. Generally, a single sheet is enough to complete a mission, but there is no limit  to  the  number  of  sheets that you can use in a campaign.
+
+If you are an artist, you may sketch outlines of houses, parks, and other features, but this is not required.
+
+## Moving Through Visited areas
+
+You may move through boxes that you already visited, and you may Search  them  (see  below)  if  you didn't  do  it  already. Every  time you  move  through  a  box  that you already visited, do NOT roll on the Exploration table. Roll a 1  in  6  chance  of  a  Random Encounter instead. If  you  move through an area that is occupied (you  encountered  some  creature there and fled), you must perform a Stealth roll to avoid the creature or have to face it again.
+
+## Search Rolls
+
+You will often look for creatures or items or general information about the mysteries around you. Whenever you enter a box and you play  an  encounter  or  there  is nothing in the  box,  you  may perform a Search roll. Write an S in the  box  as  a  reminder  that  you searched  it. You  have  only  one chance of searching each box.
+
+Exceptions: you may NOT Search a Safe  House.  You  may  Search  a library multiple times, but the only thing you can find is 1 book or 1 Clue. To perform a Search, roll d6 on the Search table below. Add +1 if you have the Investigator Skill, or +2 if you have Investigator (Expert). A roll of 1 remains a 1: do not add modifiers if you roll a 1.
+
+## Hunting
+
+If  you  are  looking  for  a  specific creature  (for  example,  a  serial killer),  you  may  encounter  that creature  in  your  next  box  if  you spend a number of Clues equal to the  creature's  L.  Possessing  the Investigator  Skill  will  reduce  by  1 the  number  of  Clues  needed. Reduce  the  number  by  2  if  you have  Investigator (Expert).  The minimum cost is always 1 Clue.
+
+## search rolls table (d6)
+
+- 1 Roll on the random encounter table, p.40.
+- 2-5 Nothing found.
+- 6 Success! Roll 4 times on the Useful Items table or on the Random Object table, and pick a single result, or Roll on the Random Book table (p.73) if you are in a Library; OR  gain 1 Clue.
+
+Roll at +1 if you have the Investigator Skill, +2 if you have Investigator (Expert). A roll of 1 remains a 1.
+
+## Random encounter table (roll d6, then another d6)
+
+- 1,2) Roll on the Slashers table, p. 65. Reroll any Slasher that  you  have  already  defeated  in  the  campaign.  If  all
+- 1 Slashers have been defeated, treat as no encounter.
+- 3-6) Roll on the Witch Children table, p. 67.
+- 1-3) Roll on the Demonic Horrors table, p. 64.
+- 4-6) Roll on the Beasts table, p. 60.
+- 1,2) Roll on the Lab Horrors table, p. 66.
+- 3 3-5) Roll on the Undead table, p. 61.
+- 6) Roll on the Unique Vampires table, p. 71.
+- 1-4) Roll on the Possessed table, p. 62.
+- 5,6) Roll on the Living Dolls table, p. 68.
+- 1-5) Roll on the Ghosts table, p. 69.
+- 6) Roll on the Aliens table, p. 70.
+- 1-3) Roll on the Unique Vampires table, p. 71.
+- 4-6) Roll on the Unique Zombies table, p. 72. When
+- 6 rolling on tables of Unique creatures, reroll any monster that was already killed. If all Unique monsters have been killed, treat as no encounter.
+
+
+## Mission
+
+At the start of a play session, roll on  the  Mission  table  below  to determine what you must do to win  this  session  of  the  game.  If you roll the same Mission that you played  last  time,  you  may  reroll until you select a different one. To win the campaign, you must close seven Hell Gates in any number of games.
+
+## Mission table (d6)
+
+Medical Supplies . A loved one is in need for specific medicines. You gain 3 XP as soon as you return to your starting box with 3 doses of the required medicines. You have a 1 in 6 of finding 1 'dose' every time you roll on a House or Lab box and a 3 in 6 every time you visit a Clinic box. If you have visited all boxes and didn't find any, the last box you visit will be a clinic and you will automatically find 3 doses.
+
+Predator and Prey . You must defeat a random Slasher from the Slashers table on p. 65. You must spend a number of Clues equal to the Slasher's L to locate your target in the next box you enter. If you meet ANY Slasher through a random roll, there is a 4 in 6 chance that you encounter exactly the one you are hunting. Once you have defeated the Slasher and returned to your starting location OR to any Safe House, you gain 5 XP or 2 rolls on the Useful Stuff table (p. 26).
+
+See also the optional rules for Slashers in campaigns on p. 97.
+
+Bring Home the Bacon . You must bring back to your starting location a large quantity (2d6+12) of Food. This is IN ADDITION to any Food points currently on your character's sheet. You automatically are given a backpack if desired, and you may leave any of your items in your starting box (or in any Safe House) in order to have more space to carry Food. You have a 3 in 6 chance of finding d6 Food points every time you visit a location from the Street, Store, or Farm tables. Once you return to your starting box with the Food, the Food is given to the local survivors and you gain 3 XP OR 3 rolls on the Useful Stuff table (p. 26), your choice. You may also keep the backpack.
+
+## Mission table (d6, continued)
+
+We Need Weapons . You must explore the town and bring back to your starting box firearms (pistols, rifles, shotguns). When you do so, you gain 1 XP per every firearm with at least 6 ammo with a maximum gain of 5 XP. You may alter the Town Exploration roll by +1 or -1 if this lets you reach a Military Installation or a Store. All the weapons and ammo that you deliver are given to other survivors at the end of the mission, but you may use them during the game.
+
+Destroy the Coven . You must defeat 5 witches hiding in town. To find a witch, when you enter a new box you must spend 3 Clues. Spend just 2 Clues if you have the Investigator Skill and 1 Clue if you have Investigator (Expert). If you do not have enough Clues, roll for the random content of that box as usual. You will automatically meet a witch in any of the last 5 locations that you visit on your town map, but if you did not discover them by spending Clues, they will have a 5 in 6 chance of surprising you. If you want, you may spend 1 or more Clues to reduce this chance of surprise by 1 for every Clue spent. Also your Danger Sense Skill will reduce their chance of surprising you.
+
+If you take a witch alive (attacking her in hand-to-hand combat at -2 inflicting non-lethal Damage, or defeating her with the Sign of Hypnos or the Hand of Glory), you gain 1 Clue that you may use ONLY to find the next witch.
+
+Witches are L4 humans, 4 Life. They inflict no Damage but each turn you are in combat with a witch, you must perform a L5 Will Save (lose 1 Sanity if you fail). You gain 1 XP every time you defeat a witch and 2 XP and 1 item from the Useful Stuff table on p. 26 (roll three times and pick the best result) when you defeat the last one.
+
+Close a Hell Gate . This is the default activity of the campaign. You may always attempt this even during other missions, because closing 7 gates over the course of a campaign completes the campaign and ends the game in a victory. When you play this mission, if you do not find any hell gate through random rolls, you will find one automatically after 12+d6 boxes, and another one in the 30 th  box that you visit. To close a Hell Gate, you need to possess the Gate Arcane Skill and perform an L6 Magic roll. Add +1 if you have Will and +2 if you have Will (Expert). You lose 1 Sanity and 1 Life for each failed attempt.
+
+| Town exploration table (2d6)                                                                          | Town exploration table (2d6)   |
+|-------------------------------------------------------------------------------------------------------|--------------------------------|
+| 2 table (p. 40).                                                                                      | Roll on the Random Encounter   |
+| Roll on the Military Installation table (p. 48) or on the Clinic (p. 46) table, your choice.          | 3                              |
+| Roll on Farm table (p. 49) or on the Cemetery table (p. 44), your choice.                             | 4                              |
+| Roll on the Place of Worship table (p. 47).                                                           | 5                              |
+| Roll on Street table (p. 44).                                                                         | 6                              |
+| Roll d6. On a 1-5, roll on the House table (p. 45). On a 6, roll on the Special Events table (p. 59). | 7                              |
+| Roll on the Store table (p. 52) or the Street table (p. 44), your choice.                             | 8                              |
+| Roll on the Sewers table (p. 53).                                                                     | 9                              |
+| Roll on the Railways (p. 54) or Woods/Park table (p. 58), your choice.                                | 10                             |
+| Roll on the School table (p. 55) or the Woods/Park table (p. 58), your choice.                        | 11                             |
+| 12 table (p. 58).                                                                                     | Roll on the Woods/Park         |
+
+Roll on this table every time you move into an unexplored area. Then roll on the sub-table indicated by the result. Whenever possible, do NOT read the content of the tables in advance. Read them only when they apply to you.
+
+You  may  Search  an  area  ONLY  after  dealing  with  whatever  encounter, danger, or situation you encounter in that area. If you flee from an encounter, you may NOT Search that area.
+
+## street table (d6)
+
+You spot a nice place to hide. You may create a Safe House and heal 1 Life and 1 Sanity. If you create a Safe House and it is the third Safe House in play, the Safe House closest to you is no longer a Safe House. To determine which is closest, just count the number of boxes on the town map that you should cross to reach that location. If there are 2 Safe Houses at the same distance, choose randomly. Every time you move into this Safe House, you may heal 1 Life and 1 Sanity.
+
+- 2 All clear. No encounter.
+- 3 Random encounter: roll on the Undead table, p. 61.
+- 4 Random encounter: roll on the Demonic Horrors table, p. 64.
+- 5 Random encounter: roll on the Slashers table, p. 65.
+- 6 Play event #3, p. 78. If you already played that, roll on the Random Encounter table, p. 40.
+
+## cemetery table (d6)
+
+- 1 Roll on the Undead table, p. 61.
+- 2 You meet helpful people . Heal 1 Life.
+- 3 Roll on the Unique Zombies table, p. 72.
+
+Safe House . You find an area that is easy to defend. You may heal up to 2 Sanity and 4 Life every time you visit this place. You do not have to roll for random encounters every time you visit this Safe House. If there are already 3 Safe Houses in play when you roll this
+
+- 4 result, you create a new Safe House, but the Safe House closest to your current location is no longer a Safe House. To determine which is closest, count the number of boxes on the town map that you should cross to reach that location. If there are two Safe Houses at the same distance, choose randomly.
+- 5 Roll on the Unique Vampires table, p. 71.
+- 6 Roll on the Ghosts table, p. 69.
+
+## House table (d6)
+
+- 1 Roll on the Haunted House table.
+- 2 You meet helpful people living in the area. Heal 1 Life and gain 1 Food point.
+- 3 The house is attacked by 2d6 L2 Zombies (Slow Undead, 1 Life, Damage 1). You may ignore them or fight them. If you defeat them, roll on the Rewards table on p. 71.
+
+Safe House . You find an area that is easy to defend. You may heal up to 2 Sanity and 3 Life every time you visit this place. You do not have to roll for random encounters every time you visit this Safe House. If there are already 3 Safe Houses in play when you roll this result, you create a new Safe House, but the Safe House closest to your current location is no longer a Safe House. To determine which is closest, just count the number of boxes on the town map that you should cross to reach that location. If there are two Safe Houses at the same distance, choose randomly. When you visit the location that is no longer a  Safe  House,  you  must  roll  a  1  in  6  chance  of  a  random encounter, just like for any already visited area.
+
+- Dilapidated house . You may explore it or move along. If you explore it, roll an L4 agility Save. Add +1 if you have the Agile Skill, +2 if you have Agile (Expert). If you fail, you are hit by
+- 5 falling debris and take 1 Damage. After the collapse, you may perform a Search roll at +1 to find (choose) 1 Clue or 1 random item from the Random Object table (p. 23) or the Useful Stuff table (p. 26).
+
+6 Play event #1 (p. 78). If you have already played it, roll a die: on a 1-2, treat as no encounter; on a 3-4, roll on the Living Dolls table (p. 68); on a 5-6, roll on the Haunted House table (p. 51) instead.
+
+## clinic table (d6)
+
+- 1 This place is haunted. Roll on the Haunted House table (p. 45).
+- 2 You meet a helpful paramedic . Heal 2 Life and gain 1 first aid kit from the Random Object table (p. 23).
+
+3 A small medical studio is attacked by 3d6 L3 Zombies (Slow Undead). You may ignore them or fight them. If you defeat them, you may collect 1 first aid kit from the Random Objects table (p. 23) and d6 doses of painkillers from the Useful Stuff table (see p. 28).
+
+Safe House . You find an area that is easy to defend. You may heal up to 2 Sanity and 4 Life every time you visit this place. You do not have to roll for random encounters every time you visit this Safe House. If there are already 3 Safe Houses in play when you roll this result, you create a new Safe House, but the Safe House closest to your current location is no longer a Safe House. To determine which is closest, just count the number of boxes on the town map that you should cross to reach that location. If there are two Safe Houses at the same distance, choose randomly. When you visit the location that is no longer a  Safe  House,  you  must  roll  a  1  in  6  chance  of  a  random encounter, just like for any already visited area.
+
+5 Psychiatric Ward . You may explore it or move along. If you explore  it,  you  may  perform  TWO  Search  rolls,  potentially gaining loot or Clues from both. However, as soon as you apply the result of your second Search roll, you must also pass an L6 Stealth roll. If you fail, roll on the Slashers table, p. 65. If the Search rolls trigger an encounter, also roll on the Slashers table. If you collect any Clues in the psychiatric ward, you must perform a Save vs. L3 Fear for each Clue gained or lose 1 Sanity.
+
+- 6 Play event #29 (p. 91).
+
+
+## Alone against fear
+
+## Place of worship table (d6)
+
+This peaceful place gives you a moment of respite. Recover 1 Sanity or 1 Life, your choice. You may create a Safe House here. If you do so, you may heal up to 3 Sanity and 2 Life every time you visit this box. You do not have to roll for random encounters when you visit a Safe House. If there are already 3 Safe houses in play, when you create a new Safe House the Safe House closest to your current location is no longer a Safe House. To determine which is closest, just count the number of boxes on the town map that you should cross to reach that location. If there are two Safe Houses at the same distance, choose randomly. When you visit the location that is no longer a Safe House, you must roll a 1 in 6 chance of a random encounter, just like for any already visited area.
+
+Monsters attack! Play  a  random  encounter  inside  this  place  of worship. Roll d6 to determine on which table to roll: 1 Witch Children (p. 67), 2 Undead (p. 61, reroll any vampires - they won't appear here),
+
+- 2 3 Slashers (p. 65), 4 Possessed (p. 62), 5 Demonic Horrors (p. 54), 6 Lab Horrors (p. 66). If you do not defeat the creature, this location counts as a deconsecrated church.
+
+Choose: you either find a
+
+silver crucifix
+
+(you can keep it or turn it
+
+- 3 into 2d6 silver bullets or 1 silver knife if you have smelting equipment), OR you find 2 vials of holy water.
+- Under  siege. The  church  is  besieged  by  2d6  L3  zombies,  Slow Undead, Damage 1, 1 Life point each. You may ignore the encounter.
+- 4 If you destroy them all, you recover 1 Sanity or find a random item from the Random Object table on p. 23 or from the Useful Stuff table on p. 26 (your choice).
+- 5 A priest with a mission . A priest gives you a side mission (roll on the table on p. 74). Do not roll on the Rewards table on p. 71. The reward for the side mission, if completed, will be d6 vials of holy water and 1 holy symbol that you will receive when you return here.
+- 6 Play Event #2 (see p. 78) . This is not a unique event. You may play this multiple times during the game.
+
+47 Feel free to add details about the place of worship based on any real world religion of your choice. You may pick up an appropriate religious symbol every time you visit a place of worship. Negligible weight.
+
+## Military installation/Lab table (d6)
+
+- 1 Experimental weapon site. Roll on the Lab Horrors table (p. 66). Roll a  2  in  6  chance  of  finding  a  weapon  (roll  twice  on  the  Random Weapon table, p. 21, and choose the best result).
+- 2 A respiratory toxin was released here. Save vs. L4 Poison. Roll at +1 if you have the Resilient Skill, +2 if you have Resilient (Expert) or lose 2 Life. If you are wearing a gas mask, you are immune to this Damage.
+
+3 You find computer printouts about mutants .  If  you spend 2XP studying them, you gain the Mutant Hunter Arcane Skill. You may study the papers right here or, if you do not have the XP right now, carry them with you (they count as a carried object) and study them later. You may roll a 2 in 6 chance of finding a random weapon here, but if you do so, you must also roll a 2 in 6 chance of an encounter from the Lab Horrors table (p. 66). If you find a weapon, roll on the Random Weapon table, p. 21, to determine what it is.
+
+4 Here a crate containing d3 grenades on a bandolier is guarded by 2d6 zombies (L2 Undead, Slow, Damage 1, 1 Life point each). You may take the grenades if you destroy all zombies. You may choose to  ignore  the  encounter  and  run  away.  The  zombies  (and  the grenades) remain in the area if you leave.
+
+- 5 This  was  a  military  lab.  You  find  a  single  hypodermic  needle containing a fluorescent fluid . You can keep it in your inventory (as an item of negligible weight) or inject it (go to Event #4 if you do so). Reroll this event if you get this again during the same mission. You may roll it again in future missions.
+- As you step into the installation, there is an explosion . Save vs. L4 explosion, at +1 if you have Danger Sense or Agile, or lose 2 Life.
+- 6 There is also a 2 in 6 chance that the explosion attracts d6+1 Zombies (L2 Slow Undead, 1 Life each, Damage 1) that will attack you.
+
+## farm table (d6)
+
+- 1 Creepy abandoned farm . If you investigate, play event #5, p. 80. If you already played #5 or do not want to investigate, keep moving through town.
+
+Abandoned farm . There is a 2 in 6 chance of a random encounter from the Undead, Possessed or Witch Children table (your choice).
+
+- 2 In any case, you find d6 Food, OR you may perform a Search roll (your choice), gaining one of the following on a success: 1 pitchfork, 1 axe, d6 doses of salt, 1 holy book, d3 shotgun shells, or 1 Clue.
+
+Friendly farmers . You may heal up to 2 Life and 1 Sanity. You also gain 2 or d3 (your choice) Food OR 1 roll on the Random Objects table on p. 23 or on the Useful Stuff table on p. 26 (your choice). As you leave, the farm is attacked by an unknown foe. You may choose to defend the farmers and fight the creatures, or leave. If you remain and defeat the creature/s, gain 1 XP. If you leave, lose 1 Sanity. If you remain to fight, roll d6 to determine the nature of the attackers: 1-2 Undead (p. 61), 3 Slashers (p. 65), 4 Possessed (p. 62), 5 Beasts (p.  60),  6  Demonic  horrors  (p.  64),  then  roll  on  the  appropriate sub-table.
+
+- 4 Cries for help from a farm . If you want to help, play event #9, p. 82. If you have already played event #9 during this mission or do not want to intervene, keep moving through town.
+- 5 The farm is besieged by 2d6 L3 Zombies, Slow Undead, 1 Life point each, Damage 1. If you defeat the zombies, the farmers will give you d6 Food points or d6 shotgun shells (choose) as a thank you.
+- 6 Play event #10 , p. 82. If you already played event #10 during this mission, roll on the Beasts table (p. 60) instead. You may avoid this encounter by performing a successful Stealth roll against the creature's L. Add +1 if you have the Stealth Skill. Add +2 if you have Stealth (Expert).  If the roll fails, you must fight the creature. If you defeat the creature, choose one of the following:
+
+- 1) You gain d3 Food points;
+- 2) You roll once on the Useful Stuff table on p. 26.
+
+## Alone against fear
+
+## Haunted House table (d6)
+
+- 1 Poltergeist . As you step inside, d6 objects fly at you. Defend against each as if it were a level 3 attack. Find 1 random object from the Useful Stuff table.
+
+The house is possessed by an evil entity . If you have the Faith Skill and the Exorcism ritual, you may try to exorcise the house as an L5
+
+- 2 Demon. If you fail the Exorcism attempt, lose 1 Sanity and 1 Life. If you succeed, gain 1 XP. Loot: 1  roll on the Random Book table on p. 73 (reroll if it is a book you already possess).
+- This  house  had  an impressive  occult  library .  Roll  twice  on  the Random Book table on p. 73. You may take one or both books (reroll
+- 3 duplicates). When you leave, you are attacked by a random creature from the Demonic Horrors table, p. 64. If you took two books, the creature will have +1 to its L.
+
+The Rosen House (UNIQUE LOCATION) . The Rosens were rumored to be devil worshippers who kidnapped children for sacrifices. The walls are covered with newspaper clippings. Outside the house there is a huge, ancient walnut tree where the Rosens were rumored to
+
+- 4 hang their victims. If you want to investigate, go to unique event #17. In any case, mark the location of the Rosen house on your map. It will remain the same for the whole campaign.
+
+Reroll this result if you already found the Rosen House.
+
+This  building  is  a  small puppet  theatre .  You  are  surrounded  by evil-looking puppets that have somehow taken a life of their own. 'Tell us a funny joke or we will kill you and use your bones to make more of  us!'.  If  you  have  a  book  of  jokes  with  you,  you  automatically appease them. Otherwise, make an L5 Charisma roll to improvise a
+
+- 5 joke. Add +1 if you have the Charisma Skill, +2 if you have Charisma (Expert).  If  they  are  not  entertained,  you  will  have  to  fight  them. Haunted Puppets, L4 animated object, immune to poison, vulnerable to fire . Treat as a single L4 creature with 4 Life, inflicting 1 Damage on a successful hit. You are surrounded and you may NOT use a grenade here. If you use a Molotov cocktail here, you will lose 1 Life.
+- 6 Amusement park . If you have a train ticket, you may pay for a ride and go to event #24. Otherwise, nothing happens.
+
+<!-- image -->
+
+## Store table (d6)
+
+A shot in the dark. You try to loot a store. As you enter, someone fires a warning shot. Make an L3 Charisma roll to persuade the shooter you mean no harm. Add +1 for Charisma, +2 for Charisma (Expert). If you succeed, the shooter will let you loot the store. If you fail, he will shoot again (defend
+
+- 1 against L4 or lose 2 Life) and then flee in the shadows. Once he goes, you may loot the store. You may: 1) roll once on the Random Objects table on p. 23; 2) roll twice on the Useful Stuff table on p. 26; 3) roll a 2 in 6 chance of finding a single, specific non-magical item of your choice from the Random Objects table (p. 23) or the Useful Stuff table (p. 26).
+
+Food store . You may pick up d6 Food points. However, if you do so, there's a 3 in 6 chance of an encounter with a random monster. Roll d6 to determine on which table to roll: 1 Undead (p. 61), 2 Beasts (p. 60), 3
+
+- 2 Slashers (p. 65), 4 Possessed (p. 62), 5 Demonic horrors (p. 64), 6 Lab Horrors (p. 66). If you do not pick up any Food, you avoid the chance of an encounter.
+
+Armory . There's a 4 in 6 chance of an encounter with a random monster. Roll d6 to determine on which table to roll: 1-2 Slashers (p. 65), 3-4 Undead (P. 61), 5-6 Possessed (p. 62). You automatically find d6 ammo for a ranged
+
+- 3 weapon of your choice. In addition, you may roll a 1 in 6 chance of finding any weapon on the weapon summary (p. 99) except antique weapons, scythes, and chainsaws. Roll once per weapon. If you find a weapon that uses ammo, you find 2d6 ammo for it as well.
+- 4 Picked clean. You find nothing here.
+
+Bookstore . Roll a 1 in 6 chance of finding an occult guide, 3 in 6 of finding a holy book. If neither are found, there is a 2 in 6 chance of finding a
+
+random book from the Random Books table. If you roll to find any books,
+
+- 5 you must also roll a 3 in 6 chance of random encounter. Roll d6, 1-3 Possessed (p. 62), 4-5 Witch children (p. 67), 6 Demonic horrors (p. 64), then roll on the appropriate table to determine monster type.
+
+Hardware Store. This store was raided, but there is still a chance of finding something useful. Roll a d6 for each item on this list: 3 in 6 chance of finding a hammer, 4 in 6 of shotgun with d6 shells, 5 in 6 of knife, 1 in 6 insecticide, 3 in 6 axe. No matter what you find, if you search the store you
+
+- 6 must also roll a 2 in 6 chance of a random encounter that will happen as soon as you pick up any objects. Roll d6 to determine on which table to roll: 1 Undead (p. 61), 2-3 Slashers (p. 65), 4 Possessed (p. 62), 5 Demonic horrors (p. 64), 6 Witch Children (p. 67).
+
+## sewers table (d6)
+
+- 1 You find an entrance to the sewers . You may ignore this or enter (play event #11, p. 83, if you do).
+
+As you walk close to the sewers, you are attacked by a giant rat thing. It fears fire: if you have a lit torch, a lighter, or if you use a Molotov cocktail, ignore this encounter.
+
+Giant Rat Thing : L3 Animal, 4 Life, Damage 1. Sacrifice 1 dose of rat poison and 1 Food point to automatically inflict
+
+- 2 2 Damage to the creature. If you roll a 1 on a Defense roll, you must Save vs L5 Infection. Add +1 if you have the Resilient Skill, +2 if you have Resilient (Expert). On a failure, you are infected and lose 1 Life every time you cross a box until you reach a Safe House or you use a dose from a first aid kit or disinfectant to clean the infected wound.
+- 3 You find something. Roll on the Random Objects Table on p. 23 or on the Useful Stuff table on p. 26 (your choice).
+- You see shadows of people moving through the sewers.
+- 4 Gain 1 Clue . If you want to follow them and investigate, play event #12 (see p. 83).
+
+You find a section of the sewers that can become a Safe
+
+- 5 House if you first clean it up from the 2d6 zombies (L3, Slow, Undead, 1 Life each, Damage 1) occupying it.
+- You have found a Hell Gate! You may attempt a ritual to close it with an L6 Magic roll (+1 if you have Will, +2 if you have Will Expert) if you have the necessary spell
+- 6 components and the Gate Arcane Skill. You take 1 Damage In any case. There is a 3 in 6 chance that the Gate is guarded by a random monster from the Demonic Horrors table (p. 64).
+
+
+## Railways table (d6)
+
+As you walk down the tracks, you are chased by a demonic creature in a clown mask . Save vs. L4 to Escape. Add +1 for Slippery Skill, +2 for Slippery (Expert). If you fail, you take 1 Damage and must fight. If you have the CLOWNFACE keyword, you may avoid this encounter with a successful L4 Charisma roll (the -1 modifier from a clown mask or a scarred face does not apply to this specific roll).
+
+Demonic Clown, L5 demon, 4 Life, Damage 1. The Demonic Clown has a 2 in 6 chance of ignoring any hit you inflict on him unless you are using a magic weapon (roll d6 for every hit you inflict, and on a 1 or 2 the wound is ignored).
+
+If you defeat the clown, you gain 1 XP. You may move away from this area or unmask him by playing event #13.
+
+You notice something interesting next to an abandoned train. Roll
+
+- 2 on the Random Objects table (p. 23). You may take this object if you want.
+
+Random encounter . Roll d6 to determine which table to use : 1
+
+- 3 Undead (p. 61), 2 Beasts (p. 60), 3-4 Slashers (p. 65), 5 Possessed (p. 62), 6 Demonic Horrors (p. 64).
+
+You enter an
+
+abandoned train
+
+to explore it. The inside is scrawled
+
+- 4 with ominous graffiti. Someone named WALRUS has signed the graffiti in red paint. Gain 1 Clue the first time you find this in the campaign. No effect if it happens again.
+
+You enter a train to explore it. A few seconds later, the train starts
+
+- 5 to move. If you rush out, play event #14 (p. 84). If you remain on the train, play event #16 (p. 84) instead.
+
+You explore a train. As you sit down to rest, a ghastly train steward appears and asks to see your ticket. If you have a train ticket, all is good and you move out as soon as the creature disappears. If you do not have a ticket, the ghost yells in your face.
+
+- 6 Save vs. L4 Fear or lose 1 Sanity. Add +1 if you have Will and +2 if you have Will (Expert). The ghost then disappears. If you lose your final point of Sanity here, you die of fright, becoming a ghost on this train.
+
+## school table (d6)
+
+- 1 Ancient Egypt exhibit . Fight with a Mummy! L4 Undead, 8 Life, Slow, Vulnerable to fire, Damage 1. Loot: 2 in 6 chance of 1 roll on the Random Magic Item table (p. 76) or 3 in 6 chance of 1 Clue (choose before rolling).
+- Abandoned primary school . Roll on the Children's Stuff table on p.
+- 2 56. Roll a 2 in 6 chance of an encounter with Witch Children (roll on the Witch Children table, p. 67).
+- 3 This  school  had  a small  horticultural  garden ,  or  a  still  working vending machine. Gain 1 Food point.  Roll a 1 in 6 chance of a random encounter from the Possessed table (p. 62).
+- School library . Roll a 2 in 6 chance of a random book, and a 2 in 6 chance of an encounter with d6 zombie children (L2 Undead, Slow, !
+- 4 Life  each,  Damage  1).  You  may  perform  a  Search  roll  here  after defeating the zombie children, if there are any, gaining 1 roll on the Children's Stuff table (p. 56) on a success.
+- 5 Art school . You find art materials (colors, brushes, etc.; they count as a single item if carried). There is a 1 in 6 chance of an encounter with a random monster. Roll d6 to determine on which table to roll: 1-2 Witch Children (p. 67), 3 Possessed (p. 62), 4 Unique Vampires (p. 71), 5-6 Demonic Horrors (p. 64). After rolling for encounters, you have a 2 in 6 chance of finding a sketchbook. You may ignore it or play event #35 if you pick it up. If you do not find the sketchbook, you may perform a Search roll and find 1 Clue on a success.
+- 6 Library .  You find d3 random books. There's a 3 in 6 chance of an encounter with a witch librarian. Make a L4 Charisma roll. Add +1 if you have the Charisma Skill, +2 if you have Charisma (Expert). On a success, the Witch Librarian lets you trade one of you objects or 2 Food per book desired (from the d3 books above). On a failure, you must fight. Her first attack is a spell (Save vs. L5 magic or lose 2 Sanity), then she will draw a knife (Damage 1). She is L4, 5 Life. If you choose to Escape from this encounter, the Witch Librarian will cast another spell at you (same rules as above) as you flee.
+
+## Children's stuff table (d6)
+
+- 1 You find a creepy doll with a blood spattered dress. You may take it if you wish. It counts as 1 carried object.
+- 2 You find a box of plastic construction bricks .  You may take it if you wish. It counts as 1 carried object.
+- 3 You find a sketchbook signed by a child aged 9. It contains disturbingly realistic paintings of parents with goat horns on their heads. You realize that the brown color used in the art is dried blood. Save vs. L2 Fear or lose 1 Sanity. Gain 1 Clue.
+- 4 You find a length of cord with several knots . If you have an occult guide, play event #36 (p. 94). You may keep the cord and go to event #36 as soon as you find an occult guide. Weight is negligible.
+- 5 You find a rubber mask. It looks like a clown's face. Weight is negligible. You may wear it if you want (add the keyword CLOWNFACE to your play sheet), but your Charisma rolls will be at -1 if you do.
+- 6 You find a pumpkin carved into a jack o' lantern . If you have a candle, you may light it and put it inside. Play event #40 (p. 95) if you do so. The pumpkin counts as 1 carried object.
+
+All of these findings are unique. If you roll a result that you already rolled during the current mission, reroll until you select something different. If you have already found or discarded all the above items and are required to roll on this table, you may choose to roll on the Useful Stuff (p. 26= or on the Random Object table on p. 23 instead.
+
+
+## Woods/park table (d6)
+
+- Werewolf  attack! Werewolf,  L4  Were,  8  Life,  Damage  2.  Silver weapons hit the were at +2. It has a 2 in 6 chance of surprise. At the beginning of the encounter, you must Save vs. L3 Fear or (choose):
+- 1 lose 1 Sanity, or be at -1 on Defense rolls for the duration of the encounter. Any Escape roll against the werewolf is at -1. After you have played this encounter twice in a game, ignore it and roll on the Beasts table (p. 60) instead.
+- 2 Safe area . As soon as you step into this area, you heal either 1 Life or 1 Sanity (your choice). This zone counts as a Safe House. You may heal 1 Life or 1 Sanity every time you come here.
+- 3 Slasher ! Roll on the Slashers table, p. 65. The encounter happens in the woods: the Slasher gets a +1 to his/her chance of surprise, but you get +1 to your Escape rolls.
+- 4 Eerie area. There is a 2 in 6 chance that this place is a Hell Gate. If so, you must also roll a 2 in 6 chance of a random encounter from the Demonic Horrors table, p. 64. You may attempt to close the Hell Gate if you know the Gate Arcane Skill and you have all the required equipment.
+- 5 Werewolf Pack! You are chased by d3+1 werewolves. They have a 2 in 6 chance of surprising you. They are L3 Weres, 1 Life point each, Damage 1. At the beginning of the encounter, Save vs. L3 Fear or (choose) lose 1 Sanity or be at -1 on Defense rolls until the end of this encounter.
+- 6 Hangman's Tree . You find d6 corpses hanging from a tree. There is  nothing you can do for them; they are dead. There is a 1 in 6 chance of finding a random object (roll on the Random Object, p. 23, or Useful Stuff table, p. 26, your choice) for each corpse you take down from the tree. Every time you do so, you must Save vs. L4 Fear. Add +1 for Will, +2 for Will (Expert). On a failure, lose 1 Sanity. After you have played this encounter twice in a game, ignore it and roll on the Beasts table (p. 60) instead.
+
+## Special events table (d6)
+
+Each of these events will happen only once in the game. As you play it, cross it off the table. If you get an event that has already occurred, reroll until you select a new one. Once all special events have happened, treat any additional results of Special Events as a 'House' result.
+
+- 1 The Kid . You meet Mark, a scrawny, wide-eyed kid who wants to join you for protection. If you refuse, he will go away. If you allow him to be with you, roll d6. On a 1-3, play event #26 (p. 88). On a 4-6, play event #37 (p. 94) instead.
+- 2 You find a blood-spattered random object from either the Random Objects  table  or  the  Useful  Stuff  table.  You  may ignore it or pick it up and play event #31 (p. 91).
+- 3 You spot a random object that is precariously balanced on some dangerous place. Feel free to invent the details, based on  your  location  and  the  object  type.  Reaching  the  object requires a L4 climbing roll. Add +1 if you have the Agile skill, and +2 if you have it at Expert level. On a failure, you fall down and lose 1 Life. On a success, you gain the object and climb down to safety. You may try as many times as you want.
+- 4 As you walk in front of a house, a ghastly face appears at a window .  Save vs. L3 Fear or lose 1 Sanity. If you choose to enter the building and investigate, play event #34 (p. 93). If you ignore the apparition, just carry on with your exploration.
+- 5 A chilly wind starts to blow .  Until  your next encounter is over, you may not use a torch, a candle, light any fire, or use a Molotov cocktail.
+- 6 You stumble upon a pool of yellow goo in the middle of the road. If you have a jar, you may pick up some.
+
+## Beasts table (d6) 1 XP
+
+- 1 Giant Albino Alligator ,  L4 Animal, Life 6, Damage 2, 1 in 6 chance of surprise (3 in 6 if encountered in the sewers). Every attack hitting the alligator has a 2 in 6 chance of bouncing off its hard skin.
+- 2 Zombie Dog , L3 Undead, Life 3, Damage 2. Escape rolls from the zombie dog are at -1. If you have dog food, or a dog toy, you may sacrifice it to distract the zombie dog and gain a +1 to your Escape roll.
+- 3 Large Rabid Dog , L5 Animal, Life 4, Damage 1, 2 in 6 chance of surprise. You may sacrifice 2 Food, 1 can of dog food, or 1 dog toy to distract it, gaining +2 to your Escape roll. A bite from the  dog  has  a  1  in  6  chance  of  infection.  If  you  have  an infection, you must use 1 point from a first aid kit within 3 boxes or lose 2 additional Life.
+- 4 Swarm of Large Vampire Bats , L5 Animal, Life 2, Damage 1, Flying (you may not Escape from this encounter). If you take any Damage from the bats, roll a 1 in 6 chance of infection at the end of the encounter. If you have an infection, you must use  1  point  from  a  first  aid  kit  within  3  boxes  or  lose  1 additional Life.
+- 5 Bone Monster , L4 Undead, Life 5, Damage 1. Baseball bats and hammers hit at +1. Bullets and projectiles of all types, including  arrows  and  crossbow  bolts,  strike  it  at  -1.  If  you defeat the Bone Monster and have read the Occult Guide (see Random Books table, p. 73), you may collect d3 doses of bone powder.
+- 6 Giant Wolf ,  L6  Animal,  Life  4,  Damage  2.  1  in  6  chance  of surprise if encountered in a park or a forest. Silver weapons hit it at +2. Escape rolls from this monster are at -1.
+
+## Undead table (d6) 1 xp
+
+- 1 2d6 Zombies , L2 Undead, 1 Life each, Damage 1. Zombies are Slow: you may Escape with no ill effect. You gain no XP if you flee. Zombies remain in  the  area.  If  you  are  killed  by  zombies,  you  become  a zombie and remain in this area.
+
+2 d6 Twitchers ,  L4  Undead,  1  Life  each,  Damage  1.  Twitchers  are faster,  smarter  zombies  that  lay  ambushes.  They  have  a    2  in  6 chance of  surprise. If you are killed by twitchers, you become a twitcher and remain in this area.
+
+3 d6 Flaming Skeletons , L3 Undead, 1 Life each, Damage 2. These are walking corpses whose flesh is perpetually on fire. They attack by touching with their fiery hands. Hammers and baseball bats strike them at +1. Molotov cocktails do no Damage against them. If you hit  them  with  an  unarmed  attack,  even  with  Martial  Arts,  you automatically take 1 Damage.
+
+- 4
+
+d6 Howlers , L3 Undead, 2 Life each, Damage 2. Howlers are walking dead with distorted faces who yell loudly as they claw at you.  At the beginning of the combat you must Save vs. L3 Fear  (add +1 if you have Will or +2 if you have it at Expert level) or lose 1 Sanity. At the end of the combat, there is a 2 in 6 chance that their howls will attract something (roll on this table again).
+
+- 5 Pumpkin Head , L4 Undead, 5 Life, Damage 1. Vulnerable to holy water. Before the combat, Save vs. L4 Fear (add +1 if you have Will or +2 if you have it at Expert level) or lose 1 Sanity.
+
+6
+
+Vampire , L5 Undead, 8 Life, Damage 2. Vulnerable to holy water. It will  not  appear  in  a  place  of  worship  (reroll  if  it  happens).  If confronted  with  a  religious  symbol,  roll  d6.  On  a  3  or  less,  the vampire flees. Roll once per encounter. See also garlic, p. 23, entry 15 on the table. A slain vampire will come back to life and attack you again (roll a 2 in 6 chance per every box traveled to meet the vampire BEFORE rolling for exploration of that box) unless you use a stake or destroy its body with holy water or fire. To destroy it with holy water, the last Life point must be taken by holy water; to destroy it by fire, you need matches and a can of fuel.
+
+## Possessed table (d6) 1 xp
+
+- 1 d6+1 Cultists, L2  Humans,  1  Life  each,  armed  with  knives (Damage 1). They are trying to capture sacrifices. You may avoid this encounter succeeding in an L5 Charisma roll and giving them one of the following items:  book, candle, 1 Food point each,1 magic item. Add +1 if you have Charisma and +2 if you have Charisma (Expert).
+- 2 Possessed Doll, L3 Artificial creature, 4 Life. Save vs. L4 Fear (add +1 if you have Will or +2 if you have it at Expert level) or lose  1  Sanity  when  you  first  meet  a  doll  in  the  campaign. Susceptible to exorcism.
+- 3 d6 Possessed Objects L2 Artificial creatures, 1 Life. They  have a 2 in 6 chance of surprise. Susceptible to exorcism.
+- Demon Cat, L4 Animal, 4 Life.  Has a 2 in 6 chance of surprise. Every turn, you must Save vs. L1 Magic or lose 1 Sanity and 1
+- Life. This is its only attack. Susceptible to exorcism. Once the
+- 4 cat has taken 2 or 3 points of Damage, roll a 4 in 6 chance that it will flee. You may distract the cat, gaining a +2 to your Escape roll if you use 1 can of cat food.
+- Demon Dog, L5 , 6 Life. Susceptible to exorcism. Vulnerable to holy water. If the encounter  happens in a place of worship or in an area neighboring a place of worship, as soon as the
+- 5 Demon Dog loses 3 Life, roll d6. On a 1 to 3, it flees. On a 4+, it continues to fight to the death. You may distract the dog, gaining a +2 to your Escape roll, using 1 can of dog food or 1 dog toy.
+- 6 d6 Possessed People, L3 Humans, 2 Life each. When the last one is killed, roll d6. If you roll a 1, play unique event #3. If you roll 2-6, ignore the roll.
+
+Possessed are demon-worshippers, or people, animals and objects powered by evil spirits.
+
+## Demonic horrors table (d6) 1 xp
+
+Demon child , L3 Demon, 3 Life. Each turn, Save vs. L3 Magic at +1 if you have Will, +2 if you have Will (Expert) or be cursed (-1 on all rolls until you perform 1 action that increases your Sanity or you remove
+
+- 1 the curse). After cursing you, s/he will attack physically, clawing for 1 Damage. Susceptible to exorcism and vulnerable to holy water. You may  distract  the  demon  child,  offering  any  one  object  from  the Children's Stuff table (see p. 56) gaining a +2 to your Escape roll.
+
+Succubus/Incubus, L4 Demon, 4 Life. Save vs. L5 seduction  (add +1 if you have Will or +2 if you have Will Expert) to avoid being seduced.
+
+- 2 If you are seduced, lose permanently 1 Life. If you resist the seduction, you  have  to  fight.  Susceptible  to  exorcism  and  vulnerable  to  holy water. The demon will appear as the gender of your preference.
+
+If you have the keyword SNOWY on your play sheet, play event #42, p. 97. Otherwise you meet a Demonic goat, L3 Demon, 4 Life, Damage
+
+- 3 1. If the goat inflicts any Damage, you are knocked down and must spend 1 action to stand up or Defend at -2. Susceptible to exorcism and vulnerable to holy water.
+
+Night shadow ,  L2  Demonic  Undead,  2  Life,  Damage  1.  It  may  be damaged only by attacks that roll 6, holy water, or magic weapons.
+
+- 4 Susceptible to exorcism and light-based attacks (flashlights hit at +2 for 1 Damage). Each hit inflicted by its chilly touch is either subtracted from (roll d6): Life points (on a 1-3) or Sanity (on a 4-6).
+
+Horned Demon, L5 Demon, 4 Life, Damage 2. At the beginning of the
+
+combat, Save vs. L6 Fear (add +1 if you have Will or +2 if you have Will
+
+- 5 Expert)  or  lose  1  Sanity.  Flying  (you  may  not  run  away  from  this encounter). Susceptible to exorcism and vulnerable to holy water.
+
+Hell  Hound, L4  Demon,  3  Life,  Damage  1.  Its  baying  may  attract monsters. Roll a 1 on 6 chance of this happening  at the end of combat. If monsters appear, roll again on this table, on the Possessed (p. 62) or on the Undead table on p. 61 (your choice) to determine which
+
+- 6 monsters attack you. Susceptible to exorcism and vulnerable to holy water. You gain a +1 to your Escape roll if you sacrifice 1 can of dog food or 1 dog toy. Even if you Escape, you must still roll a 1 in 6 chance of being attacked by a random monster attracted by the hell hound's baying.
+
+## slashers table (d6) 1 XP
+
+- 1 Rabbit-face, L4  Slasher  in  a  rabbit  mask,  6  Life,  armed  with  a sledgehammer (Damage 1, Damage 2 if your Defense roll is a 1). Loot: sledgehammer, d3 candles.
+- 2 The Polka-Dot-Dress Maniac, L5  Slasher, a large man in an old fashioned  polka  dot  woman's  dress,  4  Life,  armed  with  a  large kitchen knife (Damage 1). Has a 2 in 6 chance of  surprising you. Loot: knife.
+- 3 The Butcher, L3 Slasher, 8 Life, a huge man armed with a chainsaw (Damage 2). Loot: chainsaw, 1 Food point.
+- 4 Sarah the Mad, L4 Slasher, 5 Life, armed with a whip and a knife. If you roll a 1 on a Defense roll, in addition to taking 1 Damage  to her knife, you drop your weapon. If her Life is 2 or less, roll d6. On a 1-3 she flees; on a 4-6 she continues to fight. Loot: whip and knife.
+- 5 The  Blood-drinking  lady, L4  Slasher,  5  Life,  attacks  by  biting (Damage 1). If she inflicts any Damage, roll d6. On a 1 or 2, her Level goes up by 1, up to a maximum of 7. She has no weapons. You may not escape from the Blood-drinking Lady.
+- 6 The Boogeyman, L6 Slasher, 4 Life. Armed with a golf club (Damage 1). Has a 3 in 6 chance of surprising you. If he surprises you, you must also Save vs. L4 Fear or lose 1 Sanity. Loot: golf club.
+
+Slashers are human serial killers. There are six unique Slashers in the game. When you kill one, gain 1 XP and remove the Slasher from the table. If you meet again a Slasher that you crossed off the table,  count it as a no encounter. If you wound a Slasher and s/he flees and later (during the current mission or any future mission) you meet him/her again, the Slasher comes back fully healed. If you defeat a Slasher, you may take his/her weapon/s. Treat the weapon as its equivalent from the weapons table. You will not be able to use the disarming effect of Sarah's whip, but you can use it as a rope.
+
+Remember that you may hunt Slashers by spending a number of Clues equal to their L. See Hunting, p. 38.
+
+## Lab horrors table (d6) 1 XP
+
+Blob. L4, 8 Life, attacks by pseudopod trying to eat you on contact (Damage 1). If you found a book called The Blob Experiment , you will know that the creature takes 2 Damage from salt. The blob is Slow and Artificial. You may run away from the encounter and ignore it. If you return to the area later, the blob will still be there. However, its L will have increased to 5 and its Life to 10, and it is no longer Slow.
+
+Murdering Robot. L3 Artificial creature, 5 Life, Damage 1. The robot is immune to poison and magic (you may not even use curses against it). Any attack inflicted must roll d6. On a 1 to 3, the attack bounces off
+
+- 2 inflicting no Damage. Damage from grenades will not bounce off. You may attempt a L4 Save (+1 if you are Agile, +2 if you are Agile at Expert level) to turn off the robot by disabling some cables, but if you fail, the robot's next attack will hit you automatically.
+
+3 Mutant. L4  humanoid, 6 Life, Damage 1. The mutant has a 1 in 6 chance of surprising you. He has a 2 in 6 chance of possessing psionic powers. If it is so, at the beginning of every turn Save vs. L4 psionics (add +1 if you have Will, +2 if you have it at Expert level) or lose 1 Sanity each turn until it is killed or you Escape. If you have the Mutant Hunter Skill, you have +1 to your Attack and Defense rolls against this foe.
+
+4 Doppelganger. A L3 humanoid that appears exactly like you, but has no equipment and attacks with its stone-hard fingers. It has a number of Life points equal to your maximum. Damage 1.
+
+- 5
+
+Tentacled horror. L3, 5 Life, 2 attacks, Damage 1. If it hits you with both attacks, you may not Escape from this encounter until the horror is reduced to 1 Life. The first time you see the tentacled horror in the campaign, Save vs. L3 Fear (+1 if you have Will, +2 if you have Will Expert level) or lose 1 Sanity.
+
+- 6
+
+Giant bug. L4 Animal, 6 Life, Damage 1. Any attack inflicted must roll d6; on a 1, it bounces off the bug's exoskeleton and inflicts no Damage. The bug has a 2 in 6 chance of belonging to a flying species. In that case,  you  may  not  Escape  from  this  encounter.  Sacrifice  a  can  of Insecticide  to  automatically  inflict  2  Damage  upon  the  giant  bug. Damage from insecticide has no chance of bouncing off.
+
+## Witch children table (d6) 1 xp
+
+1 Witch Child . L4, 3 Life, no Damage. Each attack from the witch child causes a Save vs. L4 Fear. If you fail the Save, you must either lose 1 Sanity or leave the area (treat like a successful Escape roll). Loot: 2 in 6 chance of a book (roll on the Random Book table, p. 73) and a 3 in 6 of a roll on the Children's Stuff table (p. 56).
+
+2 d3+1 Children in Pumpkin Masks . L2, 1 Life each, armed with Damage 1 kitchen knives. Save vs. L3 Fear (add +1 if you have Will or +2 if you have it at Expert level) or lose 1 Sanity every time you kill a child. Loot: 2 in 6 chance of (choose) d3 Food or a random item from the Useful Stuff table (p. 26), or the Random Objects table (p. 23), your choice, + 1 knife per child defeated.
+
+3 Schax. L5 unique demon, 4 Life, Damage 1. He is a large humanoid crane, attacking with his long, pointed beak. Vulnerable to exorcism and holy water. Schax may not be killed: if you bring his Life to 0, he disappears in a pool of rotting flesh. You will encounter him again later with all wounds healed if you roll again this result. Each time you meet Schax, Save vs. L5 Fear  (add +1 if you have Will or +2 if you have Will (Expert) or lose 1 Sanity.
+
+4 d6 Children in Rabbit Masks . L2, 1 Life each, armed with Damage 1 sticks. Save vs. L3 Fear (+1 if you have Will, +2 if you have it at Expert level) or lose 1 Sanity each time you kill a child. If you do not want to kill them, you may attack them with bare hands (-2 on Attack rolls). Loot: Roll a 3 in 6 chance of d3 Food or 1 roll on the Children's Stuff table.
+
+5 Pied Piper. L3 apparition, unlimited Life. He plays his magic flute. Save vs. L4 Magic each turn  (add +1 if you have Will or +2 if you have it at Expert level) or be compelled to dance, unable to attack. Every time you dance, roll a 2 in 6 chance of losing either 1 Life point or 1 item (your choice). The piper has an unlimited number of Life points. Roll d6 every time you wound him. If the result is equal to or lower than the Life points you inflicted so far in this encounter, he disappears. Loot: 2 in 6 chance of d3 doses of bone powder.
+
+6
+
+- Master Scarecrow. L5 demon, 6 Life, 1 Damage, 2 Damage if you roll a 1 on a Defense roll. A Molotov cocktail thrown at it will destroy it automatically.  If  you  have  a  lighter  and  a  torch,  you  may  also automatically inflict 1 Damage every turn. Loot: 1 in 6 chance of d3 Food. It is armed with a scythe.
+
+## Alone against fear
+
+## Living Dolls table (d6) 1 xp
+
+Vivina , porcelain doll . L5 Artificial creature, 4 Life, no Damage. This doll cries and screams so loudly that you feel a sharp pain in your ears. You can try to calm her down by offering an object and passing a L3 Charisma roll. To see what object she craves, roll d6: 1) a candle, 2) a book, 3) a doll, 4) a knife, 5) 1 Food, 6) a bell.  If you do not have the required item or do not want to give it to Vivina or if you fail the roll, you will have to fight her. For every turn in which she is still crying, roll a 1 in 6 chance of a random encounter (p. 40). If any other creature arrives, you must decide whether to attack that creature or Vivina each turn.
+
+2 Muama, metal and leather doll. L6 Artificial creature, 6 Life, 1 Damage. Muama looks for fragments of a black mirror. If you have any, you can give them to her to avoid this encounter. If you have no black mirror, she will attack you, clawing at you with her coil-like arms.
+
+3 Mirina, rag doll . L6 Artificial creature. You may not fight her. Perform a L6 Will Save to resist her evil influence. If you fail, you will have to kill the next human you meet (Slashers are humans; if you meet a human that has no combat statistics, such as some friendly person who gives you Food or help, you automatically kill that person and lose 1 Sanity). If you Save, you move away and leave Mirina where she is. You will however encounter her again if you roll this result again OR if you visit again the box where you left her. Mirina is susceptible to exorcism, but you may try to exorcise her ONLY if you are not under her influence. If you exorcise her, remove her from the campaign.
+
+4 Maraya, wooden doll . L4 Artificial creature, 12 Life, 1 Damage. Maraya attacks you with a long rusty nail. If you roll a 1 on any Defense roll, she has stabbed you in an eye. You will be at -1 on all Attack rolls until the wound is healed (you must reach a clinic or a Safe House and heal 1 Life there). If she stabs both of your eyes, your adventure ends here. If you roll any explosive 6 when attacking her, you will knock her head off her body. This will not kill her, but as she scrambles to find her head and put it back on, you may automatically escape. If you meet Maraya again later, she will have healed all Damage you inflicted on her UNLESS it was inflicted by fire.
+
+5 Azolina , fabric doll . L5 Artificial creature,  6 Life, 1 Damage. Roll a L5 Will Save (+1 if you have Will, +2 if you have Will Expert) at the start of the encounter. If you pass it, you may move out of this box. If you fail, you will be drawn to hug her, and she will attack you. If you fail any Defense roll, Azolina will automatically choke you for 1 Damage every turn until you destroy her. If you pass the first Defense roll, you may try to Escape at -1.
+
+6 Kalina and Her Toy Dinosaur . L4 Artificial creature, 5 Life, Damage 1, and L4 toy dinosaur, 6 Life, 2 Damage. Kalina and her toy dinosaur will attack you at the same time, both by biting. Both are hit at +1 by fire-based attacks. Every turn, you must choose whom you attack, but if you attack Kalina, your Defense rolls against her dinosaur are at -1. If you destroy Kalina, her toy dinosaur will collapse to the ground. Loot: 3 in 6 chance of finding an item from the Useful Stuff table (p. 26) OR d6 candles (your choice) if you defeat Kalina.
+
+## Ghosts table (d6)
+
+- 1 The Bright Apparition. L3 Ghost. Save vs. L3 light or be partially blinded until the end of your next encounter (-1 on all  Attack, Defense and Magic rolls. Will rolls and Saves are unaffected). The ghost disappears after 1 turn, but you have a chance to exorcise it and gain 1 XP or 1 Clue from its words (your choice) if you successfully do so.
+- 2 Cold Air spirit. L4 Ghost, 4 Life, Damage 1. The ghost will blow freezing cold air at you. Save versus L4 cold (at +1 if you are wearing winter clothes) or  lose  1  Life  and  have  a  -1  on  all  Attack  rolls  for  the  duration  of  the encounter. Susceptible to exorcism.
+
+3 The Whispering Presence. L5 Ghost. Pass a L5 Will roll  (add +1 if you have Will or +2 if you have it at Expert level) or the ghost's whispers will lead you astray (move to a box that you already visited, rolling a 2 in 6 chance of a random encounter; if you cannot move to any boxes that you already visited,  just  move  to  a  random  neighboring box and roll for a random encounter AFTER resolving the encounter in that box). If you pass the Will roll, you may perform a L5 Charisma roll to ask him a question (if successful, you gain 1 Clue).
+
+- 4 The Face in the Mist. L4 Ghost. A thick fog surrounds you, and a grotesque face appears multiple times, trying to scare you. Roll three saves vs. L4 Fear. Add +1 if you have Will or +2 if you have it at Expert level. Lose 1 Sanity with each failure.
+- 5 The Tickling Ghost. L4 Ghost. It tickles you with its cold ectoplasm fingers. On every failed Defense roll, you take no Damage, but you drop 1 carried item of your choice. If you carry no items, the ghost will freeze your blood, inflicting 1 Damage with every touch. You may attack it only with magic weapons. Susceptible to exorcism. You may pick up your dropped objects at the end of the encounter, but if you escape, all dropped items are lost.
+
+6 The Ghost Librarian. L6 Ghost. You may try to exorcize him or ask him a question with a successful L4 Charisma roll. Add +1 for Charisma and +2 for Charisma Expert; gain 1 Clue on a success. You may continue asking questions until you have gained 3 Clues or you fail. If you fail, the Librarian will take away one of your books if you have any (choose one and delete it from your inventory). If you do not have any books, the next book you find in the campaign will vanish before you have any chance to read it.
+
+All ghosts without Life points may not be hit by Attack rolls. All ghosts with Life points take a maximum of 1 Damage by any attack not performed with a magic weapon. Ghosts are Undead, but they are NOT susceptible to holy water.
+
+## aliens table (d6) 1 xp
+
+- d6  Grays. L4  aliens,  1  Life,  Damage  1.  Armed  with  alien rayguns. In your hands, they have +1 to Attack rolls, Damage
+- 1 1,  Damage 2 vs. shadow creatures; on any Attack roll of 1 the gun stops working and there is nothing you can do to repair it. Loot: 1 raygun per alien.
+- 2 Alien Hunter. L6 alien, 8 Life, Damage 2, 4 in 6 chance of surprise.  If  you  are  not  surprised,  you  may  avoid  this encounter  with  a  L6  Stealth  roll.  Escape  rolls  against  the Hunter are at -1. Loot: 1 grenade.
+- 3 Alien beast. L6  alien,  6  Life,  Damage  2,  3  in  6  chance  of surprise. Every time you wound the alien, there is a 2 in 6 chance that a splash from its acid blood will hit you, inflicting 1 Damage if you fail a Defense roll.
+- 4 d6 Reptilians. L4 aliens, 2 Life each, Damage 1. Each blow that hits a reptilian has a 1 in 6 chance of bouncing off its scaly skin. Loot: 1 sword (equivalent to an authentic samurai sword in quality) each.
+- 5 d3 Mi -Go. L5 alien fungi, 1 Life each, Damage 2. Upon seeing these creatures, Save vs. L5 Fear or lose 1 Sanity. Each blow that hits a mi-go has a 2 in 6 chance of having no effect. Loot: 1 mysterious black stone covered in hieroglyphs. If you pick it up, read unique event #38.
+- 6 Tentacled  Beast. L4  alien,  4  Life,  Damage  1.  The  beast attacks  each  turn  with  4  tentacles.  You  must  defend separately from each tentacle. As long as the beast has 3 or 4 tentacles, you may not Escape from this encounter. For each point of Damage inflicted on the beast, it loses 1 tentacle.
+
+Various alien  civilizations  have  been  studying  Earth  since  ancient  times. Some  use  alien  beasts  as  watchdogs.  Aliens  are  very  interested  in understanding the reasons for the supernatural disaster that has opened up the Gates of Hell.
+
+## Unique Vampires table (d6) 1 XP
+
+- 1 Upyr. L5 Undead, vampire, 8 Life, Damage 1. When you encounter the Upyr, d6 Food points that you carry will rot. If more Food will rot than you carry, Save vs. L5 disease. Add +1 if you have the Resilient Skill, +2 if you have Resilient (Expert). If you fail, you must Save again with the same modifiers on every box until you reach a Safe House, where the disease stops. Vulnerable to holy symbols. Loot: 1 roll on the Random Objects table (p. 23).
+- 2 Wurdalak. L5 Undead, vampire, 8 Life, Damage 1. There is a 3 in 6 chance that this shapeshifting vampire will be in wolf form when encountered. In  wolf  form,  its  Damage  is  2,  and  you  have  -1  on  any  Escape  roll. Vulnerable to holy symbols.  Loot: 1 roll on the Useful Stuff table (p. 26).
+- 3 Kempir. L6 Undead, vampire, 6 Life, Damage 1. Every time she attacks, roll a 4 in 6 chance that she tries to suck blood from your knees. In this case, you defend at +2, but if you are hit, you automatically receive the Limping  injury  until  you  heal  ALL  Damage  (see  the  Injury  table). Vulnerable to holy symbols. Loot: 1 rope.
+- 4 Vehn. L6  Undead,  vampire,  5  Life,  Damage  1.  If  you  roll  a  1  on  any Defense roll, the Vehn tears away one large slice of your skin, giving you a -1 on Charisma rolls. The modifier remains until you heal all Damage. The Vehn takes 3 Damage (not 2) from holy water. No loot.
+- Vetala. L4 Undead, vampire, 6 Life, Damage 1. The Vetala can foretell the future: if you offer 6 Food (or 2 Life points in your blood) and pass a L5 Charisma roll, you may use the equivalent of one use of the Foretell
+- 5 Arcane Skill and the Vetala will let you move through her area. If you fail or do not attempt this, you must fight. The Vetala recovers 1 Life every time she damages you, up to her maximum Life. Loot: 2 rolls on the Random Object table on p. 23 or on the Useful Stuff table on p. 26.
+- 6 The Midnight Man. L6 Undead, vampire, 8 Life, Damage 2. 4 in 6 chance of surprise. If this dark-clad predator surprises you, he grabs your arms. You may not attack until you perform an L6 Strength roll. Roll at +1 if you have the Strong Skill, +2 if you have Strong (Expert). Until you are held, you take automatic Damage every turn. If you defeat the Midnight Man, instead of gaining 1 XP you may roll on the Rewards table on p. 71.
+
+These encounters happen only once per game. Reroll if you encounter again a vampire that you destroyed. Vampires are vulnerable to holy water, taking 2 Damage from a vial. In addition, they all use rules for a vampire returning from the dead (see vampire in the Undead table, p. 61).
+
+## Unique Zombies table (d6) 1 XP
+
+- 1 Zombie Tiger. L5 Undead, 6 Life, Damage 2. If you roll a 1 on a Defense roll, the zombie tiger savages your body and you MUST roll on the Injury table. If you already have 3 Injuries, lose 3 Life instead.
+- 2 Horde of Zombie Squirrels. L4 Undead, 8 Life, Damage 1. The whole horde is treated as a single creature. Every turn, roll a 2 in 6 chance of losing one carried item of your choice or 2 Food points (choose) until the horde is defeated.
+- 3 Your Zombie Pet. L3 Undead, 3 Life, Damage 1. Every turn, you must pass a L3 Will roll (add bonuses from the Will Skill), or you will be unable to attack your pet that has returned from the Pet Cemetery.
+- 4 Your Zombie Friend. L5 Undead, 4 Life, Damage 1, Slow. Every turn, you must pass a L3 Will roll. Add +1 if you have the Will Skill, and +2 if you have Will (Expert). If you fail, you will be unable to attack your recently deceased friend (spouse, relative, etc: you can embellish as desired) who returned from the grave to eat you.
+- 5 d6 Brain Eaters. L5 Undead, 1 Life, Damage 1. If you roll a 1 on a Defense roll when you are in combat with 3 or more brain eaters, you will be grabbed and will be unable to Escape until you reduce their number to 2 or below.
+- 6 Zombie Abominion. L7 Undead, 12 Life, Damage 2, Slow. If you Escape, the abominion will pursue you. Roll a 2 in 6 chance of encountering it again with ALL wounds healed in the next 3 boxes you cross. If you have an encounter in that box, you will have to resolve that encounter first and then meet the zombie abominion. If  you  manage  to  Escape  three  times  in  a  row,  the  Zombie Abominion will not pursue you anymore.
+
+These encounters may happen multiple times over the course of a campaign, but never more than once per game. If you roll an encounter that you already had during your current mission, reroll until you select a different encounter.
+
+## Alone against fear
+
+## Random book table (2d6)
+
+- 2 Necronomicon. Upon reading this book, you lose 1 Sanity, but you may spend XP to learn any one Arcane Skill of your choice.
+- 3 Holy Book. Reading this book, you either recover 2 Sanity or may spend 2 XP to gain the Demon Slayer or the Gate Arcane Skills.
+- 4 Pigface, an urban legend . After reading this book, if you meet Pigface, you have +1 to your Defense rolls vs. him. You know he has been cursed by Eliza Dunforth, a girl he has kidnapped. Pigface used to keep her in a farm just outside of town.
+- 5 Walrus the Clown's Joke Book. Walrus was a clown. He self-published books with his jokes and sold them at his shows. He used to wear a rubber clown mask because he was allergic to makeup.
+- 6 They  Are  Among  Us. This  book  reveals  factual  information  about aliens. You may learn the Alien Fighter Arcane Skill.
+- 7 The Exorcism Ritual. By reading this book you may learn the Exorcism Skill. You must have the Faith Skill or this won't work. You can keep the book and read it when you have the Faith Skill.
+- 8 Serial Killers Casebook. Reading this book allows you to Escape from a Slasher even if the encounter's description forbids it.
+- 9 Occult Guide. By reading this book, you learn some basic information on a variety of rituals and spells. The guide is a prerequisite for many game effects.
+- 10 De Masticatione Mortuorum In Tumulis. By reading this book, you gain a permanent +1 Attack bonus against any non-ghost Undead, but you must Save vs. L3 Fear (+1 if you have Will) or lose 1 Sanity.
+- 11 The Diabolical Deal. By readying this book you may learn several rituals. See the Arcane Skills section for details.
+- The Blob Experiment. You learn that the monster known as a blob is vulnerable to salt. If you ever encounter it, you can cause 2 automatic
+- 12 Damage by tossing salt at it. You have salt with you if you have at least 1 Food point when you read this book or if you find a bag of salt.
+
+You may find each book only once per game. If you roll a book that you already have, select the next or previous book on the table. For example, if you roll an 8 and you already have the Serial Killers Casebook, you may pick either The Exorcism Ritual or The Blob Experiment instead.
+
+## rewards table (d6)
+
+- 1 Recover 1 Life and 1 Sanity. Gain 1 XP.
+- 2 Recover 2 Life or gain 2 XP, your choice.
+- 3 Recover 2 Life and 1 Sanity or gain 1 XP, your choice.
+
+Gain 2 Food, and in addition recover 1 Sanity or gain 2 XP, your
+
+- 4 choice, or gain two random items from the Random Objects table on p. 23 or from the Useful Stuff table on p. 26, your choice.
+- Gain  d6  Food,  recover  1  Sanity  and  1    Life.  If  you  are  already
+- 5 carrying the maximum Food allowed and your Sanity and Life are at their full value, you may choose to gain 2 XP instead.
+- 6 Heal all Life and Sanity up to your starting values or gain 1 XP, your choice.
+
+## Side Mission table (d6)
+
+- 1 Bring in this box the head of a vampire or demon to claim the reward.
+
+Take a person from this box to a Safe House that has already been revealed. If no Safe Houses are in play, you must take
+
+- 2 this person to the most distant unrevealed box on the map (there is no guarantee that it will be a Safe House, and you will have to deal with any encounter in that box).
+- 3 Give 4 Food points to the next House encounter with helpful people to claim the reward.
+- 4 Defeat a random enemy from the Beasts table (p.60) to claim the reward. The combat happens in your current location.
+
+Perform a ritual to re-consecrate a church. The next church you discover in town will be a deconsecrated church unless you ALREADY have a deconsecrated church on the map.  You
+
+- 5 must have the Faith Skill and the Holy book, and use 3 candles in the ritual. As soon as this is accomplished, come back to this location to claim your reward.
+
+Bring here the mask of Walrus the Clown to claim the reward. This  side  mission  may  happen  only  once  in  the  campaign.
+
+- 6 Once  it  has  happened,  reroll  this  result  until  you  select  a different side mission.
+
+When  you  accept  a  Side  Mission,  you  may  alter  your  roll  on  the  Town Exploration table by +1 or -1 IF this lets you reach a location that is required to complete your Side Mission. Likewise, you may alter an encounter table by +1 or -1 if this lets you encounter a specific creature that you have to kill. For example, if you are trying to complete Side Mission 1 and you roll on the Undead table (p. 61),  you  may  count  a  roll  of  5  as  a  6  so  that  you  can encounter a vampire and kill it.
+
+## Random magic item table (d6)
+
+- 1 Ghost Blade. This  knife  may  hit  immaterial  targets  (ghosts)  and targets hit only by magic weapons. The blade strikes them at +1 and inflicts  2  Damage.  Against  other  targets,  it  counts  as  a  regular, Damage 1 knife, and hits at -1. It counts as 1 carried item.
+
+2 Hell Chain. This length of rusty chain is imbued with the pain and suffering of tortured souls. Each use costs you a L5 Will Save (lose 1 Sanity if you fail) but inflicts 1 automatic Damage against any target including spirits and demons. Once the chain has inflicted a total of 6 hits, it turns into a heap of rust and dried blood. It counts as 1 carried item.
+
+3 The Book of Hypnos. If you spend 1 XP when you read this grimoire, you learn the Sign of Hypnos, a spell that makes a single, living target (not Undead or Artificial, not an animated doll) fall asleep if you perform  a  Magic  roll  against  the  target's  L.  Add  +1  if  you  have Occultist and +2 if you have Occultist (Expert). You may try to use the Sign as many times as you want until you succeed. Once you succeed, you may not use the Sign of Hypnos again for the rest of the current game. The book counts as 1 carried item. The Sign of Hypnos is an Arcane Skill. You may spend a further 4 XP to know it at Expert level and be able to use the Sign twice per mission.
+
+- 4 Holy Bullets. These 2d6 bullets with holy inscriptions may be used with  a  pistol  only.  They  inflict  2  Damage  against  demons  and vampires. When you wound a demon or vampire with these bullets, roll d6. If you roll higher than their L, the wounded creature will flee. L6 creatures will flee if you roll a 6.
+- 5 Blessed Candle. You may burn this candle to recover 1 Sanity or remove a curse. You may also use it in any ritual requiring candles. Negligible weight.
+- 6 Amulet. Wearing this amulet gives you +1 to all saves vs. magic. Negligible weight. Multiple amulets do not have cumulative effect.
+
+If you roll an item that you already possess, you may reroll until you select something different.

@@ -1,0 +1,18 @@
+- [ ] Parse the epub
+- [ ] Split parsed output into sections
+  - [ ] Global rules
+    - [x] Skills
+    - [x] Arcane Skills
+    - [x] Weapons rules and random table
+    - [ ] Random Object table
+    - [ ] Usefull Stuff table
+    - [ ] Spells
+    - [ ] Combat rules
+    - [ ] Monster rules
+    - [ ] Differentiate between rules and rolling tables
+  - [x] How the game work
+  - [ ] Character sheets
+  - [ ] Town Map
+  - [x] Game Overview
+  - [x] Random skill generation
+  - [ ] Pregenerated Characters
