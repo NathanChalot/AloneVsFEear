@@ -83,33 +83,12 @@ The  monsters  remain  in  the  box from which you escaped. If you visit that bo
 
 ## Mental Scars and Injuries
 
-When you lose Sanity points in any event or encounter, you  may prevent that Sanity loss by rolling on the Insanity table. You may do so up to 3 times in the lifetime of your character. These Mental Scars are permanent.
+When you lose Sanity points in any event or encounter, you  may prevent that Sanity loss by rolling on the [Insanity table](tables/3_1_insanity_table.md). You may do so up to 3 times in the lifetime of your character. These Mental Scars are permanent.
 
-Likewise,  you  may  do  the  same with Life points, negating all Damage  from  a  single  attack  by rolling on the Injury table. You may do so up to 3 times in the lifetime of  your  character.  These  physical impairments are permanent.
+Likewise,  you  may  do  the  same with Life points, negating all Damage  from  a  single  attack  by rolling on the [Injury table](tables/3_2_injury_table.md). You may do so up to 3 times in the lifetime of  your  character.  These  physical impairments are permanent.
 
 When  you  roll  a  Mental  Scar  or Injury that you already have, reroll until  you  select  one  you  do  not have.
 
-## insanity table (d6)
-
-- 1 Paranoia . When you meet helpful people, you may not accept their Food or healing.
-- 2 Eating Disorder
-- . You require 1 Food every 3 boxes. Absent  Mindedness .  Every  time  you  need  a  material component for a ritual or a tool for a task, excluding weapons,
-- 3 roll d6. On a 1, that tool or object is unavailable. If you have a Safe House in play, you left that item at the Safe House. If you have no Safe House in play, the item is lost.
-- 4 Phobic . You have -1 on all rolls made to avoid losing Sanity or to resist Fear effects of any kind.
-- 5 Overconfidence . You may not make an Escape roll unless you are down to just 1 or 2 Life points.
-- 6 Shaky . Your maximum Sanity is permanently lowered by 1.
-
-## injury table (d6)
-
-- 1 Facial scar . You have a permanent -1 to your Charisma rolls.
-- 2 Impaired arm . You have a permanent -1 to your Attack rolls with hand-to-hand weapons.
-- 3 Eye damage . You have a  permanent -1 to your ranged Attack rolls.
-- 4 Limping . You have a permanent -1 on all Escape rolls.
-- 5 Brain damage . You have a permanent -1 to all Will and Magic rolls.
-- 6 Crippled arm . You lose the use of one arm. You may no longer use weapons that require two hands. You may still use rifles and shotguns with a -1 penalty.
-
 ## Stealth rolls
 
-Sometime, you are given the option to act unnoticed by an opponent or to slip past a guard. This requires a Stealth roll vs. the target's L. Roll at +1 if you have the Stealth Skill and at +2 if you have Stealth (Expert). If you succeed, you can either attack that opponent at +2 on your first attack (due to surprise) or slip past that  enemy  unnoticed  (you  may move  through  the  box  as  if  the opponent did not exist). If you fail, the enemy will attack and gain the initiative, acting before you, and will have +1 to its L for the duration of
-
-the combat.
+Sometime, you are given the option to act unnoticed by an opponent or to slip past a guard. This requires a Stealth roll vs. the target's L. Roll at +1 if you have the Stealth Skill and at +2 if you have Stealth (Expert). If you succeed, you can either attack that opponent at +2 on your first attack (due to surprise) or slip past that  enemy  unnoticed  (you  may move  through  the  box  as  if  the opponent did not exist). If you fail, the enemy will attack and gain the initiative, acting before you, and will have +1 to its L for the duration of the combat.
