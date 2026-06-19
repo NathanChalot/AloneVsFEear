@@ -1,0 +1,10 @@
+## Unique Zombies table (d6) 1 XP
+
+- 1 Zombie Tiger. L5 Undead, 6 Life, Damage 2. If you roll a 1 on a Defense roll, the zombie tiger savages your body and you MUST roll on the Injury table. If you already have 3 Injuries, lose 3 Life instead.
+- 2 Horde of Zombie Squirrels. L4 Undead, 8 Life, Damage 1. The whole horde is treated as a single creature. Every turn, roll a 2 in 6 chance of losing one carried item of your choice or 2 Food points (choose) until the horde is defeated.
+- 3 Your Zombie Pet. L3 Undead, 3 Life, Damage 1. Every turn, you must pass a L3 Will roll (add bonuses from the Will Skill), or you will be unable to attack your pet that has returned from the Pet Cemetery.
+- 4 Your Zombie Friend. L5 Undead, 4 Life, Damage 1, Slow. Every turn, you must pass a L3 Will roll. Add +1 if you have the Will Skill, and +2 if you have Will (Expert). If you fail, you will be unable to attack your recently deceased friend (spouse, relative, etc: you can embellish as desired) who returned from the grave to eat you.
+- 5 d6 Brain Eaters. L5 Undead, 1 Life, Damage 1. If you roll a 1 on a Defense roll when you are in combat with 3 or more brain eaters, you will be grabbed and will be unable to Escape until you reduce their number to 2 or below.
+- 6 Zombie Abominion. L7 Undead, 12 Life, Damage 2, Slow. If you Escape, the abominion will pursue you. Roll a 2 in 6 chance of encountering it again with ALL wounds healed in the next 3 boxes you cross. If you have an encounter in that box, you will have to resolve that encounter first and then meet the zombie abominion. If  you  manage  to  Escape  three  times  in  a  row,  the  Zombie Abominion will not pursue you anymore.
+
+These encounters may happen multiple times over the course of a campaign, but never more than once per game. If you roll an encounter that you already had during your current mission, reroll until you select a different encounter.
