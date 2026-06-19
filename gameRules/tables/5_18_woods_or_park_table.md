@@ -1,0 +1,9 @@
+## Woods/park table (d6)
+
+- Werewolf  attack! Werewolf,  L4  Were,  8  Life,  Damage  2.  Silver weapons hit the were at +2. It has a 2 in 6 chance of surprise. At the beginning of the encounter, you must Save vs. L3 Fear or (choose):
+- 1 lose 1 Sanity, or be at -1 on Defense rolls for the duration of the encounter. Any Escape roll against the werewolf is at -1. After you have played this encounter twice in a game, ignore it and roll on the Beasts table (p. 60) instead.
+- 2 Safe area . As soon as you step into this area, you heal either 1 Life or 1 Sanity (your choice). This zone counts as a Safe House. You may heal 1 Life or 1 Sanity every time you come here.
+- 3 Slasher ! Roll on the Slashers table, p. 65. The encounter happens in the woods: the Slasher gets a +1 to his/her chance of surprise, but you get +1 to your Escape rolls.
+- 4 Eerie area. There is a 2 in 6 chance that this place is a Hell Gate. If so, you must also roll a 2 in 6 chance of a random encounter from the Demonic Horrors table, p. 64. You may attempt to close the Hell Gate if you know the Gate Arcane Skill and you have all the required equipment.
+- 5 Werewolf Pack! You are chased by d3+1 werewolves. They have a 2 in 6 chance of surprising you. They are L3 Weres, 1 Life point each, Damage 1. At the beginning of the encounter, Save vs. L3 Fear or (choose) lose 1 Sanity or be at -1 on Defense rolls until the end of this encounter.
+- 6 Hangman's Tree . You find d6 corpses hanging from a tree. There is  nothing you can do for them; they are dead. There is a 1 in 6 chance of finding a random object (roll on the Random Object, p. 23, or Useful Stuff table, p. 26, your choice) for each corpse you take down from the tree. Every time you do so, you must Save vs. L4 Fear. Add +1 for Will, +2 for Will (Expert). On a failure, lose 1 Sanity. After you have played this encounter twice in a game, ignore it and roll on the Beasts table (p. 60) instead.
