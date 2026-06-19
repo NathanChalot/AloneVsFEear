@@ -20,37 +20,22 @@ You may move through boxes that you already visited, and you may Search  them  (
 
 You will often look for creatures or items or general information about the mysteries around you. Whenever you enter a box and you play  an  encounter  or  there  is nothing in the  box,  you  may perform a Search roll. Write an S in the  box  as  a  reminder  that  you searched  it. You  have  only  one chance of searching each box.
 
-Exceptions: you may NOT Search a Safe  House.  You  may  Search  a library multiple times, but the only thing you can find is 1 book or 1 Clue. To perform a Search, roll d6 on the Search table below. Add +1 if you have the Investigator Skill, or +2 if you have Investigator (Expert). A roll of 1 remains a 1: do not add modifiers if you roll a 1.
+Exceptions: 
+- you may NOT Search a Safe  House. 
+- You  may  Search  a library multiple times, but the only thing you can find is 1 book or 1 Clue. 
+
+To perform a Search, roll d6 on the [Search table](tables/5_1_search_rolls_table.md). 
+
+Add +1 if you have the Investigator Skill, or +2 if you have Investigator (Expert). 
+A roll of 1 remains a 1: do not add modifiers if you roll a 1.
 
 ## Hunting
 
-If  you  are  looking  for  a  specific creature  (for  example,  a  serial killer),  you  may  encounter  that creature  in  your  next  box  if  you spend a number of Clues equal to the  creature's  L.  Possessing  the Investigator  Skill  will  reduce  by  1 the  number  of  Clues  needed. Reduce  the  number  by  2  if  you have  Investigator (Expert).  The minimum cost is always 1 Clue.
+If  you  are  looking  for  a  specific creature  (for  example,  a  serial killer),  you  may  encounter  that creature  in  your  next  box  if  you spend a number of Clues equal to the  creature's  L.  
 
-## search rolls table (d6)
-
-- 1 Roll on the random encounter table, p.40.
-- 2-5 Nothing found.
-- 6 Success! Roll 4 times on the Useful Items table or on the Random Object table, and pick a single result, or Roll on the Random Book table (p.73) if you are in a Library; OR  gain 1 Clue.
-
-Roll at +1 if you have the Investigator Skill, +2 if you have Investigator (Expert). A roll of 1 remains a 1.
-
-## Random encounter table (roll d6, then another d6)
-
-- 1,2) Roll on the Slashers table, p. 65. Reroll any Slasher that  you  have  already  defeated  in  the  campaign.  If  all
-- 1 Slashers have been defeated, treat as no encounter.
-- 3-6) Roll on the Witch Children table, p. 67.
-- 1-3) Roll on the Demonic Horrors table, p. 64.
-- 4-6) Roll on the Beasts table, p. 60.
-- 1,2) Roll on the Lab Horrors table, p. 66.
-- 3 3-5) Roll on the Undead table, p. 61.
-- 6) Roll on the Unique Vampires table, p. 71.
-- 1-4) Roll on the Possessed table, p. 62.
-- 5,6) Roll on the Living Dolls table, p. 68.
-- 1-5) Roll on the Ghosts table, p. 69.
-- 6) Roll on the Aliens table, p. 70.
-- 1-3) Roll on the Unique Vampires table, p. 71.
-- 4-6) Roll on the Unique Zombies table, p. 72. When
-- 6 rolling on tables of Unique creatures, reroll any monster that was already killed. If all Unique monsters have been killed, treat as no encounter.
+Possessing  the Investigator  Skill  will  reduce  by  1 the  number  of  Clues  needed. 
+Reduce  the  number  by  2  if  you have  Investigator (Expert).  
+The minimum cost is always 1 Clue.
 
 
 ## Mission
