@@ -1,0 +1,13 @@
+## Ghosts table (d6)
+
+- 1 The Bright Apparition. L3 Ghost. Save vs. L3 light or be partially blinded until the end of your next encounter (-1 on all  Attack, Defense and Magic rolls. Will rolls and Saves are unaffected). The ghost disappears after 1 turn, but you have a chance to exorcise it and gain 1 XP or 1 Clue from its words (your choice) if you successfully do so.
+- 2 Cold Air spirit. L4 Ghost, 4 Life, Damage 1. The ghost will blow freezing cold air at you. Save versus L4 cold (at +1 if you are wearing winter clothes) or  lose  1  Life  and  have  a  -1  on  all  Attack  rolls  for  the  duration  of  the encounter. Susceptible to exorcism.
+
+3 The Whispering Presence. L5 Ghost. Pass a L5 Will roll  (add +1 if you have Will or +2 if you have it at Expert level) or the ghost's whispers will lead you astray (move to a box that you already visited, rolling a 2 in 6 chance of a random encounter; if you cannot move to any boxes that you already visited,  just  move  to  a  random  neighboring box and roll for a random encounter AFTER resolving the encounter in that box). If you pass the Will roll, you may perform a L5 Charisma roll to ask him a question (if successful, you gain 1 Clue).
+
+- 4 The Face in the Mist. L4 Ghost. A thick fog surrounds you, and a grotesque face appears multiple times, trying to scare you. Roll three saves vs. L4 Fear. Add +1 if you have Will or +2 if you have it at Expert level. Lose 1 Sanity with each failure.
+- 5 The Tickling Ghost. L4 Ghost. It tickles you with its cold ectoplasm fingers. On every failed Defense roll, you take no Damage, but you drop 1 carried item of your choice. If you carry no items, the ghost will freeze your blood, inflicting 1 Damage with every touch. You may attack it only with magic weapons. Susceptible to exorcism. You may pick up your dropped objects at the end of the encounter, but if you escape, all dropped items are lost.
+
+6 The Ghost Librarian. L6 Ghost. You may try to exorcize him or ask him a question with a successful L4 Charisma roll. Add +1 for Charisma and +2 for Charisma Expert; gain 1 Clue on a success. You may continue asking questions until you have gained 3 Clues or you fail. If you fail, the Librarian will take away one of your books if you have any (choose one and delete it from your inventory). If you do not have any books, the next book you find in the campaign will vanish before you have any chance to read it.
+
+All ghosts without Life points may not be hit by Attack rolls. All ghosts with Life points take a maximum of 1 Damage by any attack not performed with a magic weapon. Ghosts are Undead, but they are NOT susceptible to holy water.

@@ -1,0 +1,10 @@
+## school table (d6)
+
+- 1 Ancient Egypt exhibit . Fight with a Mummy! L4 Undead, 8 Life, Slow, Vulnerable to fire, Damage 1. Loot: 2 in 6 chance of 1 roll on the Random Magic Item table (p. 76) or 3 in 6 chance of 1 Clue (choose before rolling).
+- Abandoned primary school . Roll on the Children's Stuff table on p.
+- 2 56. Roll a 2 in 6 chance of an encounter with Witch Children (roll on the Witch Children table, p. 67).
+- 3 This  school  had  a small  horticultural  garden ,  or  a  still  working vending machine. Gain 1 Food point.  Roll a 1 in 6 chance of a random encounter from the Possessed table (p. 62).
+- School library . Roll a 2 in 6 chance of a random book, and a 2 in 6 chance of an encounter with d6 zombie children (L2 Undead, Slow, !
+- 4 Life  each,  Damage  1).  You  may  perform  a  Search  roll  here  after defeating the zombie children, if there are any, gaining 1 roll on the Children's Stuff table (p. 56) on a success.
+- 5 Art school . You find art materials (colors, brushes, etc.; they count as a single item if carried). There is a 1 in 6 chance of an encounter with a random monster. Roll d6 to determine on which table to roll: 1-2 Witch Children (p. 67), 3 Possessed (p. 62), 4 Unique Vampires (p. 71), 5-6 Demonic Horrors (p. 64). After rolling for encounters, you have a 2 in 6 chance of finding a sketchbook. You may ignore it or play event #35 if you pick it up. If you do not find the sketchbook, you may perform a Search roll and find 1 Clue on a success.
+- 6 Library .  You find d3 random books. There's a 3 in 6 chance of an encounter with a witch librarian. Make a L4 Charisma roll. Add +1 if you have the Charisma Skill, +2 if you have Charisma (Expert). On a success, the Witch Librarian lets you trade one of you objects or 2 Food per book desired (from the d3 books above). On a failure, you must fight. Her first attack is a spell (Save vs. L5 magic or lose 2 Sanity), then she will draw a knife (Damage 1). She is L4, 5 Life. If you choose to Escape from this encounter, the Witch Librarian will cast another spell at you (same rules as above) as you flee.

@@ -1,0 +1,24 @@
+## Beasts table (d6) 1 XP
+
+1 
+Giant Albino Alligator ,
+L4 Animal,
+Life 6,
+Damage 2,
+1 in 6 chance of surprise (3 in 6 if encountered in the sewers). 
+Every attack hitting the alligator has a 2 in 6 chance of bouncing off its hard skin.
+
+2
+Zombie Dog , L3 Undead, Life 3, Damage 2. Escape rolls from the zombie dog are at -1. If you have dog food, or a dog toy, you may sacrifice it to distract the zombie dog and gain a +1 to your Escape roll.
+
+3
+Large Rabid Dog , L5 Animal, Life 4, Damage 1, 2 in 6 chance of surprise. You may sacrifice 2 Food, 1 can of dog food, or 1 dog toy to distract it, gaining +2 to your Escape roll. A bite from the  dog  has  a  1  in  6  chance  of  infection.  If  you  have  an infection, you must use 1 point from a first aid kit within 3 boxes or lose 2 additional Life.
+
+4
+Swarm of Large Vampire Bats , L5 Animal, Life 2, Damage 1, Flying (you may not Escape from this encounter). If you take any Damage from the bats, roll a 1 in 6 chance of infection at the end of the encounter. If you have an infection, you must use  1  point  from  a  first  aid  kit  within  3  boxes  or  lose  1 additional Life.
+
+5
+Bone Monster , L4 Undead, Life 5, Damage 1. Baseball bats and hammers hit at +1. Bullets and projectiles of all types, including  arrows  and  crossbow  bolts,  strike  it  at  -1.  If  you defeat the Bone Monster and have read the Occult Guide (see Random Books table, p. 73), you may collect d3 doses of bone powder.
+
+6
+Giant Wolf ,  L6  Animal,  Life  4,  Damage  2.  1  in  6  chance  of surprise if encountered in a park or a forest. Silver weapons hit it at +2. Escape rolls from this monster are at -1.

@@ -98,15 +98,11 @@ you  may  be  looking  for  a  way  to stop the forces of evil from taking over 
 
 ## Mapping
 
-Your journey is mapped in a series of 'boxes'. Each box represents a different location. When you step into a box, you number it (1, 2, 3, etc.) and roll on a table to generate events and potential opponents for that  area.  You  fight  monsters  by rolling dice and  taking tactical decisions,  keeping  a  tally  of  the resources you use. Certain locations  are  safe  areas  and  give you the opportunity to rest and lick your  wounds.  But  don't  get  too comfortable,  because  no  location
-
-is safe forever.
+Your journey is mapped in a series of 'boxes'. Each box represents a different location. When you step into a box, you number it (1, 2, 3, etc.) and roll on a table to generate events and potential opponents for that  area.  You  fight  monsters  by rolling dice and  taking tactical decisions,  keeping  a  tally  of  the resources you use. Certain locations  are  safe  areas  and  give you the opportunity to rest and lick your  wounds.  But  don't  get  too comfortable,  because  no  location is safe forever.
 
 ## Events
 
-In some cases, some rules will let you move to specific events. These
-
-events  are  on  a  numbered  list starting  on  p.  78.  DO  NOT  READ THESE  IN  ADVANCE.  Doing  so would just spoil your enjoyment of the game.
+In some cases, some rules will let you move to specific events. These events  are  on  a  numbered  list starting  on  Events p.  78.  DO  NOT  READ THESE  IN  ADVANCE.  Doing  so would just spoil your enjoyment of the game.
 
 ## Character Death or Insanity
 
@@ -136,9 +132,7 @@ To play Alone Against Fear, you need this  book,  two  standard  six-sided dice,
 
 ## Dice Codes
 
-The  game  uses  regular  six-sided dice.  We  use  the  following  dice
-
-codes and formulas:
+The  game  uses  regular  six-sided dice.  We  use  the  following  dice codes and formulas:
 
 d3: roll a six-sided die and halve it, counting 1-2 as 1, 3-4 as 2, and 5-6 as  3,  thus  generating  a  number from 1 to 3.
 
@@ -209,8 +203,7 @@ Sanity is a measure of  how mentally sound you are. You lose Sanity  by  meeting
 
 You may at any moment prevent the loss of 1 or 2 Sanity points by rolling  on  the  Insanity  table.  This will give you a lasting Mental Scar . When you have 3 Mental Scars, you may no longer roll on the Insanity table and must accept any Sanity loss you receive.
 
-Between games, Sanity is restored to its maximum, but Mental Scars
-remain until the character's death.
+Between games, Sanity is restored to its maximum, but Mental Scars remain until the character's death.
 
 ## Life
 
@@ -218,9 +211,7 @@ Life  is  a  measure  of  the  physical punishment you can take. You take wounds
 
 During the game, you may prevent the  loss  of  1  or  2  Life  points  by rolling on the Injury table. This will inflict some sort of lasting Injury on your character. Once you have received three lasting Injuries in the lifetime of a character, you may no longer prevent the loss of Life by rolling on the Injury table.
 
-Between games, all  your  wounds heal and your Life total goes back to its starting maximum value, but Injuries  remain.  In  a  few  cases, miracles  or  healing  powers  may remove your Injuries, but that's a
-
-rare event - don't count on it.
+Between games, all  your  wounds heal and your Life total goes back to its starting maximum value, but Injuries  remain.  In  a  few  cases, miracles  or  healing  powers  may remove your Injuries, but that's a rare event - don't count on it.
 
 ## Food
 
@@ -252,9 +243,7 @@ Example:  A  Strong  (Expert) character with a backpack will be able to carry a 
 
 ## Skills
 
-Your  character  begins  with  TWO Skills. Choose them from the following list. These initial Skills are free,  so  ignore  the  XP  cost  in parentheses after the Skill's name. The costs are used for Skills learned during  the  game.  All  Skills  have  a Basic and an Expert version. You may not have Expert Skills at the beginning of the game. You may learn the Expert version only if you already  know  the  basic  version. Skills may be added at any moment in the game, after paying their XP
-
-cost.
+Your  character  begins  with  TWO Skills. Choose them from the following list. These initial Skills are free,  so  ignore  the  XP  cost  in parentheses after the Skill's name. The costs are used for Skills learned during  the  game.  All  Skills  have  a Basic and an Expert version. You may not have Expert Skills at the beginning of the game. You may learn the Expert version only if you already  know  the  basic  version. Skills may be added at any moment in the game, after paying their XP cost.
 
 ## Agile (8 XP)
 
@@ -413,9 +402,6 @@ Expert: the bonus becomes +2.
 ## Curse (2 XP)
 
 Components:  lighter  or  box  of matches.
-
-## Alone against fear
-
 Sacrifice: 1 candle, 1 dose of bone powder.
 
 You may learn this ritual from one of the following books:
@@ -452,7 +438,7 @@ To learn this ritual, you must have the Occultist Skill at Basic or Expert level
 - Necronomicon
 - Occult Guide
 
-Performing the ritual takes  2 boxes of time. At the end of the ritual,  you  gain  d6  Luck  points. During the game, you may spend 1 Luck point to avoid 1 Damage or
+Performing the ritual takes  2 boxes of time. At the end of the ritual,  you  gain  d6  Luck  points. During the game, you may spend 1 Luck point to avoid 1 Damage or gain  +1  on  an  Attack  or  Defense roll. You may not apply more than 1  Luck  point  at  a  time.  You  may perform  this  ritual  only  once  per mission.
 
 ## Exorcism (2 XP)
 
@@ -475,11 +461,6 @@ Expert: add +1 to your roll.
 ## Foretell (2 xp)
 
 Components: Black mirror
-
-## Alone against fear
-
-gain  +1  on  an  Attack  or  Defense roll. You may not apply more than 1  Luck  point  at  a  time.  You  may perform  this  ritual  only  once  per mission.
-
 Sacrifice: 1 candle
 
 To learn this ritual, you must read one of the following books:
@@ -501,9 +482,7 @@ To learn this Arcane Skill, you need to do one of the following:
 - Read  the  Diabolical  Deal  and lose 1 Sanity point (temporary loss);
 - Have the Occultist Skill (Basic or Expert) and spend 5 Clues in a box with a Hell Gate.
 
-Using this Arcane Skill, you close a Hell Gate. You must perform an L6 Will roll. Roll at +1 if you have Will, and +2 if you have Will (Expert). A failed  attempt  costs  1  Life  and  1 Sanity  as  the  energies  of  the  hell
-
-gate course through you. You may try as many times as you want, until you run out of Life or Sanity points.
+Using this Arcane Skill, you close a Hell Gate. You must perform an L6 Will roll. Roll at +1 if you have Will, and +2 if you have Will (Expert). A failed  attempt  costs  1  Life  and  1 Sanity  as  the  energies  of  the  hell gate course through you. You may try as many times as you want, until you run out of Life or Sanity points.
 
 ## Healing (4 XP)
 
@@ -515,9 +494,7 @@ Once per mission, you perform a ritual  that  heals  up  to  4  Life.  You may l
 
 ## Mutant Hunter (2 XP)
 
-You  may  learn  this  Arcane  Skill from  a  computer  printout  about
-
-mutants.
+You  may  learn  this  Arcane  Skill from  a  computer  printout  about mutants.
 
 You gain +1 to Attack and Defense rolls against any mutants.
 
@@ -529,17 +506,13 @@ Components:  art  materials,  ritual dagger
 
 Sacrifice: 7 candles.
 
-To learn the Pentagram ritual, you must  read  one  of  the  following
-
-books:
+To learn the Pentagram ritual, you must  read  one  of  the  following books:
 
 - The Diabolic Deal
 - The Necronomicon
 - The Occult Guide
 
-After  performing  this  ritual,  you gain a +1 to Defense rolls against
-
-all  demons  until  the  end  of  the current  mission.  If  you  have  a Pentagram cast upon yourself, you may not use the Summon Servitor Arcane  Skill.  You  may  however 'break' the pentagram  at  any moment.  You  may  then  cast  it again by sacrificing another  7 candles.
+After  performing  this  ritual,  you gain a +1 to Defense rolls against all  demons  until  the  end  of  the current  mission.  If  you  have  a Pentagram cast upon yourself, you may not use the Summon Servitor Arcane  Skill.  You  may  however 'break' the pentagram  at  any moment.  You  may  then  cast  it again by sacrificing another  7 candles.
 
 ## Summon Servitor (2 xp)
 
@@ -553,11 +526,7 @@ To  learn  the  Summon  Servitor Arcane Skill, you must fulfill one of the follo
 - Read the Occult guide and have the Occultist Skill (Expert);
 - Read  the  Diabolical  Deal  and have the Occultist Skill (Basic or Expert).
 
-You spend 1 box of time preparing the ritual and casting it. Choose the L  of  the  Servitor  you  want  to summon. The more powerful the servitor, the more difficult to summon it and control it. Its L can be 2, 4, or 6. Then perform a Magic Roll against that L, adding +1 if you
-
-## Alone against fear
-
-have Occultism and +2 with Occultism (Expert). On a failure, you lose 1 Sanity and the servitor does not appear. You can try again  as many  times  you  want,  but  each failed attempt will cost you 1 Sanity.
+You spend 1 box of time preparing the ritual and casting it. Choose the L  of  the  Servitor  you  want  to summon. The more powerful the servitor, the more difficult to summon it and control it. Its L can be 2, 4, or 6. Then perform a Magic Roll against that L, adding +1 if you have Occultism and +2 with Occultism (Expert). On a failure, you lose 1 Sanity and the servitor does not appear. You can try again  as many  times  you  want,  but  each failed attempt will cost you 1 Sanity.
 
 If  you  succeed,  you  must  now control the creature. Perform a Will roll at +1 if you have Will, +2 if you You  may  attempt  to  summon another  servitor, repeating  the same procedure described above, only when the previous one dies. You may not have two servitors at the  same  time.    You  may  at  any moment dismiss a controlled Servitor. It will just disappear if you so wish.
 
@@ -567,7 +536,8 @@ Once you control the Servitor, it will move with you. It can become invisible at
 
 You can use it to fight as if it were another character. It will  have  a bonus to Attack and Defense rolls equal to half its L, and a number of Life points equal to its L. The creature will always fight in your place  until  it  reaches  0  Life  and disappears. When you encounter multiple foes, you must split their attacks  as  equally  as  possible between yourself and the Servitor.
 
-<!-- image -->
+
+## Weapon rules
 
 |   Random weapon table (d6) | Random weapon table (d6)                     |
 |----------------------------|----------------------------------------------|
@@ -579,8 +549,6 @@ You can use it to fight as if it were another character. It will  have  a bonus 
 |                          6 | Rifle with 2d6 bullets.                      |
 
 Roll on this table at character creation to determine what weapon you have managed to find. You automatically have a knife or club/stick in addition to the weapon rolled.
-
-## Weapon rules
 
 All weapon rules are found in the Weapon Summary Table at the end of the book.
 
@@ -634,9 +602,6 @@ Ammo does not count as a carried item. Grenades count as a carried item.  If  yo
 - werewolves).
 - 56 Creepy looking doll.
 - 61 Computer print-out. Somebody printed out a whole book. Roll on the Random Book table on p.73, rerolling any result of 2 or 12.
-
-## Alone against fear
-
 - 62 Journal. Keeping  a  journal  will  help  you  focus  and  learn  from  your experience. If you have a journal, every time you accumulate 5 XP, you gain 1 extra XP.
 - 63 Crescent shaped silver amulet. May be used to create 2 silver bullets if you have smelting equipment. If worn, it gives you +1 to Escape rolls against werewolves.
 - 64 Box of nails . May be useful to nail shut a coffin and also for some spells.
@@ -684,7 +649,6 @@ Ammo does not count as a carried item. Grenades count as a carried item.  If  yo
 - 53 Kitchen knife. Damage 1, -1 on Attack rolls. It breaks if you roll a 1 on the Attack roll.
 
 ## Useful stuff table (continued, d66)
-
 - 54 Cell phone. There is no reception or electricity to recharge it. Negligible weight.
 - d6 painkillers. For each painkiller taken, roll d6. If you roll any 1, you gain -1 on all your die rolls for the next 3 boxes. If you roll 2-4, no effect. On a 5 or 6, heal 1 Life for each 5 or 6 rolled. If you take
 - 55 additional doses and roll any 1 while under the effect of painkillers, not only you get the -1, you also lose 2 Life. You are considered under the effect of painkillers as long as you have a -1 to die rolls because of painkillers.
