@@ -4,12 +4,12 @@
     - [x] Skills
     - [x] Arcane Skills
     - [x] Weapons rules and random table
-    - [ ] Random Object table
-    - [ ] Usefull Stuff table
-    - [ ] Spells
-    - [ ] Combat rules
-    - [ ] Monster rules
-    - [ ] Differentiate between rules and rolling tables
+    - [x] Random Object table
+    - [x] Usefull Stuff table
+    - [x] Spells
+    - [x] Combat rules
+    - [x] Monster rules
+    - [x] Differentiate between rules and rolling tables
   - [x] How the game work
   - [ ] Character sheets
   - [ ] Town Map

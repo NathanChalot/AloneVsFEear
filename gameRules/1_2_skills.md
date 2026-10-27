@@ -1,6 +1,13 @@
 ## Skills
 
-Your  character  begins  with  TWO Skills. Choose them from the following list. These initial Skills are free,  so  ignore  the  XP  cost  in parentheses after the Skill's name. The costs are used for Skills learned during  the  game.  All  Skills  have  a Basic and an Expert version. You may not have Expert Skills at the beginning of the game. You may learn the Expert version only if you already  know  the  basic  version. Skills may be added at any moment in the game, after paying their XP cost.
+Your  character  begins  with  TWO Skills.
+Choose them from the following list.  These initial Skills are free,  so  ignore  the  XP  cost  in parentheses after the Skill's name.
+The costs are used for Skills learned during  the  game.  
+
+All  Skills  have  a Basic and an Expert version. 
+You may not have Expert Skills at the beginning of the game. 
+You may learn the Expert version only if you already  know  the  basic  version. 
+Skills may be added at any moment in the game, after paying their XP cost.
 
 ## Agile (8 XP)
 

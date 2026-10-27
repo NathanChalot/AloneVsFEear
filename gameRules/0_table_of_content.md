@@ -1,6 +1,6 @@
 ## Table of Contents
 
-| Contents                          |          | Weapon Rules                            | 21    |
+| Contents                          |          |
 |-----------------------------------|----------|-----------------------------------------|-------|
 |                                   |          | Random Objects Table                    | 23    |
 | Table of Contents                 | 4        | Useful Stuff Table                      | 26    |
@@ -25,8 +25,7 @@
 |                                   |          |                                         | 39    |
 | Skills                            | 12       | Search Rolls                            |       |
 | Random Weapon Table               | 21       | Search Table                            | 39    |
-
-## Alone against fear
+| Weapon Rules                      | 21       |
 
 | Random Encounter                | 40    | Ghosts Table                   |   69 |
 |---------------------------------|-------|--------------------------------|------|
