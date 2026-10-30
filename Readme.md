@@ -74,7 +74,7 @@ Understand and diagram how the game works in domain terms before coding. Lives i
 - [x] [Rolls and tags](design/rolls.md), grown as we go
 - [x] [Combat](design/combat.md): attack, defense, surprise, escape, groups and waves, ammo, armor
 - [x] [Encounters and tables](design/encounters.md): how table results chain, choices, left-behind encounters, Unique Events
-- [ ] Effects and game moments: the two core concepts found so far (modifiers, lifetimes, reactions to moments)
+- [x] [Effects and game moments](design/effects.md): holders, kinds, lifetimes, moments, reactions
 - [ ] Town map: grid shape, sheets, distances (was D5; uses the town map transcription)
 - [ ] MVP scope: which tables, creatures and events, and the fallback for the rest (was D6)
 - [ ] Review the engine tasks below against the design

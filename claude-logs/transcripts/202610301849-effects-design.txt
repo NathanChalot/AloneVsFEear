@@ -1,0 +1,431 @@
+ ▐▛███▛█   Claude Code v2.1.314
+▝▜██████▀  Opus 5.5 · Claude Pro
+ ▝▝   ▝▝   ~/Code/RPGs/AloneVsFEear
+
+
+❯ Lets continue from where we stand, look at the nextSession                    
+
+  Read 2 files, ran 5 shell commands (ctrl+o to expand)
+
+⏺ All PRs #1–#5 are merged, so the next session is Effects and game moments.
+  I'll set up the worktree, then search the rules text for timing/duration
+  language to build the moment list directly from the book.
+
+  Ran 7 shell commands (ctrl+o to expand)
+
+⏺ Still gathering sources. The rules treat a box as both a place and a unit of
+  time ("2 boxes of time" for a ritual), and that matters for the model. Two
+  more checks before I draft design/effects.md.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Sources are in. Drafting design/effects.md now. It covers the model only;
+  anything that would be a ruling goes into questions for you.
+
+⏺ Write(~/Code/RPGs/AloneVsFEear-effects/design/effects.md)
+  ⎿  Wrote 158 lines to ~/Code/RPGs/AloneVsFEear-effects/design/effects.md
+       1 # Effects and game moments
+       2 
+       3 The two concepts every topic so far ran into: **effects** change
+          the rules, **moments** are the points in play that effects hook
+          into. This page gathers what the [character](character.md), [in
+         ventory](inventory.md), [combat](combat.md) and [encounters](enc
+         ounters.md) pages found about them. Words are defined in the [gl
+         ossary](glossary.md). Interpretations go to [rulings](rulings.md
+         ).
+       4 
+     … +154 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Update(~/Code/RPGs/AloneVsFEear-effects/design/effects.md)
+  ⎿  Added 1 line, removed 1 line
+      154  Details that do not change the model.
+      155  
+      156  - Whether "every time you cross a box" (Sewers infection) coun
+           ts the box where it was caught.
+      157 -- Whether "until the end of the campaign" on a character's Sav
+          -e bonus (#28's demon) survives the character.                 
+      157 +- Whether "until the end of the campaign" on a character's Sav
+          +e bonus (#28) survives the character.                         
+      158  - Effects with an unlimited count but a stop condition ("as ma
+           ny times as you want until you succeed").
+
+⏺ The draft is ready at design/effects.md in the new worktree
+  (../AloneVsFEear-effects, branch docs/effects-design). Three points would
+  change the model, and they're your call:
+
+⏺ User answered Claude's questions:
+  ⎿  · Stacking: the book limits stacking case by case: Agile/Dodge "use one or 
+     the other", "multiple amulets do not have cumulative effect", a Good Shot 
+     bonus "not cumulative". It says nothing in general. Example: two separate 
+     curses each give -1 on all rolls. Do they add up to -2? → Stack unless 
+     stated but it might be worthy to double check by searching online
+     · Reaction order: when several reactions fire on the same moment and the 
+     book gives no order (e.g. at combat end: the chainsaw's 1 in 6 zombies, the
+     grenade's 3 in 6 encounter and Medic healing), who decides the order? 
+     Damage taken already has its own ruled order (armor, Luck, Injury). → I 
+     need some exaomple to better understand this
+     · Box of time: reading an occult book "uses d3 boxes of time", a ritual 
+     "takes 2 boxes of time" (1_3_arcane_skills.md). Moving to a box does both 
+     things: time passes and you enter a place. What does a box of time without 
+     moving do? → Advances the clock only (Recommended)
+
+⏺ Web Search(""Alone Against Fear" Four Against Darkness modifiers stack
+            cumulative bonuses")
+  ⎿  Did 1 search in 5s
+
+⏺ Web Search(""Four Against Darkness" do bonuses stack rules question
+            boardgamegeek")
+  ⎿  Did 1 search in 4s
+
+⏺ Web Search("Four Against Darkness FAQ bonuses cumulative "do not stack"
+            Sfiligoi")
+  ⎿  Did 1 search in 6s
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Appending an Effects section to the rulings with your two decisions:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Now updating effects.md to point at the rulings instead of the open questions:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Python is blocked by the repo's .tool-versions (that's Milestone 4), so I'm
+  making these edits by hand.
+
+⏺ Update(~/Code/RPGs/AloneVsFEear-effects/design/effects.md)
+  ⎿  Added 1 line, removed 1 line
+      115  - **Time passes**: the box number goes up. Food, "for the next
+            N boxes" and mission deadlines count this.
+      116  - **Enter a box**: you arrive somewhere. Encounters, Safe Hous
+           e healing and place rules react to this.
+      117  
+      118 -Moving does both. Reading a book or performing a ritual is tim
+          -e without entering a box. Which counters a box of time without
+          - moving advances is an [open question](#open-questions).      
+      118 +Moving does both. Reading a book or performing a ritual is tim
+          +e without entering a box: it advances the clock only ([rulings
+          +](rulings.md#effects)).                                       
+      119  
+      120  ## Rolls collect their effects
+      121  
+
+⏺ Update(~/Code/RPGs/AloneVsFEear-effects/design/effects.md)
+  ⎿  Added 1 line, removed 1 line
+      131      total --> moment([Roll moment<br/>reactions read the die a
+           nd the total])
+      132  ```
+      133  
+      134 -- **Stacking** is limited case by case in the book: "does not 
+          -stack with the bonus from the Dodge Skill", "multiple amulets 
+          -do not have cumulative effect", "the bonus is not cumulative i
+          -f you already have Good Shot" (`1_2_skills.md`, `5_35_random_m
+          -agic_items_table.md`, `6_unique_events.md`). An effect can nam
+          -e what it does not stack with. The default is an [open questio
+          -n](#open-questions).                                          
+      134 +- **Stacking** is limited case by case in the book: "does not 
+          +stack with the bonus from the Dodge Skill", "multiple amulets 
+          +do not have cumulative effect", "the bonus is not cumulative i
+          +f you already have Good Shot" (`1_2_skills.md`, `5_35_random_m
+          +agic_items_table.md`, `6_unique_events.md`). An effect can nam
+          +e what it does not stack with. Otherwise modifiers stack ([rul
+          +ings](rulings.md#effects)).                                   
+      135  
+      136  ## What this reveals
+      137  
+
+⏺ Update(~/Code/RPGs/AloneVsFEear-effects/design/effects.md)
+  ⎿  Removed 2 lines
+      145  
+      146  Questions that change the model. Not decided: see the session 
+           log.
+      147  
+      148 -- Default stacking for modifiers the book does not mention.   
+      148  - Order of reactions to the same moment when the book gives no
+           ne.
+      150 -- What a box of time without moving advances.                 
+      149  
+      150  ## Decide when implementing
+      151  
+
+⏺ I recorded two rulings in design/rulings.md (new Effects section) and linked
+  them from design/effects.md:
+  - Modifiers stack unless the text says otherwise. I searched online and found
+    no answer from the author for Alone Against Fear. The search pages were
+    about other games, mostly D&D and Pathfinder (There Will Be Games review,
+    Four Against Darkness on DriveThruRPG). The search summary mentions a Four
+    Against Darkness case that fits: a dwarf's heavy armor gives +2 to Defense
+    and he gets another +1 against trolls, ogres and giants. But it came only
+    from unofficial copies of the corebook, so it's weak support. The ruling
+    rests on the book listing its exceptions one by one.
+  - A box of time without moving advances the clock only.
+
+  Reaction order, with examples. A reaction is an effect that acts on its own
+  when a moment happens. Sometimes two reactions fire on the same moment and the
+  result changes depending on which goes first. Three cases from the book:
+
+  1. Entering a Safe House while infected (death or not). The Sewers infection
+     makes you "lose 1 Life every time you cross a box until you reach a Safe
+     House". You have 1 Life left and walk into a Safe House. Two reactions fire
+     on "enter a box":
+     - infection first: you lose 1 Life and die on the doorstep;
+     - Safe House first: the infection ends, you heal, and you live.
+  2. Combat ends with a grenade thrown and the first aid kit's healing available
+     (healed or not before the next fight). The grenade gives a 3 in 6 chance
+     of a new encounter after the combat. The first aid kit heals after an
+     encounter where you lost Life.
+     - Kit first: you heal, then maybe fight again at full strength.
+     - Grenade first: you may have to fight the newcomers wounded.
+  3. Two independent heals (order doesn't matter). Say you enter a box where a
+     mission rule gives Food and Safe House healing also applies. Either order
+     gives the same result, so the engine doesn't need to ask.
+
+  The question is what the engine does in cases 1 and 2, where the book is
+  silent.
+
+⏺ User answered Claude's questions:
+  ⎿  · Reaction order: when two reactions fire on the same moment and the book 
+     gives no order, who decides? Example: you have 1 Life and the Sewers 
+     infection (lose 1 Life every box until you reach a Safe House) and you 
+     enter a Safe House. Infection first means you die; Safe House first means 
+     you are cured and healed. → 1. case one enter the house counts first, from 
+     a narrative pov its better and less frustrating. 2. this one is tough, 
+     wouldsomething like "while you're healing your wounds, you think you re 
+     lucky the grenade's noise did not attract attention of every creatures 
+     around the corner. You raise your head while finishing your bandages and 
+     realize how much you were wrong"
+
+⏺ Both answers consistently place the helpful reaction first (Safe House before
+  infection, healing before the grenade's newcomers), and the narration's
+  ordering aligns with the story flow planned for D8.
+⏺ User answered Claude's questions:
+  ⎿  · Your two answers (Safe House before the infection; first aid healing 
+     before the grenade's new encounter) both put the reaction that helps you 
+     before the one that hurts you. Should that be the general rule for 
+     reactions on the same moment when the book gives no order? → Helpful first,
+     as a rule (Recommended)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Update(~/Code/RPGs/AloneVsFEear-effects/design/effects.md)
+  ⎿  Added 6 lines, removed 3 lines
+      141  - **Reactions are scripts.** A reaction's body uses the same s
+           teps as a table result. Results and reactions are one content 
+           model (input for D1).
+      142  - **Some moments can be changed before they apply.** "Would" m
+           oments need an order between the reactions that change them.
+      143  
+      144 -## Open questions                                             
+      144 +## Several reactions on one moment                            
+      145  
+      146 -Questions that change the model. Not decided: see the session 
+          -log.                                                          
+      146 +When several reactions fire on the same moment and the book gi
+          +ves no order, the ones that help you resolve first, then the o
+          +nes that hurt you; among reactions of the same sort, the playe
+          +r picks ([rulings](rulings.md#effects), switchable).          
+      147  
+      148 -- Order of reactions to the same moment when the book gives no
+          -ne.                                                           
+      148 +- Entering a Safe House while infected: the Safe House cures y
+          +ou before the infection costs 1 Life.                         
+      149 +- After a combat: the first aid kit heals you, then the grenad
+          +e's noise brings its 3 in 6 encounter.                        
+      150 +- "Would" moments keep their own order (the Damage pipeline). 
+      151 +- The order is also the story: a narrator can tell the reactio
+          +ns in the order they resolve ("you are still bandaging when th
+          +ey come").                                                    
+      152  
+      153  ## Decide when implementing
+      154  
+
+⏺ Update(~/Code/RPGs/AloneVsFEear-effects/design/effects.md)
+  ⎿  Added 1 line
+      140  - **Effects follow the memory levels.** The holder decides whe
+           n an effect is forgotten, the same nested lifetimes as [what t
+           he game remembers](encounters.md#what-the-game-remembers), wit
+           h finer scopes below the mission (box visit, encounter, combat
+           , round, attack).
+      141  - **Reactions are scripts.** A reaction's body uses the same s
+           teps as a table result. Results and reactions are one content 
+           model (input for D1).
+      142  - **Some moments can be changed before they apply.** "Would" m
+           oments need an order between the reactions that change them.
+      143 +- **Reactions on one moment need an order.** Helpful first, th
+          +en the player picks: the engine must know whether a reaction h
+          +elps or hurts.                                                
+      144  
+      145  ## Several reactions on one moment
+      146  
+
+⏺ Now the glossary: updating the Effect entry and adding Moment, Reaction and
+  Holder.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(~/Code/RPGs/AloneVsFEear-effects/design/glossary.md)
+  ⎿  Added 6 lines, removed 2 lines
+      59  - **Explosion** — a natural 6 on an Attack roll: roll again and
+           add, repeat on each 6.
+      60  - **Fumble** — a natural 1 on Defense followed by another 1: ta
+          ke 1 more Damage, skip your next attack, or destroy your weapon
+          .
+      61  - **Roll vs L** — the core mechanic: roll d6 plus modifiers, su
+          ccess at L or higher. Natural 1 fails, natural 6 succeeds. Name
+          d by purpose: Save, Attack, Defense, Stealth, Escape, Charisma,
+           Strength, Magic.
+      62 -- **Modifier** — a bonus or malus to a roll, from a Skill, item
+         -, Injury, Scar, mission or effect.                             
+      63 -- **Effect** — a temporary or permanent state that changes rule
+         -s (e.g. "lasts 3 boxes", "-1 to Stealth").                     
+      62 +- **Modifier** — a bonus or malus to a roll, from a Skill, item
+         +, Injury, Scar, mission or effect. Modifiers stack unless the t
+         +ext says otherwise.                                            
+      63 +- **Effect** — one rule change, temporary or permanent (e.g. "-
+         +1 to Stealth for the next 3 boxes"). Has a source, a holder, a 
+         +kind (roll modifier, stat modifier, rule parameter, new action,
+         + restriction, reaction) and a lifetime. See [effects](effects.m
+         +d).                                                            
+      64 +- **Holder** — who carries an effect: the character, an item, a
+         + creature or group, a box, the mission or the campaign. The eff
+         +ect is forgotten with its holder.                              
+      65 +- **Moment** — a point in play that effects react to or end on:
+         + a box of time passes, enter or leave a box, combat starts, you
+         + take Damage… A "would" moment can be changed before it applies
+         + (armor reduces the Damage), a "did" moment cannot.            
+      66 +- **Reaction** — an effect that acts when its moment comes, wit
+         +h a script of steps like a table result. A deferred event and a
+         + timed step ("as you leave") are reactions.                    
+      67 +- **Box of time** — a unit of time, the time to walk through on
+         +e box. Moving takes one; reading a book or performing a ritual 
+         +can take some without moving.                                  
+      68  - **Search** — a roll on the Search table after an encounter is
+           resolved (or when there is none).
+      69  - **Hunting** — spending Clues equal to a creature's L to meet 
+          it in the next box.
+      70  - **Loot** — items or Food gained after an encounter.
+
+⏺ Next: the Readme checkbox and NextSession.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ The design work is done. Now the session log, which needs the current time for
+  its filename.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+❯ Could you give me again the different choices about boxes and time ?          
+
+⏺ Here are the three options I gave for a box of time without moving. The book's
+  cases are reading an occult book ("uses d3 boxes of time") and performing a
+  ritual ("takes 2 boxes of time"), both in 1_3_arcane_skills.md.
+
+  1. Advances the clock only (my recommendation, and what you picked)
+     - The box number goes up, so Food every 5 boxes, "for the next N boxes"
+       effects and mission deadlines all count it.
+     - It is not entering a box: no random encounter roll and no place rules.
+     - Deadlines that count only new boxes (the Hell Gate after 12+d6 new boxes)
+       ignore it.
+  2. Clock plus an encounter roll
+     - Everything in option 1, plus a 1 in 6 random encounter for each box of
+       time, as when you enter a visited box.
+     - Harsher: time spent standing still is dangerous.
+  3. Flavour only
+     - No effect on the clock. Simplest, but it ignores the book's wording and
+       makes reading and rituals free.
+
+  Your pick is recorded as a ruling in design/rulings.md (Effects section), and
+  the "Box and time" section of design/effects.md points to it. If you'd rather
+  switch to option 2, or mark this one switchable so a horrific campaign mode
+  could add the encounter roll, tell me and I'll change both files before I
+  write the session log.
+
+✻ Brewed for 4m 59s · done 18:49
+
+❯ keep option 1, mark it switchable, switch trigger option 2                    
+
+⏺ Update(~/Code/RPGs/AloneVsFEear-effects/design/rulings.md)
+  ⎿  Error editing file
+
+⏺ Update(~/Code/RPGs/AloneVsFEear-effects/design/rulings.md)
+  ⎿  Error editing file
+
+⏺ Update(~/Code/RPGs/AloneVsFEear-effects/design/effects.md)
+  ⎿  Added 1 line, removed 1 line
+      115  - **Time passes**: the box number goes up. Food, "for the next
+            N boxes" and mission deadlines count this.
+      116  - **Enter a box**: you arrive somewhere. Encounters, Safe Hous
+           e healing and place rules react to this.
+      117  
+      118 -Moving does both. Reading a book or performing a ritual is tim
+          -e without entering a box: it advances the clock only ([rulings
+          -](rulings.md#effects)).                                       
+      118 +Moving does both. Reading a book or performing a ritual is tim
+          +e without entering a box: it advances the clock only ([rulings
+          +](rulings.md#effects), switchable: a harsher mode rolls a 1 in
+          + 6 random encounter per box of time).                         
+      119  
+      120  ## Rolls collect their effects
+      121  
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Done. Now writing the session log.
+
+⏺ Write(~/Code/RPGs/AloneVsFEear-effects/claude-logs/202610301849-effects-design
+       .md)
+  ⎿  Wrote 35 lines to ~/Code/RPGs/AloneVsFEear-effects/claude-logs/2026103
+     01849-effects-design.md
+       1 # Effects and game moments design
+       2 
+       3 - Date: 2026-10-30
+       4 - Session ID: dd60dc57-dea0-4ddf-81b2-68d50ee62d59
+       5 - Branch / PR: `docs/effects-design` / not committed
+       6 - Transcript: [transcripts/202610301849-effects-design.txt](tran
+         scripts/202610301849-effects-design.txt)
+       7 
+       8 ## Goal
+       9 
+     … +26 lines (ctrl+o to expand)
+
+⏺ The box-of-time rule now stays as option 1 and is marked switchable, with
+  option 2 (a 1 in 6 random encounter per box of time) as the harsher mode. Both
+  design/rulings.md and design/effects.md say so.
+
+  The session work is done in the worktree ../AloneVsFEear-effects, on branch
+  docs/effects-design. Nothing is committed yet.
+  - New page design/effects.md:
+    - Every effect has a source, a holder, a kind and a lifetime.
+    - There are six kinds: the five from the character page, plus reactions
+      (effects that act on their own when a moment happens).
+    - Almost every lifetime ends on a moment (a point in play like entering a
+      box or the end of a combat) or on a condition.
+    - It has a list of moments grouped by scope, and a split between moments you
+      can still change before they apply (like Damage reduced by armor) and
+      moments already done.
+    - A box is both a place you enter and a unit of time; the page treats those
+      as two separate moments.
+  - design/rulings.md has a new Effects section with your three decisions:
+    - modifiers stack unless the text says otherwise;
+    - a box of time without moving advances the clock only (switchable);
+    - reactions that help you come before reactions that hurt you, then you pick
+      the order (switchable).
+  - Also updated: new glossary entries, the Readme checkbox, the NextSession.md
+    plan (next is Town map and MVP scope), and the log
+    claude-logs/202610301849-effects-design.md.
+
+  To finish, please export the transcript:
+
+  /export claude-logs/transcripts/202610301849-effects-design.txt
+
+  Once that's done, I'll commit, push and open the PR. One thing to decide
+  first: claude-logs/transcripts/202610301100-domain-design.txt is sitting
+  untracked on main and was never committed with PR #3. Should I add it to this
+  PR too?
+
+✻ Cooked for 28s · done 18:50
+
+※ recap: The effects and game moments design session is finished in its own worktree, with your three rulings recorded. Next, export the transcript to claude-logs/transcripts/202610301849-effects-design.txt, then I'll commit, push and open the PR. (disable recaps in /config)
