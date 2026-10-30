@@ -72,7 +72,7 @@ Understand and diagram how the game works in domain terms before coding. Lives i
 - [x] [Inventory](design/inventory.md)
 - [x] [Safe Houses](design/safe-houses.md)
 - [x] [Rolls and tags](design/rolls.md), grown as we go
-- [ ] Combat: attack, defense, surprise, escape, groups and waves, ammo, armor
+- [x] [Combat](design/combat.md): attack, defense, surprise, escape, groups and waves, ammo, armor
 - [ ] Encounters and tables: how table results chain, choices, left-behind encounters, Unique Events
 - [ ] Effects and game moments: the two core concepts found so far (modifiers, lifetimes, reactions to moments)
 - [ ] Town map: grid shape, sheets, distances (was D5; uses the town map transcription)

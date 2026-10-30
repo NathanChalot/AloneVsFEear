@@ -47,6 +47,12 @@ The domain vocabulary. Docs, issues and code use these words with these meanings
 - **Unique Event** — a numbered, scripted event triggered by a table. Usually played once.
 - **Encounter** — whatever is met in a box: creatures, people, a hazard, an event. Ends **resolved** (won, ignored, negotiated, survived) or **fled**.
 - **Creature** — an opponent with a Level (L), Life, Damage and traits (Slow, Undead, vulnerabilities…).
+- **Group** — the creatures one table result produces ("2d6 Zombies"). Members share a profile, each has its own Life. An encounter can hold several groups.
+- **Round** — your turn plus the creatures' turn. The book says "turn" for both.
+- **Action** — what you do on your turn: Attack, Escape, use an item, cast, change weapon.
+- **Wave** — one of several groups in a box fought one after the other, with no rest between them.
+- **Explosion** — a natural 6 on an Attack roll: roll again and add, repeat on each 6.
+- **Fumble** — a natural 1 on Defense followed by another 1: take 1 more Damage, skip your next attack, or destroy your weapon.
 - **Roll vs L** — the core mechanic: roll d6 plus modifiers, success at L or higher. Natural 1 fails, natural 6 succeeds. Named by purpose: Save, Attack, Defense, Stealth, Escape, Charisma, Strength, Magic.
 - **Modifier** — a bonus or malus to a roll, from a Skill, item, Injury, Scar, mission or effect.
 - **Effect** — a temporary or permanent state that changes rules (e.g. "lasts 3 boxes", "-1 to Stealth").

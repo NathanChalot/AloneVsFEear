@@ -1,0 +1,1377 @@
+ ▐▛███▛█   Claude Code v2.1.314
+▝▜██████▀  Opus 5.5 · Claude Pro
+ ▝▝   ▝▝   ~/Code/RPGs/AloneVsFEear
+
+  Get to finished work sooner with Opus 5.5. Switch anytime with /model.
+
+❯ /model 
+  ⎿  Kept model as Opus 5.5 (default)
+
+❯ We will pick up where we left off. I think we were about to work on the       
+  conmbat following what we did in the design folder. wdyt ?                    
+
+  Ran 4 shell commands (ctrl+o to expand)
+
+⏺ Yes, combat is next. NextSession.md (on the docs/domain-design branch) lists
+  Combat design as session 1, and the last log ends with "Next: Combat design".
+
+  Current state
+  - PRs #2 (roadmap) and #3 (domain design) are both still open. design/ only
+    exists on the docs/domain-design branch, not on main.
+  - One small task is left from last time: the 2026-10-30 log still says "not
+    pushed yet" and should point to PR #3.
+
+  Proposed plan for this session
+  1. Setup: create a new worktree and branch docs/combat-design, stacked on
+     docs/domain-design since #3 isn't merged. Fix the log's Branch / PR line
+     first.
+  2. Read the sources: 3_combat.md (93 lines: combat, ammo, exploding sixes,
+     rolling ones, surprise, Charisma, escape, Injuries and Scars, Stealth),
+     4_monster_rules.md (vulnerabilities, exorcism, XP), the weapon rules and
+     summary table, and a few creature entries to test the model against edge
+     cases.
+  3. Design design/combat.md:
+     - A Mermaid flow for an encounter: surprise → talk, sneak or run (Charisma,
+       Stealth, Escape) → combat rounds (attack, defense, damage, Injury or
+       Scar) → end (loot, XP).
+     - Concepts: groups and waves, ammo, armor, weapon properties, monster
+       vulnerabilities.
+  4. Grow design/rolls.md with anything combat adds (exploding sixes, any new
+     tags), and record ambiguities in design/rulings.md. For each one I'll cite
+     both passages, propose a ruling and mark whether it's switchable.
+  5. Wrap up: update the Readme checkbox and NextSession.md, write the session
+     log, then remind you to export the transcript. I'll ask before any commit
+     or push.
+
+  One thing to decide up front: combat brushes against the "effects and game
+  moments" topic (session 3), for example "every time you take Damage". I'd only
+  note those hooks in combat.md and leave the general model for session 3. Does
+  that work for you?
+
+  If you're happy with this, I'll set up the worktree and start reading.
+
+✻ Brewed for 27s · done 15:16
+
+❯ yes, go ahead                                                                 
+
+  Ran 5 shell commands (ctrl+o to expand)
+
+⏺ The combat, monster, weapon, and armor rules are reviewed in the
+  docs/combat-design worktree. Next I'll check the creator answers and design
+  files, then scan creatures for edge cases.
+
+  Ran 4 shell commands (ctrl+o to expand)
+
+⏺ I have enough material. Before writing, a quick look at an existing design
+  file to match its format.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Now writing design/combat.md.
+
+⏺ Write(~/Code/RPGs/AloneVsFEear-combat/design/combat.md)
+  ⎿  Wrote 180 lines to ~/Code/RPGs/AloneVsFEear-combat/design/combat.md
+       1 # Combat
+       2 
+       3 How a fight with creatures starts, runs and ends. Words are defi
+         ned in the [glossary](glossary.md). Sources: `3_combat.md`, `4_m
+         onster_rules.md`, `1_4_weapons.md`, `8_weapon_summary_table.md`,
+          armor in `2_2_useful_stuff_table.md`, and the creature tables. 
+         Interpretations are in [rulings](rulings.md).
+       4 
+       5 ## Creature profile
+       6 
+     … +174 lines (ctrl+o to expand)
+
+⏺ Now the proposed rulings, grouped in a combat section so you can accept or
+  change them one by one.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Updating the glossary, rolls, Readme, plan and logs.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ The .tool-versions blocker noted in the plan stopped python. I'll pin the
+  version just for this command.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Write(~/Code/RPGs/AloneVsFEear-combat/claude-logs/202610301500-combat-design.m
+       d)
+  ⎿  Wrote 34 lines to ~/Code/RPGs/AloneVsFEear-combat/claude-logs/20261030
+     1500-combat-design.md
+       1 # Combat design
+       2 
+       3 - Date: 2026-10-30
+       4 - Session ID: f810544e-29a4-4c34-acc8-a8dc32bb20f6
+       5 - Branch / PR: `docs/combat-design` (stacked on `docs/domain-des
+         ign`) / not pushed yet
+       6 - Transcript: [transcripts/202610301500-combat-design.txt](trans
+         cripts/202610301500-combat-design.txt)
+       7 
+       8 ## Goal
+     … +26 lines (ctrl+o to expand)
+
+⏺ The log fix is done, so I'll remove that memory.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ The combat design is written in the worktree ../AloneVsFEear-combat, on branch
+  docs/combat-design (stacked on docs/domain-design). Nothing is committed yet.
+
+  New: design/combat.md
+  - Creatures: a creature profile and groups. Members of a group share stats but
+    each has its own Life, and one encounter can hold several different groups
+    (Kalina and her dinosaur).
+  - Diagrams:
+    - From meeting creatures to fighting: Charisma, Stealth, surprise.
+    - One combat round.
+    - Attack: hits = total ÷ L, sixes explode.
+    - Defense and taking Damage, including the double-1 fumble.
+    - Escape, and how a combat ends.
+  - Other rules: waves, ammo and weapons.
+  - What it shows:
+    - The design needs to remember the actual die face as well as the total,
+      because many rules read the die face (exploding sixes, weapons that break
+      on a 1).
+    - Damage you take passes through several steps in order.
+    - The player makes choices in the middle of a round, like whom to attack.
+    - Combat needs no new kind of effect. It does need effects that last one
+      combat or one attack, effects that apply to creatures, and creatures that
+      keep their own state (current Life, wounds).
+    - It lists the moments that rules react to (start of combat, each round,
+      each Defense roll, taking Damage…) as input for the "effects and game
+      moments" topic.
+
+  Other files
+  - design/rulings.md: proposed rulings, added in a new combat section.
+  - design/glossary.md: new terms (group, round, action, wave, explosion,
+    fumble).
+  - design/rolls.md: extended.
+  - The Readme checkbox is ticked and NextSession.md is updated.
+  - The previous log now points to PR #3, and I deleted that reminder from
+    memory.
+  - The session log is claude-logs/202610301500-combat-design.md.
+
+  Your call on these rulings. Each cites the passages it is based on. I marked
+  three as switchable, meaning a possible "harder mode" option later:
+  1. You make one Defense roll for each attack of each creature still alive.
+  2. A natural 1 on Attack always misses, even with bonuses, and a natural 6
+     always hits at least once. Switchable.
+  3. Your Damage is a pool you share out among the creatures of a group.
+     Leftover Damage carries over: 4 Damage kills two 2-Life Howlers.
+  4. A failed Escape costs one creature's Damage, not one per creature.
+     Switchable.
+  5. When you roll a 1 on Defense, that roll already fails; the reroll only
+     checks for the fumble penalty.
+  6. Damage you take goes to armor first, then Luck, then an Injury, then Life.
+  7. Creatures you run away from keep their wounds when you come back.
+     Switchable.
+  8. Each wave is its own combat, with its own surprise roll and its own XP. One
+     successful Escape leaves all remaining waves behind.
+
+  Still open (in the log): where you escape to if no neighbouring box has been
+  visited yet, and whether a "1 action" use (holy water, changing weapon) takes
+  your whole turn. I assumed it does.
+
+  .tool-versions still stops python3 from running inside the repo. I got around
+  it for one command; fixing it is already planned for the project setup
+  session.
+
+  Once you've reviewed the rulings, can I commit? Pushing and opening the PR
+  would be a separate yes. At the end of the session, export the transcript
+  with:
+  /export claude-logs/transcripts/202610301500-combat-design.txt
+
+✻ Cooked for 3m 23s · done 15:21
+
+※ recap: We're designing combat for the game, and the combat design doc and eight proposed rules interpretations are written but not committed. Next, review those rulings so I can commit once you say yes. (disable recaps in /config)
+
+❯ 1. ok                                                                         
+  2. I think we need to be cautious about that. Most pf the time natural 1 are  
+  a failure, but there might be some edge case. I m not really in favour of     
+  having a natural 1 being something else if the rule states otherwise. But we  
+  must be sure that the rule actually states otherwise.                         
+  3. I think its not a rulling but areal rule inst it ?                         
+  4. My understanding is that the creator says you first take the damage and    
+  hten and only then it s the creature turn                                     
+  5. Is it written or an interpretation ?                                       
+  6. Is it a rulling or written in the book ?                                   
+  7. Ok for a switch                                                            
+  8. I think that while you run stealth for each group, the group that gets the 
+  buff (associated tyo your failure is only the one you failed against. IMO     
+  for escaping: if you escape multiple group ythen you need to escape all of    
+  them to leave the box.                                                        
+                                                                                
+  Still open: where you escape: I guess you chose or we do it random, but I     
+  think you should chose the same way you would for chosing where to go next    
+  About the 1 action thing we should discuss it                                 
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Quick check against the book before answering: I looked at every rule that
+  mentions rolling a 1 or spending an action.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Now applying what's settled. Rules the book states move into combat.md, and
+  rulings.md keeps only our interpretations.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ I updated the files with what's settled. Here's where each point landed.
+
+  1. Accepted. It's a book rule, so it now lives in combat.md with the quote,
+  not in rulings.
+
+  2. Natural 1: I checked every rule in the book that mentions rolling a 1. The
+  general rule is in the Saves section of 1_1_main_rules.md: "Rolling a 1 is
+  always a failure and rolling a 6 is always a success, no matter what modifiers
+  are involved."
+  - No text says an Attack on a 1 still hits. The kitchen knife, replica sword,
+    flail and raygun only add a side effect (break, hit yourself).
+  - Master Scarecrow ("2 Damage if you roll a 1 on a Defense roll") and the
+    Giant Worm only make sense if a 1 fails.
+  - The only interpretation left is applying a sentence written under "Saves" to
+    every roll against L. The ruling now says so, and says a specific text that
+    states otherwise wins.
+
+  3. Partly a rule. The book covers 1-Life creatures: each Damage point kills
+  one, as in the shotgun example. It does not say how Damage spreads over
+  creatures with 2 Life, like the Howlers. The ruling is now limited to that
+  case.
+
+  4. The creator's answer says the opposite of your reading, I think. The
+  question was: after the automatic Damage, "do the monster(s) then get to
+  attack normally… or does the automatic damage count as their turn?" The
+  answer: "The automatic attack is their turn." So the creatures don't attack
+  again that round. You fail, take the hit, and the next round starts. Is that
+  what you meant?
+
+  5. Written, with no real interpretation. A natural 1 fails per the main rules.
+  The reroll is described only as a check for a second 1, not a second chance.
+  Moved to combat.md.
+
+  6. The steps are written, the order isn't. Armor, Luck and Injury are each in
+  the book; the order between them is our ruling. So is "armor absorbs Damage up
+  to its remaining Life". It stays in rulings.
+
+  7. Accepted, marked switchable.
+
+  8. Stealth: agreed and recorded. The creator gives one Stealth roll per group,
+  and the +1 L text says "its L", so only the group you failed against gets it.
+
+  Escape destination: you choose a neighbouring visited box, the same way you
+  choose a move. Recorded.
+
+  Still pending (listed in rulings.md)
+
+  A. Escaping several groups. I'd suggest: one Escape roll per group still in
+  the fight, against that group's L. The groups you got away from stay escaped.
+  Each failed group hits you, and next round you only roll against the groups
+  still holding you. Two things to check with you:
+  - Do groups you haven't fought yet in a wave sequence count?
+  - Kalina and her dinosaur are two creatures in a single encounter. Would that
+    mean two rolls?
+
+  B. Failed Escape against a group: does one creature hit you, or every creature
+  in the group? The book says "the monster's Damage", singular.
+
+  C. Actions. The book uses "1 action" and "1 turn" for the same costs:
+  - changing weapons, drawing after running out of ammo, a grenade, holy water,
+    standing up after the goat knocks you down;
+  - firing a curse "does not require the expenditure of an action", and a knot
+    reroll is "a free action";
+  - the rifle attacks twice per turn as an exception.
+
+  I recommend 1 action = your whole turn: either you attack, or you do one of
+  those things. Things called free don't cost your turn. The grenade text
+  supports this: holding another weapon lets you "use it on the following turn
+  without having to spend a turn to draw it". The alternative, several actions
+  per turn, has nothing in the book behind it. Does that work for you?
+
+  D. Escaping with no visited neighbour. This can only happen in your first box.
+  I'd let you pick any neighbour, which then gets explored as a new box.
+
+  Once A–D are settled I'll update the docs and the session log, then ask before
+  committing.
+✻ Baked for 1m 31s · done 16:19
+
+❯ 3. Partly a rule. -> the player distribute the damages                        
+  4. Ok agreed, the automatic damage is their turn                              
+  6. Damage you take goes to armor first, then Luck, then an Injury, then Life. 
+  -> the interpretation is ok to me                                             
+                                                                                
+  Escape destination: you choose a neighbouring visited box, the same way you   
+  choose a move. Recorded.                                                      
+  NO you chose a neighbouring box, visited OR not, it does not matter           
+                                                                                
+  A. NO. "The groups you got away from stay escaped." No they are back in the   
+  next turn. first: I don t understand the question, 2- Yes                     
+  B. one creature                                                               
+  C. Yep the recommandations works for me                                       
+                                                                                
+  D. Yep                                                                        
+
+⏺ Applying these now. One flag on the escape destination: the book says
+  otherwise ("you move back to any neighboring box that you have already
+  visited", 3_combat.md, Escape rolls). So I'm recording it as our ruling
+  against the text and marking it switchable.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Your answers are recorded in rulings.md, combat.md and the session log. Three
+  of them change or add to what I'd proposed:
+
+  - Escape destination: you can run to any neighbouring box, visited or not. The
+    book says "already visited", so this is our ruling against the text, marked
+    switchable with the book's version as the strict option. An unvisited box
+    is explored as a new box. A visited box rolls the 1 in 6 random encounter
+    unless it's a Safe House. Point D no longer applies.
+  - Escaping several groups is all or nothing. You roll against each group, and
+    if one roll fails, every group is back next round. Each group you failed
+    against deals one creature's Damage, and that is its turn. Kalina and her
+    dinosaur count as two groups.
+  - One action is your whole turn. Things the book calls free stay free.
+
+  I assumed one thing you didn't say: in a round where your Escape fails, the
+  groups you did get away from don't attack you. Only the groups you failed
+  against hit you. Tell me if they should attack as well.
+
+  Question A1 rephrased. It's about waves, when one box holds several groups you
+  didn't sneak past. You fight them one after the other: group 1, then group 2,
+  then group 3. Say you try to escape while fighting group 1. Do you roll
+  Escape against group 1 only, or also against groups 2 and 3, which haven't
+  started fighting you yet?
+
+  Once that's answered, can I commit? Opening the PR (stacked on #3) would be a
+  separate yes. Afterwards, export the transcript with /export 
+  claude-logs/transcripts/202610301500-combat-design.txt.
+
+✻ Baked for 33s · done 16:30
+
+❯ - Escape destination -> I m changing my mind, follow the book rules -> go     
+  back to a n explored box                                                      
+  - ok, this could be a switchable rule                                         
+  - yep                                                                         
+                                                                                
+  I assumed one thing you didn't say: in a round where your Escape fails, the   
+  groups you did get away from don't attack you. Only the groups you failed     
+  against hit you. Tell me if they should attack as well. -> stay on your       
+  interpretation, the groups you did get away from don't attack you             
+                                                                                
+  Question A1 rephrased - ok I see better, in this scenario only you can roll   
+  against only this group. But from next turn they are all in the fight         
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ I've recorded your answers, and no combat rulings are pending anymore:
+
+  - Escape destination: we follow the book. You go back to a neighbouring box
+    you've already visited. If you're in your first box and there's no such box,
+    you pick any neighbour and explore it as a new box.
+  - Escaping several groups: all or nothing, marked switchable. Each group you
+    fail against deals one creature's Damage, and that counts as its turn. The
+    groups you did get away from don't attack that round. Next round, every
+    group is back in the fight.
+  - Escaping during waves: I read your answer this way. Tell me if it's wrong:
+    - You roll Escape only against the wave you're fighting.
+    - If you succeed, you leave the box and every group stays behind.
+    - If you fail, the waves end. From the next round, all remaining groups
+      fight you together, and your next Escape is all or nothing against all of
+      them.
+
+  The session log also notes that you first chose "any box, visited or not" for
+  the escape destination, then went back to the book's rule.
+
+  Nothing is committed yet. Can I commit everything on docs/combat-design?
+  Pushing and opening the PR (stacked on #3) would be a separate yes.
+  Afterwards, export the transcript with /export 
+  claude-logs/transcripts/202610301500-combat-design.txt.
+
+✻ Crunched for 28s · done 16:33
+
+❯ Escaping during waves:                                                        
+  When multiple groups are on a single box.                                     
+  You must run stealth against each of them and succeed to escape the box.      
+  If you fail ONE stealth, you keep running stealth against the remaining       
+  groups.                                                                       
+  Then you fight, in wave, all the groups you failed your stealh throw.         
+  There, to escape, you must succeed against each of these group.               
+  If you succeed to escape against all of these then you sescape                
+  Otherwise, on the next turn, all groups fight with you in waves, the one you  
+  failed stealth throw first, the rest in the next wave                         
+  If you want to escape, you must escape against all of them                    
+                                                                                
+  Is it clearer ?                                                               
+
+⏺ Yes, much clearer. The key part I had wrong: a failed Escape also pulls in the
+  groups you snuck past, as a later wave. Updating the docs, with a diagram for
+  waves.
+
+  Ran 3 shell commands (ctrl+o to expand)
+
+⏺ Yes, that's clear. I'd misread one part before: a failed Escape also pulls in
+  the groups you snuck past. It's now recorded this way:
+
+  1. You roll Stealth against each group, and keep rolling after a failure. If
+     every roll succeeds, you move on.
+  2. You fight the groups you failed against in waves, with no rest between
+     them. Each of those groups has +1 L.
+  3. To Escape, you must succeed against each of those groups, including the
+     ones you haven't fought yet. If all rolls succeed, you leave and every
+     group stays in the box.
+  4. If any roll fails, each group you failed against deals one creature's
+     Damage. From the next round, every group in the box fights you in waves:
+     the ones you failed Stealth against first, then the ones you snuck past.
+  5. From then on, an Escape must succeed against all of them.
+
+  This is in rulings.md (none left pending) and in a new waves diagram in
+  combat.md, and the session log is updated.
+
+  Nothing is committed yet. Can I commit everything on docs/combat-design?
+  Pushing and opening the PR (stacked on #3) would be a separate yes. After
+  that, export the transcript with /export 
+  claude-logs/transcripts/202610301500-combat-design.txt.
+
+✻ Worked for 28s · done 16:38
+
+❯ 1. You roll Stealth against each group, and keep rolling after a failure. If  
+  every roll succeeds, you move on.                                             
+  2. You fight the groups you failed against in waves, with no rest between     
+  them. Each of those groups has +1 L.                                          
+  3. To Escape, you must succeed against each of the groups present on the box, 
+  including the ones you haven't fought yet. If all rolls succeed, you leave    
+  and every group stays in the box.                                             
+  4. when you fail escaping you take a damage only from the groups you failed   
+  against                                                                       
+  5. yep                                                                        
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ I've updated the waves rules in the combat.md diagram and text, in rulings.md
+  and in the session log. Points 1, 2 and 5 were already recorded as you put
+  them. What changed:
+
+  - Escaping during waves: you must succeed against every group in the box, from
+    the first attempt. That includes the groups you snuck past and the ones you
+    haven't fought yet. If every roll succeeds, you leave and all the groups
+    stay in the box.
+  - Failed Escape: only the groups you failed against hit you, each for one
+    creature's Damage. If any roll fails, from the next round every group in the
+    box fights you in waves: first the ones you failed Stealth against, then
+    the ones you snuck past. I kept this from your earlier message and you
+    confirmed it in point 5.
+
+  No combat rulings are pending. Nothing is committed yet: can I commit
+  everything on docs/combat-design? Pushing and opening the PR (stacked on #3)
+  would be a separate yes. After that, export the transcript with /export 
+  claude-logs/transcripts/202610301500-combat-design.txt.
+
+✻ Baked for 14s · done 16:41
+
+❯ in summary -> either you escape everybody, either you do not escape any.      
+  Does it fit ?                                                                 
+
+⏺ Yes, that's exactly what's recorded: you escape every group or none of them.
+  The rulings already call it "all or nothing".
+
+  There's one detail inside that rule, which you confirmed earlier. When an
+  Escape fails, the groups you rolled successfully against still don't escape
+  you, but they don't hit you that round either. Only the groups you failed
+  against deal Damage. They all fight you again from the next round.
+
+  I'll add your one-line summary to the start of the waves ruling so it reads
+  clearly:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ The summary line is now in rulings.md, and nothing about combat is pending.
+
+  Can I commit everything on docs/combat-design? Pushing and opening the PR
+  (stacked on #3) would be a separate yes. After that, export the transcript
+  with /export claude-logs/transcripts/202610301500-combat-design.txt.
+
+✻ Cogitated for 9s · done 16:42
+
+❯ I think there is some junks left in the ruling doc:                           
+  To check these yourself: rulebook pages for Combat, Escape rolls and Rolling  
+  Ones (3_combat.md), Saves (1_1_main_rules.md); web searches such as "Alone    
+  Against Fear" escape group damage, "Four Against Darkness" natural 1 attack   
+  modifiers (same engine, more discussed on BoardGameGeek), "Alone Against      
+  Fear" body armor injury order.                                                
+                                                                                
+  ?                                                                             
+
+⏺ You're right. That paragraph was there to help you check the rulings while
+  they were proposals. Each ruling now cites its own sources, so I'm removing
+  it.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ I removed it from rulings.md, so the file now ends with the waves ruling.
+  Nothing else in the file is about checking or review.
+
+  Can I commit everything on docs/combat-design? Pushing and opening the PR
+  (stacked on #3) would be a separate yes.
+
+✻ Cogitated for 6s · done 16:43
+
+❯ yes commit, push and open the PR                                              
+
+  Pushed to docs/combat-design, created PR #4 (ctrl+o to expand)
+  ⎿  PostToolUse:Bash says: Tip: Run /ultrareview before you push to catch bugs 
+     with a cloud-based multi-agent review — 3 free reviews left.
+
+⏺ I'll save a reminder for next session to update the log's PR line, same as
+  last time.
+
+  Ran 1 shell command, wrote 1 memory (ctrl+o to expand)
+⏺ I committed (5e7ca3b) and pushed docs/combat-design, and opened PR #4:
+  https://github.com/NathanChalot/AloneVsFEear/pull/4
+
+  - Stacked PRs: #4 targets docs/domain-design, so the open PRs are now #2, then
+    #3, then #4. When you merge them in order, GitHub should retarget #4 to
+    main on its own once #3's branch is deleted.
+  - Log link: the session log still says "not pushed yet", because the PR was
+    opened after the commit. I saved a reminder to point it to #4 at the start
+    of next session, as we did for #3.
+  - Transcript: to finish the session, export it with:
+    /export claude-logs/transcripts/202610301500-combat-design.txt
+    It isn't in the commit, so it will go in with next session's changes unless
+    you want it committed separately.
+
+  The next planned session is Encounters and tables design.
+
+✻ Churned for 29s · done 16:45
+
+❯ Actually -> creature profile in combat, maybe a flow chart is not the best    
+  suited thing?                                                                 
+
+⏺ Agreed. A flowchart shows steps and decisions, and the creature profile is a
+  structure: what a group contains and which parts are shared. A Mermaid class 
+  diagram fits better: it shows containment and how many of each, and it maps
+  directly to the code abstractions later. Here is the edit:
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(~/Code/RPGs/AloneVsFEear-combat/design/combat.md)
+  ⎿  Added 26 lines, removed 14 lines
+       5  ## Creature profile
+       6  
+       7  ```mermaid
+       8 -flowchart LR                                                   
+       9 -    group((Group))                                             
+      10 -    group --- number[Number<br/>d6, 2d6, d6+3… or one]         
+      11 -    group --- members[Members<br/>each with its own current Lif
+         -e]                                                             
+      12 -    group --- profile[Profile, shared by all members]          
+      13 -    profile --- level[L<br/>target for Attack, Defense, Escape,
+         - Stealth]                                                      
+      14 -    profile --- life[Life]                                     
+      15 -    profile --- damage[Damage per hit]                         
+      16 -    profile --- attacks[Attacks per round<br/>usually 1, Tentac
+         -led horror 2]                                                  
+      17 -    profile --- surprise[Surprise x in 6<br/>none if not shown]
+      18 -    profile --- traits[Traits<br/>Slow, Flying, Undead, Animal…
+         -]                                                              
+      19 -    profile --- vuln[Vulnerabilities<br/>holy water, fire…]    
+      20 -    profile --- special[Special rules<br/>reactions to moments]
+      21 -    profile --- reward[XP and Loot]                            
+       8 +classDiagram                                                   
+       9 +    direction LR                                               
+      10 +    class Encounter                                            
+      11 +    class Group {                                              
+      12 +        number: d6, 2d6, d6+3… or 1                            
+      13 +        effects: +1 L after a failed Stealth…                  
+      14 +    }                                                          
+      15 +    class Member {                                             
+      16 +        current Life                                           
+      17 +    }                                                          
+      18 +    class CreatureProfile {                                    
+      19 +        name                                                   
+      20 +        L: target for Attack, Defense, Escape, Stealth         
+      21 +        Life                                                   
+      22 +        Damage per hit                                         
+      23 +        attacks per round: usually 1                           
+      24 +        surprise: x in 6, or none                              
+      25 +        traits: Slow, Flying, Undead, Animal…                  
+      26 +        vulnerabilities: holy water, fire…                     
+      27 +        special rules: reactions to moments                    
+      28 +        XP                                                     
+      29 +        Loot                                                   
+      30 +    }                                                          
+      31 +    Encounter "1" *-- "1..*" Group                             
+      32 +    Group "1" *-- "1..*" Member                                
+      33 +    Group "*" --> "1" CreatureProfile : shares                 
+      34  ```
+      35  
+      36  - A **group** is what one table result produces: "2d6 Zombies" 
+          is one group. Its members share a profile but each keeps its ow
+          n Life (Howlers have 2 Life each).
+
+⏺ I replaced the flowchart in design/combat.md with a class diagram that shows:
+  - an Encounter holds one or more Groups;
+  - each Group has one or more Members, each with its own current Life;
+  - each Group also has its own effects, such as the +1 L after a failed Stealth
+    roll;
+  - all Members of a Group share one CreatureProfile: L, Life, Damage, attacks,
+    surprise, traits, vulnerabilities, special rules, XP and Loot.
+
+  The bullets under the diagram stay as they were. I haven't rendered it, so
+  take a look on GitHub once it's pushed.
+
+  The other flowcharts in that file are real sequences of steps (meeting to
+  fighting, a round, attack, defense, escape, waves, ending), so they stay
+  flowcharts.
+
+  design/character.md and design/inventory.md use flowcharts for structure in
+  the same way. Those could become class diagrams too, if you'd like that done
+  separately.
+
+  Can I commit and push this to PR #4?
+
+✻ Cogitated for 20s · done 16:46
+
+❯ yes commit and push                                                           
+
+  Pushed to docs/combat-design (ctrl+o to expand)
+
+⏺ I committed the class diagram change (3678726) and pushed it, so it's now in
+  PR #4: https://github.com/NathanChalot/AloneVsFEear/pull/4
+
+  I haven't checked how it renders; GitHub's file view will show whether the
+  diagram displays correctly.
+
+  Before you close the session, export the transcript with:
+  /export claude-logs/transcripts/202610301500-combat-design.txt
+
+✻ Crunched for 8s · done 16:47
+
+❯ Something else I d like to discuss: The ruling is for our interpretation or   
+  is it something else ?                                                        
+
+⏺ Right now it holds three different things, and the file's own description
+  ("our interpretations where the book… is silent or ambiguous") only covers two
+  of them:
+
+  1. Interpretations. The book says something, but the meaning or scope is
+     unclear, so we pick a reading. Examples: a natural 1 fails on Attack too
+     (the sentence sits under Saves), and an Injury negates the whole loss (two
+     passages disagree).
+  2. Gap fills. The book says nothing, so we invent a rule. Examples: the damage
+     order (armor, Luck, Injury, Life), escaping several groups, how Damage
+     spreads over 2-Life creatures.
+  3. Variants. We deliberately allow an alternative to a rule, as a possible
+     campaign option. Examples: the strict Injury mode, items in hands counting
+     toward the carry limit. Today these are just marked "switchable" inside the
+     other two kinds. The escape destination was briefly one of these before
+     you went back to the book.
+
+  The difference matters for the engine and for you as a player:
+  - An interpretation can turn out wrong: a creator answer or an errata could
+    overrule it.
+  - A gap fill is ours until the book or the creator says otherwise.
+  - A variant is a game option the player chooses, and the engine has to support
+    both versions.
+
+  My recommendation: keep a single rulings.md, but tag each ruling with its kind
+  (interpretation, gap, variant) and keep the source quote. Rules the book
+  states clearly stay in the topic pages, as we did today for Defense on a 1.
+  Variants could later get their own file when we design campaign options, but
+  that isn't worth deciding yet.
+
+  Does that match how you see it, or did you mean rulings to be something
+  narrower, for example interpretations only?
+
+✻ Worked for 10s · done 16:49
+
+❯ ok, tag each ruling with its kind.                                            
+  Also something else, you took some initiative on interpretation this session, 
+  proposing switchable behavuiours etc. I d like you to avoid doing so, you     
+  can suggest but don t decide, you should ask for my opinion first             
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Understood. I'm saving this as a standing rule first.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ I've saved that as a standing rule: from now on I'll suggest interpretations
+  and switchable options, then wait for your answer before writing anything.
+
+  Following that rule, here is my suggested kind for each ruling. I haven't
+  written anything yet.
+
+  Format: a kind tag, interpretation (the book is unclear) or gap (the book is
+  silent), plus a separate switchable mark when you want a campaign option.
+  "Variant" is not a kind of its own, since a switchable ruling is still an
+  interpretation or a gap.
+
+  ┌───────────────────────────────────────┬────────────────┬────────────────┐
+  │                Ruling                 │      Kind      │   Switchable   │
+  ├───────────────────────────────────────┼────────────────┼────────────────┤
+  │ Hunting works in any box              │ interpretation │ —              │
+  ├───────────────────────────────────────┼────────────────┼────────────────┤
+  │ Injury or Scar negates the whole loss │ interpretation │ yes ⚠          │
+  ├───────────────────────────────────────┼────────────────┼────────────────┤
+  │ Expert costs the XP again             │ gap            │ —              │
+  ├───────────────────────────────────────┼────────────────┼────────────────┤
+  │ Hands are extra slots                 │ interpretation │ yes ⚠          │
+  ├───────────────────────────────────────┼────────────────┼────────────────┤
+  │ Strong does not raise the Food limit  │ gap            │ —              │
+  ├───────────────────────────────────────┼────────────────┼────────────────┤
+  │ Discarded items: d6, 1-3 gone         │ gap            │ yes ⚠          │
+  ├───────────────────────────────────────┼────────────────┼────────────────┤
+  │ Ammo without a weapon is kept         │ gap            │ —              │
+  ├───────────────────────────────────────┼────────────────┼────────────────┤
+  │ Max 3 Safe Houses                     │ interpretation │ —              │
+  ├───────────────────────────────────────┼────────────────┼────────────────┤
+  │ Natural 1 / 6 on every roll vs L      │ interpretation │ —              │
+  ├───────────────────────────────────────┼────────────────┼────────────────┤
+  │ Player shares Damage over multi-Life  │ gap            │ —              │
+  │ members                               │                │                │
+  ├───────────────────────────────────────┼────────────────┼────────────────┤
+  │ Damage order: armor, Luck, Injury,    │ gap            │ —              │
+  │ Life                                  │                │                │
+  ├───────────────────────────────────────┼────────────────┼────────────────┤
+  │ Left-behind creatures keep their      │ interpretation │ yes (you       │
+  │ wounds                                │                │ agreed)        │
+  ├───────────────────────────────────────┼────────────────┼────────────────┤
+  │ Failed Stealth buffs only its group   │ interpretation │ —              │
+  ├───────────────────────────────────────┼────────────────┼────────────────┤
+  │ Waves are separate combats (own       │ gap ⚠          │ —              │
+  │ surprise, XP)                         │                │                │
+  ├───────────────────────────────────────┼────────────────┼────────────────┤
+  │ Escape with no visited neighbour: any │ gap            │ —              │
+  │  neighbour                            │                │                │
+  ├───────────────────────────────────────┼────────────────┼────────────────┤
+  │ Escaping several groups: all or       │ gap            │ yes (you       │
+  │ nothing                               │                │ agreed)        │
+  ├───────────────────────────────────────┼────────────────┼────────────────┤
+  │ Failed Escape: one creature's Damage  │ interpretation │ —              │
+  │ per group                             │                │                │
+  ├───────────────────────────────────────┼────────────────┼────────────────┤
+  │ One action is your whole turn         │ interpretation │ —              │
+  ├───────────────────────────────────────┼────────────────┼────────────────┤
+  │ Escaping during waves                 │ gap            │ —              │
+  └───────────────────────────────────────┴────────────────┴────────────────┘
+
+  ⚠ marks something I decided without asking you:
+  - Three switchable marks from last session: Injury, hands and discarded items.
+    I don't know whether you confirmed them; the log doesn't say. Keep them, or
+    drop them?
+  - "Waves are separate combats": I attached this to a ruling you approved, but
+    you never confirmed this part. It means each wave rolls its own surprise,
+    effects like "+1 L for the whole combat" end with the wave, and each wave
+    gives its own XP. OK, or would you rather treat the whole box as one combat?
+
+  Layout: the current "Switchable rulings" heading holds rulings that aren't
+  switchable (Strong, ammo, max 3 Safe Houses). I suggest grouping rulings by
+  topic (Map, Character, Inventory, Safe Houses, Combat), with the tags on each
+  line instead of a switchable section.
+
+  Do the kinds, the ⚠ items and the layout work for you? Once you've answered,
+  I'll apply it and ask before committing.
+
+✻ Baked for 34s · done 16:51
+
+❯ ok for kinds and layout, keep switchable marks. I think I d rather treat the  
+  whole bpox as one combat, I mean +1L to multiple groups seems a bit hardcore  
+  doesn it ? Or am I getting something wrong ?                                  
+
+⏺ You've got one thing slightly off: the +1 L doesn't depend on this choice. We
+  agreed that a failed Stealth roll gives +1 L only to the group you failed
+  against. Fail against two groups and both have +1 L, whether the box counts as
+  one combat or several. Snuck-past groups that join later never get it.
+
+  The choice changes other things. Surprise isn't one of them: a failed Stealth
+  roll already means that group acts first. What does change:
+
+  1. XP. The book gives "1 XP per violent encounter". Each left-behind group was
+     its own encounter when you first met it, so defeating 3 groups could give
+     3 XP (one per group) or 1 XP (one combat).
+  2. Start and end of combat triggers. Two examples:
+     - The Howlers' Fear Save "at the beginning of the combat" happens either
+       when their wave starts or once, whenever the box fight starts. Either way
+       it's once per Howler group.
+     - End-of-combat rolls happen once, after the whole box is cleared, instead
+       of after each wave. That covers the chainsaw (1 in 6, d6 zombies), the
+       grenade (3 in 6) and the Howlers (2 in 6). The grenade text already says
+       "roll only once… in this encounter", which fits one combat.
+  3. Effects "for the first attack" or "the whole combat" on your side would
+     last for the whole box, not reset with each wave. Liquor, the Charisma -1
+     and the Stealth +2 are examples.
+
+  My suggestion: treat the whole box as one combat for triggers and effects
+  (points 2 and 3), but give XP per group defeated (point 1), since each group
+  is a separate encounter in the book's terms. The alternative is 1 XP for the
+  whole box, which is harsher.
+
+  Which XP option do you want? Once you've answered, I'll apply the kinds,
+  layout and switchable marks, and this ruling, then ask before committing.
+
+✻ Sautéed for 14s · done 16:54
+
+❯ ok, one combat for the box, XP per group                                      
+
+⏺ Write(~/Code/RPGs/AloneVsFEear-combat/design/rulings.md)
+  ⎿  Added 34 lines, removed 24 lines
+       1  # Rulings
+       2  
+       3 -Our interpretations where the book and the [creator answers](cr
+         -eator-answers.md) are silent or ambiguous. Each ruling says wha
+         -t we decided and why.                                          
+       3 +Our decisions where the book and the [creator answers](creator-
+         +answers.md) do not settle a rule. Rules the book states clearly
+         + live in the topic pages, with their source. Each ruling says w
+         +hat we decided and why, and carries tags:                      
+       4  
+       5 -- **Hunting works in any box.** "You may encounter that creatur
+         -e in your next box" applies to visited and unexplored boxes ali
+         -ke. A creature hunting you does not care whether you have been 
+         -there before.                                                  
+       6 -- **An Injury or Mental Scar negates the whole loss.** The main
+         - rules say it prevents "the loss of 1 or 2 points" (`1_1_main_r
+         -ules.md`, Sanity and Life), the combat chapter says it negates 
+         -"all Damage from a single attack" (`3_combat.md`, Mental Scars 
+         -and Injuries). We follow the combat chapter: it is less punitiv
+         -e and leaves room for spectacular moments (losing an arm to sur
+         -vive a massive blow). The Zombie Tiger ("if you already have 3 
+         -Injuries, lose 3 Life instead") supports this reading. This rul
+         -ing should stay switchable: the strict reading (absorb at most 
+         -2 points) could be a harder game mode.                         
+       7 -- **Expert costs the Skill's XP cost again.** The book never st
+         -ates the upgrade cost. Learning the Basic Skill then paying the
+         - same cost again for Expert follows "skills may be added at any
+         - moment in the game, after paying their XP cost" (`1_2_skills.m
+         -d`) and "some Arcane Skills may be learned twice (they have an 
+         -Expert level)" (`1_3_arcane_skills.md`). Matches a community an
+         -swer on BoardGameGeek.                                         
+       5 +- `interpretation` — the book says something, but its meaning o
+         +r scope is unclear. A creator answer or an errata could overrul
+         +e it.                                                          
+       6 +- `gap` — the book says nothing. The rule is ours until the boo
+         +k or the creator says otherwise.                               
+       7 +- `switchable` — a matter of taste that could become a campaign
+         + option chosen at campaign start (e.g. a strict or horrific mod
+         +e). Campaign options are not designed yet.                     
+       8  
+       9 -## Switchable rulings                                          
+       9 +## Map                                                         
+      10  
+      11 -Some rulings are a matter of taste and could become campaign op
+         -tions chosen at campaign start (e.g. a strict mode and a cinema
+         -tic mode). Not designed yet: for now, mark switchable rulings a
+         -s such.                                                        
+      12 -- **Hands are extra slots.** The 2 hand slots come on top of th
+         -e carry limit, as the encumbrance summary reads ("1 object in e
+         -ach hand… you may also carry 10 objects"). Switchable: a horrif
+         -ic mode could count them.                                      
+      13 -- **Strong raises items only, not the Food limit.** The Food ru
+         -les mention only the backpack. A Strong character can still car
+         -ry more Food through the extra item slots (1 Food = 1 item).   
+      14 -- **Discarded items stay in the box, at a risk.** When coming b
+         -ack to a box where items were left, roll d6: on 1-3 they are go
+         -ne. Mirrors the stash theft rule. Switchable: a horrific mode c
+         -ould make them gone at once.                                   
+      15 -- **Ammo without a matching weapon is kept.** Ammo is not an it
+         -em and costs no slot. Leaving it behind follows the discarded i
+         -tems rule.                                                     
+      16 -- **Max 3 Safe Houses.** The Street table says "if it is the th
+         -ird", the other tables "if there are already 3". We follow the 
+         -majority.                                                      
+      11 +- **Hunting works in any box.** `interpretation` "You may encou
+         +nter that creature in your next box" applies to visited and une
+         +xplored boxes alike. A creature hunting you does not care wheth
+         +er you have been there before.                                 
+      12  
+      18 -## Combat                                                      
+      13 +## Character                                                   
+      14  
+      20 -From the combat design session (2026-10-30). Rules the book sta
+         -tes are in [combat](combat.md), not here.                      
+      15 +- **An Injury or Mental Scar negates the whole loss.** `interpr
+         +etation` `switchable` The main rules say it prevents "the loss 
+         +of 1 or 2 points" (`1_1_main_rules.md`, Sanity and Life), the c
+         +ombat chapter says it negates "all Damage from a single attack"
+         + (`3_combat.md`, Mental Scars and Injuries). We follow the comb
+         +at chapter: it is less punitive and leaves room for spectacular
+         + moments (losing an arm to survive a massive blow). The Zombie 
+         +Tiger ("if you already have 3 Injuries, lose 3 Life instead") s
+         +upports this reading. Switchable: the strict reading (absorb at
+         + most 2 points) could be a harder game mode.                   
+      16 +- **Expert costs the Skill's XP cost again.** `gap` The book ne
+         +ver states the upgrade cost. Learning the Basic Skill then payi
+         +ng the same cost again for Expert follows "skills may be added 
+         +at any moment in the game, after paying their XP cost" (`1_2_sk
+         +ills.md`) and "some Arcane Skills may be learned twice (they ha
+         +ve an Expert level)" (`1_3_arcane_skills.md`). Matches a commun
+         +ity answer on BoardGameGeek.                                   
+      17  
+      22 -- **Natural 1 and natural 6 apply to every roll vs L, Attack in
+         -cluded.** The sentence sits under Saves: "Rolling a 1 is always
+         - a failure and rolling a 6 is always a success, no matter what 
+         -modifiers are involved" (`1_1_main_rules.md`). We checked every
+         - rule that mentions rolling a 1: none says an Attack on a 1 sti
+         -ll hits (kitchen knife, replica sword, flail, raygun only add a
+         - side effect), and creatures that hit harder on a Defense 1 (Ma
+         -ster Scarecrow, Giant Worm) assume the 1 fails. On Attack, fail
+         -ure means 0 hits and success means at least 1 hit. A specific t
+         -ext that says otherwise wins. Search is not a roll vs L and has
+         - its own wording ("A roll of 1 remains a 1").                  
+      23 -- **The player shares Damage among members with more than 1 Lif
+         -e.** The book covers 1-Life members ("each Damage point kills o
+         -ne of them", the shotgun example) and lets the grenade's Damage
+         - be "divided in any desired way" (`3_combat.md`, `8_weapon_summ
+         -ary_table.md`). It does not say how Damage spreads over 2-Life 
+         -Howlers. We let the player share it, extra Damage going on to t
+         -he next member.                                                
+      24 -- **Damage taken goes through armor, then Luck, then Injury, th
+         -en Life.** Each step is in the book, the order is not. Armor ro
+         -lls "every time you take Damage" (`2_2_useful_stuff_table.md`),
+         - so it comes first. Armor takes the Damage up to its remaining 
+         -Life and the rest goes on, also not written. The Injury comes l
+         -ast because it is the most costly and only matters if Damage is
+         - left.                                                         
+      25 -- **Left-behind creatures keep their wounds.** The Slasher and 
+         -the Zombie Abominion come back "fully healed" as an explicit ex
+         -ception (`5_24_slashers_table.md`, `5_31_unique_zombies_table.m
+         -d`), which suggests the default is that they do not. Switchable
+         -.                                                              
+      26 -- **A failed Stealth roll buffs only the group it was rolled ag
+         -ainst.** Each group gets its own Stealth roll ([creator answers
+         -](creator-answers.md)), and the +1 L is "its L", "the enemy" (`
+         -3_combat.md`).                                                 
+      27 -- **Waves are separate combats.** Each wave has its own surpris
+         -e roll, its own "for the whole combat" effects and its own XP. 
+      28 -- **Escape with no visited neighbour goes to any neighbour.** T
+         -he book sends you "back to any neighboring box that you have al
+         -ready visited" (`3_combat.md`, Escape rolls), which does not ex
+         -ist in the first box. There you choose any neighbour and explor
+         -e it as a new box.                                             
+      29 -- **Escaping several groups is all or nothing.** Roll Escape ag
+         -ainst each group in the fight. If any roll fails you stay in th
+         -e box, and next round every group is back in the fight, the one
+         -s you got away from included. Each group you failed against inf
+         -licts the Damage of one of its creatures, and that is its turn.
+         - Only the groups you failed against act that round; the ones yo
+         -u got away from do not attack. An encounter with several creatu
+         -re profiles (Kalina and her toy dinosaur) is several groups. Sw
+         -itchable: the book only describes escaping one group.          
+      30 -- **A failed Escape costs one creature's Damage per group**, no
+         -t one per member: "you automatically take the monster's Damage…
+         - it makes no difference whether you are running away from a sin
+         -gle opponent or a group of monsters" (`3_combat.md`, Escape rol
+         -ls).                                                           
+      31 -- **One action is your whole turn.** Attack, Escape, use an ite
+         -m, cast, change or draw a weapon, stand up: one of them per tur
+         -n. What the book calls free (firing a curse, a knot reroll, Luc
+         -k points) costs nothing. The book uses "1 action" and "1 turn" 
+         -for the same costs, and the grenade lets you "use it on the fol
+         -lowing turn without having to spend a turn to draw it". The rif
+         -le's double attack is an exception written on the weapon.      
+      32 -- **Escaping during waves: you escape every group or none.** Yo
+         -u Stealth each group, and keep rolling after a failure. You fig
+         -ht the groups you failed against in waves. To Escape, you must 
+         -succeed against every group in the box, fought yet or not, snuc
+         -k past or not. Only the groups you failed the Escape against de
+         -al Damage (one creature's each). If any roll fails, from the ne
+         -xt round every group fights you in waves: the failed-Stealth gr
+         -oups first, the snuck-past groups after. See [combat](combat.md
+         -).                                                             
+      18 +## Inventory                                                   
+      19  
+      20 +- **Hands are extra slots.** `interpretation` `switchable` The 
+         +2 hand slots come on top of the carry limit, as the encumbrance
+         + summary reads ("1 object in each hand… you may also carry 10 o
+         +bjects"). Switchable: a horrific mode could count them.        
+      21 +- **Strong raises items only, not the Food limit.** `gap` The F
+         +ood rules mention only the backpack. A Strong character can sti
+         +ll carry more Food through the extra item slots (1 Food = 1 ite
+         +m).                                                            
+      22 +- **Discarded items stay in the box, at a risk.** `gap` `switch
+         +able` When coming back to a box where items were left, roll d6:
+         + on 1-3 they are gone. Mirrors the stash theft rule. Switchable
+         +: a horrific mode could make them gone at once.                
+      23 +- **Ammo without a matching weapon is kept.** `gap` Ammo is not
+         + an item and costs no slot. Leaving it behind follows the disca
+         +rded items rule.                                               
+      24 +                                                               
+      25 +## Safe Houses                                                 
+      26 +                                                               
+      27 +- **Max 3 Safe Houses.** `interpretation` The Street table says
+         + "if it is the third", the other tables "if there are already 3
+         +". We follow the majority.                                     
+      28 +                                                               
+      29 +## Combat                                                      
+      30 +                                                               
+      31 +See [combat](combat.md).                                       
+      32 +                                                               
+      33 +- **Natural 1 and natural 6 apply to every roll vs L, Attack in
+         +cluded.** `interpretation` The sentence sits under Saves: "Roll
+         +ing a 1 is always a failure and rolling a 6 is always a success
+         +, no matter what modifiers are involved" (`1_1_main_rules.md`).
+         + We checked every rule that mentions rolling a 1: none says an 
+         +Attack on a 1 still hits (kitchen knife, replica sword, flail, 
+         +raygun only add a side effect), and creatures that hit harder o
+         +n a Defense 1 (Master Scarecrow, Giant Worm) assume the 1 fails
+         +. On Attack, failure means 0 hits and success means at least 1 
+         +hit. A specific text that says otherwise wins. Search is not a 
+         +roll vs L and has its own wording ("A roll of 1 remains a 1"). 
+      34 +- **The player shares Damage among members with more than 1 Lif
+         +e.** `gap` The book covers 1-Life members ("each Damage point k
+         +ills one of them", the shotgun example) and lets the grenade's 
+         +Damage be "divided in any desired way" (`3_combat.md`, `8_weapo
+         +n_summary_table.md`). It does not say how Damage spreads over 2
+         +-Life Howlers. The player shares it, extra Damage going on to t
+         +he next member.                                                
+      35 +- **Damage taken goes through armor, then Luck, then Injury, th
+         +en Life.** `gap` Each step is in the book, the order is not. Ar
+         +mor rolls "every time you take Damage" (`2_2_useful_stuff_table
+         +.md`), so it comes first. Armor takes the Damage up to its rema
+         +ining Life and the rest goes on, also not written. The Injury c
+         +omes last because it is the most costly and only matters if Dam
+         +age is left.                                                   
+      36 +- **One action is your whole turn.** `interpretation` Attack, E
+         +scape, use an item, cast, change or draw a weapon, stand up: on
+         +e of them per turn. What the book calls free (firing a curse, a
+         + knot reroll, Luck points) costs nothing. The book uses "1 acti
+         +on" and "1 turn" for the same costs, and the grenade lets you "
+         +use it on the following turn without having to spend a turn to 
+         +draw it". The rifle's double attack is an exception written on 
+         +the weapon.                                                    
+      37 +- **Left-behind creatures keep their wounds.** `interpretation`
+         + `switchable` The Slasher and the Zombie Abominion come back "f
+         +ully healed" as an explicit exception (`5_24_slashers_table.md`
+         +, `5_31_unique_zombies_table.md`), which suggests the default i
+         +s that they do not.                                            
+      38 +- **A failed Stealth roll buffs only the group it was rolled ag
+         +ainst.** `interpretation` Each group gets its own Stealth roll 
+         +([creator answers](creator-answers.md)), and the +1 L is "its L
+         +", "the enemy" (`3_combat.md`).                                
+      39 +- **All the waves in a box are one combat, with XP per group.**
+         + `gap` The creator says groups are fought "in waves, one after 
+         +the other with no rest between waves" but not whether that is o
+         +ne combat. Start and end of combat triggers happen once for the
+         + box (the grenade already says "roll only once… in this encount
+         +er"), and effects lasting "the first attack" or "the whole comb
+         +at" last for the whole box. Each group was its own encounter, s
+         +o each defeated group gives its XP.                            
+      40 +- **A failed Escape costs one creature's Damage per group**, no
+         +t one per member. `interpretation` "You automatically take the 
+         +monster's Damage… it makes no difference whether you are runnin
+         +g away from a single opponent or a group of monsters" (`3_comba
+         +t.md`, Escape rolls).                                          
+      41 +- **Escaping several groups is all or nothing.** `gap` `switcha
+         +ble` Roll Escape against each group in the fight. If any roll f
+         +ails you stay in the box, and next round every group is back in
+         + the fight, the ones you got away from included. Each group you
+         + failed against inflicts the Damage of one of its creatures, an
+         +d that is its turn; the ones you got away from do not attack th
+         +at round. An encounter with several creature profiles (Kalina a
+         +nd her toy dinosaur) is several groups. The book only describes
+         + escaping one group.                                           
+      42 +- **Escaping during waves: you escape every group or none.** `g
+         +ap` You Stealth each group, and keep rolling after a failure. Y
+         +ou fight the groups you failed against in waves. To Escape, you
+         + must succeed against every group in the box, fought yet or not
+         +, snuck past or not. Only the groups you failed the Escape agai
+         +nst deal Damage (one creature's each). If any roll fails, from 
+         +the next round every group fights you in waves: the failed-Stea
+         +lth groups first, the snuck-past groups after.                 
+      43 +- **Escape with no visited neighbour goes to any neighbour.** `
+         +gap` The book sends you "back to any neighboring box that you h
+         +ave already visited" (`3_combat.md`, Escape rolls), which does 
+         +not exist in the first box. There you choose any neighbour and 
+         +explore it as a new box.                                       
+
+⏺ Now updating the waves section in combat.md and the session log.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ I've applied your decisions (not committed yet):
+
+  - design/rulings.md:
+    - It starts with a short explanation of the three tags: interpretation, gap
+      and switchable.
+    - Rulings are now grouped by topic: Map, Character, Inventory, Safe Houses,
+      Combat. The old "Switchable rulings" heading is gone.
+    - Every ruling has its tags, with the kinds from the table you approved.
+    - The switchable marks are on Injury, hands, discarded items, left-behind
+      wounds and escaping several groups.
+  - Waves: "waves are separate combats" is replaced by "All the waves in a box 
+    are one combat, with XP per group", tagged gap.
+    - Start and end of combat triggers happen once for the box.
+    - "First attack" and "whole combat" effects last for the whole box.
+    - Each group you defeat gives its own XP.
+    - The waves section of combat.md now says the same.
+  - Session log: it records the waves decision, the tagging, and that I now
+    suggest rulings and wait for your decision.
+
+  Can I commit and push this to PR #4?
+
+✻ Cogitated for 33s · done 16:56
+
+❯ Wait: - "First attack" and "whole combat" effects last for the whole box.     
+  whjat does this mean ?                                                        
+⏺ That sentence was vague, and partly wrong. Concretely, the book has two kinds
+  of effects with a combat-length duration.
+
+  1. Effects that last "the current combat", the only kind where waves matter.
+  Example: Dodge says a natural 1 on Defense gives you "-1 to your next Attack
+  roll in the current combat".
+  - Say you roll that 1 on your last Defense against wave 1.
+  - One combat for the box: the -1 carries over to your first Attack against
+    wave 2.
+  - Separate combats: it would vanish when wave 1 ends.
+
+  2. Effects tied to one creature. These don't care about waves either way:
+  - The Charisma -1 applies to your "first Attack roll against that creature".
+  - The Stealth +1 L belongs to the group you failed against, and lasts until
+    that group is dead or you leave.
+
+  So "first attack effects last for the whole box" was wrong. In the book, those
+  effects follow the creature, not the wave.
+
+  Suggested rewording for combat.md and the ruling:
+
+  ▎ Effects that last "the current combat" (Dodge's -1 to your next Attack) 
+  ▎ carry over from one wave to the next. Effects tied to a creature (Charisma 
+  ▎ -1 on the first Attack against it, Stealth +1 L) stay with that creature.
+
+  Shall I use this wording?
+
+✻ Worked for 14s · done 16:57
+
+❯ I think its a bit harsh too: "Effects that last "the current combat" (Dodge's 
+  -1 to your next Attack) carry over from one wave to the next"                 
+  Lets reset between wave ? Isnt'it kinder ?                                    
+
+⏺ Let me check which effects in the book actually last "the combat", so I can
+  tell you what resetting would change.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Yes, it's kinder. In practice it changes very little. I found only three
+  effects in the whole book that last "the combat":
+
+  1. Dodge: "-1 to your next Attack roll in the current combat" after a natural
+     1 on Defense. With a reset, this is the one that would end with the wave.
+  2. Stealth failure: "+1 to its L for the duration of the combat". This is tied
+     to the group you failed against, so resetting doesn't change it.
+  3. A Unique Event (6_unique_events.md, line 101): "+1 to your Defense rolls
+     until the end of the combat" once the horde is down to 2 Life. That's a
+     scripted fight, not a left-behind box, so waves don't apply.
+
+  No bonus you'd lose by resetting, then: the only effect that resets is a
+  malus.
+
+  That would make waves one combat for start and end triggers and XP, but each 
+  wave is "the current combat" for effects that last a combat. Suggested wording
+  for the ruling and combat.md:
+
+  ▎ Effects that last "the current combat" end with each wave (Dodge's -1 to 
+  ▎ your next Attack). Effects tied to a creature (Charisma -1 on the first 
+  ▎ Attack against it, Stealth +1 L) stay with that creature.
+
+  Shall I apply this wording?
+
+✻ Sautéed for 16s · done 16:58
+
+❯ yes apply it, then commit and push                                            
+
+  Pushed to docs/combat-design (ctrl+o to expand)
+
+⏺ I applied the wording, committed it as 82761d5 and pushed it to PR #4:
+  https://github.com/NathanChalot/AloneVsFEear/pull/4
+
+  - Waves: the ruling, combat.md and the session log now say:
+    - all the waves in a box are one combat, and each group you defeat gives its
+      own XP;
+    - effects that last "the current combat" end with each wave (Dodge's -1),
+      which the ruling records as the kinder option;
+    - effects tied to a creature stay with it (Charisma -1, Stealth +1 L).
+  - Rulings: rulings.md is grouped by topic, and each ruling is tagged
+    interpretation or gap, plus switchable where you kept that option.
+
+  The session log still has "not pushed yet" on its PR line. My reminder for
+  next session will fix it.
+
+  To finish the session, export the transcript with:
+  /export claude-logs/transcripts/202610301500-combat-design.txt
+
+✻ Sautéed for 14s · done 17:01
+
+❯ Maybe should you rewrite the session log as we are just done                  
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Write(~/Code/RPGs/AloneVsFEear-combat/claude-logs/202610301500-combat-design.m
+       d)
+  ⎿  Added 18 lines, removed 13 lines
+      2  
+      3  - Date: 2026-10-30
+      4  - Session ID: f810544e-29a4-4c34-acc8-a8dc32bb20f6
+      5 -- Branch / PR: `docs/combat-design` (stacked on `docs/domain-des
+        -ign`) / not pushed yet                                          
+      5 +- Branch / PR: `docs/combat-design` (stacked on `docs/domain-des
+        +ign`) / https://github.com/NathanChalot/AloneVsFEear/pull/4     
+      6  - Transcript: [transcripts/202610301500-combat-design.txt](trans
+         cripts/202610301500-combat-design.txt)
+      7  
+      8  ## Goal
+     ...
+      12  ## Done
+      13  
+      14  - Fixed the 2026-10-30 domain design log's Branch / PR line (PR
+           #3).
+      15 -- Created `design/combat.md`: creature profile and groups, from
+         - meeting to fighting (Charisma, Stealth, surprise), a round, At
+         -tack, Defense and taking Damage, Escape, waves, ending a combat
+         -, ammo and weapons. Checked against the creature tables for edg
+         -e cases (mixed groups, 2 attacks, pursuit, no-Escape conditions
+         -, morale).                                                     
+      16 -- Added proposed combat rulings to `design/rulings.md`, new glo
+         -ssary entries (group, round, action, wave, explosion, fumble), 
+         -and grew `design/rolls.md` (roll results keep the natural die, 
+         -combat-moment tags, more trait tags).                          
+      15 +- Created `design/combat.md`: creature profile as a class diagr
+         +am (encounter, groups, members, shared profile), then flows for
+         + meeting to fighting (Charisma, Stealth, surprise), a round, At
+         +tack, Defense and taking Damage, Escape, waves, ending a combat
+         +; ammo and weapons. Checked against the creature tables for edg
+         +e cases (mixed groups, 2 attacks, pursuit, no-Escape conditions
+         +, morale).                                                     
+      16 +- Reviewed every combat ruling with the user, point by point. B
+         +ook-stated rules moved to `combat.md` with their source; the re
+         +st went to `design/rulings.md`.                                
+      17 +- Reorganised `design/rulings.md` by topic (Map, Character, Inv
+         +entory, Safe Houses, Combat) and tagged each ruling.           
+      18 +- New glossary entries (group, round, action, wave, explosion, 
+         +fumble); grew `design/rolls.md` (roll results keep the natural 
+         +die, combat-moment tags, more trait tags).                     
+      19  - Ticked the combat checkbox in the Readme and removed the sess
+          ion from `NextSession.md`.
+      20  
+      21  ## Decisions
+      22  
+      21 -- **Effects and game moments stay out of scope** — combat only 
+         -lists the moments it hooks into; the general model is the next 
+         -design topics' job.                                            
+      22 -- **"Round" for a full exchange** — the book uses "turn" for bo
+         -th your action and the exchange.                               
+      23 -- **Book rules, not rulings**: one Defense roll per attack of e
+         -ach surviving creature; a natural 1 on Defense always fails, th
+         -e reroll only checks the fumble; a failed Escape is the creatur
+         -es' turn.                                                      
+      24 -- **Rulings reviewed with the user**: natural 1 fails and natur
+         -al 6 succeeds on every roll vs L, Attack included, after checki
+         -ng that no text says otherwise; the player shares Damage among 
+         -multi-Life members; Damage taken goes armor, Luck, Injury, Life
+         -; left-behind creatures keep their wounds (switchable); a faile
+         -d Stealth roll buffs only its group; all waves in a box are one
+         - combat, with XP per group, but "current combat" effects end wi
+         -th each wave (the kinder option); one action is the whole turn.
+      25 -- **Escape** — to a neighbouring visited box as the book says (
+         -any neighbour from the first box). Several groups is all or not
+         -hing (switchable): each failed group deals one creature's Damag
+         -e, the escaped ones do not attack, and every group is back next
+         - round. During waves, an Escape must beat every group in the bo
+         -x, snuck-past ones included; only the groups failed against dea
+         -l Damage, and if any roll fails the snuck-past groups join the 
+         -fight as a later wave.                                         
+      26 -- **The user changed their mind on the Escape destination** — f
+         -irst chose "any neighbour, visited or not", then went back to t
+         -he book.                                                       
+      27 -- **The effect kinds hold up** — combat adds no new kind, but n
+         -eeds effects scoped to one combat or one attack, and effects on
+         - creatures.                                                    
+      23 +- **Rulings are tagged** — `interpretation` (the book is unclea
+         +r), `gap` (the book is silent), plus `switchable` for possible 
+         +campaign options. Book-stated rules stay in the topic pages, no
+         +t in rulings.                                                  
+      24 +- **Claude suggests rulings, the user decides** — Claude had wr
+         +itten proposals and switchable marks before asking; from now on
+         + it asks first.                                                
+      25 +- **Book rules, not rulings** — one Defense roll per attack of 
+         +each surviving creature; a natural 1 on Defense always fails, t
+         +he reroll only checks the fumble; a failed Escape is the creatu
+         +res' turn (creator answer).                                    
+      26 +- **Natural 1 fails and natural 6 succeeds on every roll vs L, 
+         +Attack included** — the book states it under Saves; we checked 
+         +that no text says otherwise for Attack. A specific text that sa
+         +ys otherwise would win.                                        
+      27 +- **Damage** — the player shares it among members with more tha
+         +n 1 Life; Damage taken goes through armor, Luck, Injury, then L
+         +ife.                                                           
+      28 +- **One action is the whole turn** — the book uses "1 action" a
+         +nd "1 turn" for the same costs; free actions stay free.        
+      29 +- **Left-behind creatures keep their wounds** (switchable) — th
+         +e "fully healed" creatures are written as exceptions.          
+      30 +- **Escape** — to a neighbouring visited box, as the book says 
+         +(any neighbour from the first box). The user first chose "any n
+         +eighbour, visited or not", then went back to the book. A failed
+         + Escape costs one creature's Damage per group failed against.  
+      31 +- **Several groups: you escape every group or none** (switchabl
+         +e) — roll against every group in the box, snuck-past ones inclu
+         +ded; only the groups failed against deal Damage, the others do 
+         +not attack that round; from the next round every group fights, 
+         +the snuck-past ones as a later wave.                           
+      32 +- **Waves** — a failed Stealth roll buffs only its group; all w
+         +aves in a box are one combat for start and end triggers, with X
+         +P per group defeated; "current combat" effects end with each wa
+         +ve, the kinder option (in the book only Dodge's -1 is affected)
+         +.                                                              
+      33 +- **Effects and game moments stay out of scope** — combat lists
+         + the moments it hooks into; the general model is a later design
+         + topic. The effect kinds hold up, but combat needs effects scop
+         +ed to one combat or one attack, and effects on creatures.      
+      34 +- **Class diagrams for structures** — flowcharts are for sequen
+         +ces; the creature profile became a class diagram. `character.md
+         +` and `inventory.md` could follow.                             
+      35  
+      29 -- **Rulings are tagged** `interpretation` (book unclear) or `ga
+         -p` (book silent), plus `switchable` for possible campaign optio
+         -ns, and grouped by topic. Book-stated rules stay in the topic p
+         -ages.                                                          
+      30 -- **Claude suggests rulings, the user decides** — Claude had re
+         -corded proposals and switchable marks before asking; from now o
+         -n it asks first.                                               
+      31 -                                                               
+      36  ## Open questions
+      37  
+      38 +- Should `character.md` and `inventory.md` switch their structu
+         +re flowcharts to class diagrams?                               
+      39  - `.tool-versions` still blocks `python3` in the repo (worked a
+          round with `ASDF_PYTHON_VERSION`); planned for the project setu
+          p session.
+      40  
+      41  ## Next
+
+⏺ The log now includes the PR #4 link, so I'm deleting the reminder I'd saved
+  for next session.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ I rewrote claude-logs/202610301500-combat-design.md so it reflects where the
+  session ended:
+
+  - Branch / PR: now links to PR #4, so I deleted the reminder I'd saved for
+    next session.
+  - Done: adds the class diagram, the point-by-point review of the rulings, and
+    the reorganised, tagged rulings.md.
+  - Decisions: one line per settled topic, in their final form. That covers the
+    tags and the "I suggest, you decide" rule; the natural 1/6 and Damage rules;
+    one action per turn; Escape; and waves (one combat, XP per group, "current
+    combat" effects end with each wave). It also notes that you changed your
+    mind on the escape destination.
+  - Open questions: adds whether character.md and inventory.md should switch to
+    class diagrams too, and keeps the .tool-versions note.
+
+  It's not committed yet. Can I commit and push it to PR #4? After that, export
+  the transcript with /export 
+  claude-logs/transcripts/202610301500-combat-design.txt.
+
+✻ Sautéed for 25s · done 17:03
