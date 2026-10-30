@@ -30,8 +30,12 @@ The domain vocabulary. Docs, issues and code use these words with these meanings
 
 ## Town
 
-- **Town map** — the grid of boxes. A **sheet** holds 30 boxes. New sheets are attached when a sheet is fully visited.
-- **Box** — one area of town (~2 hours of walking). Neighbours include diagonals. Counts as every place table rolled in it (a haunted clinic is a Clinic and a Haunted House).
+- **Town map** — the town as one grid of boxes, growing sheet by sheet. See [town map](town-map.md).
+- **Sheet** — a 5×6 block of 30 boxes. A new one is attached next to an existing sheet when a sheet is fully visited, or after a mission; boxes across the seam are neighbours.
+- **Side map** — a separate grid outside the town, opened by an event (the forest of #41).
+- **Box** — one area of town (~2 hours of walking). Counts as every place table rolled in it (a haunted clinic is a Clinic and a Haunted House).
+- **Neighbour** — a box sharing a side or a corner: diagonals included, up to 8.
+- **Distance** — the fewest moves between two boxes, a diagonal step counting as 1.
 - **Home** — the starting box. Not a Safe House: random encounters happen there too.
 - **Box number** — the order in which boxes are entered (1, 2, 3…). It is the clock of the campaign, never reset between missions: Food, effect durations and some mission triggers count boxes.
 - **Unexplored** / **Visited** box — whether its content was already generated.
