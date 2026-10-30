@@ -31,7 +31,7 @@ The domain vocabulary. Docs, issues and code use these words with these meanings
 ## Town
 
 - **Town map** — the grid of boxes. A **sheet** holds 30 boxes. New sheets are attached when a sheet is fully visited.
-- **Box** — one area of town (~2 hours of walking). Neighbours include diagonals.
+- **Box** — one area of town (~2 hours of walking). Neighbours include diagonals. Counts as every place table rolled in it (a haunted clinic is a Clinic and a Haunted House).
 - **Home** — the starting box. Not a Safe House: random encounters happen there too.
 - **Box number** — the order in which boxes are entered (1, 2, 3…). It is the clock of the campaign, never reset between missions: Food, effect durations and some mission triggers count boxes.
 - **Unexplored** / **Visited** box — whether its content was already generated.
@@ -41,11 +41,16 @@ The domain vocabulary. Docs, issues and code use these words with these meanings
 
 ## Play
 
-- **Table** — a roll (d6, 2d6, d66…) mapped to outcomes. Outcomes often chain to other tables. The backbone of the game content.
+- **Table** — a roll (d6, 2d6, d66…) mapped to results. The backbone of the game content.
+- **Result** — what a table gives: a short script of steps (encounter, chain, choice, gate, gain or loss, effect, box mark, movement). Can be rolled, forced or shifted by a mission.
+- **Chain** — a result sending to another table or a numbered event. Resolved in the same box.
 - **Town Exploration table** — rolled when entering an unexplored box. Points to a **place table** (House, Street, Clinic…).
+- **Gate** — a condition on a step: a chance (x in 6), an item, Skill or keyword owned, or what happened before.
+- **Keyword** — a flag written on the play sheet by a result and checked by others (CLOWNFACE, SNOWY). Belongs to the campaign or the character, depending on what it describes.
+- **Moving along** — choosing not to explore a place. Like ignoring, the place stays in the box and the Search is blocked.
 - **Random Encounter table** — rolled on a 1 in 6 when entering a visited box. Points to a **creature table** (Beasts, Undead…).
-- **Unique Event** — a numbered, scripted event triggered by a table. Usually played once.
-- **Encounter** — whatever is met in a box: creatures, people, a hazard, an event. Ends **resolved** (won, ignored, negotiated, survived) or **fled**.
+- **Unique Event** — a numbered, scripted event triggered by a table. Played once per campaign unless its text says otherwise. Events chain into short stories.
+- **Encounter** — whatever is met in a box: creatures, people, a hazard, an event. Ends **resolved** (won, negotiated, avoided, survived), **ignored** or **fled**. Ignored and fled encounters stay in the box and block the Search.
 - **Creature** — an opponent with a Level (L), Life, Damage and traits (Slow, Undead, vulnerabilities…).
 - **Group** — the creatures one table result produces ("2d6 Zombies"). Members share a profile, each has its own Life. An encounter can hold several groups.
 - **Round** — your turn plus the creatures' turn. The book says "turn" for both.
