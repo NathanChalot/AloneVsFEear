@@ -2,7 +2,7 @@
 
 - Date: 2026-10-30
 - Session ID: afe8e30f-82f3-474d-851b-e0474cfedb88
-- Branch / PR: `docs/encounters-design` (stacked on `docs/combat-design`) / not pushed yet
+- Branch / PR: `docs/encounters-design` (stacked on `docs/combat-design`) / https://github.com/NathanChalot/AloneVsFEear/pull/5
 - Transcript: [transcripts/202610301700-encounters-design.txt](transcripts/202610301700-encounters-design.txt)
 
 ## Goal
