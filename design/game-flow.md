@@ -51,7 +51,7 @@ flowchart TD
 
 The character must leave a box to play it again: no staying in place to heal twice. Home is not a Safe House.
 
-Search is allowed when the encounter was not fled, the box was not Searched yet, and the box is not a Safe House. Libraries can be Searched again for 1 book or 1 Clue.
+Search is allowed when the encounter was not fled or ignored ([rulings](rulings.md)), the box was not Searched yet, and the box is not a Safe House. Libraries can be Searched again for 1 book or 1 Clue.
 
 ## 3. Arriving in a box
 
@@ -82,7 +82,7 @@ flowchart TD
     random --> encounter
     encounter --> result{Result}
     result -- resolved --> canSearch([Search allowed])
-    result -- "fled or ignored" --> stays([Encounter stays in the box<br/>no Search after fleeing])
+    result -- "fled or ignored" --> stays([Encounter stays in the box<br/>no Search])
     nothing --> canSearch
 ```
 

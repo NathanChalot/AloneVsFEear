@@ -1,0 +1,1345 @@
+ ▐▛███▛█   Claude Code v2.1.314
+▝▜██████▀  Opus 5.5 · Claude Pro
+ ▝▝   ▝▝   ~/Code/RPGs/AloneVsFEear
+
+  Sonnet 5.5 is here, and it's faster and excels at well-scoped tasks. Opus 5.5 is still your default. Switch with /model.
+
+❯ Ok lets get back to work with our next session on thecurrent project          
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ The latest state lives in the stacked combat-design branch. Reading its
+  roadmap, session plan and last log.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Last session left two loose ends; I'll flag them below. First I'm setting up
+  this session's worktree, stacked on the combat branch, and reading the design
+  state.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Now the rules that feed this topic: exploration, place tables, encounters and
+  Unique Events.
+
+  Ran 4 shell commands (ctrl+o to expand)
+
+⏺ I've caught up. The plan in NextSession.md has Encounters and tables design
+  next (Milestone 2): how table results chain, choices, left-behind encounters
+  and Unique Events.
+
+  Setup: I created the worktree ../AloneVsFEear-encounters on a new branch
+  docs/encounters-design. It is stacked on docs/combat-design, the same way
+  combat was stacked on PR #3.
+
+  Two things from last session are unfinished:
+  1. The combat log's update (PR #4 link, reworded Done/Decisions) is still
+     uncommitted in ../AloneVsFEear-combat. Do you want me to commit it and push
+     it to PR #4?
+  2. The combat transcript was exported to the main checkout's
+     claude-logs/transcripts/, not to the combat worktree, so it's untracked on
+     main. I can move it into the combat branch with that same commit.
+
+  Proposed session plan
+  1. Draft design/encounters.md (domain terms only, no rulings yet):
+     - Table model (class diagram): table → roll → result. A result can be an
+       encounter, a chain to another table, a choice, an effect or loot. It can
+       also be gated ("if already played…", "x in 6", "if you have a jar").
+     - Resolving a result (flow): chaining, player choices, "explore it or move
+       along", x-in-6 sub-encounters (the Food store, the Armory).
+     - What a box remembers: place type, left-behind encounters, rules that
+       apply every visit (Safe Houses, the cultists' "2 in 6 still there",
+       paying the sewer survivors), consumed one-off content.
+     - Unique Events and exhaustible tables: played-once tracking, reroll or
+       fallback when exhausted (Special Events, Slashers, unique creatures),
+       table-shift effects (+1/-1 from side missions and We Need Weapons).
+  2. Then go through the ambiguities one at a time. For each I'll give the
+     passages and options and wait for your decision. Some I've already found:
+     - Is "ignore" the same as "flee" for Search? The exploration table bans
+       Search only after fleeing. But game-flow.md and the glossary disagree on
+       where "ignored" goes, and I don't think you ever ruled on it explicitly.
+     - Are Unique Events once only by default? #2 says "not unique", Street 6
+       and House 6 have "if already played" fallbacks, and Pighead repeats until
+       killed.
+     - "Move along" on a place you can explore: can you come back later and
+       explore it?
+     - Search table result 1 (random encounter): how does it interact with the
+       Search you've already used, and with fleeing?
+  3. Wrap up: update the Readme, NextSession.md, glossary and rolls entries if
+     needed, then write the log.
+
+  Should I start with step 1? And should I commit and push the combat log, with
+  the transcript, to PR #4?
+
+✻ Churned for 59s · done 17:07
+
+❯ yes commit and push the combat log, then start step 1 but:                    
+  - why a class diagram ? Just chose the best diagram to represent the idea     
+
+⏺ Bash(mv claude-logs/transcripts/202610301500-combat-design.txt
+      ../AloneVsFEear-combat/claude-logs/transcripts/ && ls
+      claude-logs/transcripts && cd ../AloneVsFEear-co…)
+  ⎿  202610301100-domain-design.txt
+     ec5beeb docs: update combat log and add its transcript
+  ⎿  Shell cwd was reset to /Users/nathanchalot/Code/RPGs/AloneVsFEear
+  ⎿  1 file changed (binary, mode only or too large to show)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Pushed as ec5beeb on PR #4, and my session branch now includes it. I'll read
+  the rest of the place tables and events before drafting, so the model covers
+  every pattern.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ I've read every place table and event. Before drafting, I'll check which
+  tables and events point to the events that have no obvious caller.
+
+  Ran 3 shell commands (ctrl+o to expand)
+
+⏺ Events #7, #18, #27 and #39 are never referenced anywhere in the extracted
+  text. I'll record that as a finding. Writing the draft now.
+
+⏺ Write(~/Code/RPGs/AloneVsFEear-encounters/design/encounters.md)
+  ⎿  Wrote 273 lines to
+     ~/Code/RPGs/AloneVsFEear-encounters/design/encounters.md
+       1 # Encounters and tables
+       2 
+       3 How the content of a box is produced: tables, the results they g
+         ive, how results chain, and what the game must remember afterwar
+         ds. Words are defined in the [glossary](glossary.md). Sources: `
+         5_how_the_game_works.md`, the tables under `gameRules/tables/`, 
+         `6_unique_events.md`. Interpretations go to [rulings](rulings.md
+         ); points still to decide are listed at the end.
+       4 
+       5 ## The table web
+     … +268 lines (ctrl+o to expand)
+
+⏺ Let me check that the diagrams render before showing you.
+
+  Searched for 1 pattern, ran 1 shell command (ctrl+o to expand)
+  ⎿  1 action blocked by auto mode
+     │ Auto mode: No reason provided
+
+⏺ I couldn't render the diagrams: downloading the Mermaid CLI was denied.
+  Instead I'll quote the labels that contain #, since that's the riskiest
+  syntax.
+
+⏺ Update(~/Code/RPGs/AloneVsFEear-encounters/design/encounters.md)
+  ⎿  Added 10 lines, removed 10 lines
+      216  ```mermaid
+      217  flowchart LR
+      218      subgraph kid [The Kid]
+      219 -        s1[Special 1] --> e26[#26 disappears]                 
+      220 -        s1 --> e37[#37 Mark's story] --> e41[#41 Eliza's fores
+          -t<br/>separate map]                                           
+      221 -        e27[#27 trouble] --> e30[#30 One of us] --> e32[#32 Ha
+          -lloween gang]                                                 
+      219 +        s1[Special 1] --> e26["#26 disappears"]               
+      220 +        s1 --> e37["#37 Mark's story"] --> e41["#41 Eliza's fo
+          +rest<br/>separate map"]                                       
+      221 +        e27["#27 trouble"] --> e30["#30 One of us"] --> e32["#
+          +32 Halloween gang"]                                           
+      222      end
+      223      subgraph rosen [The Rosens]
+      224 -        h4[Haunted House 4] --> e17[#17 Rosen House]          
+      225 -        e17 --> e19[#19 tree] & e20[#20 house] & e21[#21 dig: 
+          -curse]                                                        
+      226 -        e20 --> e22[#22 break mirror] & e23[#23 mirror to the 
+          -tree:<br/>keyword SNOWY]                                      
+      227 -        e23 -. SNOWY .-> e42[#42 Snowy Samuel<br/>from Demonic
+          - Horrors]                                                     
+      224 +        h4[Haunted House 4] --> e17["#17 Rosen House"]        
+      225 +        e17 --> e19["#19 tree"] & e20["#20 house"] & e21["#21 
+          +dig: curse"]                                                  
+      226 +        e20 --> e22["#22 break mirror"] & e23["#23 mirror to t
+          +he tree:<br/>keyword SNOWY"]                                  
+      227 +        e23 -. SNOWY .-> e42["#42 Snowy Samuel<br/>from Demoni
+          +c Horrors"]                                                   
+      228      end
+      229      subgraph pig [Pighead]
+      230 -        f1[Farm 1] --> e5[#5 Pighead] --> e6[#6 farm] --> e8[#
+          -8 Eliza's curse]                                              
+      230 +        f1[Farm 1] --> e5["#5 Pighead"] --> e6["#6 farm"] --> 
+          +e8["#8 Eliza's curse"]                                        
+      231      end
+      232      subgraph clown [Walrus the Clown]
+      233 -        r1[Railways 1] --> e13[#13 mask] --> e15[#15 wear it] 
+      233 +        r1[Railways 1] --> e13["#13 mask"] --> e15["#15 wear i
+          +t"]                                                           
+      234          e32 -. Railways 1 on demand .-> r1
+      235 -        e32 -. black mirror and a name .-> e28[#28 ritual]    
+      235 +        e32 -. black mirror and a name .-> e28["#28 ritual"]  
+      236          e28 --> e15 & e5
+      237      end
+      238  ```
+
+⏺ I've written the first draft: design/encounters.md in the
+  ../AloneVsFEear-encounters worktree. On the combat side, the updated log and
+  its transcript are committed and pushed to PR #4 (ec5beeb).
+
+  Diagrams. I picked each one for the idea it shows:
+  - The table web is a flowchart graph, because the tables and events form a
+    network, not a tree.
+  - Picking a result and Resolving a result are flowcharts, because they are
+    sequences with branches.
+  - What a result is made of is a mindmap. It's a list of building-block kinds,
+    not a structure with relationships, so a class diagram would have suggested
+    more than is there.
+  - An encounter's life and Things that run out are state diagrams. Both are
+    about something changing state over time: met → left behind → snuck past,
+    and available → used → back.
+  - Unique Events as stories is a flowchart graph of the event chains.
+  - What a box and the game remember is a plain table. Scopes and examples don't
+    need a diagram.
+
+  I couldn't check that the diagrams render: downloading the Mermaid CLI to test
+  them was blocked. I quoted the labels most likely to cause problems (the ones
+  containing #), but please look at the preview on GitHub or in your editor.
+
+  Main findings:
+  - Results are scripts. A result is a sequence of a few step kinds (encounter,
+    chain, choice, gate, gain, effect, box mark, movement), plus timing words
+    that move a step later ("as you leave", "as soon as you pick up"). This is
+    the main input for the D1 content-format decision.
+  - The game needs a history in three scopes: mission, campaign, and the book's
+    "in the game", which is ambiguous. It decides what runs out and what unlocks
+    content, and keywords like CLOWNFACE and SNOWY are campaign flags.
+  - Play limits are written where an event is called, not on the event itself.
+    "Unique" doesn't mean once: event #2 says it is "not a unique event".
+  - Encounters are wider than combat. Hazards and people go through the same met
+    / resolved / left behind lifecycle.
+  - Orphan events: #7, #18, #27 and #39 are referenced nowhere in the extracted
+    text. That's either OCR loss or a gap in the book.
+  - Not everything happens on the town grid: event #16 moves you 1 or 2 boxes,
+    #42 forces you to flee to a neighbour, and #41 opens a separate forest map.
+
+  There are six open questions at the end of the doc. I haven't decided any of
+  them.
+
+  One more loose end: the domain-design transcript
+  (202610301100-domain-design.txt) is also untracked in the main checkout and
+  isn't on PR #3's branch. Do you want me to add it to PR #3 the same way?
+
+  Once you've read the draft, should we go through the open questions one at a
+  time, starting with whether ignoring an encounter blocks Search?
+
+✻ Crunched for 3m 4s · done 17:14
+
+❯ - What a result is made of is a mindmap -> this representation is really not  
+  clear. Maybe a isimple bullert list of the building block will do ? If not    
+  then why ? What can we do ?                                                   
+  - What a box and the game remember -> is it something that we could consider  
+  like a nested state represenmtation of some sorts ?                           
+                                                                                
+  "One more loose end: the domain-design transcript                             
+  (202610301100-domain-design.txt) is also untracked in the main checkout and   
+  isn't on PR #3's branch. Do you want me to add it to PR #3 the same way?" I   
+  will merge everuthing at the end of this session so d on t preoccupate with   
+  that                                                                          
+                                                                                
+  First adress those feedbacks, then we will discuss open questions             
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Replacing the mindmap (lines 84–127) with a bullet list:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Now the memory section, rewritten as nested lifetimes:
+
+⏺ Update(~/Code/RPGs/AloneVsFEear-encounters/design/encounters.md)
+  ⎿  Added 25 lines, removed 7 lines
+      207  - **Orphan events**: #7, #18, #27 and #39 are referenced nowhe
+           re in the extracted text. Lost in the OCR, or missing from the
+            book.
+      208  - **A curse can watch events**: the Seven Sacrifices costs 1 S
+           anity "every time you play through a numbered event" (#21).
+      209  
+      210 -## What a box and the game remember                           
+      210 +## What the game remembers                                    
+      211  
+      212 -| Scope | What | Examples |                                   
+      213 -| --- | --- | --- |                                           
+      214 -| Box | place type, left-behind encounters, Searched, marks, e
+          -very-visit rules | Safe House, Hell Gate, deconsecrated church
+          -, cultists 2 in 6, Rosen House, religious symbol "every time y
+          -ou visit" |                                                   
+      215 -| Mission | content used this mission, mission progress | Chil
+          -dren's Stuff found, #9 and #10 played, doses found |          
+      216 -| Campaign | content used for good, keywords, creatures killed
+          - | Special Events, Slashers, Rosen House, CLOWNFACE, SNOWY, ri
+          -tuals done |                                                  
+      217 -| Character | what the character read, owns, is cursed by | Ne
+          -cronomicon read, curses, deferred #25 |                       
+      212 +What the game remembers is tied to lifetimes, and the lifetime
+          +s nest: a campaign outlives its characters, a character outliv
+          +es its missions. Leaving a level forgets what it held.        
+      213  
+      214 +```mermaid                                                    
+      215 +stateDiagram-v2                                               
+      216 +    [*] --> Campaign                                          
+      217 +    state Campaign {                                          
+      218 +        [*] --> Character                                     
+      219 +        Character --> Character: dead or insane,<br/>a new cha
+          +racter continues                                              
+      220 +        Character --> [*]: 7th Hell Gate closed               
+      221 +        state Character {                                     
+      222 +            [*] --> Mission                                   
+      223 +            Mission --> Mission: complete or aborted,<br/>a ne
+          +w mission is rolled                                           
+      224 +        }                                                     
+      225 +    }                                                         
+      226 +    Campaign --> [*]                                          
+      227 +```                                                           
+      228 +                                                              
+      229 +| Level | Forgotten when | What it remembers | Examples |     
+      230 +| --- | --- | --- | --- |                                     
+      231 +| Campaign | never, it is the game | the map and its boxes, th
+          +e box counter, content used for good, creatures killed, keywor
+          +ds | Special Events, Slashers, Rosen House, rituals done; is a
+          + keyword like SNOWY the campaign's or the character's? |      
+      232 +| Character | death or insanity | Food, Clues, stash, items, S
+          +kills, XP, Injuries, Scars, curses, what was read | Necronomic
+          +on read, cursed blade, deferred #25 |                         
+      233 +| Mission | a new mission is rolled | content used this missio
+          +n, mission progress | Children's Stuff found, #9 and #10 playe
+          +d, doses found |                                              
+      234 +                                                              
+      235 +**Boxes** are not a lifetime: they are the campaign's map. Eac
+          +h box remembers its place type, left-behind encounters, Search
+          +ed, marks (Safe House, Hell Gate, deconsecrated church, Rosen 
+          +House) and every-visit rules (cultists 2 in 6, religious symbo
+          +l "every time you visit"). One box memory crosses levels: the 
+          +**stash** sits in a box but dies with the character ([creator 
+          +answers](creator-answers.md)).                                
+      236 +                                                              
+      237  - **A box can change its nature later**: Flauros deletes two S
+           afe Houses and a church ("Roll on the Haunted Houses table if 
+           you visit those areas", #28), a failed fight makes a deconsecr
+           ated church (Place of Worship 2).
+      238  - **Not everything happens on the grid**: #16 moves you 1 or 2
+            boxes, #42 makes you flee to a neighbour and meet Witch Child
+           ren there, #41 opens a separate forest map.
+      239  
+
+  Ran 1 shell command (ctrl+o to expand)
+⏺ The .tool-versions issue blocked Python again, so I'll use the Edit tool for
+  these two changes.
+
+⏺ Update(~/Code/RPGs/AloneVsFEear-encounters/design/encounters.md)
+  ⎿  Added 1 line, removed 1 line
+      228  
+      229  | Level | Forgotten when | What it remembers | Examples |
+      230  | --- | --- | --- | --- |
+      231 -| Campaign | never, it is the game | the map and its boxes, th
+          -e box counter, content used for good, creatures killed, keywor
+          -ds | Special Events, Slashers, Rosen House, rituals done; is a
+          - keyword like SNOWY the campaign's or the character's? |      
+      231 +| Campaign | never, it is the game | the map and its boxes, th
+          +e box counter, content used for good, creatures killed, keywor
+          +ds | Special Events, Slashers, Rosen House, rituals done, CLOW
+          +NFACE, SNOWY |                                                
+      232  | Character | death or insanity | Food, Clues, stash, items, S
+           kills, XP, Injuries, Scars, curses, what was read | Necronomic
+           on read, cursed blade, deferred #25 |
+      233  | Mission | a new mission is rolled | content used this missio
+           n, mission progress | Children's Stuff found, #9 and #10 playe
+           d, doses found |
+      234  
+
+⏺ Update(~/Code/RPGs/AloneVsFEear-encounters/design/encounters.md)
+  ⎿  Added 1 line
+      253  - What does "**in the game**" mean for the Special Events and 
+           Woods limits: mission or campaign?
+      254  - Events with **no stated limit** (#1, #3): once per mission, 
+           once per campaign, or unlimited, with the fallback only as a s
+           afety?
+      255  - **Search result 1**: the random encounter it starts — if you
+            flee it, is the box still Searched? Can a left-behind encount
+           er come from a Search?
+      256 +- Do **keywords** (CLOWNFACE, SNOWY) belong to the campaign or
+          + to the character? The book writes them on "your play sheet". 
+      257  - How does a **chained table** count for a box's place type? (
+           A box whose Town Exploration roll was 2 has no place; a House 
+           that chained to Haunted House is which?)
+
+⏺ Update(~/Code/RPGs/AloneVsFEear-encounters/design/encounters.md)
+  ⎿  Added 1 line, removed 1 line
+      240  ## What this reveals
+      241  
+      242  - **Results are scripts.** A few step kinds (encounter, chain,
+            choice, gate, gain, effect, box mark, movement) cover the con
+           tent read so far, but steps mix freely and many results carry 
+           one unique rule. This is the main input for D1 (rules content 
+           format).
+      243 -- **The game needs a history.** Gates and exhaustion read what
+          - happened before, in three scopes. One record of "what happene
+          -d" (played, found, killed, keywords) could serve them all.    
+      243 +- **The game needs a history.** Gates and exhaustion read what
+          + happened before. The memory follows nested lifetimes (campaig
+          +n, character, mission), so one record of "what happened" (play
+          +ed, found, killed, keywords) per level could serve them all.  
+      244  - **Game moments again.** "As you leave", "as soon as you pick
+            up", "every time you visit", "as soon as your blade hits", "e
+           very time you play a numbered event": the effects and game mom
+           ents topic must cover them.
+      245  - **Encounters are wider than combat.** The combat model cover
+           s creature groups; hazards and people need the same lifecycle 
+           (met, resolved, left behind) without a fight.
+      246  
+
+⏺ I made both changes in design/encounters.md.
+
+  What a result is made of is now a plain bullet list. A mindmap would only be
+  worth it if the building blocks were related to each other, and they aren't:
+  it's a flat list of independent kinds (encounter, chain, choice, gate, gain or
+  loss, effect, box mark, movement, mission). Branching it out added no
+  information and made it harder to read.
+
+  What the game remembers: yes, a nested state diagram fits, and it's clearer
+  than the old table. The memory scopes turned out to be lifetimes that sit
+  inside each other:
+
+  - The campaign outlives its characters: a new character continues the same
+    campaign.
+  - A character outlives its missions: a new mission is rolled after one is
+    completed or aborted.
+  - Leaving a level forgets what that level held: dying loses Food, Clues and
+    the stash; rolling a new mission resets what was used up "this mission".
+
+  The diagram now shows that nesting, and a table below it lists what each level
+  remembers and when it is forgotten. Two things came out of this:
+
+  - Boxes are not a lifetime. They are the campaign's map, so their memory lives
+    at campaign level. One exception crosses levels: the stash sits in a box
+    but is lost when the character dies.
+  - New open question: do keywords (CLOWNFACE, SNOWY) belong to the campaign or
+    to the character? The book only says "your play sheet". I added it to the
+    Open list without deciding.
+
+  I also reworded the "game needs a history" point in What this reveals to match
+  the nested lifetimes.
+
+  Should we start on the open questions? The first is whether ignoring an
+  encounter, or moving along, blocks the Search the way fleeing does.
+
+✻ Sautéed for 1m 1s · done 17:24
+
+❯ We can go through the open questions, but it feel like you re kind of making  
+  some difficultys up. I need to recenter our purpose here. What are we trying  
+  to achieve ?                                                                  
+
+⏺ You're right. I slid into treating the book as a spec to complete line by
+  line, when the job is something else.
+
+  What we're trying to achieve. This is Milestone 2 (domain design). We want to
+  understand the game well enough to shape the engine before writing code. For
+  encounters and tables, the engine needs four answers:
+
+  1. What is a table, and what is a result? A roll mapped to results; each
+     result is a short script of steps.
+  2. How do results connect? They chain to other tables and events, offer
+     choices, and run some steps later ("as you leave").
+  3. What state do they read and write? The character, the box, and a history of
+     what happened, kept at campaign, character and mission level.
+  4. What happens to an encounter afterwards? It's either resolved or left
+     behind in the box, and that covers creatures, hazards and people.
+
+  The draft already answers all four. That's the useful output of this session,
+  and it feeds D1 (content format), E7 (table resolution) and the MVP scope.
+
+  Why the open questions feel made up. None of them changes those four answers.
+  Whether ignoring blocks Search, what "in the game" means, whether keywords
+  belong to the campaign or the character: each one is a parameter or a one-line
+  rule. The model handles whichever way it goes. They only matter when someone
+  implements that particular table, and most of them may never come up if the
+  MVP scope leaves that content out. Settling them now is the premature deciding
+  we agreed to avoid.
+
+  What I propose:
+  - Rename "Open" in encounters.md to "Decide when implementing". The questions
+    stay listed so they aren't lost, but I'll say clearly that none blocks the
+    design.
+  - Keep only one real question for this session: does the model miss anything
+    structural? For example, does the separate forest map (#41) or the forced
+    moves (#16, #42) break the idea of a single town grid? I'd send that to the
+    Town map topic rather than settle it here.
+  - Then wrap up: glossary entries (result, chain, gate, keyword, history),
+    Readme checkbox, NextSession.md, and the session log.
+
+  Does that match what you have in mind?
+
+  Wrote 1 memory (ctrl+o to expand)
+
+⏺ I also added a note to my project memory: only raise rule questions that would
+  change the design, and park the rest until implementation.
+
+✻ Sautéed for 24s · done 17:28
+
+❯ We will go this way yes. But first I want to undertasnd your open question:   
+  Does ignoring an encounter or moving along forbid the Search like fleeing     
+  does? (game-flow.md and the glossary currently disagree.)                     
+  After moving along from an explorable place (Dilapidated House, Psychiatric   
+  Ward, Creepy Farm), can you come back and explore it?                         
+  What does "in the game" mean for the Special Events and Woods limits: mission 
+  or campaign?                                                                  
+  Events with no stated limit (#1, #3): once per mission, once per campaign, or 
+  unlimited, with the fallback only as a safety?                                
+  Search result 1: the random encounter it starts — if you flee it, is the box  
+  still Searched? Can a left-behind encounter come from a Search?               
+  Do keywords (CLOWNFACE, SNOWY) belong to the campaign or to the character?    
+  The book writes them on "your play sheet".                                    
+  How does a chained table count for a box's place type? (A box whose Town      
+  Exploration roll was 2 has no place; a House that chained to Haunted House is 
+  which?)                                                                       
+  What do you mean. let doscuss them one by one                                 
+
+⏺ Let's take them in order.
+
+  1. Does ignoring an encounter block the Search?
+
+  What the book says:
+  - "You may Search an area ONLY after dealing with whatever encounter, danger, 
+    or situation you encounter in that area. If you flee from an encounter, you 
+    may NOT Search that area." (5_4_town_exploration_table.md)
+  - "Whenever you enter a box and you play an encounter or there is nothing in 
+    the box, you may perform a Search roll." (5_how_the_game_works.md)
+
+  A concrete case: House 3. "The house is attacked by 2d6 L2 Zombies. You may 
+  ignore them or fight them." You choose to ignore them. You didn't flee,
+  because there was no fight and no Escape roll. But you didn't really "deal
+  with" the zombies either: they stay in the box. Can you Search the house?
+
+  The book bans the Search after fleeing and is silent on ignoring. There are
+  two readings:
+  - Ignoring is a form of fleeing. The creatures are still there, so you can't
+    search under their noses.
+  - Ignoring is a way of dealing with it. You chose not to engage, and the ban
+    applies only to an actual escape.
+
+  "Move along" is a related case. The Dilapidated House says "You may explore it
+  or move along." If you move along, nothing was met at all. The text suggests
+  you walk past without entering. Is the box then like "nothing in the box"
+  (Search allowed), or did you skip it entirely?
+
+  Why I raised it: our own docs already contradict each other. The glossary
+  lists "ignored" among the outcomes that resolve an encounter, which allows the
+  Search. The arrival flowchart in game-flow.md puts "fled or ignored" in the
+  same branch, which doesn't allow it.
+
+  Does it matter for the design? Only a little. The model needs to record how an
+  encounter ended (resolved, ignored, fled) rather than just "resolved or not".
+  Which of those outcomes allows the Search is a one-line rule we can set
+  later. What should be fixed now is the contradiction in our docs: they should
+  say "ignored is its own outcome, Search rule to decide" instead of quietly
+  taking a side.
+
+  How do you see this one? Shall we fix the docs that way and move to question
+  2?
+
+✻ Sautéed for 13s · done 17:31
+
+❯ Your concrete case: IMO if you want to search the house then you must fight   
+  what s in it. But we could ask online, suggest a search queryu                
+
+⏺ Your reading fits the book's wording: you can Search only after "dealing with"
+  what's in the box, and ignored zombies haven't been dealt with.
+
+  Search queries to check it:
+  - "Alone Against Fear" ignore encounter search
+  - "Alone Against Fear" "may ignore them" search box
+  - site:boardgamegeek.com "Alone Against Fear" search after ignoring
+  - "Four Against Darkness" ignore monsters search room
+
+  The last one helps because Alone Against Fear runs on the same engine as Four
+  Against Darkness, so a ruling there would likely carry over.
+
+  Where to look: the BoardGameGeek forums for Alone Against Fear (Rules section)
+  and Four Against Darkness. Most creator answers came from there, and some
+  from the Ganesha Games Facebook group.
+
+  I can run these searches now if you want. In the meantime, here's how I'd
+  write your view as a ruling. Nothing is recorded yet:
+
+  ▎ Ignoring an encounter blocks the Search. interpretation You may Search "only
+  ▎ after dealing with whatever encounter… you encounter in that area" 
+  ▎ (5_4_town_exploration_table.md); ignored creatures are still there, so they 
+  ▎ were not dealt with. To Search, fight them.
+
+  Should I run the searches first, or record the ruling and fix the glossary and
+  game-flow.md now?
+
+✻ Worked for 8s · done 17:35
+
+❯ I think "Ignoring an encounter blocks the Search. interpretation You may      
+  Search "only after dealing with whatever encounter… you encounter in that     
+  area" (5_4_town_exploration_table.md); ignored creatures are still there, so  
+  they were not dealt with. To Search, fight them." is correct                  
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Now the ruling itself, plus encounters.md. "Move along" stays open and joins
+  question 2.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Recorded. The ruling is in a new Encounters section of design/rulings.md, and
+  the glossary and game-flow.md now agree with it: ignored encounters stay in
+  the box and block the Search.
+
+  2. Moving along from a place you can explore
+
+  What the book says:
+  - Dilapidated House (House 5): "You may explore it or move along. If you 
+    explore it, roll an L4 agility Save… After the collapse, you may perform a 
+    Search roll at +1."
+  - Psychiatric Ward (Clinic 5): "You may explore it or move along. If you 
+    explore it, you may perform TWO Search rolls…", with a Stealth roll and a
+    risk of meeting a Slasher.
+  - Creepy abandoned farm (Farm 1): "If you investigate, play event #5. If you… 
+    do not want to investigate, keep moving through town."
+
+  A concrete case: You find the Psychiatric Ward, decide it's too risky, and
+  move along. Ten boxes later you're stronger and come back to that box. Because
+  the box is already visited, you don't roll on the exploration table again;
+  you roll the 1 in 6 random encounter.
+
+  1. Is the Ward still there to explore? The book doesn't say.
+  2. If you never explore it, can you still do a normal Search of that box? The
+     book doesn't say that either. Note that exploring the Ward is the search:
+     it gives Search rolls.
+
+  What we already have: the creator answer says "If you avoid an encounter the 
+  text still applies and the monsters are still there". That answer is about
+  monsters, but it suggests a general principle: a box keeps the text you
+  skipped. If "moving along" is treated the same as "ignoring":
+  - the place stays in the box, and you can come back and explore it later;
+  - with the ruling we just made, you can't Search the box until you've explored
+    it.
+
+  That adds nothing new to the model. "Moved along" would just be "ignored" for
+  a place instead of creatures.
+
+  Does it matter for the design? Only to confirm that "left behind" covers
+  places as well as creatures, which the encounter lifecycle already allows for.
+
+  Do you agree that moving along works like ignoring, or do you see it
+  differently?
+
+✻ Cogitated for 32s · done 17:37
+
+❯ Same for ""Move along"  The text suggests you walk past without entering. The 
+  box is like you skipped it entriely you cannot search it                      
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Recorded the Search part in design/rulings.md: moving along means you walked
+  past without entering, so you can't Search that box.
+
+  That still leaves the other half of question 2: if you come back to that box 
+  later, is the place still there to explore?
+
+  - Yes, it stays. This matches how ignored creatures stay in the box with their
+    full text. Coming back, you can explore the Psychiatric Ward then, and
+    Search afterwards.
+  - No, it's gone. You skipped it, so the box is now an ordinary visited box:
+    random encounter on a 1 in 6, and no Search ever.
+
+  I lean towards it stays. It's consistent with the creator's answer about
+  avoided encounters, and the model needs nothing new. But "skipped it entirely"
+  could also point to "gone". Which one do you want?
+
+✻ Cogitated for 12s · done 17:38
+
+❯ I think it should stay, its more fun                                          
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Recorded: the place stays in the box, and on a later visit you may explore it,
+  then Search. The encounter lifecycle diagram shows it too.
+
+  3. What does "in the game" mean?
+
+  The two limits:
+  - Special Events: "Each of these events will happen only once in the game. As 
+    you play it, cross it off the table."
+  - Woods/Park 1 and 6 (Werewolf, Hangman's Tree): "After you have played this 
+    encounter twice in a game, ignore it and roll on the Beasts table instead."
+
+  A concrete case: You meet the Kid (Special Event 1) in your first mission. In
+  your third mission you roll Special Event 1 again. If "game" means a mission,
+  you meet the Kid again. If it means the campaign, you reroll.
+
+  How the book uses "game":
+  - "Game" as a mission: "Between games, Sanity is restored to its maximum" and
+    "Between games, all your wounds heal" (1_1_main_rules.md). We know healing
+    happens between missions. Also "close seven Hell Gates in any number of 
+    games" (5_how_the_game_works.md): a campaign is made of several games.
+  - "Game" as the whole campaign: "There are six unique Slashers in the game",
+    and the Slashers table says elsewhere they stay dead "in the campaign". "At 
+    any point in the game" for the Walrus shortcut (#32) and the witch's knots
+    (#36).
+  - Where the book wants to be precise, it says "mission" or "campaign": the
+    Fluid needle ("during the same mission… in future missions"), the Graffiti
+    Clue ("the first time… in the campaign").
+
+  So the book leans towards "a game" = a mission in its rules sections, but it's
+  loose in its flavour text.
+
+  Why it barely matters for the design: the model already has a mission scope
+  and a campaign scope for "things that run out". This only decides which one
+  these two tables use, which is a setting on each table. It could even be
+  switchable: once per mission is gentler, once per campaign makes the content
+  rarer.
+
+  Is this one worth deciding now, or should it go on the "decide when
+  implementing" list?
+✻ Worked for 17s · done 17:38
+
+❯ I think special Event or slashers should be unique accross the campaign. Its  
+  better that they stay unique if not said otherwise ? WDYT ? Give me a query   
+  to search online, or do the search yourself                                   
+
+⏺ Web Search(""Alone Against Fear" special events "once in the game" campaign or
+            mission")
+  ⎿  Did 1 search in 5s
+
+⏺ Web Search(""Alone Against Fear" boardgamegeek rules question unique events
+            campaign")
+  ⎿  Did 1 search in 5s
+
+⏺ Web Search("Alone Against Fear Ganesha forum "special events" OR "slasher"
+            reroll campaign crossed off")
+  ⎿  Did 1 search in 6s
+
+⏺ I searched for an answer online and found nothing: no forum thread or creator
+  answer about these limits. The results were only product pages and reviews
+  (itch.io, DriveThruRPG, The Gaming Gang). If you want to try yourself, the
+  Alone Against Fear forums on BoardGameGeek are the most likely place, with a
+  query like special events once in the game campaign.
+
+  What I think:
+  - Slashers don't need a ruling. The book already makes them campaign-wide:
+    "Reroll any Slasher that you have already defeated in the campaign" (Random
+    Encounter table), and a Slasher who flees comes back "during the current 
+    mission or any future mission".
+  - Special Events: I agree, once per campaign. They're story moments: meeting
+    the Kid twice would break the story. There are only 6 of them, and when
+    they're all played the book's fallback (treat the result as a House) takes
+    over, so nothing breaks. The one argument against is the book's "Between 
+    games, Sanity is restored", which uses "game" to mean a mission. I'd still
+    choose campaign, for consistency with how the story works.
+  - Your general principle, "unique across the campaign unless the text says 
+    otherwise", works well. Wherever the book means a single mission, it says
+    "mission": the Fluid needle, Children's Stuff, events #9 and #10. So reading
+    any other limit as campaign-wide is coherent. It would also cover the
+    Werewolf and Hangman's Tree: twice per campaign, then Beasts.
+
+  Proposed ruling (not recorded yet):
+
+  ▎ Limits are campaign-wide unless the text says "mission". interpretation 
+  ▎ "Once in the game" (Special Events) and "twice in a game" (Woods/Park 1 and 
+  ▎ 6) count over the whole campaign. The book says "mission" when it means one 
+  ▎ (Fluid needle, Children's Stuff, events #9 and #10), and the Slashers and 
+  ▎ unique creatures are explicitly campaign-wide. Weak point: "between games" 
+  ▎ in the main rules means between missions.
+
+  Question 4 is related but different: it's about events with no stated limit at
+  all, like #1 (the Creepy Old Mansion, reached from House 6) and #3 (the
+  Possessed Car, from Street 6). Your principle covers limits whose scope is 
+  unclear. Does it also make events with no stated limit once per campaign? Or
+  are those unlimited, with the "if you already played it" fallbacks as the only
+  gate?
+
+  Should I record the ruling as written? And does your principle extend to
+  question 4?
+
+✻ Worked for 35s · done 17:42
+
+❯ I have no idea as I did not play this events, I should not be spoiled about   
+  them I think. What does it says ? IS it something that would be replayable    
+  in a story (like meeting a car twice) or would it breeak the story (meeting a 
+  kilelr fater you gotrid of it) ?                                              
+
+⏺ Fair point. I've been quoting event text freely, and some of it already
+  spoiled things for you. I'll stay vague from now on.
+
+  Without spoilers:
+  - #1 is a place where you discover something tied to the main campaign goal,
+    along with a story clue. Replaying it would hand you the same discovery and
+    the same clue a second time. That breaks the story, like meeting a killer
+    you've already got rid of.
+  - #3 is a sudden danger in the street. A threat like that could plausibly come
+    back, but the event can end with you destroying it for good. Meeting it
+    again after that would break the story.
+
+  So both would break the story if replayed. That fits your principle: an event 
+  with no stated limit happens once per campaign. The events meant to repeat say
+  so explicitly: one says "This is not a unique event", another says you can do
+  it again "if you happen on this event again".
+
+  Proposed ruling, covering questions 3 and 4 (not recorded yet):
+
+  ▎ Limits are campaign-wide, and numbered events happen once, unless the text 
+  ▎ says otherwise. interpretation "Once in the game" and "twice in a game" 
+  ▎ count over the whole campaign; the book says "mission" when it means one. A 
+  ▎ numbered event with no stated limit is played once per campaign; when it is 
+  ▎ reached again, the fallback written where it is called applies, or nothing 
+  ▎ happens. Events meant to repeat say so. Weak point: "between games" in the 
+  ▎ main rules means between missions.
+
+  About spoilers in what I've already written: the Unique Events as stories
+  diagram in encounters.md shows event titles and how the story chains connect.
+  You probably shouldn't read it. Two options:
+  - Spoiler-free version: event numbers only, with no titles or plot. It still
+    shows the structure (chains, keywords, deferred events), which is all the
+    design needs.
+  - Keep it as is, and you skip that section.
+
+  I'd go with the spoiler-free version, and I'll also strip story details from
+  the rest of the doc. Should I record the ruling and make the doc spoiler-free?
+
+  Ran 1 shell command, wrote 1 memory (ctrl+o to expand)
+
+⏺ I've also saved a note to my project memory: no plot details in chat or docs
+  from now on.
+
+✻ Sautéed for 20s · done 17:46
+
+❯ No need to stay vague, you can mention events. I just don t want the details  
+  details :)                                                                    
+  So both #1 and #3 are "Unique Events" ? I think, where they live in the       
+  tables is important here                                                      
+  Otherwise I m ok with the rule how you stated it.                             
+  Do a spoiler free version of the graph ;)                                     
+
+  Read 1 file, ran 4 shell commands (ctrl+o to expand)
+
+⏺ I recorded the ruling and made the story graph spoiler-free.
+
+  Are #1 and #3 Unique Events? Yes: every numbered event, #1 to #42, is in the
+  book's "Unique events" chapter (6_unique_events.md). The name doesn't make
+  them once only, though: #2 says it is "not a unique event". The Special Events
+  table is a separate d6 table with its own "only once" rule.
+
+  Where they're called from supports your rule. Each one is reached from a
+  single place table, and that table gives a fallback in case it was already
+  played:
+  - House 6: "Play event #1. If you have already played it, roll a die" to get
+    no encounter, Living Dolls or Haunted House.
+  - Street 6: "Play event #3. If you already played that, roll on the Random 
+    Encounter table."
+
+  That fallback would only exist if the author expected the event to happen
+  once. Where the limit is per mission, the calling table says so: "if you have 
+  already played event #9 during this mission" (Farm 4). So the rule is now in
+  design/rulings.md as you approved it, with this call-site evidence added. In
+  encounters.md, "Things that run out" now lists two scopes, mission and
+  campaign.
+
+  The story graph now shows only event numbers, the tables they come from, and
+  how they connect: choice, roll, needs an item, sets or checks a keyword,
+  unlocks a table result, separate map. It also marks #27 as having no caller.
+  There's no plot in it, and I removed one detail line elsewhere in the doc.
+
+  Three questions are left: Search result 1, which level keywords belong to, and
+  the place type of a chained box. Given what we said earlier, I think none of
+  them changes the model. I'd move all three to "decide when implementing" and
+  wrap up the session. Or would you rather go through them first?
+
+✻ Cooked for 56s · done 17:52
+
+❯ Ok so we settle on unique event are unique per campaign unless stated         
+  otherwise ?                                                                   
+                                                                                
+  We can go on with the question                                                
+
+⏺ Yes, settled. Every numbered event happens once per campaign unless its text
+  says otherwise, and the same goes for "once in the game" limits.
+
+  5. Search result 1
+
+  What the book says: the Search table says "1: Roll on the random encounter 
+  table", and "You have only one chance of searching each box"
+  (5_how_the_game_works.md).
+
+  A concrete case: You've cleared a box and Search it. You roll a 1, and an
+  encounter appears from the Random Encounter table. You flee it.
+
+  When I drafted this question I wondered:
+  - Is the box still Searched? Yes: you used your one Search the moment you
+    rolled. Fleeing afterwards changes nothing.
+  - Does the encounter you fled stay in the box? The general rule already covers
+    it: fled encounters stay, so you'll meet it again on your next visit.
+
+  Looking at it again, this isn't a real question. The existing rules answer
+  both points, and the model already lets any encounter be left behind, whatever
+  started it. It's a case I invented, not an ambiguity in the book. I'd simply
+  drop it.
+
+  Do you agree? If so, the next one is which level keywords belong to: the
+  campaign or the character.
+
+✻ Baked for 8s · done 17:54
+
+❯ yes drop it, the box is already searched and their is still a monster after   
+  you flee                                                                      
+
+⏺ Dropped. The existing rules settle it: the Search is used up, and the creature
+  you fled stays in the box.
+
+  6. Which level do keywords belong to?
+
+  What the book says: two events or table results tell you to "write the keyword
+  X on your play sheet":
+  - CLOWNFACE — set when you choose to wear a certain item (Children's Stuff 5).
+    Railways 1 checks it.
+  - SNOWY — set by event #23. Demonic Horrors checks it.
+
+  A concrete case: your character has a keyword, then dies. A new character
+  continues the campaign. Does the keyword stay?
+
+  What hints we have:
+  - The play sheet is the character's sheet. Food and Clues are written on it
+    too, and those are lost when the character dies (creator answer). That
+    suggests keywords die with the character.
+  - But the two keywords don't record the same kind of thing. CLOWNFACE is about
+    the character: something they wear. SNOWY records something done in the
+    town, which could outlive whoever did it.
+
+  Why I'd defer it: this only matters when a character dies and the campaign
+  goes on, and campaign play comes after the MVP (Readme, "Later"). In the MVP,
+  death ends the game, so keywords never have to outlive a character. The model
+  only needs to give keywords a level, which it already does.
+
+  I'd move it to "decide when implementing campaign play". Or do you want to
+  settle it now?
+
+✻ Sautéed for 11s · done 17:55
+
+❯ Thats an interesting question thoiugh. Does it mean that we should map some   
+  event not only to the campaign but also to the character ?                    
+
+⏺ Yes. Your question shows something the doc doesn't say clearly yet: one event 
+  can write to several levels at once.
+
+  An example from the book, mechanics only. Railways 4: "Gain 1 Clue the first 
+  time you find this in the campaign."
+  - "First time in the campaign" is a campaign fact: the town remembers it
+    happened.
+  - The Clue goes to the character, and Clues are lost on death (creator
+    answer).
+
+  So if that character dies, the new one loses the Clue but can't get it again:
+  the campaign remembers the event, the character forgets its gain.
+
+  A test for sorting each fact: does it describe the town, or the person?
+  - Town → campaign: events played, creatures killed, places found (the Rosen
+    House stays on the map), Hell Gates closed, Safe Houses.
+  - Person → character: what they carry, know or suffer. Clues, Food, items,
+    Skills, curses, books read, names learned for a ritual, a pending deferred
+    event like #25.
+  - Current goal → mission: what was used up this mission, mission progress.
+
+  Under this test, CLOWNFACE belongs to the character (they wear something).
+  SNOWY is the open one: it records something done in the town, but the book
+  writes it on the character's play sheet.
+
+  What changes in the design: the model gains one rule. The "event happened"
+  record goes to the campaign, and each of the event's outcomes goes to the
+  level it describes. The memory table in encounters.md already has the three
+  levels. I'd add the town/person test and the Railways 4 example under it.
+
+  Two decisions for you:
+  1. Should I add the town/person test to the design as the default way to sort
+     facts? It's a design principle, not a book rule.
+  2. SNOWY: decide now, or leave it for campaign play, the only time it matters?
+
+✻ Cogitated for 14s · done 17:58
+
+❯ 1. yes I think so                                                             
+  2. I don't really know About SNOWY, it kind of depend of the context -> is it 
+  because we killed something ? Becasue the envirnment changes ?                
+
+⏺ Update(~/Code/RPGs/AloneVsFEear-encounters/design/encounters.md)
+  ⎿  Error editing file
+
+  Read 1 file, ran 1 shell command (ctrl+o to expand)
+
+⏺ Update(~/Code/RPGs/AloneVsFEear-encounters/design/encounters.md)  ⎿  Added 4 lines
+      235  | Character | death or insanity | Food, Clues, stash, items, S
+           kills, XP, Injuries, Scars, curses, what was read | Necronomic
+           on read, cursed blade, deferred #25 |
+      236  | Mission | a new mission is rolled | content used this missio
+           n, mission progress | Children's Stuff found, #9 and #10 playe
+           d, doses found |
+      237  
+      238 +**Which level a fact belongs to: does it describe the town or 
+          +the person?** What happened to the town (events played, creatu
+          +res killed, places found, Hell Gates closed) belongs to the ca
+          +mpaign. What the character carries, knows or suffers (Clues, F
+          +ood, items, Skills, curses, books read, names learned) belongs
+          + to the character. What serves the current goal belongs to the
+          + mission. This is our design principle, not a book rule.      
+      239 +                                                              
+      240 +**One event can write to several levels.** Railways 4: "Gain 1
+          + Clue the first time you find this in the campaign." The campa
+          +ign remembers the event happened; the Clue goes to the charact
+          +er. If the character dies, the new one loses the Clue and cann
+          +ot get it again.                                              
+      241 +                                                              
+      242  **Boxes** are not a lifetime: they are the campaign's map. Eac
+           h box remembers its place type, left-behind encounters, Search
+           ed, marks (Safe House, Hell Gate, deconsecrated church, Rosen 
+           House) and every-visit rules (cultists 2 in 6, religious symbo
+           l "every time you visit"). One box memory crosses levels: the 
+           **stash** sits in a box but dies with the character ([creator 
+           answers](creator-answers.md)).
+      243  
+      244  - **A box can change its nature later**: Flauros deletes two S
+           afe Houses and a church ("Roll on the Haunted Houses table if 
+           you visit those areas", #28), a failed fight makes a deconsecr
+           ated church (Place of Worship 2).
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ I added the town/person test to encounters.md, with the Railways 4 example,
+  and moved CLOWNFACE to the character level.
+
+  About SNOWY, without plot details: it isn't something killed or something
+  carried. You set it by doing something at a place during #23, and from then on
+  Demonic Horrors can lead to #42, a result that wasn't possible before. So it
+  records a change in the town: new content becomes reachable.
+
+  Under the town/person test, that makes SNOWY campaign level. A new character
+  would inherit the change: the town is different now, whoever caused it. The
+  only reason to doubt it is that the book writes it on the play sheet. But the
+  book also writes the map on paper sheets, and the map clearly survives a
+  death.
+
+  Should I record SNOWY as campaign level, following the test? That would make
+  it a ruling: the book's text says "play sheet", and we read it as town-level.
+
+✻ Baked for 28s · done 18:02
+
+❯ Yes Snowy is campaign level.                                                  
+  Does the distinction : town -> campaign, item -> character holds ?            
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ SNOWY is recorded at campaign level in design/rulings.md.
+
+  Does the distinction hold? Mostly, with one refinement. The test is a bit
+  broader than "item → character": the person side is everything the character
+  carries, knows or suffers. Checked against the cases we know:
+
+  ┌──────────────────────────┬───────────────────────┬─────────────────────┐
+  │           Fact           │       Test says       │ Matches the book or │
+  │                          │                       │      our docs?      │
+  ├──────────────────────────┼───────────────────────┼─────────────────────┤
+  │ Food, Clues              │ person                │ ✓ creator: lost on  │
+  │                          │                       │ death               │
+  ├──────────────────────────┼───────────────────────┼─────────────────────┤
+  │ XP, Skills, Injuries,    │ person                │ ✓ die with the      │
+  │ Scars, curses            │                       │ character           │
+  ├──────────────────────────┼───────────────────────┼─────────────────────┤
+  │ Hell Gates closed        │ town                  │ ✓ the campaign is   │
+  │                          │                       │ won at 7            │
+  ├──────────────────────────┼───────────────────────┼─────────────────────┤
+  │ Slashers and unique      │ town                  │ ✓ "in the campaign" │
+  │ creatures killed         │                       │                     │
+  ├──────────────────────────┼───────────────────────┼─────────────────────┤
+  │ Map, Rosen House         │ town                  │ ✓ "for the whole    │
+  │ location                 │                       │ campaign"           │
+  ├──────────────────────────┼───────────────────────┼─────────────────────┤
+  │ Left-behind creatures    │ town                  │ ✓ coherent: they're │
+  │                          │                       │  still in the box   │
+  ├──────────────────────────┼───────────────────────┼─────────────────────┤
+  │ Safe Houses              │ town                  │ not stated, but     │
+  │                          │                       │ coherent            │
+  ├──────────────────────────┼───────────────────────┼─────────────────────┤
+  │ Shortcut learned in #32  │ person (knowledge)    │ not stated,         │
+  │ (Railways 1 on demand)   │                       │ plausible           │
+  ├──────────────────────────┼───────────────────────┼─────────────────────┤
+  │ Stash                    │ lies in the town,     │ ✓ creator: lost on  │
+  │                          │ owned by the person   │ death               │
+  └──────────────────────────┴───────────────────────┴─────────────────────┘
+
+  The refinement comes from the stash. It sits in a town box, yet it dies with
+  the character. So the test is about who something belongs to, not where it 
+  lies: what belongs to the character follows them, wherever it is.
+
+  One related case stays open: items discarded in a box. We already ruled they
+  can be found again later (on a 1-3 they're gone). Once dropped, do they still
+  belong to the character, or does the town have them? That only matters after a
+  death, so it's campaign-play material.
+
+  One real edge: side missions. The goal is given to the character, but the
+  reward waits in a box. The test gives "goal → person, reward location → town".
+  That works, but it's the one case where a single fact is split.
+
+  So yes, it holds. Should I add the "belongs to, not lies in" refinement to the
+  doc? After that, one question is left: the place type of a box that chained
+  to another table.
+
+✻ Crunched for 23s · done 18:03
+
+❯ One related case stays open: items discarded in a box. We already ruled they  
+  can be found again later (on a 1-3 they're gone). Once dropped, do they still 
+  belong to the character, or does the town have them? That only matters after  
+  a death, so it's campaign-play material.                                      
+                                                                                
+  It may be stated in the additional or optional rules -> stuff stays on the    
+  character body. Once droped they disappear it will be simpler IMO             
+                                                                                
+  I think we are good with you definition of  the person side as everything the 
+  character carries, knows or suffers.                                          
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ The optional rules do mention what happens to the body. It's the Player 
+  character death optional rule (7__optional_rules.md):
+
+  ▎ "Every time one of your characters is killed by a zombie, werewolf, or 
+  ▎ vampire, s/he will become a monster of the same type and reside in the area 
+  ▎ where s/he was killed. … Loot will be all the equipment possessed by the 
+  ▎ character at the moment of death, minus any Food."
+
+  So your memory is right, though it's optional and only applies to those three
+  causes of death. The equipment stays on the body, and the next character can
+  get it back by defeating their predecessor. It's campaign-play material, filed
+  under "Optional rules" in the Readme's "Later" section.
+
+  Discarded items. I want to be sure what you mean by "once dropped they
+  disappear":
+  - (a) They disappear when the character dies. Our existing ruling stays:
+    during the character's life, dropped items can be found again, but on a 1-3
+    they're gone. After a death, nothing dropped is left for the next character.
+    This matches the stash, which is also lost on death.
+  - (b) They disappear as soon as they're dropped. This replaces the existing
+    ruling, "Discarded items stay in the box, at a risk", which we had marked
+    switchable with this "horrific" variant as the alternative.
+
+  Which one did you mean?
+
+✻ Sautéed for 14s · done 18:07
+
+❯ They disappear when the character dies                                        
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Update(~/Code/RPGs/AloneVsFEear-encounters/design/encounters.md)
+  ⎿  Error editing file
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Recorded: discarded items disappear when the character dies, like the stash. I
+  also added "who a thing belongs to, not where it lies" to the town/person
+  test, and removed the dropped Search question from the list.
+
+  7. A box's place type when tables chain
+
+  Why a box's place type matters: some rules read it.
+  - Medical Supplies (mission): "1 in 6 of finding 1 dose every time you roll on
+    a House or Lab box and a 3 in 6 every time you visit a Clinic box."
+  - Bring Home the Bacon (mission): "every time you visit a location from the 
+    Street, Store, or Farm tables."
+  - Side Mission 5: "The next church you discover in town…"
+
+  A concrete case: You enter a new box and roll Clinic. Clinic 1 says "This 
+  place is haunted. Roll on the Haunted House table." You're on the Medical
+  Supplies mission. On later visits to this box, do you get the 3 in 6 Clinic
+  chance? Is it a Clinic box, a Haunted House box, or both?
+
+  Other chains raise the same question. Town Exploration 2 sends you straight to
+  the Random Encounter table, so the box has no place at all. Town Exploration
+  7 can lead to Special Events instead of the House table.
+
+  The book's own wording leans towards the table rolled: "a location from the 
+  Street, Store, or Farm tables", "every time you roll on a House or Lab box".
+
+  Does it matter for the design? A little. It decides whether a box remembers
+  one place or the chain of tables rolled in it. I'd have the box keep the whole
+  chain (Clinic → Haunted House). That costs nothing and keeps every reading
+  possible. Which link counts for a given mission can then be decided when that
+  mission is implemented.
+
+  Should the box keep the chain, with the question of which table counts
+  deferred? After this one, the session can wrap up.
+
+✻ Baked for 29s · done 18:08
+
+❯ This one is tricky I m not sure I understand.                                 
+
+⏺ Let me take it more slowly with a story.
+
+  When you enter a new box, you roll twice:
+  1. On the Town Exploration table, which tells you what kind of place it is: a
+     Clinic, a House, a Street…
+  2. On that place's own table, which tells you what you find there: zombies, a
+     helpful paramedic, a Safe House…
+
+  On your map you'd write "Clinic" in the box. Later, missions look at that
+  label. With Medical Supplies, every time you come back to a Clinic box you
+  have a 3 in 6 chance of finding medicine.
+
+  The tricky part is that some results send you to another place table:
+  1. Town Exploration says Clinic.
+  2. You roll on the Clinic table and get 1: "This place is haunted. Roll on the
+     Haunted House table."
+  3. You roll on the Haunted House table and meet whatever is there.
+
+  What do you write in the box: "Clinic" or "Haunted House"? And on Medical
+  Supplies, does coming back to this box give you the Clinic chance of finding
+  medicine?
+
+  The book doesn't say. In fiction terms it's a haunted clinic: both.
+
+  What I'm suggesting: we don't need to answer now. We only need the box to
+  remember the full path ("Clinic → Haunted House") instead of a single word.
+  Then, when we implement the Medical Supplies mission, we can decide whether a
+  haunted clinic counts as a clinic. Nothing is lost by waiting.
+
+  Is that clearer? Do you agree to keep the full path and decide later?
+
+✻ Brewed for 6s · done 18:10
+
+❯ In the case you desribed this means that it is an Haunted Clinic. So it is a  
+  clinic (the type) but with haunted house characteristics ? WDYT ? Both is     
+  fine too.                                                                     
+  If we need to chose one or the other then clinic, if we can do both then it   
+  is both                                                                       
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Noted that the box counts as both categories, with the Clinic taking
+  precedence when a single place is needed, and that a box bypassing the place
+  table (like Town Exploration 2) has no place at all. With that last question
+  resolved, I'll finish by updating the glossary, Readme, NextSession, and log.
+
+  Searched for 1 pattern, ran 4 shell commands (ctrl+o to expand)
+
+⏺ Now the session log.
+
+⏺ Write(~/Code/RPGs/AloneVsFEear-encounters/claude-logs/202610301700-encounters-
+       design.md)
+  ⎿  Wrote 40 lines to ~/Code/RPGs/AloneVsFEear-encounters/claude-logs/2026
+     10301700-encounters-design.md
+       1 # Encounters and tables design
+       2 
+       3 - Date: 2026-10-30
+       4 - Session ID: afe8e30f-82f3-474d-851b-e0474cfedb88
+       5 - Branch / PR: `docs/encounters-design` (stacked on `docs/combat
+         -design`) / not pushed yet
+       6 - Transcript: [transcripts/202610301700-encounters-design.txt](t
+         ranscripts/202610301700-encounters-design.txt)
+       7 
+       8 ## Goal
+     … +32 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ The encounters and tables topic is done, and the session is wrapped up in the
+  ../AloneVsFEear-encounters worktree (branch docs/encounters-design, stacked on
+  the combat branch). Nothing is committed yet.
+
+  Your last decision is recorded: a box counts as every place table rolled in
+  it, so a haunted clinic is both a Clinic and a Haunted House. If a rule needs
+  a single place, the first one (the Clinic) wins. One consequence I wrote down
+  without asking: a box whose roll never reaches a place table (Town Exploration
+  2 goes straight to a random encounter) has no place. Tell me if you'd rather
+  handle that differently.
+
+  What changed this session:
+  - New design/encounters.md: how tables chain, how a result is picked and
+    resolved, an encounter's life, what runs out, the spoiler-free story graph,
+    and what the game remembers at campaign, character and mission level.
+  - design/rulings.md: a new Encounters section with your decisions:
+    - ignoring and moving along block the Search, and an explorable place you
+      moved along from stays for later;
+    - limits are campaign-wide and events happen once, unless the text says
+      otherwise;
+    - SNOWY is a campaign keyword;
+    - a box counts as every place table rolled in it;
+    - discarded items disappear when the character dies (added to the existing
+      ruling).
+  - Glossary: new entries for result, chain, gate, keyword and moving along;
+    Box, Unique Event and the encounter outcomes updated. game-flow.md now
+    agrees with the glossary on ignored encounters.
+  - Readme: the checkbox is ticked. NextSession.md: the next session is Effects
+    and game moments, and it notes what this session found for that topic and
+    for the town map.
+  - Session log: claude-logs/202610301700-encounters-design.md.
+
+  The diagrams still haven't been render-checked, so please look at the preview
+  once it's on GitHub. Events #7, #18, #27 and #39 have no caller anywhere in
+  the extracted text, which is noted in the log.
+
+  To finish:
+  1. Export the transcript with /export 
+     claude-logs/transcripts/202610301700-encounters-design.txt. You're in the
+     main checkout, so it'll land there. I'll move it into the worktree before
+     committing, as I did for the combat one.
+  2. Can I then commit everything, push the branch and open the PR, stacked on
+     docs/combat-design like the others?
+
+✻ Crunched for 1m 13s · done 18:14
+
+❯ " One consequence I wrote down without asking: a box whose roll never reaches 
+  a place table (Town Exploration 2 goes straight to a random encounter) has    
+  no place." Yep its just a street I guess                                      
+                                                                                
+  About finishing: I think we could agree that you write the log with the PR    
+  push and then push it ? So we don t add to circle back at every session start 
+  ?                                                                             
+
+  Ran 2 shell commands (ctrl+o to expand)
+⏺ Now updating my memory so the agreement carries over to future sessions.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Agreed. That's now the standing session workflow. Step 6 in NextSession.md and
+  my memory both say: at the end of a session, I commit, push, open the PR,
+  write the PR link in the log, and push again, without asking. Mid-session
+  commits and anything on main still need your OK.
+
+  About "it's just a street": in story terms, yes, you're out in the street. For
+  the rules, I'd keep "no place". Otherwise Bring Home the Bacon's "a location 
+  from the Street table" (3 in 6 chance of Food) would apply to boxes where you
+  never rolled on the Street table. The ruling stays as written. Tell me if
+  you'd rather count it as a Street.
+
+  Last step: run /export 
+  claude-logs/transcripts/202610301700-encounters-design.txt. It will land in
+  the main checkout. I'll move it into the worktree, commit, push, open the PR
+  stacked on docs/combat-design, add the link to the log, and push again.
+
+✻ Baked for 39s · done 18:17
+
+※ recap: We finished the encounters and tables design session, with all rulings and the session log written, and I'm waiting on you before the final commit. Next, run /export claude-logs/transcripts/202610301700-encounters-design.txt, then I'll commit, push and open the PR. (disable recaps in /config)
+
+❯  /export claude-logs/transcripts/202610301700-encounters-design.txt           
+
+  Listed 1 directory (ctrl+o to expand)
+
+⏺ The export didn't run since your message had a leading space, turning /export
+  into plain text. I'll go ahead and commit, push, and open the PR now, then
+  push the transcript afterward once you re-run the export without the leading
+  space.
+
+  Created PR #5, ran 2 shell commands (ctrl+o to expand)
+
+⏺ The session is committed and pushed, and PR #5 is open:
+  https://github.com/NathanChalot/AloneVsFEear/pull/5. It's stacked on #4, and
+  the session log now has the PR link.
+
+  Only the transcript is missing. Your export didn't run because of the leading
+  space. Type it again with no space before the slash:
+
+  /export claude-logs/transcripts/202610301700-encounters-design.txt
+
+  Then tell me it's done, and I'll move the file into the worktree, commit it
+  and push it to PR #5.
+
+✻ Baked for 39s · done 18:27
