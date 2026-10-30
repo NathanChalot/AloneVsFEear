@@ -2,7 +2,7 @@
 
 - Date: 2026-10-30
 - Session ID: dd60dc57-dea0-4ddf-81b2-68d50ee62d59
-- Branch / PR: `docs/effects-design` / not committed
+- Branch / PR: `docs/effects-design` / https://github.com/NathanChalot/AloneVsFEear/pull/7
 - Transcript: [transcripts/202610301849-effects-design.txt](transcripts/202610301849-effects-design.txt)
 
 ## Goal
