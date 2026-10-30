@@ -2,7 +2,7 @@
 
 - Date: 2026-10-31
 - Session ID: d5021e7c-848a-4aa1-90cd-5e5a732674e0
-- Branch / PR: `town-map-design` / not committed
+- Branch / PR: `town-map-design` / https://github.com/NathanChalot/AloneVsFEear/pull/8
 - Transcript: [transcripts/202610310025-town-map-design.txt](transcripts/202610310025-town-map-design.txt)
 
 ## Goal
