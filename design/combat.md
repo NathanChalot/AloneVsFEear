@@ -178,7 +178,7 @@ flowchart TD
     joined --> want
 ```
 
-- Each wave is a combat on its own: surprise, "for the whole combat" effects and XP are per wave.
+- All the waves in a box are **one combat**: start and end of combat triggers happen once and each defeated group gives its own XP. Effects that last "the current combat" end with each wave (Dodge's -1 to your next Attack). Effects tied to a creature (Charisma -1 on the first Attack against it, Stealth +1 L) stay with that creature.
 - A failed Stealth roll gives +1 L only to the group it was rolled against.
 - An Escape must always succeed against every group in the box, the snuck-past ones included. Only the groups you failed against deal Damage.
 
