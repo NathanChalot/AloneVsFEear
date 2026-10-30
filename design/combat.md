@@ -5,20 +5,32 @@ How a fight with creatures starts, runs and ends. Words are defined in the [glos
 ## Creature profile
 
 ```mermaid
-flowchart LR
-    group((Group))
-    group --- number[Number<br/>d6, 2d6, d6+3… or one]
-    group --- members[Members<br/>each with its own current Life]
-    group --- profile[Profile, shared by all members]
-    profile --- level[L<br/>target for Attack, Defense, Escape, Stealth]
-    profile --- life[Life]
-    profile --- damage[Damage per hit]
-    profile --- attacks[Attacks per round<br/>usually 1, Tentacled horror 2]
-    profile --- surprise[Surprise x in 6<br/>none if not shown]
-    profile --- traits[Traits<br/>Slow, Flying, Undead, Animal…]
-    profile --- vuln[Vulnerabilities<br/>holy water, fire…]
-    profile --- special[Special rules<br/>reactions to moments]
-    profile --- reward[XP and Loot]
+classDiagram
+    direction LR
+    class Encounter
+    class Group {
+        number: d6, 2d6, d6+3… or 1
+        effects: +1 L after a failed Stealth…
+    }
+    class Member {
+        current Life
+    }
+    class CreatureProfile {
+        name
+        L: target for Attack, Defense, Escape, Stealth
+        Life
+        Damage per hit
+        attacks per round: usually 1
+        surprise: x in 6, or none
+        traits: Slow, Flying, Undead, Animal…
+        vulnerabilities: holy water, fire…
+        special rules: reactions to moments
+        XP
+        Loot
+    }
+    Encounter "1" *-- "1..*" Group
+    Group "1" *-- "1..*" Member
+    Group "*" --> "1" CreatureProfile : shares
 ```
 
 - A **group** is what one table result produces: "2d6 Zombies" is one group. Its members share a profile but each keeps its own Life (Howlers have 2 Life each).
