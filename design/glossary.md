@@ -59,8 +59,12 @@ The domain vocabulary. Docs, issues and code use these words with these meanings
 - **Explosion** — a natural 6 on an Attack roll: roll again and add, repeat on each 6.
 - **Fumble** — a natural 1 on Defense followed by another 1: take 1 more Damage, skip your next attack, or destroy your weapon.
 - **Roll vs L** — the core mechanic: roll d6 plus modifiers, success at L or higher. Natural 1 fails, natural 6 succeeds. Named by purpose: Save, Attack, Defense, Stealth, Escape, Charisma, Strength, Magic.
-- **Modifier** — a bonus or malus to a roll, from a Skill, item, Injury, Scar, mission or effect.
-- **Effect** — a temporary or permanent state that changes rules (e.g. "lasts 3 boxes", "-1 to Stealth").
+- **Modifier** — a bonus or malus to a roll, from a Skill, item, Injury, Scar, mission or effect. Modifiers stack unless the text says otherwise.
+- **Effect** — one rule change, temporary or permanent (e.g. "-1 to Stealth for the next 3 boxes"). Has a source, a holder, a kind (roll modifier, stat modifier, rule parameter, new action, restriction, reaction) and a lifetime. See [effects](effects.md).
+- **Holder** — who carries an effect: the character, an item, a creature or group, a box, the mission or the campaign. The effect is forgotten with its holder.
+- **Moment** — a point in play that effects react to or end on: a box of time passes, enter or leave a box, combat starts, you take Damage… A "would" moment can be changed before it applies (armor reduces the Damage), a "did" moment cannot.
+- **Reaction** — an effect that acts when its moment comes, with a script of steps like a table result. A deferred event and a timed step ("as you leave") are reactions.
+- **Box of time** — a unit of time, the time to walk through one box. Moving takes one; reading a book or performing a ritual can take some without moving.
 - **Search** — a roll on the Search table after an encounter is resolved (or when there is none).
 - **Hunting** — spending Clues equal to a creature's L to meet it in the next box.
 - **Loot** — items or Food gained after an encounter.
