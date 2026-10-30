@@ -8,13 +8,13 @@ The rules text is from a commercial book: keep this repository private.
 
 ## Status
 
-MVP phase. Rules extraction is mostly done; the game engine has not been started.
+MVP phase. Rules extraction is mostly done; domain design is under way in [`design/`](design/); the game engine has not been started.
 
-**MVP goal:** play one complete mission in the terminal — create a character, roll a mission, explore the town box by box, resolve encounters, search, manage inventory, food and health, and end by completing the mission and returning home, or by dying / going insane. Campaign play (several missions with the same character) comes after the MVP.
+**MVP goal:** play one complete mission in the terminal — create a character, roll a mission, explore the town box by box, resolve encounters, search, manage inventory, food and health, and end by completing the mission and returning home, or by dying / going insane. Campaign play (several missions with the same character) comes after the MVP, but the game state is shaped as a campaign from the start: the map, the box counter, Food and Clues carry on across missions (see [game flow](design/game-flow.md)).
 
 ## How to use this roadmap
 
-The roadmap is split into milestones. Each `####` entry is sized to become one GitHub issue: its title, description, rules references, "Done when" and "Depends on" lines are the issue body. Check the box when it is done. Decisions are tracked as issues too, so they are made deliberately when they block work, not up front.
+The roadmap is split into milestones. Each `####` entry is sized to become one GitHub issue: its title, description, rules references, "Done when" and "Depends on" lines are the issue body. Check the box when it is done. Decisions are tracked as issues too, so they are made deliberately when they block work, not up front. Before deciding, ask: is it worth deciding yet, or is it a constraint we would have to fight later?
 
 ## Working with Claude
 
@@ -27,46 +27,59 @@ Work happens in small, planned sessions with Claude. The upcoming sessions are l
 - **Language:** Python. Strongest ecosystem for planned genAI features (local LLMs, image and video generation).
 - **Interface:** terminal CLI first. Engine stays UI-agnostic so other front ends can be added.
 
-### To decide
+### Guidelines
+
+Former decisions that are better kept as guidelines than settled up front.
+
+- **Tooling** (was D3) — pick common defaults when coding starts; change them freely.
+- **Portability** (was D7) — keep the engine free of UI and genAI code; otherwise, rework code when a port actually happens.
+- **Validation** (was D2) — tests are enough until a content format exists.
+- **Saves** (was D4) — the campaign is the game state; saving a game means saving the campaign.
+- **Design before code** — model the game in domain terms in [`design/`](design/) before writing engine code.
+
+### Deferred
 
 #### [ ] D1 — Rules content format
-Data files (YAML / TOML / JSON) + Python code for special rules, or content written directly as typed Python. Most entries mix plain stats with unique rules (e.g. "bullets bounce off on 1-2"), so the format must handle both without inventing a DSL.
-- Done when: a spike in a worktree implements the Beasts table, the House table and event #4 The Fluid in the candidate formats, and one is chosen.
-- Depends on: D3.
-
-#### [ ] D2 — Validation
-Schema for rules content and structural checks: d6 tables have 6 entries, 2d6 tables cover 2–12, d66 tables cover 11–66, cross-references resolve.
-- Depends on: D1.
-
-#### [ ] D3 — Python tooling
-Package manager, linter/formatter, type checker, test runner.
-
-#### [ ] D4 — Game state and saves
-How a session is represented and saved (save/resume mid-mission). Should anticipate campaign persistence without implementing it.
-
-#### [ ] D5 — Town map layout
-The town map sheet is an image in the PDF ("a chart with 30 boxes", diagonal moves allowed). Decide the grid shape and how extra sheets attach once all boxes are visited.
-
-#### [ ] D6 — MVP content scope
-Which tables, creatures and unique events are implemented for the MVP, and the fallback for unimplemented ones (e.g. an unimplemented event becomes a roll on the Random Encounter table).
-
-#### [ ] D7 — Portability constraints
-How strictly the engine stays portable (e.g. to DragonRuby): plain data structures, no metaprogramming, UI and genAI isolated.
+Start with content written as plain Python while implementing it; extract a data format only if patterns emerge. Most entries mix plain stats with unique rules, so the format must handle both without inventing a DSL.
+- Decide when: the engine implements its first tables (E7).
 
 #### [ ] D8 — genAI integration
 Where narration / image generation plug in, kept optional and behind interfaces. Post-MVP, but should not be blocked by MVP architecture.
+
+### Moved to domain design
+
+D5 (town map layout) and D6 (MVP content scope) are design topics, see Milestone 2.
 
 ## Roadmap
 
 ### Milestone 1 — Rules extraction
 
+The sheet transcriptions do not block design: the character sheet and town map feed the design topics.
+
 - [x] Parse the rulebook PDF (`gameRules/extractor/`)
 - [x] Split parsed output into sections: global rules, rolling tables, how the game works, game overview, random skill generation
 - [ ] Character sheet (image in the PDF, needs manual transcription)
-- [ ] Town map sheet (image in the PDF, needs manual transcription) — feeds D5
+- [ ] Town map sheet (image in the PDF, needs manual transcription) — feeds the map design
 - [ ] Pregenerated characters (image in the PDF, needs manual transcription)
 
-### Milestone 2 — Rules cleanup
+### Milestone 2 — Domain design
+
+Understand and diagram how the game works in domain terms before coding. Lives in [`design/`](design/). Rule interpretations go to [rulings](design/rulings.md).
+
+- [x] [Glossary](design/glossary.md)
+- [x] [Game flow](design/game-flow.md): campaign, mission, arriving in a box
+- [x] [Character and progression](design/character.md): stats, Skills, XP, Injuries and Scars
+- [x] [Inventory](design/inventory.md)
+- [x] [Safe Houses](design/safe-houses.md)
+- [x] [Rolls and tags](design/rolls.md), grown as we go
+- [ ] Combat: attack, defense, surprise, escape, groups and waves, ammo, armor
+- [ ] Encounters and tables: how table results chain, choices, left-behind encounters, Unique Events
+- [ ] Effects and game moments: the two core concepts found so far (modifiers, lifetimes, reactions to moments)
+- [ ] Town map: grid shape, sheets, distances (was D5; uses the town map transcription)
+- [ ] MVP scope: which tables, creatures and events, and the fallback for the rest (was D6)
+- [ ] Review the engine tasks below against the design
+
+### Milestone 3 — Rules cleanup
 
 The OCR mangled the book's two-column layout. Content is complete, but many tables are structurally damaged. If D1 converts tables to another format, fix them during conversion instead of fixing the Markdown twice.
 
@@ -79,15 +92,17 @@ The OCR mangled the book's two-column layout. Content is complete, but many tabl
 - [ ] Repair `0_table_of_content.md`
 - [ ] Remove or complete stub files (`gameRules/Readme.md`, `2_0_tables.md`), rename `7__optional_rules.md`
 
-### Milestone 3 — Project setup
+### Milestone 4 — Project setup
 
 - [ ] Fix `.tool-versions` (pins Python 3.14.5, not installed locally)
 - [ ] Add a `.gitignore` (PDF, virtualenvs, caches)
 - [ ] Write `CLAUDE.md` with established facts and conventions; extend it as decisions are made
 - [ ] Configure `.claude/settings.json` permissions
-- [ ] Bootstrap the Python project per D3 (package layout, test run, CI optional)
+- [ ] Bootstrap the Python project with common defaults (package layout, test run, CI optional)
 
-### Milestone 4 — Engine MVP
+### Milestone 5 — Engine MVP
+
+To be revised once Milestone 2 is done.
 
 #### [ ] E1 — Dice and rolls
 d3, d6, d6±n, 2d6, d6×d6, d66, "x in 6" chances. Seedable for reproducible tests. Generic roll vs L with modifiers: natural 1 always fails, natural 6 always succeeds. Covers Saves, Charisma, Stealth, Escape, Magic, Strength rolls.
@@ -98,7 +113,7 @@ d3, d6, d6±n, 2d6, d6×d6, d66, "x in 6" chances. Seedable for reproducible tes
 Name; Life and Sanity (8 each + 3 points to distribute, or traded for 1 extra Skill / extra table roll); current vs max values; Skills with Basic/Expert level; XP; Food; Clues; up to 3 Injuries and 3 Mental Scars; death at 0 Life, insanity at 0 Sanity.
 - Rules: [main rules](gameRules/1_1_main_rules.md) (Your Character, Sanity, Life, Food, Experience), [skills](gameRules/1_2_skills.md)
 - Done when: a character can be built and its state queried and modified through the engine API, with tests.
-- Depends on: E1, D1.
+- Depends on: E1.
 
 #### [ ] E3 — Inventory and encumbrance
 Two hands (one two-handed weapon uses both); 10 carried items; Food carried separately (10, extra Food takes item slots); negligible-weight items; +5 with backpack (losing it drops everything not in hand), +3 / +5 with Strong / Strong (Expert), hard max 20. Ammo tracked per weapon type (bullets, rifle bullets, bolts, arrows, shells). Stash and retrieve items at a Safe House.
@@ -110,7 +125,7 @@ Two hands (one two-handed weapon uses both); 10 carried items; Food carried sepa
 Choose 2 Skills (no Arcane Skills, no Expert) or roll them randomly; distribute 3 points; 1 random weapon + 1 knife; 1 Random Object + 1 Useful Stuff item, rerolling duplicates; d6 starting Food.
 - Rules: [main rules](gameRules/1_1_main_rules.md), [random skill generation](gameRules/10_optional_skills_generation.md), [weapons table](gameRules/tables/1_4_random_weapons_table.md), [random objects](gameRules/tables/2_1_random_object_tables.md), [useful stuff](gameRules/tables/2_2_useful_stuff_table.md)
 - Done when: the CLI walks the player through creation and produces a valid character.
-- Depends on: E2, E3, related Milestone 2 table fixes.
+- Depends on: E2, E3, related Milestone 3 table fixes.
 
 #### [ ] E5 — Mission
 Roll d6 on the Mission table at session start; track mission progress and completion conditions; mission ends on returning Home with the goal met.
@@ -120,12 +135,12 @@ Roll d6 on the Mission table at session start; track mission progress and comple
 #### [ ] E6 — Town map, movement and time
 Grid of boxes per D5; start in any box; move to any neighbour including diagonals; number each box entered (time counter, ~2 hours per box); consume 1 Food every 5 boxes or lose 1 Life; effects lasting N boxes; annotate box content, Searched flag, occupied boxes (monsters you fled from), Safe Houses (max 3 in play).
 - Rules: [how the game works](gameRules/5_how_the_game_works.md) (Movement and Mapping, Moving Through Visited Areas), [game overview](gameRules/9_game_overview.md)
-- Depends on: D5, E2.
+- Depends on: town map design, E2.
 
 #### [ ] E7 — Exploration and encounter tables
 New box: roll on the Town Exploration table (2d6) then the place sub-table; no roll for the first box. Visited box: 1 in 6 random encounter (nested d6→d6 table); occupied box requires a Stealth roll. Safe House: no encounter, heal Life/Sanity. Generic table-resolution mechanism shared by all tables.
 - Rules: [town exploration](gameRules/tables/5_4_town_exploration_table.md), [random encounters](gameRules/tables/5_2_random_encounters_table.md), [places](gameRules/tables/places/), [creatures](gameRules/tables/creatures/), [special events](gameRules/tables/5_19_special_events_table.md)
-- Depends on: D1, D6, E6, Milestone 2 table fixes.
+- Depends on: D1, MVP scope, E6, Milestone 3 table fixes.
 
 #### [ ] E8 — Combat
 Surprise (x in 6, reduced by Danger Sense); player attacks first otherwise; damage = attack total / L rounded down; groups of 1-Life monsters; monster turns as Defense rolls; weapon modifiers and Damage; exploding sixes; ammo consumption; vulnerabilities (2 Damage per use) and exorcism; XP on victory only; loot.
@@ -148,15 +163,15 @@ Optionally negate a loss by rolling on the Insanity or Injury table (max 3 each,
 - Depends on: E2, insanity table fix.
 
 #### [ ] E12 — Unique events
-Numbered events triggered by tables, with player choices, chained events and persistent effects. Scope per D6.
+Numbered events triggered by tables, with player choices, chained events and persistent effects. Scope per the MVP scope design.
 - Rules: [unique events](gameRules/6_unique_events.md)
-- Depends on: D6, E7, events headings fix.
+- Depends on: MVP scope, E7, events headings fix.
 
 #### [ ] E13 — Terminal game loop
-Ties everything together: creation → mission → move/explore/resolve/search loop → end screen (mission complete and back Home, death or insanity). Displays character sheet, inventory and map on demand. Save/resume per D4.
+Ties everything together: creation → mission → move/explore/resolve/search loop → end screen (mission complete and back Home, death or insanity). Displays character sheet, inventory and map on demand. Save/resume of the campaign state.
 - Rules: [game overview](gameRules/9_game_overview.md)
 - Done when: a full mission can be played from start to finish in the terminal.
-- Depends on: E4–E12, D4.
+- Depends on: E4–E12.
 
 ### Later
 

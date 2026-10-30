@@ -2,7 +2,7 @@
 
 - Date: 2026-10-27
 - Session ID: dc85721c-ddf1-41c7-ae09-e5db77429b86
-- Branch / PR: `docs/readme-roadmap` / not committed yet
+- Branch / PR: `docs/readme-roadmap` / https://github.com/NathanChalot/AloneVsFEear/pull/2
 - Transcript: [transcripts/202610271900-repo-tour-and-roadmap.txt](transcripts/202610271900-repo-tour-and-roadmap.txt)
 
 ## Goal
