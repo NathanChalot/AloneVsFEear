@@ -11,6 +11,7 @@ src/alone_against_fear/
   dice.py           dice codes, chances, dice sources (shared by content and engine)
   engine/           the game: state and the engine API
     state.py        Campaign, Character, Mission, History, TownMap, Box (plain data)
+    town.py         sheets, neighbours, distance (pure geometry)
     game.py         Game: the only way the state changes
   content/          the rules text: YAML files, their loader and model
     loader.py       YAML files → Content
@@ -98,6 +99,10 @@ classDiagram
         add_item() / remove_item()
         start_mission(id)
         number_box(position)
+        choose_home(position)
+        targets(kind) / move(to, kind) Arrival
+        is_full(sheet) / add_sheet(sheet)
+        add_place() / mark_searched() / add_mark()
         record(level, happened, id)
         add_keyword(level, word)
     }
@@ -120,13 +125,17 @@ classDiagram
     class Box {
         position
         numbers
+        places, searched, marks
     }
 ```
 
 - **The state is mutable plain data**: dataclasses of numbers, strings, enums, lists, dicts and counters, content referred to by ID. A test walks the whole campaign to check it holds no code, so saving it later is turning it into a dict.
 - **Levels nest as in the design**: the campaign never forgets, a new character replaces the last one (and its history), a new mission replaces the last one. `Level` names them; `Game.history(level)` finds the right one.
 - **The history counts, it does not log**: `Happened.PLAYED`, `FOUND`, `KILLED` per ID, plus keywords. The rules only ask "has it happened?" and "how many times?". The story of the game goes to the log file instead.
-- **`Game` is the only writer.** It checks only what the state cannot hold (no character, unknown mission, negative amount, missing item) and raises `GameError`; the rules about limits come with their tasks. `Position` is a `(column, row)` named tuple; sheets, neighbours and moves come in E3.
+- **`Game` is the only writer.** It checks only what the state cannot hold (no character, unknown mission, negative amount, missing item) and raises `GameError`; the rules about limits come with their tasks. 
+- **The town is one grid** (`town.py`). `Position` is a `(column, row)` named tuple, for a box in the town and for a sheet in the grid of sheets. A sheet is a 5×6 block (`sheet_of`); `neighbours(position, sheets)` are the 8 boxes around that lie on an attached sheet (open edges are walls), `distance` is the larger of the column and row gaps. Nothing geometric is stored.
+- **Moves.** The engine offers `targets(kind)` and the interface picks; `move(to, kind)` refuses anything else, numbers the box, runs the Food upkeep (every 5th box number on the campaign clock: 1 Food, else 1 Life) and returns an `Arrival`. `MoveKind` has `NORMAL` and `ESCAPE` for now. `choose_home` is box 1 (first sheet, once); `add_sheet` attaches a sheet against a full one.
+- **A box remembers** its places (IDs), `searched` and `marks`.
 - **The dice are not part of the state**: play is random, so a resumed campaign rolls fresh dice.
 
 ## `content`: the rules text
