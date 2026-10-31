@@ -1,7 +1,7 @@
 """The game engine: it keeps the game state and applies the rules. It never reads input or
 prints; it logs what happens to the `alone_against_fear` logger."""
 
-from .game import Game, GameError
+from .game import Arrival, Game, GameError
 from .state import (
     Box,
     Campaign,
@@ -10,12 +10,15 @@ from .state import (
     History,
     Level,
     Mission,
+    MoveKind,
     Position,
     Stat,
     TownMap,
+    Upkeep,
 )
 
 __all__ = [
+    "Arrival",
     "Box",
     "Campaign",
     "Character",
@@ -25,7 +28,9 @@ __all__ = [
     "History",
     "Level",
     "Mission",
+    "MoveKind",
     "Position",
     "Stat",
     "TownMap",
+    "Upkeep",
 ]
