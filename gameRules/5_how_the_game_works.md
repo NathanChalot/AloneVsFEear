@@ -40,7 +40,7 @@ The minimum cost is always 1 Clue.
 
 ## Mission
 
-At the start of a play session, roll on  the [ Mission  table](tables/5_3_missions_table.md)  below  to determine what you must do to win  this  session  of  the  game.  
+At the start of a play session, roll on  the [ Mission  table](tables/5_3_missions_table.md) to determine what you must do to win  this  session  of  the  game.  
 
 If you roll the same Mission that you played  last  time,  you  may  reroll until you select a different one. 
 
