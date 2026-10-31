@@ -29,6 +29,6 @@ Digital solo play of **Alone Against Fear** (Four Against Darkness engine). Read
 ## Testing approach
 
 - **TDD** for the engine: write the tests from the task's "Done when" line, see them fail, implement, tidy. Unit tests per rule; dice are seeded so runs are reproducible.
-- **BDD style in plain pytest** (no Gherkin): scenario tests named and commented given/when/then, driven by a scripted interface that answers the engine's requests. One or a few scenarios per user story or session issue.
+- **BDD style in plain pytest** (no Gherkin): scenario tests named and commented given/when/then, driven by a scripted interface that answers the engine's requests. One or a few scenarios per user story or bug.
 - A test per rule, written from the Markdown rules text, so a misreading shows up as a failing test.
 - **Ambiguous rules** (tests are rulings written as code): discuss first, with options proposed; if switchable, start with the simpler version; write the ruling in `design/rulings.md`; only then write the test and the code.
