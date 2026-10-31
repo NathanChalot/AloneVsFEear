@@ -11,9 +11,9 @@ Finish Milestone 1 (the three image transcriptions) from the original PDFs, then
 
 ## Done
 
-- Copied the original rulebook files (ebook PDF, play aids PDF, character sheet PNG; not the zip) into `origin_rules/` at the root of the main checkout.
+- Copied the original rulebook files (not the zip) into `origin_rules/` at the root of the main checkout.
 - Added `.gitignore`: `origin_rules/`, `*.pdf`, `*.zip`, Python virtualenvs and caches, `.DS_Store`. Milestone 4 item ticked.
-- Rendered the image pages with PyMuPDF in a scratch virtualenv (no poppler installed, Python in the repo blocked by `.tool-versions`). Sources: play aids p. 3 and 4, ebook pp. 105-106.
+- Rendered the image pages with PyMuPDF in a scratch virtualenv (no poppler installed, Python in the repo blocked by `.tool-versions`).
 - Transcribed `gameRules/12_character_sheet.md` (fields, as a table), `gameRules/13_town_map.md` (5×6 grid, number circle at bottom right) and `gameRules/14_pregenerated_characters.md` (Anna Miller, Douglas Harrison, with their differences from the rules).
 - Created `design/town-map.md`: one town grid made of 5×6 sheets, side maps, neighbours, distance, the move family (normal, Escape, led astray, forced, jump), open points.
 - Rulings (Map), glossary (Town map, Sheet, Side map, Neighbour, Distance), Readme checkboxes and E6 link, `NextSession.md`.

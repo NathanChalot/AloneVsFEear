@@ -13,7 +13,7 @@ Planned work sessions with Claude, in order. The [Readme](Readme.md) holds the r
 
 ## Reminders
 
-- Compare the pregenerated characters in [`gameRules/14_pregenerated_characters.md`](gameRules/14_pregenerated_characters.md) against pages 105-106 of the ebook in `origin_rules/`: image transcriptions are the part most likely to hold a misread.
+- Compare the pregenerated characters in [`gameRules/14_pregenerated_characters.md`](gameRules/14_pregenerated_characters.md) against the original sheets in `origin_rules/`: image transcriptions are the part most likely to hold a misread.
 
 ## Plan
 
