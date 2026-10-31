@@ -1,0 +1,1700 @@
+ ▐▛███▛█   Claude Code v2.1.316
+▝▜██████▀  Opus 5.5 · Claude Pro
+ ▝▝   ▝▝   ~/Code/RPGs/AloneVsFEear/.claude/worktrees/mvp-scope
+
+
+❯ /model 
+  ⎿  Kept model as Opus 5.5 (default)
+
+❯ /model                                                                        
+  ⎿  Set model to Opus 5.5 (default) and saved as your default for new sessions
+     with xhigh effort
+
+❯ /model                                                                        
+  ⎿  Set model to Opus 5.5 (default) and saved as your default for new sessions
+     with medium effort
+
+❯ /model                                                                        
+  ⎿  Set model to Opus 5.5 and saved as your default for new sessions with xhigh
+     effort
+
+❯ Lets proceed with the next sesion, I tuink it s defininng ht MVP scope. We    
+  can then review the engine task with it. Our aim in a first version is to     
+  make a MVP that is the most extendable as possible but as simple as possible  
+  so we can have a working iteration the fastest possible. I ll let you analyze 
+  and do recommandation. If you have question to settle, ask them, do not       
+  improvise, you can offer choices (but you don have to you cansimpoly ask      
+  too).                                                                         
+  Restate to make sure you got the instruction and objective right then procced 
+  after my approval                                                             
+
+  Searched for 2 patterns, read 1 file, ran 2 shell commands (ctrl+o to expand)
+
+⏺ Here's how I read the request. I haven't started anything yet; I only read the
+  roadmap, NextSession.md, the latest logs and my notes on how you like to
+  work.
+
+  What I think you're asking
+
+  This session: the next roadmap item, MVP scope (the old D6). The second step,
+  reviewing the engine tasks against the design, either happens in this session
+  too or comes right after, using the scope as its input.
+
+  What the MVP is for: a working version as fast as possible. That means:
+  - As simple as possible: the smallest set of tables, creatures, events and
+    rules that still plays one full mission end to end. That's the Readme's MVP
+    goal: create a character, roll a mission, explore, encounters, search,
+    inventory, Food and health, then a win or a death.
+  - As extendable as possible: whatever is left out should be easy to add later
+    without reworking the engine. So every cut needs a defined fallback (what
+    happens when a table points at content that isn't built yet), and the cuts
+    should fall on content, not on core concepts like effects, moments or the
+    campaign state.
+
+  What we decide:
+  1. Which tables, creatures and Unique Events go in the MVP, and which rules or
+     mechanics are cut or simplified (for example Arcane Skills, spending XP,
+     side missions, magic items).
+  2. The fallback for anything out of scope.
+  3. The forest side map of #41 (size, how you enter and leave it), left open by
+     the town map session. It might simply land in the fallback.
+  4. Then the engine task review: E1–E13 updated against the design and the new
+     scope (dependencies, gaps, order).
+
+  How I'll work:
+  - I analyze the design docs and the content, then make a recommendation.
+  - Anything that needs a call from you, I ask about instead of improvising.
+    Sometimes that's options with a recommendation, sometimes just a question.
+  - Nothing goes into design/ or the Readme as decided until you've said yes.
+  - No plot details: event names and numbers only.
+  - The usual session setup: a dedicated worktree and branch, a log at the end,
+    the Readme and NextSession.md updated, then the wrap-up commit, push and PR.
+
+  Two things to confirm
+
+  - Engine task review: in this session after the scope, or as its own session?
+    I'd do it here if time allows, since it follows straight from the scope.
+  - Output: I'd put the scope in a new design/mvp-scope.md (in / out / fallback,
+    plus the reasoning), linked from the Readme. Does that work for you?
+
+  Tell me if this is right and I'll start.
+
+✻ Brewed for 40s · done 18:41
+
+❯ /auto-mode-setup 
+  ⎿  Gathering data and drafting your auto-mode setup; back soon
+
+⏺ Saved to /Users/nathanchalot/.claude/settings.json (environment). Run 
+  `claude auto-mode config` to see the effective result.
+
+❯ yes, do the engine review here too, go ahead                                  
+
+  Searched for 1 pattern, ran 2 shell commands (ctrl+o to expand)
+
+⏺ Creating worktree(mvp-scope)
+  ⎿  Switched to worktree on branch worktree-mvp-scope
+     /Users/nathanchalot/Code/RPGs/AloneVsFEear/.claude/worktrees/mvp-scope
+
+⏺ The worktree is set up. Next I'll read the design docs and the content, then
+  put together the scope analysis.
+
+  Read 3 files, ran 3 shell commands (ctrl+o to expand)
+
+⏺ Design docs read. Now I'm taking stock of the content: tables, creatures,
+  events and missions.
+
+  Searched for 1 pattern, read 2 files, ran 3 shell commands (ctrl+o to expand)
+
+⏺ Content inventory nearly complete: 14 place tables, 12 creature tables, 42
+  events, 72 items, and 6 missions found. Next I'll check the mechanics of #41
+  (no plot) and the weapons before writing up the analysis.
+
+  Searched for 1 pattern, ran 1 shell command (ctrl+o to expand)
+
+⏺ I've read the whole design and taken stock of the content. Here's my analysis
+  and recommendation; the questions follow.
+
+  What the content looks like
+
+  - The tables form a dense web. Street, Store and Farm alone send you to 7 of
+    the 12 creature tables, and the Random Encounter table reaches all 12.
+    Cutting by table doesn't hold: within a roll or two, the tables you kept
+    point at the ones you cut.
+  - Almost every entry is simple data plus one unique rule. A creature is L,
+    Life, Damage, XP and a special line. An item is a name, a weight and a use.
+    The data is quick to write; the unique rules take the time.
+  - Volume: 6 missions, 14 place tables, 12 creature tables (about 70
+    creatures), 72 items, 42 events, 21 Skills plus the Arcane ones.
+  - Close a Hell Gate can't be completed in the MVP. It needs the Gate Arcane
+    Skill, which comes after the MVP.
+  - The forest of #41 is only reached through an event chain (Special Event 1 →
+    #37 → #41).
+
+  Recommendation: the whole engine model, thin content, one fallback for the 
+  rest
+
+  - Engine: build what design/ describes (rolls with tags, effects and moments,
+    result scripts, memory levels, combat, map), but only the parts the MVP
+    content actually uses.
+  - Content: write as little as possible for the first version. Anything not
+    written yet goes through one generic fallback. Content then grows one table
+    at a time, each a small issue that replaces part of the fallback.
+  - Fallback, "book mode": the engine tells you which entry you reached and
+    where to read it (gameRules/…, entry number). You apply it yourself with a
+    few manual actions:
+    - gain or lose Life, Sanity, Food, XP or Clues
+    - add or remove an item
+    - fight a creature
+    - mark a box as a Safe House
+  - Why book mode:
+    - The whole game is playable from day one.
+    - The Milestone 3 cleanup is only needed for tables we actually implement.
+    - The manual actions double as a test console.
+    - Later, the same hook could let an LLM read the text and apply it (D8).
+  - It works inside a single entry too: a creature can have its stats
+    implemented while its special rule is still shown as book text.
+
+  Smaller points I'd take along (tell me if you disagree)
+
+  - Forest of #41: decide it when #41 gets implemented. The model already has
+    side maps, and the open points (size, how you enter, Food) are content
+    details.
+  - Skills: all 21 non-Arcane Skills at creation. They're mostly roll and stat
+    modifiers, cheap once effects exist.
+  - Weapons and items: all weapons are in. An item whose use isn't written yet
+    is still a named item with a weight; its use comes from the book.
+  - Missions: rolled only among the implemented ones, since book mode can't run
+    a rule that lasts a whole mission.
+  - Still out of the MVP, as already planned:
+    - Arcane Skills and spells
+    - campaign continuation
+    - side missions, rewards, books and magic items (fallback only)
+    - optional rules
+    - random Skill generation
+
+  Once these are settled I'll write design/mvp-scope.md, then review the engine
+  tasks. One early finding: the engine task list (E1–E13) has no tasks for the
+  design's core concepts (effects and moments, result scripts, game memory,
+  player choices). I'll also suggest building a thin game loop first rather than
+  last.
+
+⏺ User answered Claude's questions:
+  ⎿  · How should the MVP handle content that isn't implemented yet (a table 
+     result, a creature's special rule, an event, an item's use)? → Book mode 
+     (Recommended)
+     · How much content should be fully implemented in the first working version
+     (the rest uses the fallback)? → One mission's path (Recommended)
+     · Which missions should the MVP implement? (Close a Hell Gate needs the 
+     Gate Arcane Skill, which comes after the MVP.) → Broing Home the Beacon is 
+     fine, but I m wondering why do we HJAVE TO leave the arcane skills out ? Is
+     it mandatory or something we can go bach to ? WIf we can implement them 
+     then we can implement "close a hell gate' this make a whoile campaign 
+     playable fast. Maybe at step 2 (1st bring home the beacon, 2 close a hell 
+     gate + arcane skills ?)
+     · Which of these should be IN the MVP? Anything you leave unselected comes 
+     after the MVP. → Spending XP (Recommended)
+
+  Searched for 1 pattern, ran 2 shell commands (ctrl+o to expand)
+
+⏺ Do Arcane Skills have to stay out?
+
+  No. Nothing in the rules forces it. It was a scoping call from the first
+  session, when the roadmap put "Arcane Skills and spells" under Later to keep
+  the MVP small. The design already covers them: an Arcane Skill is a Skill with
+  a prerequisite (see the XP flow in design/character.md). They can come back
+  whenever we choose, and your order (Bacon first, then Close a Hell Gate) makes
+  sense.
+
+  Close a Hell Gate pulls in more than the Gate Skill, though:
+  - The Gate Arcane Skill (2 XP): you learn it by reading the Necronomicon or
+    the Holy Book, or the Occult Guide with Occultist (Expert), or the
+    Diabolical Deal. The other way is Occultist plus 5 Clues spent in a Hell
+    Gate box.
+  - Books: the Random Books table (11 books), reading them (takes d3 boxes of
+    time, already ruled), each book once per game. Books come from Search in a
+    Library, the Bookstore (Store 5, already on Bacon's path), Random Objects
+    and Farm 2.
+  - Hell Gates: the mission guarantees two (after 12+d6 new boxes, and in the
+    30th box). Woods/Park and Sewers can also hold one.
+  - Campaign play: 7 gates are closed "in any number of games". That needs
+    mission after mission:
+    - rewards
+    - Life and Sanity restored
+    - a new mission rolled
+    - a new character after a death
+    - the campaign won at the 7th gate
+
+    The roadmap has this under Later too. Without it, step 2 lets you close one
+    gate in a single mission, not play the campaign.
+  - Three open points come back when step 2 starts:
+    - whether you start a new map sheet after a mission
+    - whether a new character keeps the same map
+    - whether closing a gate is a Will roll (the Gate Skill's text) or a Magic
+      roll (the mission and Sewers text)
+
+    None of them blocks step 1.
+
+  One side effect: with only two missions implemented, "reroll if same as last"
+  makes them alternate.
+
+  For everything else, I'm recording your answers: book mode, one mission's
+  path, Bring Home the Bacon, Spending XP in, and saving, hunting and switchable
+  options after the MVP. Since you didn't object to the smaller points, I'm
+  taking them as agreed: the forest is decided with #41, all 21 Skills, items
+  without a written use stay named items, and missions are rolled only among
+  implemented ones.
+
+⏺ User answered Claude's questions:
+  ⎿  · Step 2 = Close a Hell Gate. Should it also bring campaign play (mission 
+     after mission, rewards, a new character after a death, won at the 7th 
+     gate), so the whole campaign is playable? → Yes, with campaign play 
+     (Recommended)
+     · Which Arcane Skills should step 2 implement? There are 11; only Gate is 
+     needed to close Hell Gates. → Mechanism + Gate (Recommended)
+     · Is step 2 part of the MVP, or the first milestone after it? → MVP = steps
+     1 and 2 (Recommended)
+
+⏺ Everything is settled. I'll write design/mvp-scope.md now, then move on to the
+  engine task review.
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+❯ Also I d like to think a bit more about the book mode.... Could we store the  
+  rules in a yaml so it can be displayed on screen ?                            
+
+⏺ YAML format works well for book mode, letting it display entry text directly
+  instead of pointing to a file—this also resolves part of D1 and reframes
+  Milestone 3 as the conversion step, with each entry able to grow from plain
+  text to full Python rules over time, and converted tables fully replacing
+  their Markdown files.
+⏺ User answered Claude's questions:
+  ⎿  · Book mode with on-screen text: what should go into the YAML files now? → 
+     IDs, entries and text (Recommended)
+     · Once a table is converted to YAML, what happens to its Markdown file in 
+     gameRules/? → Keep both
+     · When should the text be converted to YAML? → I don't undestrand the 
+     options you re giving
+
+⏺ Clarifying with an example: the real question is whether we copy the whole
+  book into YAML now (a few sessions) or just step 1's tables first (about half
+  that work), since book mode behaves differently depending on which choice we
+  make. I'd also treat the YAML as the engine's source of truth and the Markdown
+  as the readable copy, keeping both in sync — let me know if you'd rather
+  handle "Keep both" differently.
+
+⏺ User answered Claude's questions:
+  ⎿  · Example: in step 1 you roll House 4, which isn't implemented yet. Should 
+     the screen show its text (everything copied to YAML) or a file reference 
+     (only step 1's tables copied)? → Copy everything (Recommended)
+
+⏺ Got it: everything goes into YAML. Writing the scope doc now.
+
+⏺ Write(design/mvp-scope.md)
+  ⎿  Wrote 108 lines to design/mvp-scope.md
+       1 # MVP scope
+       2 
+       3 What the first versions of the game contain, and what happens wi
+         th the rest of the book until it is written. Words are defined i
+         n the [glossary](glossary.md). Decided in the MVP scope session 
+         (was D6).
+       4 
+       5 ## Goal
+       6 
+       7 The MVP is done when **a whole campaign can be played** in the t
+     … +102 lines (~8 KB) (ctrl+o to expand)
+
+❯ Before going on, I d like you to give me an example of a user story of a user 
+  playing two round. Happy path only, it should describe how the mvp behave     
+
+⏺ I'll write the user story next. First a quick check of the shotgun stats so
+  the example is accurate.
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Here's the user story. I took "two rounds" to mean two turns, so two boxes
+  after Home. It's the happy path in step 1 (Bring Home the Bacon). The screens
+  are only illustrations; the interface isn't designed yet. Dice results are in
+  brackets.
+
+  As a player, I start a campaign and play two turns
+
+  Setup (creation, quickly): Alex picks Fighter and Stealth and puts the 3
+  points into Life 10 and Sanity 9. The engine rolls the starting gear:
+  - a shotgun with [2d6: 7] shells, plus the knife
+  - a First Aid Kit with [d6+2: 5] points
+  - protein bars
+  - [d6: 4] Food
+
+  Bring Home the Bacon is the only written mission, so the mission roll lands on
+  it: bring back [2d6+12: 20] Food on top of your own. Alex accepts the free
+  backpack and picks a Home box on the sheet. It becomes box 1, with no content
+  roll.
+
+  Box 1 (Home)                             Mission: Bring Home the Bacon
+  Life 10/10  Sanity 9/9  Food 4  XP 0  Clues 0
+    . . . . .
+    . . . . .
+    . . H . .
+    . . . . .
+    . . . . .
+    . . . . .
+  [1] Move  [2] Inventory  [3] Character  [4] Spend XP
+
+  Turn 1: a written table
+
+  1. Move. The engine offers the 8 neighbours and Alex picks the north-east one.
+     It becomes box 2. No Food is due yet (next at box 5).
+  2. New box. Town Exploration [2d6: 8]: "Store or Street, your choice". Alex
+     picks Store.
+  3. Store [d6: 2], Food store. The engine shows the text and asks whether to
+     pick up Food. Yes: [d6: 5] Food, now 9. The 3 in 6 encounter chance [d6: 2]
+     hits. Monster table [d6: 2] → Beasts, then [d6: 2] → Zombie Dog.
+  4. Fight. The engine plays the stats: L3 Undead, Life 3, Damage 2, no surprise
+     chance, so Alex acts first. The dog's special rule isn't written yet, so
+     it shows as text: "Escape rolls from the zombie dog are at -1…".
+     - Round 1: shotgun [d6: 3] +2 = 5 → 5 ÷ 3 = 1 hit × 2 Damage. The dog drops
+       to Life 1, shells to 6. The engine leaves out Fighter's +1 because the
+       roll is tagged ranged, not hand-to-hand.
+     - The dog's turn: Defense [d6: 2] vs L3 fails. The engine asks: "Take an
+       Injury instead of 2 Damage?" No, so Life is 8/10.
+     - Round 2: [d6: 4] +2 = 6 → 2 hits, 4 Damage. The dog is down, shells at 5,
+       +1 XP.
+  5. After the encounter. Alex lost Life, so the engine offers 1 first aid point
+     (assuming the kit's use is written in step 1). Yes: Life 9/10.
+  6. Mission rule. A Store was visited, so the 3 in 6 chance [d6: 1] hits: [d6:
+     3] Food, now 12.
+  7. Search is allowed because the encounter was dealt with. [d6: 6] → 4 item
+     rolls to pick from, or 1 Clue. Alex takes the Clue and the box is marked
+     Searched.
+  8. Free actions. Spend XP shows nothing affordable: 1 XP, and the cheapest
+     Skills cost 2. End of turn.
+
+  Turn 2: book mode
+
+  1. Move to box 3.
+  2. New box. Town Exploration [2d6: 7], then [d6: 3] → House. The House table
+     isn't written in step 1. The engine still rolls its die [d6: 2], because
+     the dice and entries are in the YAML, and shows only that entry:
+
+  ── Book mode ── House table, result 2 (not written yet)
+    You meet helpful people living in the area. Heal 1 Life
+    and gain 1 Food point.
+  Apply it with the manual actions, then choose Done.
+  [1] Life ±  [2] Sanity ±  [3] Food ±  [4] XP ±  [5] Clues ±
+  [6] Add/remove item  [7] Fight a creature  [8] Mark Safe House  [9] Done
+     Alex applies Life +1 (10/10) and Food +1 (13), then Done. The engine
+  records that box 3 is a House, so later rules that read the place still work.
+  3. No mission roll: a House isn't a Street, Store or Farm.
+  4. Search [d6: 3]: nothing found.
+  5. End of turn. Food is 13 of the 15 the backpack allows. Carrying more means
+  using item slots or leaving items in the Home stash. When Alex has enough
+  Food, they walk back Home and the mission completes: 3 XP or 3 Useful Stuff
+  rolls.
+
+  What it shows: the engine plays whatever is written (Store, the dog's stats,
+  the shotgun, the first aid kit, the mission). Anything not written yet (House,
+  the dog's special rule) appears as text you apply by hand. In both cases the
+  engine asks and you answer.
+
+  Meanwhile I've written the scope to design/mvp-scope.md. Tell me if the story
+  matches what you expect; then I'll start the engine task review.
+
+✻ Worked for 10m 20s · done 19:27
+
+❯ Some questions:                                                               
+  - The engine already handle the character inventory and stats?                
+  - Whou count the damages ?                                                    
+  - Are we adding actions to + or - different stats etc ?                       
+
+⏺ 1. Does the engine handle the character's stats and inventory?
+
+  Nothing is coded yet. In the MVP, though, the engine always holds the whole
+  character sheet:
+  - Life and Sanity (current and max), Skills, XP, Food, Clues
+  - the inventory: hands, item slots, the Food limit, ammo per weapon
+  - Injuries and Scars
+
+  Book mode doesn't change that. It only means the engine doesn't know what one
+  particular entry does. The numbers stay in the engine either way. In the
+  story, the engine counted the Food, the shells and the Life every time, House
+  2 included.
+
+  2. Who counts the damage?
+
+  The engine, every time there's a fight. It rolls the Attack, works out hits
+  and Damage, takes Life off the creature, rolls your Defense, then runs the
+  Damage chain: armor, Luck, the Injury offer, Life. You only make the choices:
+  attack or escape, take an Injury or not, how to share Damage in a group.
+
+  That covers book mode too:
+  - Creature whose stats are written (all of them in step 1): the engine runs
+    the fight; only its special rule shows as text.
+  - Creature only in an unwritten text (an event's "d6+3 sewer people, L2, 1
+    Life, Damage 1"): the "Fight a creature" action lets you enter those stats,
+    and the engine runs the fight.
+
+  The gap: a special rule that acts during the fight. Take the alligator: "every
+  attack hitting it has a 2 in 6 chance of bouncing off". The engine can't
+  apply it until that rule is written.
+
+  3. Are we adding actions to raise or lower stats?
+
+  Yes, those are book mode's manual actions:
+  - gain or lose Life, Sanity, Food, XP, Clues
+  - add or remove an item
+  - fight a creature
+  - mark a Safe House
+
+  They aren't new rules. The engine needs these operations anyway: a written
+  result like "heal 1 Life, gain 1 Food" calls exactly the same ones. Book mode
+  just lets you call them yourself.
+
+  Two points about how they behave are worth your call:
+
+⏺ User answered Claude's questions:
+  ⎿  · When you use a manual action in book mode (e.g. 'lose 2 Life'), should it
+     go through the normal rules or just edit the number? → Through the rules 
+     (Recommended)
+     · A creature's special rule that isn't written yet can act during the fight
+     (the alligator: 2 in 6 that a hit bounces off). How should book mode 
+     handle it? → Manual actions in fights (Recommended)
+
+⏺ Update(design/mvp-scope.md)
+  ⎿  Added 5 lines, removed 1 line
+      31  
+      32  - **The engine shows the text of the entry reached**, and only 
+          that entry: "Read them only when they apply to you" (`5_4_town_
+          exploration_table.md`).
+      33  - **The player applies it with manual actions**: gain or lose L
+          ife, Sanity, Food, XP or Clues; add or remove an item; fight a 
+          creature; mark the box as a Safe House (step 2: as a Hell Gate)
+          . Each is an engine action that already exists, opened to the p
+          layer. They double as a test console.
+      34 -- **What was reached is still recorded**, so limits and fallbac
+         -ks keep working: an event played in book mode is played, a crea
+         -ture killed in a book-mode fight is killed.                    
+      34 +- **Manual actions go through the rules**, exactly as written c
+         +ontent would: losing Life offers an Injury and kills at 0, heal
+         +ing stops at max, Food over the limit asks for an item slot, re
+         +actions fire. They are game operations, not edits of the number
+         +s, so book mode can never put the game in a state the rules for
+         +bid.                                                           
+      35 +- **The engine keeps every number.** Stats, inventory, Food, am
+         +mo and the box counter stay in the engine in book mode too; onl
+         +y what the entry does is left to the player.                   
+      36 +- **Fights are always run by the engine.** "Fight a creature" t
+         +akes a creature from the creature tables, or stats typed from t
+         +he text ("d6+3 sewer people, L2, 1 Life, Damage 1"), and the en
+         +gine runs the combat.                                          
+      37  - **One entry can be half written.** A creature's stats can be 
+          played by the engine while its special rule is shown as text; a
+          n item can sit in the inventory with its weight while its use i
+          s shown as text.
+      38 +- **Manual actions stay open during a fight** while a special r
+         +ule's text is on screen, with one more action: creature Life up
+         + or down. The player rolls and applies what the rule says (the 
+         +alligator: 2 in 6 that a hit bounces off).                     
+      39 +- **What was reached is still recorded**, so limits and fallbac
+         +ks keep working: an event played in book mode is played, a crea
+         +ture killed in a book-mode fight is killed.                    
+      40  - **Missions never use book mode.** A mission's rules last the 
+          whole mission, which manual actions cannot follow. The mission 
+          is rolled among the written ones only.
+      41  
+      42  ### Where the text comes from
+
+⏺ I noticed a mistake in design/mvp-scope.md: "abort" was listed under step 1,
+  but that doesn't make sense with only one mission written—it belongs with
+  campaign play in step 2. Fixing that now, then moving on to the engine review.
+
+⏺ Update(design/mvp-scope.md)
+  ⎿  Added 1 line, removed 1 line
+      63  - Tables and result scripts: chains, choices, gates, limits and
+           fallbacks ([encounters](encounters.md)).
+      64  - Combat, Escape, Stealth, Charisma, waves ([combat](combat.md)
+          ).
+      65  - Safe Houses ([Safe Houses](safe-houses.md)).
+      66 -- Missions as holders of effects, with goal, rewards and abort.
+      66 +- Missions as holders of effects, with goal and rewards. Aborti
+         +ng comes with step 2: with one mission written, there is no oth
+         +er mission to roll.                                            
+      67  - Book mode and its manual actions.
+      68  - The terminal game loop.
+      69  
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Here's the engine task review. I checked E1–E13 against the design and the
+  scope.
+
+  What's wrong with the current list
+
+  - The design's core concepts have no task: effects and moments, result
+    scripts, game memory (campaign, character, mission), and "the engine asks,
+    the interface answers".
+  - The new pieces have no task either: book mode, Safe Houses, spending XP,
+    step 2.
+  - Engine work and content are mixed in E7 and E11. Content should be separate,
+    small tasks.
+  - The game loop (E13) comes last, so nothing is playable until everything is
+    done. With book mode we can make it playable early.
+  - Some tasks fall outside the MVP: E12 (events, now book mode), the hunting
+    part of E10, and the save part of E13.
+
+  Proposed list
+
+  A. Skeleton: a whole mission playable in book mode, with nothing written yet.
+
+  ┌─────┬─────────────────────────────────────────────────────────┬─────────┐
+  │  #  │                          Task                           │   Was   │
+  ├─────┼─────────────────────────────────────────────────────────┼─────────┤
+  │ E1  │ Dice: every dice code, seedable, the natural die kept   │ E1      │
+  ├─────┼─────────────────────────────────────────────────────────┼─────────┤
+  │ E2  │ Game state: campaign, character and mission levels, map │ E2      │
+  │     │  and history, content referenced by ID                  │ (part)  │
+  ├─────┼─────────────────────────────────────────────────────────┼─────────┤
+  │ E3  │ Engine/interface protocol: the engine asks, the         │ new     │
+  │     │ interface answers; a scripted interface for tests       │         │
+  ├─────┼─────────────────────────────────────────────────────────┼─────────┤
+  │ E4  │ Town map, moves, box numbers, Food every 5 boxes, what  │ E6      │
+  │     │ a box remembers                                         │         │
+  ├─────┼─────────────────────────────────────────────────────────┼─────────┤
+  │ E5  │ Book mode: show the entry's text from YAML, manual      │ new     │
+  │     │ actions through the rules, record what was reached      │         │
+  ├─────┼─────────────────────────────────────────────────────────┼─────────┤
+  │ E6  │ Terminal game loop, skeleton version (no save)          │ E13     │
+  └─────┴─────────────────────────────────────────────────────────┴─────────┘
+
+  B. Rules core
+
+  ┌─────┬─────────────────────────────────────────────────────────┬─────────┐
+  │  #  │                          Task                           │   Was   │
+  ├─────┼─────────────────────────────────────────────────────────┼─────────┤
+  │ E7  │ Rolls vs L with tags, natural 1/6, effects (holder,     │ E1      │
+  │     │ kind, lifetime), modifiers from every holder            │ (part)  │
+  ├─────┼─────────────────────────────────────────────────────────┼─────────┤
+  │ E8  │ Moments and reactions: lifetimes, "would"/"did",        │ new     │
+  │     │ helpful reactions first                                 │         │
+  ├─────┼─────────────────────────────────────────────────────────┼─────────┤
+  │ E9  │ Character: Life and Sanity, the 21 Skills, earning and  │ E2, E11 │
+  │     │ spending XP, Injuries and Scars, death                  │         │
+  ├─────┼─────────────────────────────────────────────────────────┼─────────┤
+  │ E10 │ Inventory: hands, item slots, Food limit, backpack,     │ E3      │
+  │     │ ammo, discarding, stash                                 │         │
+  ├─────┼─────────────────────────────────────────────────────────┼─────────┤
+  │ E11 │ Character creation                                      │ E4      │
+  ├─────┼─────────────────────────────────────────────────────────┼─────────┤
+  │     │ Tables and result scripts: chains, choices, gates,      │ E7      │
+  │ E12 │ limits and fallbacks, unwritten entries go to book      │ (part)  │
+  │     │ mode. The rest of D1 is decided here                    │         │
+  ├─────┼─────────────────────────────────────────────────────────┼─────────┤
+  │ E13 │ Arriving in a box, the life of an encounter, Search and │ E7, E10 │
+  │     │  Clues (no hunting)                                     │         │
+  ├─────┼─────────────────────────────────────────────────────────┼─────────┤
+  │ E14 │ Combat: rounds, attack, defense, the Damage chain,      │ E8      │
+  │     │ weapons, ammo, XP                                       │         │
+  ├─────┼─────────────────────────────────────────────────────────┼─────────┤
+  │ E15 │ Escape, Stealth, Charisma, waves                        │ E9      │
+  ├─────┼─────────────────────────────────────────────────────────┼─────────┤
+  │ E16 │ Safe Houses: healing, max 3, stash, theft               │ new     │
+  ├─────┼─────────────────────────────────────────────────────────┼─────────┤
+  │ E17 │ Missions as holders of effects, plus Bring Home the     │ E5      │
+  │     │ Bacon                                                   │         │
+  └─────┴─────────────────────────────────────────────────────────┴─────────┘
+
+  C. Step 1 content (each after its text is in YAML): C1 Town Exploration,
+  Random Encounter and Search · C2 Street, Store, Farm · C3 the stats of every
+  creature · C4 weapons and creation items · C5 Injury and Insanity tables. When
+  these are done, step 1 is playable.
+
+  D. Step 2: E18 Arcane Skills (learning for all 11, Gate written) and books ·
+  E19 Close a Hell Gate · E20 campaign play, including abort. When these are
+  done, the MVP is done.
+
+  Milestone 3 becomes "Rules text in YAML", in batches:
+  - R1: file layout and ID scheme, plus the exploration tables
+  - R2: places
+  - R3: creatures
+  - R4: items and weapons
+  - R5: Skills and books
+  - R6: events
+  - R7: the rest
+
+  The existing fix items (OCR damage, page references, event headings) become
+  checklists inside those batches.
+
+  Order: project setup → GitHub planning → R1 → skeleton (E1–E6) → rules core,
+  alongside the R batches and C tasks → step 2.
+
+  One gap in book mode
+
+  Writing this, I noticed the manual actions are missing three things book text
+  asks for all the time:
+  - "Roll on the Undead table" and "play event #1": unwritten text chains to
+    other content.
+  - "Roll an L4 agility Save": a roll vs L.
+  - "Perform a Search roll at +1".
+
+  Without these, you would roll dice yourself and lose the modifiers the engine
+  collects (Agile, for instance).
+
+⏺ User answered Claude's questions:
+  ⎿  · Book mode text often says 'roll on the Undead table', 'play event #1', 
+     'roll an L4 Save' or 'make a Search roll'. Should the manual actions 
+     include these? → Add them (Recommended)
+     · Engine task review: order the work as a skeleton first (a whole mission 
+     playable in book mode after 6 tasks: dice, game state, engine/interface 
+     protocol, map and time, book mode, game loop), then the rules core, step 1 
+     content and step 2? → Skeleton is fine, the initial list you re reviewing 
+     is really not something we cannot differ, it was kind of a preliminary 
+     exploration from the first sessions, we could even re write it completely 
+     it would be fine so really suggest what you find the most practical
+     · Engine task IDs: renumber E1–E20 in the new order, or keep the old 
+     numbers and add new ones after E13? → Renumber (Recommended)
+     · Milestone 3 (rules cleanup) becomes 'Rules text in YAML', converted in 
+     batches (R1 layout and IDs plus the exploration tables, R2 places, R3 
+     creatures, R4 items and weapons, R5 Skills and books, R6 events, R7 the 
+     rest), with the current fix items as checklists inside the batches. OK? → 
+     Yes, batches (Recommended)
+
+⏺ I'm reworking the task list so each task pairs its engine part with the
+  content that uses it (e.g., combat with creature stats/weapons), eliminating
+  separate content tasks and reordering the YAML batches to match engine needs.
+  Writing this into the Readme now for your review.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Python can't run in the repo yet (the known .tool-versions issue), so I'll
+  edit with the Edit tool instead.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(Readme.md)
+  ⎿  Added 2 lines, removed 2 lines
+      1  # Alone Against Fear — digital solo play
+      2  
+      3 -A program that runs a full session of **Alone Against Fear**, a 
+        -survival-horror solo tabletop game based on the Four Against Dar
+        -kness engine, from character creation to the end of the mission.
+      3 +A program that runs a full campaign of **Alone Against Fear**, a
+        + survival-horror solo tabletop game based on the Four Against Da
+        +rkness engine, from character creation to the last Hell Gate.   
+      4  
+      5 -The game rules are extracted from the rulebook PDF into Markdown
+        - under `gameRules/`, which serve as the reference for the engine
+        -.                                                               
+      5 +The game rules are extracted from the rulebook PDF into Markdown
+        + under `gameRules/`, which serve as the reference for the engine
+        +. The text of every table, entry, event, item and Skill is also 
+        +copied into YAML, for the engine to show on screen (Milestone 3)
+        +.                                                               
+      6  
+      7  The rules text is from a commercial book: keep this repository p
+         rivate. The original PDFs go in `origin_rules/` at the repositor
+         y root, which is git-ignored.
+      8  
+
+⏺ Update(Readme.md)
+  ⎿  Added 7 lines, removed 2 lines
+       8  
+       9  ## Status
+      10  
+      11 -MVP phase. Rules extraction is done; domain design is under way
+         - in [`design/`](design/); the game engine has not been started.
+      11 +MVP phase. Rules extraction and domain design ([`design/`](desi
+         +gn/)) are done; the game engine has not been started.          
+      12  
+      13 -**MVP goal:** play one complete mission in the terminal — creat
+         -e a character, roll a mission, explore the town box by box, res
+         -olve encounters, search, manage inventory, food and health, and
+         - end by completing the mission and returning home, or by dying 
+         -/ going insane. Campaign play (several missions with the same c
+         -haracter) comes after the MVP, but the game state is shaped as 
+         -a campaign from the start: the map, the box counter, Food and C
+         -lues carry on across missions (see [game flow](design/game-flow
+         -.md)).                                                         
+      13 +**MVP goal:** play a whole campaign in the terminal, in two ste
+         +ps ([MVP scope](design/mvp-scope.md)):                         
+      14  
+      15 +1. **Bring Home the Bacon** — one complete mission: create a ch
+         +aracter, explore the town box by box, resolve encounters, searc
+         +h, manage inventory, Food and health, and end back Home with th
+         +e Food, dead or insane.                                        
+      16 +2. **Close a Hell Gate** — Arcane Skills, books, and missions p
+         +layed one after another until 7 Hell Gates are closed. The game
+         + state is shaped as a campaign from the start: the map, the box
+         + counter, Food and Clues carry on across missions (see [game fl
+         +ow](design/game-flow.md)).                                     
+      17 +                                                               
+      18 +The engine follows the whole design, but only a thin slice of c
+         +ontent is written. Everything else goes through **book mode**: 
+         +the engine shows the entry's text and the player applies it wit
+         +h manual actions.                                              
+      19 +                                                               
+      20  ## How to use this roadmap
+      21  
+      22  The roadmap is split into milestones. Each `####` entry is size
+          d to become one GitHub issue: its title, description, rules ref
+          erences, "Done when" and "Depends on" lines are the issue body.
+           Check the box when it is done. Decisions are tracked as issues
+           too, so they are made deliberately when they block work, not u
+          p front. Before deciding, ask: is it worth deciding yet, or is 
+          it a constraint we would have to fight later?
+
+⏺ Now the decisions section.
+
+⏺ Update(Readme.md)
+  ⎿  Added 2 lines
+      31  
+      32  - **Language:** Python. Strongest ecosystem for planned genAI f
+          eatures (local LLMs, image and video generation).
+      33  - **Interface:** terminal CLI first. Engine stays UI-agnostic s
+          o other front ends can be added.
+      34 +- **MVP scope** (was D6): two steps, Bring Home the Bacon then 
+         +Close a Hell Gate with campaign play; unwritten content goes th
+         +rough book mode. See [MVP scope](design/mvp-scope.md).         
+      35 +- **Rules text in YAML** (part of D1): every table, entry, crea
+         +ture, item, event and Skill gets a stable ID and its text in YA
+         +ML; behaviour stays in Python, keyed by the same ID. The Markdo
+         +wn in `gameRules/` stays as the readable copy, fixed together w
+         +ith the YAML.                                                  
+      36  
+      37  ### Guidelines
+      38  
+
+⏺ Update(Readme.md)
+  ⎿  Added 2 lines, removed 2 lines
+      47  ### Deferred
+      48  
+      49  #### [ ] D1 — Rules content format
+      50 -Start with content written as plain Python while implementing i
+         -t; extract a data format only if patterns emerge. Most entries 
+         -mix plain stats with unique rules, so the format must handle bo
+         -th without inventing a DSL.                                    
+      51 -- Decide when: the engine implements its first tables (E7).    
+      50 +Partly decided: the text lives in YAML and behaviour in Python,
+         + both keyed by ID (see Made). Still open: where plain data goes
+         + (creature stats, item weights, Skill XP costs), in the YAML ne
+         +xt to the text or in Python next to the behaviour. Most entries
+         + mix plain stats with unique rules, so the format must handle b
+         +oth without inventing a DSL.                                   
+      51 +- Decide when: the engine writes its first content (E6).       
+      52  
+      53  #### [ ] D8 — genAI integration
+      54  Where narration / image generation plug in, kept optional and b
+          ehind interfaces. Post-MVP, but should not be blocked by MVP ar
+          chitecture.
+
+  Searched for 1 pattern (ctrl+o to expand)
+⏺ Update(Readme.md)
+  ⎿  Added 1 line, removed 1 line
+      55  
+      56  ### Moved to domain design
+      57  
+      58 -D5 (town map layout) and D6 (MVP content scope) are design topi
+         -cs, see Milestone 2.                                           
+      58 +D5 (town map layout) and D6 (MVP content scope) were settled as
+         + design topics, see Milestone 2.                               
+      59  
+      60  ## Roadmap
+      61  
+
+⏺ Update(Readme.md)
+  ⎿  Added 2 lines, removed 2 lines
+      81  - [x] [Encounters and tables](design/encounters.md): how table 
+          results chain, choices, left-behind encounters, Unique Events
+      82  - [x] [Effects and game moments](design/effects.md): holders, k
+          inds, lifetimes, moments, reactions
+      83  - [x] [Town map](design/town-map.md): grid shape, sheets, dista
+          nces (was D5)
+      84 -- [ ] MVP scope: which tables, creatures and events, and the fa
+         -llback for the rest (was D6)                                   
+      85 -- [ ] Review the engine tasks below against the design         
+      84 +- [x] [MVP scope](design/mvp-scope.md): two steps, the content 
+         +written in each, book mode for the rest (was D6)               
+      85 +- [x] Review the engine tasks below against the design: rewritt
+         +en as Milestones 5 to 7                                        
+      86  
+      87  ### Milestone 3 — Rules cleanup
+      88  
+
+  Searched for 1 pattern, read 1 file, ran 1 shell command (ctrl+o to expand)
+
+⏺ The 3-points rule checks out. Writing the new roadmap tail (Milestone 3
+  through Later).
+
+  Made 1 scratchpad edit +204, ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(sed -n '84,87p' Readme.md && S=/private/tmp/claude-501/-Users-nathanchalo
+      t-Code-RPGs-AloneVsFEear/abdba5c2-6629-4778-8493-83b4150d76e9/scratchpad
+      && head -n 86…)
+  ⎿  - [x] [MVP scope](design/mvp-scope.md): two steps, the content written
+      in each, book mode for the rest (was D6)
+     - [x] Review the engine tasks below against the design: rewritten as M
+     … +13 lines (ctrl+o to expand)
+  ⎿  Updated Readme.md (+177 -75)
+       84  - [x] [MVP scope](design/mvp-scope.md): two steps, the content
+            written in each, book mode for the rest (was D6)
+       85  - [x] Review the engine tasks below against the design: rewrit
+           ten as Milestones 5 to 7
+       86  
+       87 -### Milestone 3 — Rules cleanup                               
+       87 +### Milestone 3 — Rules text in YAML                          
+       88  
+       89 -The OCR mangled the book's two-column layout. Content is compl
+          -ete, but many tables are structurally damaged. If D1 converts 
+          -tables to another format, fix them during conversion instead o
+          -f fixing the Markdown twice.                                  
+       89 +The text of every table, entry, creature, item, event and Skil
+          +l is copied into YAML with a stable ID, so book mode can show 
+          +it on screen ([MVP scope](design/mvp-scope.md#where-the-text-c
+          +omes-from)). The OCR mangled the book's two-column layout: eac
+          +h batch fixes the damage against the original PDFs in `origin_
+          +rules/`, in the YAML and in the Markdown at once, and turns bo
+          +ok page references into table names. Batches follow the order 
+          +the engine needs them; all are done before step 1 is playable.
+       90 +                                                              
+       91 +#### [ ] R1 — YAML layout, IDs and exploration tables         
+       92 +Decide the file layout and the ID scheme. Copy the Town Explor
+          +ation, Random Encounter, Search and Missions tables.          
+       93 +- Fixes: Town Exploration (swapped columns, split rows 2 and 1
+          +2), Random Encounter (nested d6→d6 structure), Missions (missi
+          +ng roll numbers).                                             
+       94 +- Done when: the four tables are in YAML, and tests check that
+          + every table covers its dice range and every reference points 
+          +to an existing ID.                                            
+       95 +- Depends on: Milestone 4.                                    
+       96 +                                                              
+       97 +#### [ ] R2 — Skills and harm tables                          
+       98 +The 21 Skills, the 11 Arcane Skills, the Injury and Insanity t
+          +ables.                                                        
+       99 +- Fixes: Insanity table (merged rows 2 and 3).                
+      100 +- Depends on: R1.                                             
+      101 +                                                              
+      102 +#### [ ] R3 — Weapons and items                               
+      103 +Random Weapon table, weapon summary, Random Objects, Useful St
+          +uff.                                                          
+      104 +- Depends on: R1.                                             
+      105 +                                                              
+      106 +#### [ ] R4 — Creatures                                       
+      107 +The 12 creature tables.                                       
+      108 +- Fixes: missing or misplaced roll numbers in Beasts, Undead, 
+          +Lab Horrors, Ghosts.                                          
+      109 +- Depends on: R1.                                             
+      110 +                                                              
+      111 +#### [ ] R5 — Places                                          
+      112 +The 14 place tables, Special Events, Children's Stuff.        
+      113 +- Fixes: missing or misplaced roll numbers in House, Clinic, S
+          +treet.                                                        
+      114 +- Depends on: R1.                                             
+      115 +                                                              
+      116 +#### [ ] R6 — Events                                          
+      117 +The 42 numbered events.                                       
+      118 +- Fixes: body text parsed as headings in `6_unique_events.md`.
+      119 +- Depends on: R1.                                             
+      120 +                                                              
+      121 +#### [ ] R7 — The rest                                        
+     … 238 more lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ The Readme is done. Now I'll update mvp-scope.md (the three new manual
+  actions, the D1 timing), town-map.md (forest deferral), the glossary and
+  NextSession.md.
+
+⏺ Update(design/mvp-scope.md)
+  ⎿  Added 10 lines, removed 1 line
+      30  ```
+      31  
+      32  - **The engine shows the text of the entry reached**, and only 
+          that entry: "Read them only when they apply to you" (`5_4_town_
+          exploration_table.md`).
+      33 -- **The player applies it with manual actions**: gain or lose L
+         -ife, Sanity, Food, XP or Clues; add or remove an item; fight a 
+         -creature; mark the box as a Safe House (step 2: as a Hell Gate)
+         -. Each is an engine action that already exists, opened to the p
+         -layer. They double as a test console.                          
+      33 +- **The player applies it with manual actions**:               
+      34 +  - gain or lose Life, Sanity, Food, XP or Clues;              
+      35 +  - add or remove an item;                                     
+      36 +  - go to a table or a numbered event ("roll on the Undead tabl
+         +e", "play event #1"): the engine rolls it, a written entry play
+         +s itself, an unwritten one is shown in book mode;              
+      37 +  - make a roll vs L ("an L4 agility Save"): the player gives t
+         +he roll type and L, the engine adds the modifiers from Skills a
+         +nd items;                                                      
+      38 +  - make a Search roll, with the bonus the text gives;         
+      39 +  - fight a creature;                                          
+      40 +  - mark the box as a Safe House (step 2: as a Hell Gate).     
+      41 +                                                               
+      42 +  Each is an engine action that already exists, opened to the p
+         +layer. They double as a test console.                          
+      43  - **Manual actions go through the rules**, exactly as written c
+          ontent would: losing Life offers an Injury and kills at 0, heal
+          ing stops at max, Food over the limit asks for an item slot, re
+          actions fire. They are game operations, not edits of the number
+          s, so book mode can never put the game in a state the rules for
+          bid.
+      44  - **The engine keeps every number.** Stats, inventory, Food, am
+          mo and the box counter stay in the engine in book mode too; onl
+          y what the entry does is left to the player.
+      45  - **Fights are always run by the engine.** "Fight a creature" t
+          akes a creature from the creature tables, or stats typed from t
+          he text ("d6+3 sewer people, L2, 1 Life, Damage 1"), and the en
+          gine runs the combat.
+
+⏺ Update(design/mvp-scope.md)
+  ⎿  Added 1 line, removed 1 line
+      51  ### Where the text comes from
+      52  
+      53  - **The rules text is copied into YAML files.** Each table, ent
+          ry, creature, item, event and Skill gets a stable ID, its dice 
+          and entries, and its text as written in the book. While copying
+          , OCR damage is fixed against the original PDFs in `origin_rule
+          s/`, and page references become table names.
+      54 -- **Behaviour stays in Python**, keyed by the same ID. YAML hol
+         -ds no rules logic, so no rules language is invented ([D1](../Re
+         -adme.md#deferred)). Whether plain data (creature stats, item we
+         -ight) also goes into YAML is decided when the first creature is
+         - written.                                                      
+      54 +- **Behaviour stays in Python**, keyed by the same ID. YAML hol
+         +ds no rules logic, so no rules language is invented ([D1](../Re
+         +adme.md#deferred)). Whether plain data (creature stats, item we
+         +ight, Skill XP cost) also goes into YAML is decided when the en
+         +gine writes its first content (E6 in the [roadmap](../Readme.md
+         +#milestone-6--step-1-bring-home-the-bacon)).                   
+      55  - **The Markdown in `gameRules/` stays** as the readable copy. 
+          The YAML is the copy the engine reads. Both are fixed together.
+      56  - **Everything is copied before step 1 is playable**: every tab
+          le, event, item and Skill. This replaces the Markdown-only clea
+          nup of Milestone 3. Until an entry is copied, book mode shows i
+          ts file and entry number instead.
+      57  - The same text can later feed a narrator ([D8](../Readme.md#de
+          ferred)).
+
+⏺ Update(design/mvp-scope.md)
+  ⎿  Added 1 line, removed 1 line
+      53  - **The rules text is copied into YAML files.** Each table, ent
+          ry, creature, item, event and Skill gets a stable ID, its dice 
+          and entries, and its text as written in the book. While copying
+          , OCR damage is fixed against the original PDFs in `origin_rule
+          s/`, and page references become table names.
+      54  - **Behaviour stays in Python**, keyed by the same ID. YAML hol
+          ds no rules logic, so no rules language is invented ([D1](../Re
+          adme.md#deferred)). Whether plain data (creature stats, item we
+          ight, Skill XP cost) also goes into YAML is decided when the en
+          gine writes its first content (E6 in the [roadmap](../Readme.md
+          #milestone-6--step-1-bring-home-the-bacon)).
+      55  - **The Markdown in `gameRules/` stays** as the readable copy. 
+          The YAML is the copy the engine reads. Both are fixed together.
+      56 -- **Everything is copied before step 1 is playable**: every tab
+         -le, event, item and Skill. This replaces the Markdown-only clea
+         -nup of Milestone 3. Until an entry is copied, book mode shows i
+         -ts file and entry number instead.                              
+      56 +- **Everything is copied before step 1 is playable**: every tab
+         +le, event, item and Skill, in batches ordered by when the engin
+         +e needs them ([Milestone 3](../Readme.md#milestone-3--rules-tex
+         +t-in-yaml)). This replaces the Markdown-only cleanup. Until an 
+         +entry is copied, book mode shows its file and entry number inst
+         +ead.                                                           
+      57  - The same text can later feed a narrator ([D8](../Readme.md#de
+          ferred)).
+      58  
+      59  ## Step 1: Bring Home the Bacon
+
+⏺ Update(design/mvp-scope.md)
+  ⎿  Added 5 lines, removed 1 line
+      118  
+      119  - Which item uses are written in step 1 (weapons, ammo, Food i
+           tems, first aid kit, backpack and armor need step 1 mechanisms
+           ; most others can wait).
+      120  - A free note on the box or the character, for book-mode effec
+           ts that last ("for the next 3 boxes", a curse).
+      121 -- The YAML file layout and ID scheme.                         
+      121 +- The YAML file layout and ID scheme (R1 in the [roadmap](../R
+          +eadme.md#milestone-3--rules-text-in-yaml)).                   
+      122 +                                                              
+      123 +## Order of work                                              
+      124 +                                                              
+      125 +The [roadmap](../Readme.md#roadmap) builds a **skeleton** firs
+          +t: dice, game state, map and time, the engine/interface protoc
+          +ol, book mode. After those five tasks a whole game can be walk
+          +ed in book mode, and every later task replaces part of book mo
+          +de, so it can be tried in the game straight away. Each later t
+          +ask writes an engine part together with the content that uses 
+          +it (combat with the creature stats and weapons, for example). 
+
+⏺ Update(design/town-map.md)
+  ⎿  Added 1 line, removed 1 line
+      27  - **A sheet's open edges are walls until it is full.** "If you 
+          visit all the boxes on a sheet and you haven't completed your m
+          ission yet, just attach a new paper sheet" (`5_how_the_game_wor
+          ks.md`). Once all 30 boxes are visited, the player may attach a
+           new sheet and walk onto it.
+      28  - **A new sheet may also be started after a mission** ([creator
+           answers](creator-answers.md)), even if the current one is not 
+          full. Where the character goes then is open (see below).
+      29  - **Home is any box** of the first sheet, chosen by the player.
+           It is box 1 and has no content roll ([game flow](game-flow.md)
+          ).
+      30 -- **Side maps** are separate grids outside the town: #41 asks t
+         -o "prepare a separate map diagram" for a forest. They use the s
+         -ame boxes and neighbours, but are not attached to the town grid
+         -. Their size and how you enter and leave them are decided with 
+         -the MVP scope.                                                 
+      30 +- **Side maps** are separate grids outside the town: #41 asks t
+         +o "prepare a separate map diagram" for a forest. They use the s
+         +ame boxes and neighbours, but are not attached to the town grid
+         +. Their size and how you enter and leave them are decided when 
+         +#41 is written: it is not in the [MVP scope](mvp-scope.md).    
+      31  
+      32  ## Neighbours and distance
+      33  
+
+⏺ Update(design/town-map.md)
+  ⎿  Added 2 lines, removed 2 lines
+      83  
+      84  ## Open
+      85  
+      86 -- **Starting a new sheet after a mission** before the current o
+         -ne is full: does the character walk onto it from an edge, or st
+         -art anywhere on it? Matters only for campaign play.            
+      87 -- **The forest map of #41**: size, how you enter and leave it, 
+         -and whether box numbers and Food run there. Decided with the MV
+         -P scope.                                                       
+      86 +- **Starting a new sheet after a mission** before the current o
+         +ne is full: does the character walk onto it from an edge, or st
+         +art anywhere on it? Matters only for campaign play: decided whe
+         +n step 2 starts ([MVP scope](mvp-scope.md#to-decide-when-step-2
+         +-starts)).                                                     
+      87 +- **The forest map of #41**: size, how you enter and leave it, 
+         +and whether box numbers and Food run there. Decided when #41 is
+         + written, after the MVP ([MVP scope](mvp-scope.md#after-the-mvp
+         +)).                                                            
+      88  - **#16's jump**: whether the box in between counts as crossed 
+          (numbered, encounter roll) or skipped, and whether the jump tak
+          es 1 box of time or 2.
+      89  - **"Most distant unrevealed box"** (Side Missions 2): on the c
+          urrent sheet or the whole town, and what happens if every box o
+          f the current sheet is revealed.
+      90  - **Distance around a missing sheet**: when sheets form an L, t
+          he straight count can cross a spot with no sheet, so the real w
+          alk is longer. Count the grid or the walk? Rare, and only matte
+          rs for the closest Safe House.
+
+  Searched for 1 pattern, ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(cat >> design/glossary.md <<'EOF'…)
+  ⎿  - **Loot** — items or Food gained after an encounter.
+
+     ## Building the game
+     … +13 lines (ctrl+o to expand)
+  ⎿  Updated design/glossary.md (+7 -0)
+      72  - **Search** — a roll on the Search table after an encounter is
+           resolved (or when there is none).
+      73  - **Hunting** — spending Clues equal to a creature's L to meet 
+          it in the next box.
+      74  - **Loot** — items or Food gained after an encounter.
+      75 +                                                               
+      76 +## Building the game                                           
+      77 +                                                               
+      78 +- **Written** — content whose rules the engine plays itself. Co
+         +ntent that is not written yet goes through book mode. See [MVP 
+         +scope](mvp-scope.md).                                          
+      79 +- **Book mode** — the fallback for unwritten content: the engin
+         +e shows the text of the entry reached, and the player applies i
+         +t with manual actions. What was reached is still recorded.     
+      80 +- **Manual action** — a game operation the player calls in book
+         + mode: gain or lose a resource, add or remove an item, go to a 
+         +table or event, make a roll vs L or a Search roll, fight a crea
+         +ture, mark a box. It goes through the rules like written conten
+         +t.                                                             
+      81 +- **Step 1** / **Step 2** — the two parts of the MVP: Bring Hom
+         +e the Bacon (one mission), then Close a Hell Gate with campaign
+         + play.                                                         
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+⏺ Update(NextSession.md)
+  ⎿  Added 5 lines, removed 5 lines
+      17  
+      18  ## Plan
+      19  
+      20 -1. **MVP scope** — which tables, creatures and events, and the 
+         -fallback for the rest. Also decide the forest map of #41 (size,
+         - entering and leaving), left open by the [town map](design/town
+         --map.md#open) design.                                          
+      21 -2. **Project setup** — Milestone 4 except the Python bootstrap:
+         - `.tool-versions` (blocks running Python in the repo), minimal 
+         -`CLAUDE.md`, `.claude/settings.json`.                          
+      22 -3. **GitHub planning** — milestones, labels and issues from the
+         - roadmap; decide whether issues or the Readme are the source of
+         - truth.                                                        
+      23 -4. **Review engine tasks** against the design, then start the e
+         -ngine in dependency order, bootstrapping the Python project wit
+         -h common defaults.                                             
+      24 -5. **Rules cleanup** — Milestone 3, as the engine needs each ta
+         -ble. Fix the Markdown against the original PDFs in `origin_rule
+         -s/`; no format conversion yet.                                 
+      20 +1. **Project setup** — Milestone 4 except the Python bootstrap:
+         + `.tool-versions` (blocks running Python in the repo), minimal 
+         +`CLAUDE.md` (include book mode and the YAML/Python split), `.cl
+         +aude/settings.json`.                                           
+      21 +2. **GitHub planning** — milestones, labels and issues from the
+         + roadmap (R1–R7, E1–E20); decide whether issues or the Readme a
+         +re the source of truth.                                        
+      22 +3. **R1** — YAML layout, ID scheme and the exploration tables, 
+         +fixed against the original PDFs in `origin_rules/`. Bootstrap t
+         +he Python project with common defaults for its tests.          
+      23 +4. **Engine skeleton** — E1 to E5, until a whole game can be wa
+         +lked in book mode.                                             
+      24 +5. **Step 1** — E6 to E17, with the R batches done in the order
+         + the engine needs them (R2 and R3 before E6, R4 before E12, R5 
+         +before E16). Everything copied to YAML before step 1 is playabl
+         +e.                                                             
+
+⏺ The docs are updated. Next I'm proofreading the scope doc, then writing the
+  session log.
+
+  Read 1 file, listed 2 directories, ran 1 shell command, searched memories (ctrl+o to expand)
+
+⏺ Write(claude-logs/202610311837-mvp-scope.md)
+  ⎿  Wrote 61 lines to claude-logs/202610311837-mvp-scope.md
+       1 # MVP scope and engine task review
+       2 
+       3 - Date: 2026-10-31
+       4 - Session ID: abdba5c2-6629-4778-8493-83b4150d76e9
+       5 - Branch / PR: `mvp-scope` / not committed
+       6 - Transcript: [transcripts/202610311837-mvp-scope.txt](transcrip
+         ts/202610311837-mvp-scope.txt)
+       7 
+       8 ## Goal
+       9 
+     … +52 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ The scope and the engine review are both written. Nothing is committed yet;
+  everything is on the mvp-scope branch in the worktree.
+
+  What changed
+
+  - design/mvp-scope.md (new) covers:
+    - the two steps: step 1 is Bring Home the Bacon, step 2 is Close a Hell Gate
+      with campaign play
+    - book mode: the manual actions go through the rules, stay open during
+      fights, and include tables, events, rolls and Search
+    - the rules text in YAML, with the Markdown kept alongside
+    - what step 1 writes, what step 2 adds, what comes after the MVP, and the
+      order of work
+  - Readme.md:
+    - a new MVP goal, and two new decisions: the MVP scope, and rules text in
+      YAML
+    - D1 is now partly decided; the remaining question (where simple data like
+      stats and weights goes) is settled at E6
+    - the roadmap is rewritten:
+      - Milestone 3 "Rules text in YAML" (R1–R7)
+      - Milestone 5 skeleton (E1–E5)
+      - Milestone 6 step 1 (E6–E17)
+      - Milestone 7 step 2 (E18–E20)
+      - Later
+  - Smaller edits:
+    - the glossary has a new "Building the game" section
+    - town-map.md now points the forest of #41 and the post-mission sheet
+      question to the scope doc
+    - NextSession.md: project setup → GitHub planning → R1 → skeleton → step 1
+  - Session log: claude-logs/202610311837-mvp-scope.md, including a table
+    mapping old task numbers to new ones.
+
+  Worth a look before I commit
+
+  - The YAML batches are in a different order from the one you approved. They
+    now follow when the engine needs them: R2 is Skills plus the Injury and
+    Insanity tables, R3 items and weapons, R4 creatures, R5 places, R6 events,
+    R7 books and the rest. The Missions table moved into R1.
+  - E2 carries a guideline we didn't discuss: "the game state refers to content
+    by ID and never holds code, so saving stays easy to add". It only appeared
+    in a question's description.
+  - The diagram hasn't been render-checked. Check the Mermaid preview on GitHub.
+
+  If it all looks right, export the transcript with:
+
+  /export claude-logs/transcripts/202610311837-mvp-scope.txt
+
+  Then I'll commit, push, open the PR, add its link to the log and push again.
+
+✻ Sautéed for 7m 58s · done 19:52
+
+❯ First commit whart we ve done, wwait a little before the PR the push etc,     
+  there are some stuff I d like to discuss                                      
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ I've committed the session's work on mvp-scope (bf04532). Nothing is pushed
+  and there's no PR yet; I'll wait until you're ready.
+
+  What would you like to discuss?
+✻ Brewed for 9s · done 19:55
+
+❯ 3 things ->                                                                   
+  1. At what steps, in how many session, do you think we will start             
+  implementing ?                                                                
+  2. How would you go about the next sessions ? What order, what prompts ?      
+  3. Do you recommend some models over others for each sessions ?               
+
+⏺ 1. When does implementation start?
+
+  Python code starts at the 3rd session, engine code at the 4th, with the plan
+  as it stands:
+
+  ┌─────┬────────────────────────────────────────────────────┬──────────────┐
+  │  #  │                      Session                       │    Code?     │
+  ├─────┼────────────────────────────────────────────────────┼──────────────┤
+  │ 1   │ Project setup                                      │ no           │
+  ├─────┼────────────────────────────────────────────────────┼──────────────┤
+  │ 2   │ GitHub planning                                    │ no           │
+  ├─────┼────────────────────────────────────────────────────┼──────────────┤
+  │ 3   │ R1: YAML layout, IDs, the first 4 tables, Python   │ yes, first   │
+  │     │ bootstrap, validation tests                        │ Python       │
+  ├─────┼────────────────────────────────────────────────────┼──────────────┤
+  │ 4 → │ Skeleton E1–E5                                     │ engine       │
+  └─────┴────────────────────────────────────────────────────┴──────────────┘
+
+  You could start one session earlier. Project setup and GitHub planning are
+  both small, so I'd merge them, and do the Python bootstrap in the same
+  session.
+
+  Rough count to the end (sessions like ours, about 1.5 h):
+
+  ┌───────────────────────┬─────────────────────────────────────────────────┐
+  │         Phase         │                    Sessions                     │
+  ├───────────────────────┼─────────────────────────────────────────────────┤
+  │ Setup + GitHub        │ 1–2                                             │
+  │ planning              │                                                 │
+  ├───────────────────────┼─────────────────────────────────────────────────┤
+  │ R1 + bootstrap        │ 1                                               │
+  ├───────────────────────┼─────────────────────────────────────────────────┤
+  │ Skeleton E1–E5        │ 3–4 → a game playable in book mode around       │
+  │                       │ session 6–7                                     │
+  ├───────────────────────┼─────────────────────────────────────────────────┤
+  │ YAML batches R2–R7    │ 5–6 (mechanical, can run in parallel)           │
+  ├───────────────────────┼─────────────────────────────────────────────────┤
+  │ Step 1 E6–E17         │ 10–14 (E7, E8, E10 and E12 are the big ones)    │
+  ├───────────────────────┼─────────────────────────────────────────────────┤
+  │ Step 2 E18–E20        │ 3–4                                             │
+  └───────────────────────┴─────────────────────────────────────────────────┘
+
+  That's roughly 25–30 sessions to the MVP, and step 1 playable around session
+  20. These are estimates, not commitments.
+
+  2. How I'd run the next sessions
+
+  Order:
+  1. Setup + bootstrap (and GitHub planning if you still want issues).
+  2. R1: the ID scheme is a real design decision, so worth a careful session.
+  3. E1 + E2: dice is small, game state is foundational.
+  4. E3: map and time.
+  5. E4: the engine/interface protocol, the key architecture choice. Start that
+     session with a short design discussion before any code.
+  6. E5: book mode. The skeleton is playable.
+  7. Then step 1 tasks, with the YAML batches done ahead of the task that needs
+     each one (R2–R3 before E6, R4 before E12, R5 before E16).
+
+  One task per session, one PR per session, as now. Batches R2–R7 could run as
+  separate sessions in parallel worktrees, since they don't touch the engine.
+
+  Prompts: once CLAUDE.md holds the conventions (setup session), prompts can
+  stay short. Three templates:
+
+  Design + code session:
+  Next session: E4 (engine/interface protocol). Read NextSession.md, the Readme 
+  and the latest log.
+  Restate the goal, then propose the design with 2–3 options before any code.
+  Tests first; stop at the task's "Done when". Ask before any rule 
+  interpretation.
+
+  YAML batch:
+  Next session: R4 (creatures to YAML). Copy every entry from the original PDFs 
+  in origin_rules/,
+  fixing OCR damage in the YAML and the Markdown. Never change the meaning; list
+  every doubtful
+  reading for me at the end instead of guessing.
+
+  Straightforward code task:
+  Next session: E9 (inventory). Read the task and design/inventory.md. Short 
+  plan, then implement
+  with tests. Flag anything the design doesn't cover instead of deciding it.
+
+  3. Which model for which session
+
+  ┌───────────────────────┬────────────┬────────────────────────────────────┐
+  │     Session type      │   Model    │                Why                 │
+  ├───────────────────────┼────────────┼────────────────────────────────────┤
+  │ Design-heavy: R1      │ Opus 5.5,  │ architecture choices that later    │
+  │ (IDs), E2, E4, E7,    │ high       │ tasks depend on                    │
+  │ E8, E10, E12          │ effort     │                                    │
+  ├───────────────────────┼────────────┼────────────────────────────────────┤
+  │                       │ Sonnet     │ careful copying and PDF reading at │
+  │ YAML batches R2–R7    │ 5.5,       │  a lower cost; switch to Opus for  │
+  │                       │ medium     │ a batch that turns out messy       │
+  │                       │ effort     │ (events)                           │
+  ├───────────────────────┼────────────┼────────────────────────────────────┤
+  │ Clear-spec code: E1,  │ Sonnet 5.5 │ the design already says what to    │
+  │ E3, E9, E11, E13–E17  │            │ build                              │
+  ├───────────────────────┼────────────┼────────────────────────────────────┤
+  │ Setup, GitHub         │ Sonnet 5.5 │ routine, but posts to GitHub, so   │
+  │ planning              │            │ not Haiku                          │
+  ├───────────────────────┼────────────┼────────────────────────────────────┤
+  │ Small chores          │            │ fast and cheap; not for rules      │
+  │ (renames,             │ Haiku 5.5  │ text, where a misreading costs     │
+  │ housekeeping)         │            │ more than it saves                 │
+  └───────────────────────┴────────────┴────────────────────────────────────┘
+
+  About Fable 5.1: I don't have reliable information on what it's best at, so I
+  won't recommend it. If you're curious, try it on one session and compare.
+
+  Whichever model you pick, your memory files (ask before ruling, no spoilers,
+  commit rules) load the same way.
+
+  Should I put this order and the prompt templates into NextSession.md, and
+  merge setup with GitHub planning? Tell me what to change.
+
+✻ Churned for 42s · done 19:59
+
+❯ yes, update NextSession.md and merge setup with GitHub planning. I think your 
+  recommandations could go in a different file than NExt session don t you      
+  think ?                                                                       
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(NextSession.md)
+  ⎿  Added 9 lines, removed 5 lines
+      17  
+      18  ## Plan
+      19  
+      20 -1. **Project setup** — Milestone 4 except the Python bootstrap:
+         - `.tool-versions` (blocks running Python in the repo), minimal 
+         -`CLAUDE.md` (include book mode and the YAML/Python split), `.cl
+         -aude/settings.json`.                                           
+      21 -2. **GitHub planning** — milestones, labels and issues from the
+         - roadmap (R1–R7, E1–E20); decide whether issues or the Readme a
+         -re the source of truth.                                        
+      22 -3. **R1** — YAML layout, ID scheme and the exploration tables, 
+         -fixed against the original PDFs in `origin_rules/`. Bootstrap t
+         -he Python project with common defaults for its tests.          
+      23 -4. **Engine skeleton** — E1 to E5, until a whole game can be wa
+         -lked in book mode.                                             
+      24 -5. **Step 1** — E6 to E17, with the R batches done in the order
+         - the engine needs them (R2 and R3 before E6, R4 before E12, R5 
+         -before E16). Everything copied to YAML before step 1 is playabl
+         -e.                                                             
+      20 +Which model to use and how to prompt each kind of session: see 
+         +[Working with Claude](WorkingWithClaude.md).                   
+      21 +                                                               
+      22 +1. **Project setup and GitHub planning** — Milestone 4: `.tool-
+         +versions` (blocks running Python in the repo), minimal `CLAUDE.
+         +md` (include book mode and the YAML/Python split), `.claude/set
+         +tings.json`, Python bootstrap with common defaults. Then milest
+         +ones, labels and issues from the roadmap (R1–R7, E1–E20); decid
+         +e whether issues or the Readme are the source of truth.        
+      23 +2. **R1** — YAML layout, ID scheme and the four exploration tab
+         +les, fixed against the original PDFs in `origin_rules/`, with t
+         +he validation tests.                                           
+      24 +3. **E1 and E2** — dice and game state.                        
+      25 +4. **E3** — town map, moves and time.                          
+      26 +5. **E4** — engine/interface protocol and game loop. Start with
+         + a short design discussion before any code: it is the main arch
+         +itecture choice.                                               
+      27 +6. **E5** — book mode. The skeleton is done: a whole game can b
+         +e walked in book mode.                                         
+      28 +7. **Step 1** — E6 to E17, one task per session, with the R bat
+         +ches done ahead of the task that needs them (R2 and R3 before E
+         +6, R4 before E12, R5 before E16). The batches do not touch the 
+         +engine and can run as parallel sessions. Everything is copied t
+         +o YAML before step 1 is playable.                              
+
+⏺ Write(WorkingWithClaude.md)
+  ⎿  Wrote 64 lines to WorkingWithClaude.md
+       1 # Working with Claude
+       2 
+       3 Recommendations for running the work sessions: how many to expec
+         t, which model fits which kind of session, and how to prompt the
+         m. The plan itself is in [NextSession.md](NextSession.md), the r
+         oadmap in the [Readme](Readme.md). Written in the MVP scope sess
+         ion; revise it as sessions show what works.
+       4 
+       5 ## How many sessions
+       6 
+     … +58 lines (ctrl+o to expand)
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Update(Readme.md)
+  ⎿  Added 1 line, removed 1 line
+      23  
+      24  ## Working with Claude
+      25  
+      26 -Work happens in small, planned sessions with Claude. The upcomi
+         -ng sessions are listed in [`NextSession.md`](NextSession.md); p
+         -ast sessions are summarized in [`claude-logs/`](claude-logs/). 
+      26 +Work happens in small, planned sessions with Claude. The upcomi
+         +ng sessions are listed in [`NextSession.md`](NextSession.md); p
+         +ast sessions are summarized in [`claude-logs/`](claude-logs/). 
+         +[`WorkingWithClaude.md`](WorkingWithClaude.md) holds recommenda
+         +tions for running them: session estimates, which model for whic
+         +h session, prompt templates.                                   
+      27  
+      28  ## Decisions
+      29  
+
+⏺ Update(claude-logs/202610311837-mvp-scope.md)
+  ⎿  Added 3 lines, removed 1 line
+      15  - Created `design/mvp-scope.md`: the two steps, the principle (
+          whole model, thin content), book mode and its manual actions, w
+          here the text comes from (YAML), the content written in step 1,
+           step 2, what comes after the MVP, the order of work.
+      16  - Wrote a happy-path user story (two turns of Bring Home the Ba
+          con, one written table and one in book mode) to check the behav
+          iour with the user. It led to three book mode refinements (belo
+          w).
+      17  - Rewrote the roadmap: MVP goal, decisions (MVP scope, rules te
+          xt in YAML, D1 partly decided), Milestone 3 as "Rules text in Y
+          AML" (R1–R7), Milestones 5 to 7 (E1–E20), Later.
+      18 -- Glossary: new "Building the game" section (Written, Book mode
+         -, Manual action, Step 1 / Step 2). Town map: forest of #41 and 
+         -new sheet after a mission point to the scope. `NextSession.md` 
+         -plan updated.                                                  
+      18 +- Glossary: new "Building the game" section (Written, Book mode
+         +, Manual action, Step 1 / Step 2). Town map: forest of #41 and 
+         +new sheet after a mission point to the scope.                  
+      19 +- `NextSession.md` plan rewritten session by session (setup mer
+         +ged with GitHub planning, then R1, E1 + E2, E3, E4, E5, step 1)
+         +.                                                              
+      20 +- Created `WorkingWithClaude.md` at the user's request, kept ap
+         +art from the plan: session estimates (about 25 to 30 sessions t
+         +o the MVP, book-mode game around session 6 or 7), which model f
+         +or which kind of session, prompt templates, parallel YAML batch
+         +es. Linked from the Readme.                                    
+      21  
+      22  ## Decisions
+      23  
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Yes, they're better apart. NextSession.md stays the plan, and the
+  recommendations now live in their own file.
+
+  - NextSession.md: the plan is now session by session, with setup and GitHub
+    planning merged into the first:
+    a. Setup and GitHub planning (with the Python bootstrap)
+    b. R1
+    c. E1 and E2
+    d. E3
+    e. E4, starting with a design discussion
+    f. E5: the skeleton is done
+    g. Step 1, with the YAML batches done ahead of the task that needs each one
+
+    It links to the new file for models and prompts.
+  - WorkingWithClaude.md (new, at the root next to NextSession.md):
+    - the session estimates
+    - the model for every task, by kind of session
+    - the three prompt templates
+    - a note on running the YAML batches in parallel sessions
+
+    The Readme's "Working with Claude" section links to it.
+  - Session log: I added both changes to it.
+
+  These edits aren't committed yet. They'll go into the end-of-session commit,
+  or I can commit them now if you prefer.
+
+  One related question: the "How a session works" steps in NextSession.md
+  describe process rather than plan, so they'd fit in WorkingWithClaude.md too.
+  Should I move them, or leave them where they are?
+
+✻ Brewed for 1m 3s · done 20:03
+
+※ recap: The MVP scope and the engine task review are written, plus a new WorkingWithClaude.md. Next: decide whether "How a session works" moves there, then export the transcript so I can commit, push and open the PR. (disable recaps in /config)
+  ⎿  Read claude-logs/202610311837-mvp-scope.md (64 lines)
+  ⎿  Referenced file Readme.md
+  ⎿  Read WorkingWithClaude.md (65 lines)
+  ⎿  Read NextSession.md (29 lines)
+  ⎿  Read design/glossary.md (82 lines)
+
+⏺ Compacted while idle, before the prompt cache expired · turn off with 
+  "idleCompaction": false in settings.json
+
+❯ yes move them, then commit                                                    
+
+  Searched for 2 patterns (ctrl+o to expand)
+
+⏺ Update(NextSession.md)
+  ⎿  Added 1 line, removed 10 lines
+       1  # Next sessions
+       2  
+       3 -Planned work sessions with Claude, in order. The [Readme](Readm
+         -e.md) holds the roadmap and decisions; this file holds the plan
+         - for upcoming sessions.                                        
+       3 +Planned work sessions with Claude, in order. The [Readme](Readm
+         +e.md) holds the roadmap and decisions; this file holds the plan
+         + for upcoming sessions. How a session runs, which model to use 
+         +and how to prompt it: see [Working with Claude](WorkingWithClau
+         +de.md).                                                        
+       4  
+       5 -## How a session works                                         
+       6 -                                                               
+       7 -1. Start from this file, the [Readme](Readme.md) and the latest
+         - log in [`claude-logs/`](claude-logs/).                        
+       8 -2. Work in a dedicated worktree and branch; one PR per session.
+         - During the session, Claude never commits or pushes without exp
+         -licit permission.                                              
+       9 -3. End by updating the Readme (checkboxes, decisions) and this 
+         -file (remove the done session, adjust the plan).               
+      10 -4. Claude writes the session log in `claude-logs/YYYYMMDDHHmm-s
+         -ession-name.md`.                                               
+      11 -5. The user exports the transcript with `/export claude-logs/tr
+         -anscripts/YYYYMMDDHHmm-session-name.txt` (same name as the log)
+         -.                                                              
+      12 -6. Claude commits the session, pushes the branch, opens the PR,
+         - writes the PR link in the log and pushes again. This end-of-se
+         -ssion commit and push is agreed once and for all, so the next s
+         -ession starts clean.                                           
+      13 -                                                               
+       5  ## Reminders
+       6  
+       7  - Compare the pregenerated characters in [`gameRules/14_pregene
+          rated_characters.md`](gameRules/14_pregenerated_characters.md) 
+          against the original sheets in `origin_rules/`: image transcrip
+          tions are the part most likely to hold a misread.
+
+⏺ Update(NextSession.md)
+  ⎿  Removed 2 lines
+       8  
+       9  ## Plan
+      10  
+      11 -Which model to use and how to prompt each kind of session: see 
+         -[Working with Claude](WorkingWithClaude.md).                   
+      12 -                                                               
+      11  1. **Project setup and GitHub planning** — Milestone 4: `.tool-
+          versions` (blocks running Python in the repo), minimal `CLAUDE.
+          md` (include book mode and the YAML/Python split), `.claude/set
+          tings.json`, Python bootstrap with common defaults. Then milest
+          ones, labels and issues from the roadmap (R1–R7, E1–E20); decid
+          e whether issues or the Readme are the source of truth.
+      12  2. **R1** — YAML layout, ID scheme and the four exploration tab
+          les, fixed against the original PDFs in `origin_rules/`, with t
+          he validation tests.
+      13  3. **E1 and E2** — dice and game state.
+
+⏺ Update(WorkingWithClaude.md)
+  ⎿  Added 10 lines, removed 1 line
+       1  # Working with Claude
+       2  
+       3 -Recommendations for running the work sessions: how many to expe
+         -ct, which model fits which kind of session, and how to prompt t
+         -hem. The plan itself is in [NextSession.md](NextSession.md), th
+         -e roadmap in the [Readme](Readme.md). Written in the MVP scope 
+         -session; revise it as sessions show what works.                
+       3 +How the work sessions run, and recommendations for them: how ma
+         +ny to expect, which model fits which kind of session, and how t
+         +o prompt them. The plan itself is in [NextSession.md](NextSessi
+         +on.md), the roadmap in the [Readme](Readme.md). The recommendat
+         +ions were written in the MVP scope session; revise them as sess
+         +ions show what works.                                          
+       4  
+       5 +## How a session works                                         
+       6 +                                                               
+       7 +1. Start from [NextSession.md](NextSession.md), the [Readme](Re
+         +adme.md) and the latest log in [`claude-logs/`](claude-logs/). 
+       8 +2. Work in a dedicated worktree and branch; one PR per session.
+         + During the session, Claude never commits or pushes without exp
+         +licit permission.                                              
+       9 +3. End by updating the Readme (checkboxes, decisions) and `Next
+         +Session.md` (remove the done session, adjust the plan).        
+      10 +4. Claude writes the session log in `claude-logs/YYYYMMDDHHmm-s
+         +ession-name.md`.                                               
+      11 +5. The user exports the transcript with `/export claude-logs/tr
+         +anscripts/YYYYMMDDHHmm-session-name.txt` (same name as the log)
+         +.                                                              
+      12 +6. Claude commits the session, pushes the branch, opens the PR,
+         + writes the PR link in the log and pushes again. This end-of-se
+         +ssion commit and push is agreed once and for all, so the next s
+         +ession starts clean.                                           
+      13 +                                                               
+      14  ## How many sessions
+      15  
+      16  Rough estimates, for sessions of about 1.5 hours. Not commitmen
+          ts.
+
+⏺ Update(Readme.md)  ⎿  Added 1 line, removed 1 line
+      23  
+      24  ## Working with Claude
+      25  
+      26 -Work happens in small, planned sessions with Claude. The upcomi
+         -ng sessions are listed in [`NextSession.md`](NextSession.md); p
+         -ast sessions are summarized in [`claude-logs/`](claude-logs/). 
+         -[`WorkingWithClaude.md`](WorkingWithClaude.md) holds recommenda
+         -tions for running them: session estimates, which model for whic
+         -h session, prompt templates.                                   
+      26 +Work happens in small, planned sessions with Claude. The upcomi
+         +ng sessions are listed in [`NextSession.md`](NextSession.md); p
+         +ast sessions are summarized in [`claude-logs/`](claude-logs/). 
+         +[`WorkingWithClaude.md`](WorkingWithClaude.md) describes how a 
+         +session runs and holds recommendations: session estimates, whic
+         +h model for which session, prompt templates.                   
+      27  
+      28  ## Decisions
+      29  
+
+⏺ Update(claude-logs/202610311837-mvp-scope.md)
+  ⎿  Added 1 line, removed 1 line
+      17  - Rewrote the roadmap: MVP goal, decisions (MVP scope, rules te
+          xt in YAML, D1 partly decided), Milestone 3 as "Rules text in Y
+          AML" (R1–R7), Milestones 5 to 7 (E1–E20), Later.
+      18  - Glossary: new "Building the game" section (Written, Book mode
+          , Manual action, Step 1 / Step 2). Town map: forest of #41 and 
+          new sheet after a mission point to the scope.
+      19  - `NextSession.md` plan rewritten session by session (setup mer
+          ged with GitHub planning, then R1, E1 + E2, E3, E4, E5, step 1)
+          .
+      20 -- Created `WorkingWithClaude.md` at the user's request, kept ap
+         -art from the plan: session estimates (about 25 to 30 sessions t
+         -o the MVP, book-mode game around session 6 or 7), which model f
+         -or which kind of session, prompt templates, parallel YAML batch
+         -es. Linked from the Readme.                                    
+      20 +- Created `WorkingWithClaude.md` at the user's request, kept ap
+         +art from the plan: session estimates (about 25 to 30 sessions t
+         +o the MVP, book-mode game around session 6 or 7), which model f
+         +or which kind of session, prompt templates, parallel YAML batch
+         +es. Linked from the Readme. The "How a session works" steps mov
+         +ed there from `NextSession.md`, which now holds only the plan a
+         +nd reminders.                                                  
+      21  
+      22  ## Decisions
+      23  
+
+  Ran 1 shell command, wrote 1 memory (ctrl+o to expand)
+
+⏺ Moved the steps; committing now.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ I moved the "How a session works" steps and committed the changes as fbb5a51
+  on mvp-scope. Nothing is pushed and there's no PR yet.
+
+  - WorkingWithClaude.md: the six steps now come first, before the estimates,
+    models and prompts. Where the steps said "this file", they now name
+    NextSession.md.
+  - NextSession.md: now holds only the reminders and the plan, and its intro
+    points to WorkingWithClaude.md for how sessions run, which model to use and
+    the prompts.
+  - Readme and session log: both mention the move.
+
+  I also updated my memory notes outside the repo, so future sessions look in
+  WorkingWithClaude.md for how a session runs and know about the new R1–R7 and
+  E1–E20 task numbers.
+
+  When you've covered what you wanted to discuss, export the transcript with
+  /export claude-logs/transcripts/202610311837-mvp-scope.txt. I'll then commit
+  it, push the branch, open the PR and add the PR link to the log.
+
+✻ Brewed for 46s · done 21:52
