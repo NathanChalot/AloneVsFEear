@@ -82,11 +82,11 @@ reading for me at the end instead of guessing.
 
 The YAML batches do not touch the engine, so a batch can run in its own worktree and branch while an engine session runs in another. Each still ends with its own log and PR.
 
-Only the YAML batches really parallelize: the engine tasks form a chain (only E8 ∥ E9 and E15 ∥ E12–E14 could overlap), and their design choices are made in conversation with the user. Running batches in parallel saves time, not cost, and reviewing several PRs becomes the bottleneck. Not tried yet: pilot with R2 and R3, then review it at wrap-up.
+Only the YAML batches really parallelize: the engine tasks form a chain (only E8 ∥ E9 and E15 ∥ E12–E14 could overlap), and their design choices are made in conversation with the user. Running batches in parallel saves time, not cost, and reviewing several PRs becomes the bottleneck. A first coordinator run on R2 and R3 gathered every doubt of both batches into one long list for the user, and was stopped: the prompt below now handles one batch at a time, with a short list first, then one question at a time.
 
 ### Coordinator session
 
-One session (Opus, high effort) talks with the user and launches one background agent per batch (Sonnet, medium effort), each in its own worktree and branch. Agents cannot ask the user: the coordinator gathers their doubts, asks the user in one go and sends the answers back to the right agent. Merge the previous session's PR first, start `claude` on an up-to-date `main`, pick the model with `/model`, then paste:
+One session (Opus, high effort) talks with the user and launches one background agent per batch (Sonnet, medium effort), each in its own worktree and branch. Agents cannot ask the user: the coordinator takes their reports one at a time. For each, it shows the user a short list of what that batch settled by convention and its doubts, then goes through them one by one, sends the answers back to that agent and lets it finish before moving to the next. Agents may apply a convention, but say so; nothing is final until the user confirms it. Merge the previous session's PR first, start `claude` on an up-to-date `main`, pick the model with `/model`, then paste:
 
 ```
 Coordinator session: YAML batches R2 and R3 in parallel. Read NextSession.md, the Readme
@@ -101,30 +101,45 @@ Before any agent starts:
    is launched until I answer. D1 (where plain stats go) stays open: keep stats as text
    unless I decide otherwise.
 2. Confirm the branch names with me: r2-skills-harm, r3-weapons-items.
+3. If the batches need shared code (a new YAML shape in the loader, new KINDS), add it
+   first, tests first, on a prep branch both batches start from (stacked PRs), so the
+   agents never edit the same lines.
 
 Then launch one agent per batch (Agent tool, isolation "worktree", model sonnet, effort
 medium). Tell each agent:
-- Work only on your branch, in your worktree. Create your own venv there
-  (python -m venv .venv && .venv/bin/pip install -e '.[dev]'): the main checkout's venv
-  runs the main checkout's code.
+- Work only on your branch, in your worktree, started from the prep branch if there is
+  one. Create your own venv there with the Python of .tool-versions (a plain `python`
+  may be too old): the main checkout's venv runs the main checkout's code.
 - The original PDFs are git-ignored and not in your worktree: read them from
   /Users/nathanchalot/Code/RPGs/AloneVsFEear/origin_rules/
 - Copy every entry of your batch into YAML as R1 did (docs/content.md), using the shapes I
   agreed. Fix OCR damage in the YAML and the gameRules Markdown together, turn page
   references into table names, remove your tables from catalogue.yaml. Never change the
   meaning.
-- Touch only your own files, your lines of catalogue.yaml and the KINDS you need. Never
-  edit the Readme, NextSession.md, claude-logs/ or another batch's files.
-- Never guess and never rule. When a reading is doubtful or the format does not fit, note
-  it and carry on with the rest; stop and report only if the doubt blocks the batch.
+- Touch only your own files, your own test file (not tests/test_content.py) and your
+  lines of catalogue.yaml (delete only your table lines, keep the comments). Never edit
+  the Readme, NextSession.md, claude-logs/, docs/ or another batch's files.
+- You may settle a choice by convention (docs/content.md, the agreed shapes, what R1
+  did: book errors stay as printed, refs only for the tables and events an entry sends
+  you to...), but state each one: which convention, where you applied it. I confirm it.
+- Never guess and never rule. Every other choice (a doubtful reading, an OCR fix you are
+  not sure of, a field that does not fit) is a doubt for me to answer. You may write your
+  suggestion in the files so the tests run, but it stays a doubt until I answer. Note it
+  and carry on with the rest; stop and report only if the doubt blocks the batch.
 - Tests and ruff must pass. Do not commit or push.
 - No spoilers, no book page references in what you write.
-- End with a report: what was copied, files touched, test results, and a numbered list
-  of doubts (the passage, the possible readings, your suggestion).
+- End with a short report: what was copied, files touched, test results, what you
+  settled by convention (numbered, one line each), and the numbered doubts (the passage,
+  the possible readings, your suggestion), one or two lines each.
 
-While they run: tell me when each agent finishes. Gather every doubt and ask me in one
-go, saying which batch each comes from. Send my answers back to the right agent
-(SendMessage) and let it finish. Rulings go to design/rulings.md, kept switchable.
+While they run: tell me when each agent finishes. Take the agents one at a time, in the
+order they finish: check its worktree (tests, files touched), show me a short list of
+that batch's items, one line each: what it settled by convention, then its doubts. Then
+go through them one by one, one item per question (for a doubt: the readings and the
+agent's suggestion), waiting for my answer before the next. I may confirm several
+convention items at once from the list. Decide nothing yourself. Send my answers back
+to that agent (SendMessage), let it finish, then move to the next agent. Rulings go to
+design/rulings.md, kept switchable.
 
 At the end, for each batch and only after I approve: commit on its branch, push, open its
 PR. Then wrap up on a branch of your own (r2-r3-wrap-up): Readme checkboxes, NextSession
