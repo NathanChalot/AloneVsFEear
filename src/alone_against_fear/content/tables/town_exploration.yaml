@@ -1,0 +1,46 @@
+id: table.town_exploration
+name: Town Exploration table
+dice: 2d6
+source: gameRules/tables/5_4_town_exploration_table.md
+text: >-
+  Roll on this table every time you move into an unexplored area. Then roll on
+  the sub-table indicated by the result. Whenever possible, do NOT read the
+  content of the tables in advance. Read them only when they apply to you.
+
+  You may Search an area ONLY after dealing with whatever encounter, danger, or
+  situation you encounter in that area. If you flee from an encounter, you may
+  NOT Search that area.
+entries:
+  - roll: 2
+    text: Roll on the Random Encounter table.
+    refs: [table.random_encounter]
+  - roll: 3
+    text: Roll on the Military Installation table or on the Clinic table, your choice.
+    refs: [table.military_installation_or_lab, table.clinic]
+  - roll: 4
+    text: Roll on Farm table or on the Cemetery table, your choice.
+    refs: [table.farm, table.cemetery]
+  - roll: 5
+    text: Roll on the Place of Worship table.
+    refs: [table.place_of_worship]
+  - roll: 6
+    text: Roll on Street table.
+    refs: [table.street]
+  - roll: 7
+    text: Roll d6. On a 1-5, roll on the House table. On a 6, roll on the Special Events table.
+    refs: [table.house, table.special_events]
+  - roll: 8
+    text: Roll on the Store table or the Street table, your choice.
+    refs: [table.store, table.street]
+  - roll: 9
+    text: Roll on the Sewers table.
+    refs: [table.sewers]
+  - roll: 10
+    text: Roll on the Railways or Woods/Park table, your choice.
+    refs: [table.railways, table.woods_or_park]
+  - roll: 11
+    text: Roll on the School table or the Woods/Park table, your choice.
+    refs: [table.school, table.woods_or_park]
+  - roll: 12
+    text: Roll on the Woods/Park table.
+    refs: [table.woods_or_park]

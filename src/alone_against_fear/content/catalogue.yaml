@@ -1,0 +1,49 @@
+# Every table of the book that is not copied yet (design/content.md).
+# A YAML batch moves its tables out of here into their own files.
+# Book mode rolls a catalogued table's dice and points to its source.
+
+# Items (R3)
+- {id: table.random_weapon, name: Random Weapon table, dice: d6, source: gameRules/tables/1_4_random_weapons_table.md}
+- {id: table.random_objects, name: Random Objects table, dice: d66, source: gameRules/tables/2_1_random_object_tables.md}
+- {id: table.useful_stuff, name: Useful Stuff table, dice: d66, source: gameRules/tables/2_2_useful_stuff_table.md}
+
+# Harm (R2)
+- {id: table.insanity, name: Insanity table, dice: d6, source: gameRules/tables/3_1_insanity_table.md}
+- {id: table.injury, name: Injury table, dice: d6, source: gameRules/tables/3_2_injury_table.md}
+
+# Places (R5)
+- {id: table.street, name: Street table, dice: d6, source: gameRules/tables/places/5_5_street_table.md}
+- {id: table.cemetery, name: Cemetery table, dice: d6, source: gameRules/tables/places/5_6_cemetery_table.md}
+- {id: table.house, name: House table, dice: d6, source: gameRules/tables/places/5_7_house_table.md}
+- {id: table.clinic, name: Clinic table, dice: d6, source: gameRules/tables/places/5_8_clinic_table.md}
+- {id: table.place_of_worship, name: Place of Worship table, dice: d6, source: gameRules/tables/places/5_9_place_of_worship_table.md}
+- {id: table.military_installation_or_lab, name: Military Installation/Lab table, dice: d6, source: gameRules/tables/places/5_10_military_installation_or_lab_table.md}
+- {id: table.farm, name: Farm table, dice: d6, source: gameRules/tables/places/5_11_farm_table.md}
+- {id: table.haunted_house, name: Haunted House table, dice: d6, source: gameRules/tables/places/5_12_haunted_house_table.md}
+- {id: table.store, name: Store table, dice: d6, source: gameRules/tables/places/5_13_store_table.md}
+- {id: table.sewers, name: Sewers table, dice: d6, source: gameRules/tables/places/5_14_sewers_table.md}
+- {id: table.railways, name: Railways table, dice: d6, source: gameRules/tables/places/5_15_railways_table.md}
+- {id: table.school, name: School table, dice: d6, source: gameRules/tables/places/5_16_school_table.md}
+- {id: table.childrens_stuff, name: Children’s Stuff table, dice: d6, source: gameRules/tables/places/5_17_childrens_stuff_table.md}
+- {id: table.woods_or_park, name: Woods/Park table, dice: d6, source: gameRules/tables/places/5_18_woods_or_park_table.md}
+- {id: table.special_events, name: Special Events table, dice: d6, source: gameRules/tables/5_19_special_events_table.md}
+
+# Creatures (R4)
+- {id: table.beasts, name: Beasts table, dice: d6, source: gameRules/tables/creatures/5_20_beasts_table.md}
+- {id: table.undead, name: Undead table, dice: d6, source: gameRules/tables/creatures/5_21_undead_table.md}
+- {id: table.possessed, name: Possessed table, dice: d6, source: gameRules/tables/creatures/5_22_possessed_table.md}
+- {id: table.demonic_horrors, name: Demonic Horrors table, dice: d6, source: gameRules/tables/creatures/5_23_demonic_horrors_table.md}
+- {id: table.slashers, name: Slashers table, dice: d6, source: gameRules/tables/creatures/5_24_slashers_table.md}
+- {id: table.lab_horrors, name: Lab Horrors table, dice: d6, source: gameRules/tables/creatures/5_25_lab_horrors_table.md}
+- {id: table.witch_children, name: Witch Children table, dice: d6, source: gameRules/tables/creatures/5_26_witch_children_table.md}
+- {id: table.living_dolls, name: Living Dolls table, dice: d6, source: gameRules/tables/creatures/5_27_living_dolls_table.md}
+- {id: table.ghosts, name: Ghosts table, dice: d6, source: gameRules/tables/creatures/5_28_ghosts_table.md}
+- {id: table.aliens, name: Aliens table, dice: d6, source: gameRules/tables/creatures/5_29_aliens_table.md}
+- {id: table.unique_vampires, name: Unique Vampires table, dice: d6, source: gameRules/tables/creatures/5_30_unique_vampires_table.md}
+- {id: table.unique_zombies, name: Unique Zombies table, dice: d6, source: gameRules/tables/creatures/5_31_unique_zombies_table.md}
+
+# The rest (R7)
+- {id: table.random_book, name: Random Book table, dice: 2d6, source: gameRules/tables/5_32_random_books_table.md}
+- {id: table.rewards, name: Rewards table, dice: d6, source: gameRules/tables/5_33_rewards_table.md}
+- {id: table.side_mission, name: Side Mission table, dice: d6, source: gameRules/tables/5_34_side_missions_table.md}
+- {id: table.random_magic_item, name: Random Magic Item table, dice: d6, source: gameRules/tables/5_35_random_magic_items_table.md}

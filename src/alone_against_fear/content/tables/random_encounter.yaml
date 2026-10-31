@@ -1,0 +1,81 @@
+# Roll d6, then another d6: each first roll holds a nested table.
+id: table.random_encounter
+name: Random Encounter table
+dice: d6
+source: gameRules/tables/5_2_random_encounters_table.md
+notes:
+  # Printed at the end of 6 / 4-6, but it applies to every Unique entry.
+  unique_creatures: >-
+    When rolling on tables of Unique creatures, reroll any monster that was
+    already killed. If all Unique monsters have been killed, treat as no
+    encounter.
+entries:
+  - roll: 1
+    table:
+      dice: d6
+      entries:
+        - roll: 1-2
+          text: >-
+            Roll on the Slashers table. Reroll any Slasher that you have already
+            defeated in the campaign. If all Slashers have been defeated, treat as
+            no encounter.
+          refs: [table.slashers]
+        - roll: 3-6
+          text: Roll on the Witch Children table.
+          refs: [table.witch_children]
+  - roll: 2
+    table:
+      dice: d6
+      entries:
+        - roll: 1-3
+          text: Roll on the Demonic Horrors table.
+          refs: [table.demonic_horrors]
+        - roll: 4-6
+          text: Roll on the Beasts table.
+          refs: [table.beasts]
+  - roll: 3
+    table:
+      dice: d6
+      entries:
+        - roll: 1-2
+          text: Roll on the Lab Horrors table.
+          refs: [table.lab_horrors]
+        - roll: 3-5
+          text: Roll on the Undead table.
+          refs: [table.undead]
+        - roll: 6
+          text: Roll on the Unique Vampires table.
+          refs: [table.unique_vampires]
+          notes: [unique_creatures]
+  - roll: 4
+    table:
+      dice: d6
+      entries:
+        - roll: 1-4
+          text: Roll on the Possessed table.
+          refs: [table.possessed]
+        - roll: 5-6
+          text: Roll on the Living Dolls table.
+          refs: [table.living_dolls]
+  - roll: 5
+    table:
+      dice: d6
+      entries:
+        - roll: 1-5
+          text: Roll on the Ghosts table.
+          refs: [table.ghosts]
+        - roll: 6
+          text: Roll on the Aliens table.
+          refs: [table.aliens]
+  - roll: 6
+    table:
+      dice: d6
+      entries:
+        - roll: 1-3
+          text: Roll on the Unique Vampires table.
+          refs: [table.unique_vampires]
+          notes: [unique_creatures]
+        - roll: 4-6
+          text: Roll on the Unique Zombies table.
+          refs: [table.unique_zombies]
+          notes: [unique_creatures]
