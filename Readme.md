@@ -8,7 +8,7 @@ The rules text is from a commercial book: keep this repository private. The orig
 
 ## Status
 
-MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables are in (R1). The engine has started: dice (E1) and the game state (E2).
+MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables are in (R1). The engine has started: dice (E1), the game state (E2) and the town map with moves and time (E3).
 
 **MVP goal:** play a whole campaign in the terminal, in two steps ([MVP scope](design/mvp-scope.md)):
 
@@ -154,7 +154,7 @@ The campaign, character and mission levels and what each remembers: the map and 
 - Done when: the state can be built, queried and changed through the engine API, with tests.
 - Depends on: E1.
 
-#### [ ] E3 — Town map, moves and time
+#### [x] E3 — Town map, moves and time
 A grid of boxes made of 5×6 sheets; Home in any box of the first sheet; neighbours including diagonals; distance; a new sheet once one is full; every move numbers the box entered; 1 Food every 5 boxes or lose 1 Life; what a box remembers (visited, Searched, places, marks).
 - Rules: [how the game works](gameRules/5_how_the_game_works.md) (Movement and Mapping), [game overview](gameRules/9_game_overview.md)
 - Design: [town map](design/town-map.md)
