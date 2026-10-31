@@ -1670,3 +1670,907 @@
 ✻ Brewed for 1m 2s · done 23:07
 
 ※ recap: R1 (copying the four exploration tables into YAML) is finished and committed in seven commits on r1-yaml-tables, but not pushed. Next, export the transcript to claude-logs/transcripts/202610312227-r1-yaml-tables.txt, then give the go to push and open the PR. (disable recaps in /config)
+
+❯ /export claude-logs/transcripts/202610312227-r1-yaml-tables.txt               
+  ⎿  Conversation exported to:
+     /Users/nathanchalot/Code/RPGs/AloneVsFEear/.claude/worktrees/r1-yaml-tables
+     /claude-logs/transcripts/202610312227-r1-yaml-tables.txt
+
+❯ go for push and PR                                                            
+
+⏺ The transcript landed straight in the worktree. Committing it, then pushing
+  and opening the PR:
+
+  Pushed to r1-yaml-tables, created PR #11 (ctrl+o to expand)
+  ⎿  PostToolUse:Bash says: Tip: Run /ultrareview before you push to catch bugs 
+     with a cloud-based multi-agent review — 3 free reviews left.
+
+⏺ Bash(sed -i '' 's|- Branch / PR: `r1-yaml-tables` / not committed yet|- Branch
+      / PR: `r1-yaml-tables` /
+      [#11](https://github.com/NathanChalot/AloneVsFEear/pull/11)|'…)  ⎿  5:- Branch / PR: `r1-yaml-tables` / [#11](https://github.com/NathanCha
+     lot/AloneVsFEear/pull/11)
+        ca019cf..e4d4012  r1-yaml-tables -> r1-yaml-tables
+     ## r1-yaml-tables...origin/r1-yaml-tables
+  ⎿  Updated claude-logs/202610312227-r1-yaml-tables.md (+1 -1)
+      2  
+      3  - Date: 2026-10-31
+      4  - Session ID: e0a5c635-7d50-475d-8b0d-c6998075c817
+      5 -- Branch / PR: `r1-yaml-tables` / not committed yet             
+      5 +- Branch / PR: `r1-yaml-tables` / [#11](https://github.com/Natha
+        +nChalot/AloneVsFEear/pull/11)                                   
+      6  - Transcript: [transcripts/202610312227-r1-yaml-tables.txt](tran
+         scripts/202610312227-r1-yaml-tables.txt)
+      7  
+      8  ## Goal
+
+⏺ The PR link is in the log and pushed. Checking that CI passes on the PR:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ The session is wrapped up and the PR is open:
+  https://github.com/NathanChalot/AloneVsFEear/pull/11. CI passes on it.
+
+  - The transcript is committed, the branch is pushed, the PR is open, and the
+    log has the PR link (pushed again).
+  - The branch has 9 commits: the 7 you've seen, the transcript, and the PR
+    link.
+  - One check is left for you on GitHub: whether the Mermaid diagrams in
+    design/content.md and docs/architecture.md render. It's the open item in the
+    PR's test plan.
+
+  After you merge: the worktree .claude/worktrees/r1-yaml-tables can go. Tell me
+  when, and I'll remove it and its local branch, then update main in your main
+  checkout. Next session (E1 and E2) starts with a plain branch from there.
+
+✻ Cooked for 1m 17s · done 23:12
+
+❯ I m wondering, shoulnd't content.md be in docs/ ?                             
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Yes, I think it belongs in docs/, now that docs/ exists.
+
+  Why move it: most of content.md is about the software, not the game: file
+  layout, YAML fields, ID syntax, loader errors, test checks. That matches what
+  docs/ holds now ("how the code is built"), and design/ stays purely "what the
+  game is, in domain terms". It also sits better next to docs/architecture.md,
+  which already links to it from its content section.
+
+  The case for keeping it: it was written as a design decision before any code.
+  A small part of it is domain-flavoured: when book mode shows a note versus the
+  table's own text. That part could get a one-line pointer from
+  design/mvp-scope.md (book mode), which already links to it, so nothing is lost
+  by moving.
+
+  What moving involves:
+  - git mv design/content.md docs/content.md. I'd keep the name, since it
+    matches the content package.
+  - Fix its own relative links (glossary, MVP scope).
+  - Update the 13 references to it in 12 files: Readme, NextSession, CLAUDE.md,
+    mvp-scope.md, architecture.md, the session log, three Python docstrings, the
+    catalogue comment and the test docstring.
+  - The transcript stays verbatim.
+
+  Since PR #11 isn't merged yet, the move can go in as one more commit on the
+  branch. I'd rather do it now than leave a link-fixing chore for later. Shall I
+  do it, commit and push to PR #11?
+
+✻ Crunched for 26s · done 23:13
+
+❯ yep do it                                                                     
+
+⏺ Bash(git mv design/content.md docs/content.md && grep -n "](" docs/content.md
+      | grep -o "\[[^]]*\]([^)]*)" | sort -u)
+  ⎿  Deleted design/content.md (+0 -131)
+        1 -# Rules text in YAML                                          
+        2 -                                                              
+        3 -How the rules text is stored for the engine: files, IDs, the s
+          -hape of a table, references between tables, and what is known 
+          -but not copied yet. Why the text is copied at all is in [MVP s
+          -cope](mvp-scope.md#where-the-text-comes-from). Words are defin
+          -ed in the [glossary](glossary.md). Decided in the R1 session. 
+        4 -                                                              
+        5 -## Structure                                                  
+        6 -                                                              
+        7 -```mermaid                                                    
+        8 -classDiagram                                                  
+        9 -    Content "1" --> "*" Table : copied                        
+       10 -    Content "1" --> "*" CatalogueTable : known, not copied yet
+       11 -    Table "1" --> "1..*" Entry : covers the dice range        
+       12 -    Table "1" --> "*" Note : named passages                   
+       13 -    Entry "1" --> "0..1" Table : nested sub-table             
+       14 -    Entry --> "*" Note : shown with the entry                 
+       15 -    Entry --> "*" Reference : sends you to                    
+       16 -    class Table {                                             
+       17 -        id                                                    
+       18 -        name                                                  
+       19 -        dice                                                  
+       20 -        text                                                  
+       21 -        source                                                
+       22 -    }                                                         
+       23 -    class Entry {                                             
+       24 -        id                                                    
+       25 -        roll                                                  
+       26 -        name                                                  
+       27 -        text                                                  
+       28 -    }                                                         
+       29 -    class CatalogueTable {                                    
+       30 -        id                                                    
+       31 -        name                                                  
+       32 -        dice                                                  
+       33 -        source                                                
+       34 -    }                                                         
+       35 -```                                                           
+       36 -                                                              
+       37 -- **YAML holds the text, Python the behaviour**, both keyed by
+          - the same ID ([D1](../Readme.md#deferred)). The YAML holds no 
+          -rules logic.                                                  
+       38 -- **The text is copied as printed.** OCR damage is fixed again
+          -st the original PDFs in `origin_rules/`, and page references b
+          -ecome table names ("Roll on the Clinic table (p. 46)" becomes 
+          -"Roll on the Clinic table"), and words that point at the page 
+          -layout are dropped ("the Mission table below"). Nothing else c
+          -hanges. The Markdown in `gameRules/` is fixed in the same batc
+          -h, so both copies say the same thing.                         
+       39 -                                                              
+       40 -## Files                                                      
+     … 91 more lines (ctrl+o to expand)
+  ⎿  Created docs/content.md (+131 -0)
+        1 +# Rules text in YAML                                          
+        2 +                                                              
+        3 +How the rules text is stored for the engine: files, IDs, the s
+          +hape of a table, references between tables, and what is known 
+          +but not copied yet. Why the text is copied at all is in [MVP s
+          +cope](mvp-scope.md#where-the-text-comes-from). Words are defin
+          +ed in the [glossary](glossary.md). Decided in the R1 session. 
+        4 +                                                              
+        5 +## Structure                                                  
+        6 +                                                              
+        7 +```mermaid                                                    
+        8 +classDiagram                                                  
+        9 +    Content "1" --> "*" Table : copied                        
+       10 +    Content "1" --> "*" CatalogueTable : known, not copied yet
+       11 +    Table "1" --> "1..*" Entry : covers the dice range        
+       12 +    Table "1" --> "*" Note : named passages                   
+       13 +    Entry "1" --> "0..1" Table : nested sub-table             
+       14 +    Entry --> "*" Note : shown with the entry                 
+       15 +    Entry --> "*" Reference : sends you to                    
+       16 +    class Table {                                             
+       17 +        id                                                    
+       18 +        name                                                  
+       19 +        dice                                                  
+       20 +        text                                                  
+       21 +        source                                                
+       22 +    }                                                         
+       23 +    class Entry {                                             
+       24 +        id                                                    
+       25 +        roll                                                  
+       26 +        name                                                  
+       27 +        text                                                  
+       28 +    }                                                         
+       29 +    class CatalogueTable {                                    
+       30 +        id                                                    
+       31 +        name                                                  
+       32 +        dice                                                  
+       33 +        source                                                
+       34 +    }                                                         
+       35 +```                                                           
+       36 +                                                              
+       37 +- **YAML holds the text, Python the behaviour**, both keyed by
+          + the same ID ([D1](../Readme.md#deferred)). The YAML holds no 
+          +rules logic.                                                  
+       38 +- **The text is copied as printed.** OCR damage is fixed again
+          +st the original PDFs in `origin_rules/`, and page references b
+          +ecome table names ("Roll on the Clinic table (p. 46)" becomes 
+          +"Roll on the Clinic table"), and words that point at the page 
+          +layout are dropped ("the Mission table below"). Nothing else c
+          +hanges. The Markdown in `gameRules/` is fixed in the same batc
+          +h, so both copies say the same thing.                         
+       39 +                                                              
+       40 +## Files                                                      
+     … 91 more lines (ctrl+o to expand)
+
+  Searched for 1 pattern, listed 1 directory (ctrl+o to expand)
+
+⏺ Bash(.venv/bin/python - <<'EOF'
+      from pathlib import Path…)
+  ⎿  Readme.md:35:- **Rules text in YAML** (part of D1): every table, entry
+     , creature, item, event and Skill gets a stable ID and its text in YAM
+     L; behavio
+     … +25 lines (ctrl+o to expand)
+  ⎿  Updated CLAUDE.md (+1 -1)
+      21  
+      22  ## Layout and commands
+      23  
+      24 -- `src/alone_against_fear/` — package; `src/alone_against_fear/
+         -content/` — rules text in YAML (layout and IDs: [`design/conten
+         -t.md`](design/content.md)); `tests/` — pytest; `design/` — doma
+         -in design (Mermaid); `docs/` — code documentation ([`docs/archi
+         -tecture.md`](docs/architecture.md): packages, classes, who call
+         -s whom); `gameRules/` — extracted rules; `claude-logs/` — sessi
+         -on logs.                                                       
+      24 +- `src/alone_against_fear/` — package; `src/alone_against_fear/
+         +content/` — rules text in YAML (layout and IDs: [`docs/content.
+         +md`](docs/content.md)); `tests/` — pytest; `design/` — domain d
+         +esign (Mermaid); `docs/` — code documentation: [`architecture.m
+         +d`](docs/architecture.md) (packages, classes, who calls whom), 
+         +[`content.md`](docs/content.md) (rules text in YAML: files, IDs
+         +, table shape); `gameRules/` — extracted rules; `claude-logs/` 
+         +— session logs.                                                
+      25  - Setup: `python -m venv .venv && .venv/bin/pip install -e '.[d
+          ev]'`
+      26  - Tests: `.venv/bin/pytest`  ·  Lint: `.venv/bin/ruff check .` 
+           ·  Format: `.venv/bin/ruff format .`
+      27  - Tests first; stop at the task's "Done when".
+  ⎿  Updated NextSession.md (+1 -1)
+      11  1. **E1 and E2** — dice and game state. First session with engi
+          ne code and the first GitHub issue (Milestone 5). The table dic
+          e codes (`d6`, `2d6`, `d66`) already exist in `content/model.py
+          ` for the YAML checks; E1 may move them into the dice module.
+      12  2. **E3** — town map, moves and time.
+      13  3. **E4** — engine/interface protocol and game loop. Start with
+           a short design discussion before any code: it is the main arch
+          itecture choice.
+      14 -4. **E5** — book mode. The skeleton is done: a whole game can b
+         -e walked in book mode. Decides how a table's own rules text is 
+         -shown (on request, or the first time); notes are shown with the
+         - entries that point to them ([rules text in YAML](design/conten
+         -t.md)).                                                        
+      14 +4. **E5** — book mode. The skeleton is done: a whole game can b
+         +e walked in book mode. Decides how a table's own rules text is 
+         +shown (on request, or the first time); notes are shown with the
+         + entries that point to them ([rules text in YAML](docs/content.
+         +md)).                                                          
+      15  5. **Step 1** — E6 to E17, one task per session, with the R bat
+          ches done ahead of the task that needs them (R2 and R3 before E
+          6, R4 before E12, R5 before E16). The batches do not touch the 
+          engine and can run as parallel sessions (in a worktree; otherwi
+          se a plain branch is enough). Each batch moves its tables out o
+          f `content/catalogue.yaml`. Everything is copied to YAML before
+           step 1 is playable.
+  ⎿  Updated Readme.md (+2 -2)
+      32  - **Language:** Python. Strongest ecosystem for planned genAI f
+          eatures (local LLMs, image and video generation).
+      33  - **Interface:** terminal CLI first. Engine stays UI-agnostic s
+          o other front ends can be added.
+      34  - **MVP scope** (was D6): two steps, Bring Home the Bacon then 
+          Close a Hell Gate with campaign play; unwritten content goes th
+          rough book mode. See [MVP scope](design/mvp-scope.md).
+      35 -- **Rules text in YAML** (part of D1): every table, entry, crea
+         -ture, item, event and Skill gets a stable ID and its text in YA
+         -ML; behaviour stays in Python, keyed by the same ID. The Markdo
+         -wn in `gameRules/` stays as the readable copy, fixed together w
+         -ith the YAML. Files, IDs (`table.town_exploration.7`, `mission.
+         -bring_home_the_bacon`) and the shape of a table: [rules text in
+         - YAML](design/content.md).                                     
+      35 +- **Rules text in YAML** (part of D1): every table, entry, crea
+         +ture, item, event and Skill gets a stable ID and its text in YA
+         +ML; behaviour stays in Python, keyed by the same ID. The Markdo
+         +wn in `gameRules/` stays as the readable copy, fixed together w
+         +ith the YAML. Files, IDs (`table.town_exploration.7`, `mission.
+         +bring_home_the_bacon`) and the shape of a table: [rules text in
+         + YAML](docs/content.md).                                       
+      36  
+      37  ### Guidelines
+      38  
+     ...
+      89  The text of every table, entry, creature, item, event and Skill
+           is copied into YAML with a stable ID, so book mode can show it
+           on screen ([MVP scope](design/mvp-scope.md#where-the-text-come
+          s-from)). The OCR mangled the book's two-column layout: each ba
+          tch fixes the damage against the original PDFs in `origin_rules
+          /`, in the YAML and in the Markdown at once, and turns book pag
+          e references into table names. Batches follow the order the eng
+          ine needs them; all are done before step 1 is playable.
+      90  
+      91  #### [x] R1 — YAML layout, IDs and exploration tables
+      92 -Decide the file layout and the ID scheme ([rules text in YAML](
+         -design/content.md)). Copy the Town Exploration, Random Encounte
+         -r, Search and Missions tables.                                 
+      92 +Decide the file layout and the ID scheme ([rules text in YAML](
+         +docs/content.md)). Copy the Town Exploration, Random Encounter,
+         + Search and Missions tables.                                   
+      93  - Fixes: Town Exploration (swapped columns, split rows 2 and 12
+          ), Random Encounter (nested d6→d6 structure), Missions (missing
+           roll numbers).
+      94  - Done when: the four tables are in YAML, and tests check that 
+          every table covers its dice range and every reference points to
+           an existing ID.
+      95  - Depends on: Milestone 4.
+  ⎿  Updated claude-logs/202610312227-r1-yaml-tables.md (+2 -2)
+      11  
+      12  ## Done
+      13  
+      14 -- [`design/content.md`](../design/content.md): files, IDs, the 
+         -shape of a table (table `text` vs `notes`, `refs`, nested table
+         -s), the catalogue of tables not copied yet, the checks. Linked 
+         -from `mvp-scope.md`, the Readme and `CLAUDE.md`.               
+      14 +- [`docs/content.md`](../docs/content.md): files, IDs, the shap
+         +e of a table (table `text` vs `notes`, `refs`, nested tables), 
+         +the catalogue of tables not copied yet, the checks. Linked from
+         + `mvp-scope.md`, the Readme and `CLAUDE.md`.                   
+      15  - YAML in `src/alone_against_fear/content/`: `tables/town_explo
+          ration.yaml`, `random_encounter.yaml`, `search.yaml`, `mission.
+          yaml`, and `catalogue.yaml` with the other 34 tables of `gameRu
+          les/tables/` (ID, name, dice, Markdown source).
+      16  - The ebook's text layer extracts cleanly with `pypdf` (rows in
+           order, every roll number present). A script compared every cop
+          ied text with the ebook: all 44 match word for word, page refer
+          ences aside. The play-aids PDF does not hold these tables.
+      17  - Python: `content/model.py` (tables, entries, the coverage, re
+          ference and note checks) and `content/loader.py` (reads every Y
+          AML file, refuses unknown keys, bad rolls, unknown dice and dup
+          licate IDs). PyYAML added as a dependency; the YAML files are p
+          ackage data.
+     ...
+      30  - **Table slugs**: a short name from the heading, its singular 
+          or plural kept (`table.random_book`, `table.random_objects`); S
+          earch rolls is `table.search`.
+      31  - **Mission table `text`** is the Mission paragraph of How the 
+          Game Works. The engine applies its reroll rule, so it is only r
+          ead on request. "Below" was dropped (in the Markdown too): word
+          s pointing at the page layout go, like page references.
+      32  - **`refs`** list only what an entry tells you to roll on or pl
+          ay, not places it merely names ("every time you visit a Clinic 
+          box" is a condition the rules check, not an action). Missions n
+          ever use book mode, so their refs are never shown as actions an
+          yway.
+      33 -- **Code documentation in `docs/`**, apart from the domain desi
+         -gn in `design/`: `docs/architecture.md` describes only what exi
+         -sts and grows at each wrap-up. Splitting `content/model.py` wai
+         -ts until it is needed (R2 to R4 bring their models; the dice co
+         -des move in E1). Generated diagrams (pyreverse) left out unless
+         - the hand-written page lags.                                   
+      33 +- **Code documentation in `docs/`**, apart from the domain desi
+         +gn in `design/`. `content.md` moved there too: it describes a d
+         +ata format (files, fields, IDs, checks), not the game. `docs/ar
+         +chitecture.md` describes only what exists and grows at each wra
+         +p-up. Splitting `content/model.py` waits until it is needed (R2
+         + to R4 bring their models; the dice codes move in E1). Generate
+         +d diagrams (pyreverse) left out unless the hand-written page la
+         +gs.                                                            
+      34  - **Worktrees**: the user noted a branch would have been enough
+           for a single session. A worktree is now used only for parallel
+           sessions.
+      35  
+      36  ## Open questions
+  ⎿  Updated design/mvp-scope.md (+2 -2)
+      50  
+      51  ### Where the text comes from
+      52  
+      53 -- **The rules text is copied into YAML files.** Each table, ent
+         -ry, creature, item, event and Skill gets a stable ID, its dice 
+         -and entries, and its text as written in the book. While copying
+         -, OCR damage is fixed against the original PDFs in `origin_rule
+         -s/`, and page references become table names. Files, IDs and the
+         - shape of a table: [rules text in YAML](content.md).           
+      53 +- **The rules text is copied into YAML files.** Each table, ent
+         +ry, creature, item, event and Skill gets a stable ID, its dice 
+         +and entries, and its text as written in the book. While copying
+         +, OCR damage is fixed against the original PDFs in `origin_rule
+         +s/`, and page references become table names. Files, IDs and the
+         + shape of a table: [rules text in YAML](../docs/content.md).   
+      54  - **Behaviour stays in Python**, keyed by the same ID. YAML hol
+          ds no rules logic, so no rules language is invented ([D1](../Re
+          adme.md#deferred)). Whether plain data (creature stats, item we
+          ight, Skill XP cost) also goes into YAML is decided when the en
+          gine writes its first content (E6 in the [roadmap](../Readme.md
+          #milestone-6--step-1-bring-home-the-bacon)).
+      55  - **The Markdown in `gameRules/` stays** as the readable copy. 
+          The YAML is the copy the engine reads. Both are fixed together.
+      56  - **Everything is copied before step 1 is playable**: every tab
+          le, event, item and Skill, in batches ordered by when the engin
+          e needs them ([Milestone 3](../Readme.md#milestone-3--rules-tex
+          t-in-yaml)). This replaces the Markdown-only cleanup. Until an 
+          entry is copied, book mode shows its file and entry number inst
+          ead.
+     ...
+      118  
+      119  - Which item uses are written in step 1 (weapons, ammo, Food i
+           tems, first aid kit, backpack and armor need step 1 mechanisms
+           ; most others can wait).
+      120  - A free note on the box or the character, for book-mode effec
+           ts that last ("for the next 3 boxes", a curse).
+      121 -- ~~The YAML file layout and ID scheme~~: decided in R1, see [
+          -rules text in YAML](content.md).                              
+      121 +- ~~The YAML file layout and ID scheme~~: decided in R1, see [
+          +rules text in YAML](../docs/content.md).                      
+      122  
+      123  ## Order of work
+      124  
+  ⎿  … 7 more files changed
+
+⏺ All references point to docs/content.md now. Before committing I'm checking
+  that every relative link in the Markdown files resolves:
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ The git add failed because design/content.md no longer exists (git mv had
+  already staged the rename), so nothing was committed. Retrying without that
+  path:
+
+  Pushed to r1-yaml-tables (ctrl+o to expand)
+
+⏺ The commit is pushed. The PR description still links to design/content.md, so
+  I'm fixing it too:
+
+  Edited PR #11 (ctrl+o to expand)
+
+⏺ I moved the page to docs/content.md and pushed it to PR #11 as one commit
+  (2aa8eaa). CI passes.
+
+  - The page itself: its links to the glossary and MVP scope now go through
+    ../design/. I also added one line linking it to the content section of
+    docs/architecture.md.
+  - The 13 references in 12 files now point to the new location: Readme,
+    NextSession, CLAUDE.md, mvp-scope.md, architecture.md, the session log, the
+    three Python docstrings, the catalogue comment and the test docstring.
+  - CLAUDE.md now lists both pages under docs/.
+  - The log records the move and why. The transcript stays verbatim.
+  - Checks: every relative link in the touched Markdown files points to a file
+    that exists, the 76 tests pass and ruff is clean.
+  - The PR description now links to docs/content.md as well.
+
+  So design/ holds only the game in domain terms, and docs/ holds the code and
+  data-format pages. Once you've merged, tell me and I'll remove the worktree
+  and its local branch, and update main in your main checkout.
+
+✻ Brewed for 1m 42s · done 23:16
+
+❯ I d like NextSession to recoomend a model too from now on. wdyt ?             
+
+⏺ I think it's a good idea. NextSession is the page you open to start a session,
+  so the model choice belongs there, and right now you have to work it out from
+  the table in WorkingWithClaude.md.
+
+  What I'd suggest:
+  - One line per planned session with the model and effort, plus a few words of
+    why. For example:
+  1. **E1 and E2** — dice and game state. …
+     Model: Opus, high effort. Architecture: every later task builds on the game
+  state.
+  - Families, not versions ("Opus", not "Opus 5.5"), as the table already does,
+    so the page doesn't age with each release.
+  - The WorkingWithClaude.md table stays as the general rule. NextSession gives
+    the concrete pick, and the wrap-up step says "each planned session names its
+    model", so it keeps happening.
+
+  What it would say for the current plan:
+
+  ┌────────────────────┬───────────┬───────────────────────────────────────┐
+  │      Session       │   Model   │                  Why                  │
+  ├────────────────────┼───────────┼───────────────────────────────────────┤
+  │ E1 + E2: dice,     │ Opus,     │ architecture: everything builds on    │
+  │ game state         │ high      │ the state                             │
+  ├────────────────────┼───────────┼───────────────────────────────────────┤
+  │                    │ Sonnet,   │ clear spec; town-map.md already says  │
+  │ E3: map, moves,    │ or a      │ what to build. A good session for the │
+  │ time               │ Fable     │  Fable comparison                     │
+  │                    │ trial     │ WorkingWithClaude.md suggests         │
+  ├────────────────────┼───────────┼───────────────────────────────────────┤
+  │ E4:                │ Opus,     │                                       │
+  │ engine/interface   │ high      │ the main architecture choice          │
+  │ protocol           │           │                                       │
+  ├────────────────────┼───────────┼───────────────────────────────────────┤
+  │                    │           │ clear spec; switch to Opus if how a   │
+  │ E5: book mode      │ Sonnet    │ table's rules are shown turns into a  │
+  │                    │           │ debate                                │
+  ├────────────────────┼───────────┼───────────────────────────────────────┤
+  │                    │           │ from the table: R batches on Sonnet   │
+  │ Step 1             │ per task  │ medium, R6 (events) on Opus; E7, E8,  │
+  │                    │           │ E10, E12 on Opus                      │
+  └────────────────────┴───────────┴───────────────────────────────────────┘
+
+  On effort: this session ran at xhigh, while the table says "high" for
+  architecture sessions. I have no evidence either way from one session, so I'd
+  keep "high" and note it in the log if you want to compare later.
+
+  If that suits you, I'll update NextSession and the wrap-up step in
+  WorkingWithClaude.md and CLAUDE.md, then commit and push to PR #11. Should E3
+  be the Fable trial, or stay on Sonnet?
+
+✻ Cogitated for 20s · done 23:17
+
+❯ Is there a real diff between high and xhigh ? Beside that : avoid fable as it 
+  does not obey to the same pricing rules                                       
+
+⏺ high vs xhigh: effort sets how much the model reasons before and between
+  actions. At xhigh it spends more thinking per step: it weighs more
+  alternatives and checks more before acting. That makes it slower and uses more
+  of your allowance. The gain shows on hard reasoning, like subtle design
+  trade-offs or tricky rule logic, and much less on clear-spec work.
+
+  I can't measure the gap on this project: this session ran at xhigh with
+  nothing to compare against. Nothing it did, such as the word-for-word check or
+  the commit-by-commit test runs, needed more than high. So I'd make high the 
+  default for Opus sessions, and move to xhigh only if a session feels shallow.
+  E4, the main architecture choice, is the most likely candidate.
+
+  Fable: understood, it's out. WorkingWithClaude.md currently suggests trying it
+  on one session, so I'll replace that line with "not used: different pricing
+  rules", and E3 stays on Sonnet.
+
+  I'll make the edits now, without committing:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(.venv/bin/python - <<'EOF'
+      from pathlib import Path…)
+  ⎿   CLAUDE.md                                  | 2 +-
+      NextSession.md                             | 7 ++++++-
+      WorkingWithClaude.md                       | 5 +++--
+     … +7 lines (ctrl+o to expand)
+  ⎿  Updated CLAUDE.md (+1 -1)
+       4  
+       5  ## Working rules
+       6  
+       7 -- Small planned sessions, one branch and one PR each. **Never c
+         -ommit or push without permission**, except the agreed end-of-se
+         -ssion wrap-up (update Readme, NextSession and, if the code stru
+         -cture changed, `docs/architecture.md`; write the log; ask for t
+         -he transcript export, commit, push, PR, add the PR link to the 
+         -log).                                                          
+       7 +- Small planned sessions, one branch and one PR each. **Never c
+         +ommit or push without permission**, except the agreed end-of-se
+         +ssion wrap-up (update Readme, NextSession with a model for each
+         + planned session and, if the code structure changed, `docs/arch
+         +itecture.md`; write the log; ask for the transcript export, com
+         +mit, push, PR, add the PR link to the log).                    
+       8  - Design before code: model in domain terms in `design/` first.
+           Decide only what is worth deciding yet; propose, do not decide
+          .
+       9  - **Rule interpretations**: suggest options, never rule. Ask fi
+          rst; rulings go to `design/rulings.md`, kept switchable.
+      10  - **No spoilers**: event names are fine, no plot details in cha
+          t or docs.
+  ⎿  Updated NextSession.md (+6 -1)
+      1  # Next sessions
+      2  
+      3 -Planned work sessions with Claude, in order. The [Readme](Readme
+        -.md) holds the roadmap and decisions; this file holds the plan f
+        -or upcoming sessions. How a session runs, which model to use and
+        - how to prompt it: see [Working with Claude](WorkingWithClaude.m
+        -d).                                                             
+      3 +Planned work sessions with Claude, in order, each with the model
+        + to use. The [Readme](Readme.md) holds the roadmap and decisions
+        +; this file holds the plan for upcoming sessions. How a session 
+        +runs, which model to use and how to prompt it: see [Working with
+        + Claude](WorkingWithClaude.md).                                 
+      4  
+      5  ## Reminders
+      6  
+     ...
+       9  ## Plan
+      10  
+      11  1. **E1 and E2** — dice and game state. First session with engi
+          ne code and the first GitHub issue (Milestone 5). The table dic
+          e codes (`d6`, `2d6`, `d66`) already exist in `content/model.py
+          ` for the YAML checks; E1 may move them into the dice module.
+      12 +   Model: **Opus, high effort**. Architecture: every later task
+         + builds on the game state.                                     
+      13  2. **E3** — town map, moves and time.
+      14 +   Model: **Sonnet**. Clear spec: [town map](design/town-map.md
+         +) already says what to build.                                  
+      15  3. **E4** — engine/interface protocol and game loop. Start with
+           a short design discussion before any code: it is the main arch
+          itecture choice.
+      16 +   Model: **Opus, high effort**; xhigh if the design discussion
+         + turns hard.                                                   
+      17  4. **E5** — book mode. The skeleton is done: a whole game can b
+          e walked in book mode. Decides how a table's own rules text is 
+          shown (on request, or the first time); notes are shown with the
+           entries that point to them ([rules text in YAML](docs/content.
+          md)).
+      18 +   Model: **Sonnet**. Clear spec; switch to Opus if how a table
+         +'s rules are shown turns into a design debate.                 
+      19  5. **Step 1** — E6 to E17, one task per session, with the R bat
+          ches done ahead of the task that needs them (R2 and R3 before E
+          6, R4 before E12, R5 before E16). The batches do not touch the 
+          engine and can run as parallel sessions (in a worktree; otherwi
+          se a plain branch is enough). Each batch moves its tables out o
+          f `content/catalogue.yaml`. Everything is copied to YAML before
+           step 1 is playable.
+      20 +   Model: per task, from the [model table](WorkingWithClaude.md
+         +#which-model-for-which-session): Opus, high effort for E6, E7, 
+         +E8, E10 and E12; Sonnet for the others; Sonnet, medium effort f
+         +or the R batches, Opus for R6 (events).                        
+  ⎿  Updated WorkingWithClaude.md (+3 -2)
+       7  1. Start from [NextSession.md](NextSession.md), the [Readme](Re
+          adme.md) and the latest log in [`claude-logs/`](claude-logs/).
+       8  2. From Milestone 5 on, create a GitHub issue from the task fir
+          st (title and "Done when" from the Readme); the PR says `Closes
+           #N`.
+       9  3. Work on a dedicated branch; one PR per session. Create the b
+          ranch in the main checkout; use a worktree only when another se
+          ssion runs at the same time (see [Parallel sessions](#parallel-
+          sessions)). During the session, Claude never commits or pushes 
+          without explicit permission.
+      10 -4. End by updating the Readme (checkboxes, decisions), `NextSes
+         -sion.md` (remove the done session, adjust the plan) and, if the
+         - code structure changed, [`docs/architecture.md`](docs/architec
+         -ture.md).                                                      
+      10 +4. End by updating the Readme (checkboxes, decisions), `NextSes
+         +sion.md` (remove the done session, adjust the plan, name the mo
+         +del for each planned session) and, if the code structure change
+         +d, [`docs/architecture.md`](docs/architecture.md).             
+      11  5. Claude writes the session log in `claude-logs/YYYYMMDDHHmm-s
+          ession-name.md`.
+      12  6. The user exports the transcript with `/export claude-logs/tr
+          anscripts/YYYYMMDDHHmm-session-name.txt` (same name as the log)
+          .
+      13  7. Claude commits the session, pushes the branch, opens the PR,
+           writes the PR link in the log and pushes again. This end-of-se
+          ssion commit and push is agreed once and for all, so the next s
+          ession starts clean.
+     ...
+      47  | Small chores | renames, housekeeping | Haiku; never for rules
+           text, where a misreading costs more than it saves |
+      48  
+      49  - Any task can turn out harder than planned: switch to Opus whe
+          n a Sonnet session hits a design question.
+      50 -- Fable: no reliable information on what it is best at yet. Try
+         - it on one session and compare before using it more.           
+      50 +- Fable: not used. It does not follow the same pricing rules as
+         + the other models.                                             
+      51 +- Effort: high by default for Opus sessions; xhigh only when a 
+         +session needs deeper reasoning (a hard design debate). The R1 s
+         +ession ran at xhigh with no comparison, so there is no evidence
+         + of a gain yet.                                                
+      52  - The memory files (ask before ruling, no spoilers, commit rule
+          s) load the same way whatever the model.
+      53  
+      54  ## Prompts
+  ⎿  Updated claude-logs/202610312227-r1-yaml-tables.md (+1 -0)
+      31  - **Mission table `text`** is the Mission paragraph of How the 
+          Game Works. The engine applies its reroll rule, so it is only r
+          ead on request. "Below" was dropped (in the Markdown too): word
+          s pointing at the page layout go, like page references.
+      32  - **`refs`** list only what an entry tells you to roll on or pl
+          ay, not places it merely names ("every time you visit a Clinic 
+          box" is a condition the rules check, not an action). Missions n
+          ever use book mode, so their refs are never shown as actions an
+          yway.
+      33  - **Code documentation in `docs/`**, apart from the domain desi
+          gn in `design/`. `content.md` moved there too: it describes a d
+          ata format (files, fields, IDs, checks), not the game. `docs/ar
+          chitecture.md` describes only what exists and grows at each wra
+          p-up. Splitting `content/model.py` waits until it is needed (R2
+           to R4 bring their models; the dice codes move in E1). Generate
+          d diagrams (pyreverse) left out unless the hand-written page la
+          gs.
+      34 +- **NextSession names the model for each planned session** (fam
+         +ily and effort, not version), picked from the model table in `W
+         +orkingWithClaude.md`. Fable is not used: it does not follow the
+         + same pricing rules. Effort high by default for Opus; xhigh onl
+         +y for hard design debates (this session ran at xhigh, no compar
+         +ison made).                                                    
+      35  - **Worktrees**: the user noted a branch would have been enough
+           for a single session. A worktree is now used only for parallel
+           sessions.
+      36  
+      37  ## Open questions
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ The edits are made but not committed. They change four files:
+
+  - NextSession.md: each planned session now has a "Model:" line.
+    - E1 + E2: Opus, high
+    - E3: Sonnet
+    - E4: Opus, high; xhigh if the design discussion turns hard
+    - E5: Sonnet; Opus if it turns into a design debate
+    - Step 1: per task, from the table (Opus high for E6, E7, E8, E10 and E12,
+      Sonnet for the rest; Sonnet medium for the R batches, Opus for R6)
+  - WorkingWithClaude.md:
+    - The wrap-up step now says to name the model for each planned session.
+    - The Fable line now says "not used: it does not follow the same pricing
+      rules".
+    - A new line says effort is high by default for Opus, with xhigh only for
+      hard design debates.
+  - CLAUDE.md: the wrap-up line includes "NextSession with a model for each
+    planned session", so it's loaded at the start of every session.
+  - Session log: the decision is recorded.
+
+  No other Fable mentions were left, and the new links resolve. Shall I commit
+  and push to PR #11?
+
+✻ Brewed for 49s · done 23:19
+
+❯ I dont think we should use high by default, maybe should we try to update the 
+  next session planned model at the end of each session ?                       
+⏺ Agreed. A fixed default is a guess, and the end of a session is when we know
+  what the next one needs. So I'll drop the "high by default" rule and have each
+  wrap-up review the model and effort of the planned sessions instead.
+
+⏺ Bash(.venv/bin/python - <<'EOF'
+      from pathlib import Path…)
+  ⎿  +- Small planned sessions, one branch and one PR each. **Never commit
+     or push without permission**, except the agreed end-of-session wrap-up
+      (update Readme, NextSession, reviewing each planned session's model a
+     … +12 lines (ctrl+o to expand)
+  ⎿  Updated CLAUDE.md (+1 -1)
+       4  
+       5  ## Working rules
+       6  
+       7 -- Small planned sessions, one branch and one PR each. **Never c
+         -ommit or push without permission**, except the agreed end-of-se
+         -ssion wrap-up (update Readme, NextSession with a model for each
+         - planned session and, if the code structure changed, `docs/arch
+         -itecture.md`; write the log; ask for the transcript export, com
+         -mit, push, PR, add the PR link to the log).                    
+       7 +- Small planned sessions, one branch and one PR each. **Never c
+         +ommit or push without permission**, except the agreed end-of-se
+         +ssion wrap-up (update Readme, NextSession, reviewing each plann
+         +ed session's model and effort, and, if the code structure chang
+         +ed, `docs/architecture.md`; write the log; ask for the transcri
+         +pt export, commit, push, PR, add the PR link to the log).      
+       8  - Design before code: model in domain terms in `design/` first.
+           Decide only what is worth deciding yet; propose, do not decide
+          .
+       9  - **Rule interpretations**: suggest options, never rule. Ask fi
+          rst; rulings go to `design/rulings.md`, kept switchable.
+      10  - **No spoilers**: event names are fine, no plot details in cha
+          t or docs.
+  ⎿  Updated NextSession.md (+1 -1)
+      1  # Next sessions
+      2  
+      3 -Planned work sessions with Claude, in order, each with the model
+        - to use. The [Readme](Readme.md) holds the roadmap and decisions
+        -; this file holds the plan for upcoming sessions. How a session 
+        -runs, which model to use and how to prompt it: see [Working with
+        - Claude](WorkingWithClaude.md).                                 
+      3 +Planned work sessions with Claude, in order, each with the model
+        + and effort to use, reviewed at the end of every session. The [R
+        +eadme](Readme.md) holds the roadmap and decisions; this file hol
+        +ds the plan for upcoming sessions. How a session runs, which mod
+        +el to use and how to prompt it: see [Working with Claude](Workin
+        +gWithClaude.md).                                                
+      4  
+      5  ## Reminders
+      6  
+  ⎿  Updated WorkingWithClaude.md (+2 -2)
+       7  1. Start from [NextSession.md](NextSession.md), the [Readme](Re
+          adme.md) and the latest log in [`claude-logs/`](claude-logs/).
+       8  2. From Milestone 5 on, create a GitHub issue from the task fir
+          st (title and "Done when" from the Readme); the PR says `Closes
+           #N`.
+       9  3. Work on a dedicated branch; one PR per session. Create the b
+          ranch in the main checkout; use a worktree only when another se
+          ssion runs at the same time (see [Parallel sessions](#parallel-
+          sessions)). During the session, Claude never commits or pushes 
+          without explicit permission.
+      10 -4. End by updating the Readme (checkboxes, decisions), `NextSes
+         -sion.md` (remove the done session, adjust the plan, name the mo
+         -del for each planned session) and, if the code structure change
+         -d, [`docs/architecture.md`](docs/architecture.md).             
+      10 +4. End by updating the Readme (checkboxes, decisions), `NextSes
+         +sion.md` (remove the done session, adjust the plan, review the 
+         +model and effort of each planned session in light of this one) 
+         +and, if the code structure changed, [`docs/architecture.md`](do
+         +cs/architecture.md).                                           
+      11  5. Claude writes the session log in `claude-logs/YYYYMMDDHHmm-s
+          ession-name.md`.
+      12  6. The user exports the transcript with `/export claude-logs/tr
+          anscripts/YYYYMMDDHHmm-session-name.txt` (same name as the log)
+          .
+      13  7. Claude commits the session, pushes the branch, opens the PR,
+           writes the PR link in the log and pushes again. This end-of-se
+          ssion commit and push is agreed once and for all, so the next s
+          ession starts clean.
+     ...
+      48  
+      49  - Any task can turn out harder than planned: switch to Opus whe
+          n a Sonnet session hits a design question.
+      50  - Fable: not used. It does not follow the same pricing rules as
+           the other models.
+      51 -- Effort: high by default for Opus sessions; xhigh only when a 
+         -session needs deeper reasoning (a hard design debate). The R1 s
+         -ession ran at xhigh with no comparison, so there is no evidence
+         - of a gain yet.                                                
+      51 +- No default effort. Model and effort are picked per session in
+         + [NextSession.md](NextSession.md) and reviewed at each wrap-up 
+         +with what the session showed: a session that struggled moves si
+         +milar ones up, an easy one moves them down. The table above is 
+         +only the starting point.                                       
+      52  - The memory files (ask before ruling, no spoilers, commit rule
+          s) load the same way whatever the model.
+      53  
+      54  ## Prompts
+  ⎿  Updated claude-logs/202610312227-r1-yaml-tables.md (+1 -1)
+      31  - **Mission table `text`** is the Mission paragraph of How the 
+          Game Works. The engine applies its reroll rule, so it is only r
+          ead on request. "Below" was dropped (in the Markdown too): word
+          s pointing at the page layout go, like page references.
+      32  - **`refs`** list only what an entry tells you to roll on or pl
+          ay, not places it merely names ("every time you visit a Clinic 
+          box" is a condition the rules check, not an action). Missions n
+          ever use book mode, so their refs are never shown as actions an
+          yway.
+      33  - **Code documentation in `docs/`**, apart from the domain desi
+          gn in `design/`. `content.md` moved there too: it describes a d
+          ata format (files, fields, IDs, checks), not the game. `docs/ar
+          chitecture.md` describes only what exists and grows at each wra
+          p-up. Splitting `content/model.py` waits until it is needed (R2
+           to R4 bring their models; the dice codes move in E1). Generate
+          d diagrams (pyreverse) left out unless the hand-written page la
+          gs.
+      34 -- **NextSession names the model for each planned session** (fam
+         -ily and effort, not version), picked from the model table in `W
+         -orkingWithClaude.md`. Fable is not used: it does not follow the
+         - same pricing rules. Effort high by default for Opus; xhigh onl
+         -y for hard design debates (this session ran at xhigh, no compar
+         -ison made).                                                    
+      34 +- **NextSession names the model for each planned session** (fam
+         +ily and effort, not version), picked from the model table in `W
+         +orkingWithClaude.md`. Fable is not used: it does not follow the
+         + same pricing rules. No default effort: each wrap-up reviews th
+         +e model and effort of the planned sessions with what the sessio
+         +n showed. This session ran on Opus at xhigh; nothing in it clea
+         +rly needed more than high, but no comparison was made.         
+      35  - **Worktrees**: the user noted a branch would have been enough
+           for a single session. A worktree is now used only for parallel
+           sessions.
+      36  
+      37  ## Open questions
+
+⏺ I've made the change, not committed yet:
+
+  - WorkingWithClaude.md: the default-effort line is replaced by "no default
+    effort: model and effort are picked per session in NextSession and reviewed
+    at each wrap-up". A session that struggled moves similar ones up a level, an
+    easy one moves them down. The model table is only the starting point. The
+    wrap-up step now includes that review.
+  - CLAUDE.md: the wrap-up line now says "reviewing each planned session's model
+    and effort", so it's loaded every session.
+  - NextSession.md: the header says the picks are reviewed at the end of every
+    session.
+  - The log records the decision, and that this session ran at xhigh without a
+    comparison.
+
+  This wrap-up's review: the picks in NextSession still match the table. For E1
+  + E2 I'd keep Opus, high:
+  - It's a modelling session of about the same weight as R1, and nothing in R1
+    clearly needed xhigh.
+  - Running it at high gives us a first comparison against this session at
+    xhigh.
+
+  If you'd rather run E1 + E2 at xhigh, I'll change that line.
+
+  Shall I commit and push to PR #11?
+
+✻ Worked for 30s · done 23:21
+
+❯ yes commit and push, keep high for E1+E2                                      
+
+  Pushed to r1-yaml-tables, ran 2 shell commands (ctrl+o to expand)
+
+⏺ I've committed and pushed the change to PR #11 as ba1f51d, and CI passes on
+  that commit.
+
+  - NextSession gives each planned session a model and effort; E1 + E2 stays on
+    Opus, high effort.
+  - The wrap-up reviews those picks at the end of every session. This is now in
+    WorkingWithClaude.md and CLAUDE.md.
+  - Fable is marked as not used.
+
+  The PR is ready for you to review and merge. Afterwards, tell me and I'll
+  remove the worktree and its local branch, then update main in your main
+  checkout.
+
+✻ Churned for 41s · done 23:22
+
+※ recap: PR #11 for R1 (the format for the rules text in YAML and the four exploration tables) is pushed, CI passes, and it's ready to merge. Next action: you review and merge it, then I remove the worktree and update main. (disable recaps in /config)
+
+❯ we should re run the export ?                                                 
+
+⏺ Yes. The transcript was exported before opening the PR, so it's missing
+  everything since: the PR, moving content.md to docs/, and the model and effort
+  picks. Re-exporting to the same path overwrites it with the full session:
+
+  /export claude-logs/transcripts/202610312227-r1-yaml-tables.txt
+
+  It lands in the worktree again. Once it's done, tell me and I'll commit it and
+  push it to PR #11. Let's make that the last step, so the transcript doesn't
+  fall behind again.
+
+✻ Cooked for 7s · done 23:30
