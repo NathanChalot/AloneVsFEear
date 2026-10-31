@@ -1,0 +1,1672 @@
+ ▐▛███▛█   Claude Code v2.1.316
+▝▜██████▀  Opus 5.5 · Claude Pro
+ ▝▝   ▝▝   ~/Code/RPGs/AloneVsFEear/.claude/worktrees/r1-yaml-tables
+
+
+❯ /model                                                                        
+  ⎿  Set model to Opus 5.5 and saved as your default for new sessions
+
+❯ /model                                                                        
+  ⎿  Set model to Opus 5.5 and saved as your default for new sessions with xhigh
+     effort
+
+❯ Lets proceed with next session                                                
+
+  Read 1 file, listed 1 directory, ran 2 shell commands (ctrl+o to expand)
+
+⏺ I'm reading this session's context (R1: YAML layout, ID scheme, the four
+  exploration tables). Next I'll pull the four tables out of the original PDF so
+  I can check them against the damaged Markdown.
+
+  Searched for 1 pattern, read 1 file, ran 4 shell commands (ctrl+o to expand)
+
+⏺ The four tables check out cleanly against the ebook, so fixes are simple. Next
+  I'll check the play-aids PDF for differences, then propose a YAML layout and
+  ID scheme for you to approve before writing any code.
+
+  Ran 4 shell commands (ctrl+o to expand)
+
+⏺ Main is clean and up to date, and the next session is R1: YAML layout, ID 
+  scheme and the four exploration tables. Nothing is built yet: the layout and
+  ID choices below are what later sessions depend on, so I'd like your decisions
+  first.
+
+  Goal (from the Readme)
+
+  Copy Town Exploration, Random Encounter, Search and Missions into YAML, fixing
+  them against the ebook. Done when tests check that every table covers its
+  dice range and that every reference points to an existing ID.
+
+  What I found
+
+  - The ebook's text layer extracts cleanly with pypdf: rows are in order and
+    every roll number is there. So the fixes are mechanical: Town Exploration's
+    swapped columns and split rows 2 and 12, Random Encounter's nested d6→d6
+    groups, and the missing roll numbers in Missions.
+  - The play-aids PDF doesn't contain these tables, so the ebook is the only
+    source.
+  - Most of what these four tables point to isn't copied yet: the place tables,
+    the creature tables and the item tables. "Every reference points to an
+    existing ID" therefore needs those IDs to exist somehow. That is question 3
+    below.
+
+  Proposal (recommended options, as a sketch)
+
+  # src/alone_against_fear/content/tables/random_encounter.yaml
+  id: table.random_encounter
+  name: Random Encounter table
+  dice: d6
+  entries:
+    - roll: 1            # entry ID: table.random_encounter.1
+      table:             # nested sub-table: roll d6, then another d6
+        dice: d6
+        entries:
+          - roll: 1-2    # entry ID: table.random_encounter.1.1-2
+            text: Roll on the Slashers table. Reroll any Slasher that ...
+            refs: [table.slashers]   # tables/events the entry sends you to
+
+  # tables/mission.yaml: a named entry takes the thing's own ID
+    - roll: 3
+      id: mission.bring_home_the_bacon
+      name: Bring Home the Bacon
+      text: You must bring back to your starting location ...
+      refs: [table.useful_stuff]
+
+  - The text stays as printed. Page references become table names.
+  - refs lists what the entry tells you to roll or play. Book mode can later
+    offer these as "go to" actions.
+  - The library is PyYAML (safe_load), a common default. There's a small loader
+    plus validation in Python, and tests come first.
+  - The decisions go into a new design/content.md before any code.
+
+  I have four questions, then I'll write the design note, the tests and the
+  YAML.
+
+⏺ User answered Claude's questions:
+  ⎿  · ID scheme for content (tables, entries, later missions/creatures/events):
+     which shape? → Kind prefix + roll (Recommended)
+     · Where do the YAML files live, and how are they split? → In the package 
+     (Recommended)
+     · The four tables point to ~25 tables not copied yet (places, creatures, 
+     items). How should 'every reference points to an existing ID' work until 
+     they are? → Catalogue now (Recommended)
+     · Random Encounter: the sentence 'When rolling on tables of Unique 
+     creatures, reroll any monster that was already killed. If all Unique 
+     monsters have been killed, treat as no encounter.' is printed under roll 6 
+     / 4-6 (Unique Zombies), but Unique Vampires also come up on 3 / 6 and 6 / 
+     1-3. Where should the text go? (This changes what book mode shows; the 
+     reroll behaviour itself comes later.) → I m not sure I understand what you 
+     mean. Does option 1 mean that this sentence should be added to evety option
+     you mention ?
+
+⏺ Right, Option 1 adds the sentence just once at the table level, like the Town
+  Exploration note, rather than repeating it per row (that's Option 3). I'll lay
+  out the three options side by side for comparison.
+
+⏺ User declined to answer questions
+  ⎿  · Random Encounter table: where should the sentence 'When rolling on tables
+     of Unique creatures, reroll any monster that was already killed. If all 
+     Unique monsters have been killed, treat as no encounter.' go? In the book 
+     it is printed at the end of row 6 / 4-6 (Unique Zombies), but Unique 
+     Vampires also appear on rows 3 / 6 and 6 / 1-3. (Once, on the table / Keep 
+     where printed / Copy to each Unique row)
+
+⏺ Sure, what would you like to clarify about the Unique-creatures sentence? It
+  might be where it sits in the book, what book mode would show, or something
+  else.
+
+  The other three choices are recorded: kind-prefixed IDs, YAML inside the
+  package, and a catalogue of every table. I'll wait for your answer before
+  writing anything.
+
+✻ Brewed for 4m 2s · done 22:39
+
+❯ We are talking about adding a text to a yaml table top level, it s ok but as  
+  we will resolve the rolls, even in book mode, how would this manifest from a  
+  user perspective ?                                                            
+
+⏺ Short answer: a note on the table itself only helps if book mode shows it.
+  Most table-level text never needs to be shown, because it's the engine's job.
+
+  What you'd see in book mode
+
+  Say you walk into a visited box and the 1 in 6 comes up:
+
+  Box 14 (visited): random encounter!
+  Random Encounter: d6 = 3, d6 = 6
+    Roll on the Unique Vampires table.
+
+    [1] Go to the Unique Vampires table   [2] Manual actions…
+
+  You pick 1. The engine rolls Unique Vampires, which isn't copied yet, so you
+  get "Unique Vampires table, entry 4: see 5_30_unique_vampires_table.md". If
+  you killed that vampire two missions ago, the book says to reroll. Between E5
+  and E10 the engine doesn't do that reroll yet, so you have to do it by hand,
+  and you only know to if the sentence was on screen with row 3 / 6. From E10
+  on, the engine does the reroll itself ("vampire 4 already killed, rerolled:
+  2"), and the sentence becomes reference text only.
+
+  Two kinds of table-level text
+
+  - How to roll the table. Town Exploration's "roll every time you move into an
+    unexplored area", Search's "+1 with Investigator", the Mission table's
+    "reroll if same as last time". The engine applies these, so showing them on
+    every roll would be noise. I'd make this text available on demand (a "this
+    table's rules" action) and never print it automatically.
+  - Rules about some results. The Unique sentence is one: it applies to three
+    rows. Book mode has to show it with those rows, or nobody will apply it
+    before E10.
+
+  So "once, on the table" only works if book mode shows the table text, and
+  showing it everywhere is noisy. A middle way: write the sentence once in the
+  table as a named note, and have the three Unique rows point to it. Book mode
+  then shows the row text plus its note.
+
+⏺ User answered Claude's questions:
+  ⎿  · Random Encounter: the sentence 'When rolling on tables of Unique 
+     creatures, reroll any monster that was already killed. If all Unique 
+     monsters have been killed, treat as no encounter.' is printed at the end of
+     row 6 / 4-6, but applies to Unique Vampires on rows 3 / 6 and 6 / 1-3 too.
+     Book mode must show it with those rows until the engine does the reroll 
+     itself (E10). How should the YAML hold it? → Shared note (Recommended)
+
+⏺ I'll keep text and notes as distinct fields—text for the table's own rules
+  shown on request, notes for named passages rows reference—and document this in
+  design/content.md. Starting now: worktree and branch, design note, failing
+  tests, then the YAML and loader.
+
+  Searched for 2 patterns, ran 2 shell commands (ctrl+o to expand)
+
+⏺ The dice in the catalogue: every table is d6 except Town Exploration and
+  Random Books (2d6) and Random Objects and Useful Stuff (d66). Next, the design
+  note.
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Write(design/content.md)
+  ⎿  Wrote 131 lines to design/content.md
+       1 # Rules text in YAML
+       2 
+       3 How the rules text is stored for the engine: files, IDs, the sha
+         pe of a table, references between tables, and what is known but 
+         not copied yet. Why the text is copied at all is in [MVP scope](
+         mvp-scope.md#where-the-text-comes-from). Words are defined in th
+         e [glossary](glossary.md). Decided in the R1 session.
+       4 
+       5 ## Structure
+       6 
+     … +125 lines (ctrl+o to expand)
+
+⏺ Design note done. Next I'll write tests—first covering the real content
+  (Done-when checks and table contents), then testing the validators against
+  small made-up tables to make sure a check that never fires can't pass
+  silently.
+
+⏺ Write(tests/test_content.py)
+  ⎿  Wrote 228 lines to tests/test_content.py
+       1 """The rules text copied into YAML: checks over the whole conten
+         t, then what each
+       2 table says, written from the book (see design/content.md)."""
+       3 
+       4 import re
+       5 from collections import Counter
+       6 from pathlib import Path
+       7 
+       8 import pytest
+       9 
+     … +219 lines (ctrl+o to expand)
+
+⏺ Write(tests/test_content_validation.py)
+  ⎿  Wrote 154 lines to tests/test_content_validation.py
+       1 """The content checks catch broken tables: each check is tried o
+         n a small made-up
+       2 content, so a check that never fires cannot pass unnoticed."""
+       3 
+       4 import textwrap
+       5 
+       6 import pytest
+       7 
+       8 from alone_against_fear.content import (
+       9     ContentError,
+     … +145 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ The tests fail as expected: the content module doesn't exist yet. Now the
+  model and the loader.
+
+⏺ Write(src/alone_against_fear/content/model.py)
+  ⎿  Wrote 153 lines to src/alone_against_fear/content/model.py
+       1 """The rules text as the engine sees it: tables, entries, and th
+         e checks they must pass.
+       2 
+       3 See design/content.md. The text is data only: what an entry does
+          is Python, keyed by ID.
+       4 """
+       5 
+       6 from __future__ import annotations
+       7 
+       8 from collections import Counter
+     … +145 lines (ctrl+o to expand)
+⏺ Write(src/alone_against_fear/content/loader.py)
+  ⎿  Wrote 134 lines to src/alone_against_fear/content/loader.py
+      1 """Load the rules text from the YAML files of this package (desig
+        n/content.md)."""
+      2 
+      3 from __future__ import annotations
+      4 
+      5 import re
+      6 from pathlib import Path
+      7 from typing import Any
+      8 
+      9 import yaml
+     … +125 lines (ctrl+o to expand)
+
+⏺ Write(src/alone_against_fear/content/__init__.py)
+  ⎿  Wrote 35 lines to src/alone_against_fear/content/__init__.py
+       1 """The rules text, copied from the book into the YAML files of t
+         his package.
+       2 
+       3 See design/content.md for the file layout, the ID scheme and the
+          shape of a table.
+       4 """
+       5 
+       6 from .loader import CONTENT_DIR, load_content
+       7 from .model import (
+       8     KINDS,
+     … +27 lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      from pathlib import Path…)
+  ⎿  diff --git a/pyproject.toml b/pyproject.toml
+     index 5c43325..271bfca 100644
+     --- a/pyproject.toml
+     … +23 lines (ctrl+o to expand)
+  ⎿  Updated pyproject.toml (+4 -1)
+      3  version = "0.0.0"
+      4  description = "Digital solo play of Alone Against Fear"
+      5  requires-python = ">=3.13"
+      6 -dependencies = []                                               
+      6 +dependencies = ["pyyaml>=6"]                                    
+      7  
+      8  [project.optional-dependencies]
+      9  dev = ["pytest>=8", "ruff>=0.8"]
+     ...
+      15  [tool.setuptools.packages.find]
+      16  where = ["src"]
+      17  
+      18 +[tool.setuptools.package-data]                                 
+      19 +alone_against_fear = ["content/**/*.yaml"]                     
+      20 +                                                               
+      21  [tool.pytest.ini_options]
+      22  testpaths = ["tests"]
+      23  
+
+⏺ Validator tests all pass (15). I'll verify the exact table names used in the
+  ebook before writing the catalogue, since there's a casing mismatch between
+  the Markdown heading ("Random book table") and Search ("Random Book table"),
+  and the ID rule depends on the book's own naming.
+
+  Searched for 1 pattern, ran 2 shell commands (ctrl+o to expand)
+
+⏺ The Fluid table is printed inside an event, so it will come with the events
+  batch (R6). I'll note that in the design note. Now the YAML: the four tables,
+  then the catalogue.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Write(src/alone_against_fear/content/tables/town_exploration.yaml)
+  ⎿  Wrote 46 lines to
+     src/alone_against_fear/content/tables/town_exploration.yaml
+       1 id: table.town_exploration
+       2 name: Town Exploration table
+       3 dice: 2d6
+       4 source: gameRules/tables/5_4_town_exploration_table.md
+       5 text: >-
+       6   Roll on this table every time you move into an unexplored area
+         . Then roll on
+       7   the sub-table indicated by the result. Whenever possible, do N
+         OT read the
+       8   content of the tables in advance. Read them only when they app
+     … +39 lines (~1 KB) (ctrl+o to expand)
+
+⏺ Write(src/alone_against_fear/content/tables/random_encounter.yaml)
+  ⎿  Wrote 81 lines to
+     src/alone_against_fear/content/tables/random_encounter.yaml
+       1 # Roll d6, then another d6: each first roll holds a nested table
+         .
+       2 id: table.random_encounter
+       3 name: Random Encounter table
+       4 dice: d6
+       5 source: gameRules/tables/5_2_random_encounters_table.md
+       6 notes:
+       7   # Printed at the end of 6 / 4-6, but it applies to every Uniqu
+         e entry.
+       8   unique_creatures: >-
+     … +73 lines (ctrl+o to expand)
+
+⏺ Write(src/alone_against_fear/content/tables/search.yaml)
+  ⎿  Wrote 20 lines to src/alone_against_fear/content/tables/search.yaml
+       1 id: table.search
+       2 name: Search table
+       3 dice: d6
+       4 source: gameRules/tables/5_1_search_rolls_table.md
+       5 text: >-
+       6   Roll at +1 if you have the Investigator Skill, +2 if you have 
+         Investigator
+       7   (Expert). A roll of 1 remains a 1.
+       8 entries:
+       9   - roll: 1
+     … +11 lines (ctrl+o to expand)
+
+⏺ Write(src/alone_against_fear/content/tables/mission.yaml)
+  ⎿  Wrote 101 lines to src/alone_against_fear/content/tables/mission.yaml
+       1 # A mission is a named entry: it takes its own ID, mission.<name
+         >.
+       2 id: table.mission
+       3 name: Mission table
+       4 dice: d6
+       5 source: gameRules/tables/5_3_missions_table.md
+       6 # From the Mission section of How the Game Works, printed beside
+          the table.
+       7 text: >-
+       8   At the start of a play session, roll on the Mission table belo
+     … +94 lines (~5 KB) (ctrl+o to expand)
+
+⏺ Write(src/alone_against_fear/content/catalogue.yaml)
+  ⎿  Wrote 49 lines to src/alone_against_fear/content/catalogue.yaml
+       1 # Every table of the book that is not copied yet (design/content
+         .md).
+       2 # A YAML batch moves its tables out of here into their own files
+         .
+       3 # Book mode rolls a catalogued table's dice and points to its so
+         urce.
+       4 
+       5 # Items (R3)
+       6 - {id: table.random_weapon, name: Random Weapon table, dice: d6,
+          source: gameRules/tables/1_4_random_weapons_table.md}
+     … +43 lines (ctrl+o to expand)
+
+⏺ Bash(sed -i '' 's/"table.random_books"/"table.random_book"/'
+      tests/test_content.py && .venv/bin/pytest -q 2>&1 | tail -15)
+  ⎿  ......................................................................
+     .. [ 94%]
+     ....
+     … +2 lines (ctrl+o to expand)
+  ⎿  Updated tests/test_content.py (+1 -1)
+      188      assert list(SEARCH.entry_for(6).refs) == [
+      189          "table.useful_stuff",
+      190          "table.random_objects",
+      191 -        "table.random_books",                                 
+      191 +        "table.random_book",                                  
+      192      ]
+      193  
+      194  
+
+⏺ All 76 tests pass. Next I'm checking every copied text against the ebook word
+  for word, allowing only the page references removed and the whitespace
+  normalised.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ All 44 texts match the ebook word for word, apart from the removed page
+  references. Now the Markdown copies of the four tables: fix the layout and
+  turn page references into table names.
+
+⏺ Bash(cd /Users/nathanchalot/Code/RPGs/AloneVsFEear/.claude/worktrees/r1-yaml-t
+      ables/gameRules/tables && cat > 5_4_town_exploration_table.md <<'EOF'
+      ## Town explorati…)
+  ⎿   gameRules/tables/5_1_search_rolls_table.md      | 10 +++++----
+      gameRules/tables/5_2_random_encounters_table.md | 30 ++++++++++++----
+     ---------
+     … +6 lines (ctrl+o to expand)
+  ⎿  Updated gameRules/tables/5_1_search_rolls_table.md (+6 -4)
+      1  ## search rolls table (d6)
+      2  
+      3 -- 1 Roll on the random encounter table, p.40.                   
+      4 -- 2-5 Nothing found.                                            
+      5 -- 6 Success! Roll 4 times on the Useful Items table or on the Ra
+        -ndom Object table, and pick a single result, or Roll on the Rand
+        -om Book table (p.73) if you are in a Library; OR  gain 1 Clue.  
+      3 +| d6 | Result |                                                 
+      4 +| --- | --- |                                                   
+      5 +| 1 | Roll on the random encounter table. |                     
+      6 +| 2-5 | Nothing found. |                                        
+      7 +| 6 | Success! Roll 4 times on the Useful Items table or on the 
+        +Random Object table, and pick a single result, or Roll on the Ra
+        +ndom Book table if you are in a Library; OR gain 1 Clue. |      
+      8  
+      7 -Roll at +1 if you have the Investigator Skill, +2 if you have In
+        -vestigator (Expert). A roll of 1 remains a 1.                   
+      9 +Roll at +1 if you have the Investigator Skill, +2 if you have In
+        +vestigator (Expert). A roll of 1 remains a 1.                   
+  ⎿  Updated gameRules/tables/5_2_random_encounters_table.md (+15 -15)
+       1  ## Random encounter table (roll d6, then another d6)
+       2  
+       3 -- 1,2) Roll on the Slashers table, p. 65. Reroll any Slasher th
+         -at  you  have  already  defeated  in  the  campaign.  If  all  
+       4 -- 1 Slashers have been defeated, treat as no encounter.        
+       5 -- 3-6) Roll on the Witch Children table, p. 67.                
+       6 -- 1-3) Roll on the Demonic Horrors table, p. 64.               
+       7 -- 4-6) Roll on the Beasts table, p. 60.                        
+       8 -- 1,2) Roll on the Lab Horrors table, p. 66.                   
+       9 -- 3 3-5) Roll on the Undead table, p. 61.                      
+      10 -- 6) Roll on the Unique Vampires table, p. 71.                 
+      11 -- 1-4) Roll on the Possessed table, p. 62.                     
+      12 -- 5,6) Roll on the Living Dolls table, p. 68.                  
+      13 -- 1-5) Roll on the Ghosts table, p. 69.                        
+      14 -- 6) Roll on the Aliens table, p. 70.                          
+      15 -- 1-3) Roll on the Unique Vampires table, p. 71.               
+      16 -- 4-6) Roll on the Unique Zombies table, p. 72. When           
+      17 -- 6 rolling on tables of Unique creatures, reroll any monster t
+         -hat was already killed. If all Unique monsters have been killed
+         -, treat as no encounter.                                       
+       3 +| First d6 | Second d6 | Result |                              
+       4 +| --- | --- | --- |                                            
+       5 +| 1 | 1-2 | Roll on the Slashers table. Reroll any Slasher that
+         + you have already defeated in the campaign. If all Slashers hav
+         +e been defeated, treat as no encounter. |                      
+       6 +| | 3-6 | Roll on the Witch Children table. |                  
+       7 +| 2 | 1-3 | Roll on the Demonic Horrors table. |               
+       8 +| | 4-6 | Roll on the Beasts table. |                          
+       9 +| 3 | 1-2 | Roll on the Lab Horrors table. |                   
+      10 +| | 3-5 | Roll on the Undead table. |                          
+      11 +| | 6 | Roll on the Unique Vampires table. |                   
+      12 +| 4 | 1-4 | Roll on the Possessed table. |                     
+      13 +| | 5-6 | Roll on the Living Dolls table. |                    
+      14 +| 5 | 1-5 | Roll on the Ghosts table. |                        
+      15 +| | 6 | Roll on the Aliens table. |                            
+      16 +| 6 | 1-3 | Roll on the Unique Vampires table. |               
+      17 +| | 4-6 | Roll on the Unique Zombies table. When rolling on tab
+         +les of Unique creatures, reroll any monster that was already ki
+         +lled. If all Unique monsters have been killed, treat as no enco
+         +unter. |                                                       
+  ⎿  Updated gameRules/tables/5_3_missions_table.md (+19 -9)
+       1  ## Mission table (d6)
+       2  
+       3 -Medical Supplies . A loved one is in need for specific medicine
+         -s. You gain 3 XP as soon as you return to your starting box wit
+         -h 3 doses of the required medicines. You have a 1 in 6 of findi
+         -ng 1 'dose' every time you roll on a House or Lab box and a 3 i
+         -n 6 every time you visit a Clinic box. If you have visited all 
+         -boxes and didn't find any, the last box you visit will be a cli
+         -nic and you will automatically find 3 doses.                   
+       3 +### 1 — Medical Supplies                                       
+       4  
+       5 -Predator and Prey . You must defeat a random Slasher from the S
+         -lashers table on p. 65. You must spend a number of Clues equal 
+         -to the Slasher's L to locate your target in the next box you en
+         -ter. If you meet ANY Slasher through a random roll, there is a 
+         -4 in 6 chance that you encounter exactly the one you are huntin
+         -g. Once you have defeated the Slasher and returned to your star
+         -ting location OR to any Safe House, you gain 5 XP or 2 rolls on
+         - the Useful Stuff table (p. 26).                               
+       5 +A loved one is in need for specific medicines. You gain 3 XP as
+         + soon as you return to your starting box with 3 doses of the re
+         +quired medicines. You have a 1 in 6 of finding 1 “dose” every t
+         +ime you roll on a House or Lab box and a 3 in 6 every time you 
+         +visit a Clinic box. If you have visited all boxes and didn’t fi
+         +nd any, the last box you visit will be a clinic and you will au
+         +tomatically find 3 doses.                                      
+       6  
+       7 -See also the optional rules for Slashers in campaigns on p. 97.
+       7 +### 2 — Predator and Prey                                      
+       8  
+       9 -Bring Home the Bacon . You must bring back to your starting loc
+         -ation a large quantity (2d6+12) of Food. This is IN ADDITION to
+         - any Food points currently on your character's sheet. You autom
+         -atically are given a backpack if desired, and you may leave any
+         - of your items in your starting box (or in any Safe House) in o
+         -rder to have more space to carry Food. You have a 3 in 6 chance
+         - of finding d6 Food points every time you visit a location from
+         - the Street, Store, or Farm tables. Once you return to your sta
+         -rting box with the Food, the Food is given to the local survivo
+         -rs and you gain 3 XP OR 3 rolls on the Useful Stuff table (p. 2
+         -6), your choice. You may also keep the backpack.               
+       9 +You must defeat a random Slasher from the Slashers table. You m
+         +ust spend a number of Clues equal to the Slasher’s L to locate 
+         +your target in the next box you enter. If you meet ANY Slasher 
+         +through a random roll, there is a 4 in 6 chance that you encoun
+         +ter exactly the one you are hunting. Once you have defeated the
+         + Slasher and returned to your starting location OR to any Safe 
+         +House, you gain 5 XP or 2 rolls on the Useful Stuff table.     
+      10  
+      11 -## Mission table (d6, continued)                               
+      11 +See also the optional rules for Slashers in campaigns.         
+      12  
+      13 -We Need Weapons . You must explore the town and bring back to y
+         -our starting box firearms (pistols, rifles, shotguns). When you
+         - do so, you gain 1 XP per every firearm with at least 6 ammo wi
+         -th a maximum gain of 5 XP. You may alter the Town Exploration r
+         -oll by +1 or -1 if this lets you reach a Military Installation 
+         -or a Store. All the weapons and ammo that you deliver are given
+         - to other survivors at the end of the mission, but you may use 
+         -them during the game.                                          
+      13 +### 3 — Bring Home the Bacon                                   
+      14  
+      15 -Destroy the Coven . You must defeat 5 witches hiding in town. T
+         -o find a witch, when you enter a new box you must spend 3 Clues
+         -. Spend just 2 Clues if you have the Investigator Skill and 1 C
+         -lue if you have Investigator (Expert). If you do not have enoug
+         -h Clues, roll for the random content of that box as usual. You 
+         -will automatically meet a witch in any of the last 5 locations 
+         -that you visit on your town map, but if you did not discover th
+         -em by spending Clues, they will have a 5 in 6 chance of surpris
+         -ing you. If you want, you may spend 1 or more Clues to reduce t
+         -his chance of surprise by 1 for every Clue spent. Also your Dan
+         -ger Sense Skill will reduce their chance of surprising you.    
+      15 +You must bring back to your starting location a large quantity 
+         +(2d6+12) of Food. This is IN ADDITION to any Food points curren
+         +tly on your character’s sheet. You automatically are given a ba
+         +ckpack if desired, and you may leave any of your items in your 
+         +starting box (or in any Safe House) in order to have more space
+         + to carry Food. You have a 3 in 6 chance of finding d6 Food poi
+         +nts every time you visit a location from the Street, Store, or 
+         +Farm tables. Once you return to your starting box with the Food
+         +, the Food is given to the local survivors and you gain 3 XP OR
+         + 3 rolls on the Useful Stuff table, your choice. You may also k
+         +eep the backpack.                                              
+      16 +                                                               
+      17 +### 4 — We Need Weapons                                        
+      18 +                                                               
+      19 +You must explore the town and bring back to your starting box f
+         +irearms (pistols, rifles, shotguns). When you do so, you gain 1
+         + XP per every firearm with at least 6 ammo with a maximum gain 
+         +of 5 XP. You may alter the Town Exploration roll by +1 or -1 if
+         + this lets you reach a Military Installation or a Store. All th
+         +e weapons and ammo that you deliver are given to other survivor
+         +s at the end of the mission, but you may use them during the ga
+         +me.                                                            
+      20 +                                                               
+      21 +### 5 — Destroy the Coven                                      
+      22 +                                                               
+      23 +You must defeat 5 witches hiding in town. To find a witch, when
+         + you enter a new box you must spend 3 Clues. Spend just 2 Clues
+         + if you have the Investigator Skill and 1 Clue if you have Inve
+         +stigator (Expert). If you do not have enough Clues, roll for th
+         +e random content of that box as usual. You will automatically m
+         +eet a witch in any of the last 5 locations that you visit on yo
+         +ur town map, but if you did not discover them by spending Clues
+         +, they will have a 5 in 6 chance of surprising you. If you want
+         +, you may spend 1 or more Clues to reduce this chance of surpri
+         +se by 1 for every Clue spent. Also your Danger Sense Skill will
+         + reduce their chance of surprising you.                        
+      24  
+      25  If you take a witch alive (attacking her in hand-to-hand combat
+           at -2 inflicting non-lethal Damage, or defeating her with the 
+          Sign of Hypnos or the Hand of Glory), you gain 1 Clue that you 
+          may use ONLY to find the next witch.
+      26  
+      19 -Witches are L4 humans, 4 Life. They inflict no Damage but each 
+         -turn you are in combat with a witch, you must perform a L5 Will
+         - Save (lose 1 Sanity if you fail). You gain 1 XP every time you
+         - defeat a witch and 2 XP and 1 item from the Useful Stuff table
+         - on p. 26 (roll three times and pick the best result) when you 
+         -defeat the last one.                                           
+      27 +Witches are L4 humans, 4 Life. They inflict no Damage but each 
+         +turn you are in combat with a witch, you must perform a L5 Will
+         + Save (lose 1 Sanity if you fail). You gain 1 XP every time you
+         + defeat a witch and 2 XP and 1 item from the Useful Stuff table
+         + (roll three times and pick the best result) when you defeat th
+         +e last one.                                                    
+      28 +                                                               
+      29 +### 6 — Close a Hell Gate                                      
+      30  
+      21 -Close a Hell Gate . This is the default activity of the campaig
+         -n. You may always attempt this even during other missions, beca
+         -use closing 7 gates over the course of a campaign completes the
+         - campaign and ends the game in a victory. When you play this mi
+         -ssion, if you do not find any hell gate through random rolls, y
+         -ou will find one automatically after 12+d6 boxes, and another o
+         -ne in the 30 th  box that you visit. To close a Hell Gate, you 
+         -need to possess the Gate Arcane Skill and perform an L6 Magic r
+         -oll. Add +1 if you have Will and +2 if you have Will (Expert). 
+         -You lose 1 Sanity and 1 Life for each failed attempt.          
+      31 +This is the default activity of the campaign. You may always at
+         +tempt this even during other missions, because closing 7 gates 
+         +over the course of a campaign completes the campaign and ends t
+         +he game in a victory. When you play this mission, if you do not
+         + find any hell gate through random rolls, you will find one aut
+         +omatically after 12+d6 boxes, and another one in the 30th box t
+         +hat you visit. To close a Hell Gate, you need to possess the Ga
+         +te Arcane Skill and perform an L6 Magic roll. Add +1 if you hav
+         +e Will and +2 if you have Will (Expert). You lose 1 Sanity and 
+         +1 Life for each failed attempt.                                
+  ⎿  Updated gameRules/tables/5_4_town_exploration_table.md (+14 -14)
+       2  
+       3  Roll on this table every time you move into an unexplored area.
+           Then roll on the sub-table indicated by the result. Whenever p
+          ossible, do NOT read the content of the tables in advance. Read
+           them only when they apply to you.
+       4  
+       5 -You  may  Search  an  area  ONLY  after  dealing  with  whateve
+         -r  encounter, danger, or situation you encounter in that area. 
+         -If you flee from an encounter, you may NOT Search that area.   
+       5 +You may Search an area ONLY after dealing with whatever encount
+         +er, danger, or situation you encounter in that area. If you fle
+         +e from an encounter, you may NOT Search that area.             
+       6  
+       7 -| Town exploration table (2d6)                                 
+         -                                         | Town exploration tab
+         -le (2d6)   |                                                   
+       8 -|--------------------------------------------------------------
+         ------------------------------------------|---------------------
+         ------------|                                                   
+       9 -| 2 table (p. 40).                                             
+         -                                         | Roll on the Random E
+         -ncounter   |                                                   
+      10 -| Roll on the Military Installation table (p. 48) or on the Cli
+         -nic (p. 46) table, your choice.          | 3                   
+         -           |                                                   
+      11 -| Roll on Farm table (p. 49) or on the Cemetery table (p. 44), 
+         -your choice.                             | 4                   
+         -           |                                                   
+      12 -| Roll on the Place of Worship table (p. 47).                  
+         -                                         | 5                   
+         -           |                                                   
+      13 -| Roll on Street table (p. 44).                                
+         -                                         | 6                   
+         -           |                                                   
+      14 -| Roll d6. On a 1-5, roll on the House table (p. 45). On a 6, r
+         -oll on the Special Events table (p. 59). | 7                   
+         -           |                                                   
+      15 -| Roll on the Store table (p. 52) or the Street table (p. 44), 
+         -your choice.                             | 8                   
+         -           |                                                   
+      16 -| Roll on the Sewers table (p. 53).                            
+         -                                         | 9                   
+         -           |                                                   
+      17 -| Roll on the Railways (p. 54) or Woods/Park table (p. 58), you
+         -r choice.                                | 10                  
+         -           |                                                   
+      18 -| Roll on the School table (p. 55) or the Woods/Park table (p. 
+         -58), your choice.                        | 11                  
+         -           |                                                   
+      19 -| 12 table (p. 58).                                            
+         -                                         | Roll on the Woods/Pa
+         -rk         |                                                   
+       7 +| 2d6 | Result |                                               
+       8 +| --- | --- |                                                  
+       9 +| 2 | Roll on the Random Encounter table. |                    
+      10 +| 3 | Roll on the Military Installation table or on the Clinic 
+         +table, your choice. |                                          
+      11 +| 4 | Roll on Farm table or on the Cemetery table, your choice.
+         + |                                                             
+      12 +| 5 | Roll on the Place of Worship table. |                    
+      13 +| 6 | Roll on Street table. |                                  
+      14 +| 7 | Roll d6. On a 1-5, roll on the House table. On a 6, roll 
+         +on the Special Events table. |                                 
+      15 +| 8 | Roll on the Store table or the Street table, your choice.
+         + |                                                             
+      16 +| 9 | Roll on the Sewers table. |                              
+      17 +| 10 | Roll on the Railways or Woods/Park table, your choice. |
+      18 +| 11 | Roll on the School table or the Woods/Park table, your c
+         +hoice. |                                                       
+      19 +| 12 | Roll on the Woods/Park table. |                         
+
+⏺ Bash(.venv/bin/ruff check . && .venv/bin/ruff format --check . ;
+      .venv/bin/ruff format . && .venv/bin/ruff check . && .venv/bin/pytest -q
+      2>&1 | tail -2)
+  ⎿  All checks passed!
+     unformatted: File would be reformatted
+       --> gameRules/extractor/main.py:24:2
+     … +43 lines (ctrl+o to expand)
+  ⎿  Updated gameRules/extractor/main.py (+4 -4)
+      21  # import os
+      22  # from docling.datamodel.base_models import InputFormat
+      23  # from docling.datamodel.pipeline_options import PdfPipelineOpt
+          ions
+      24 -#                                                              
+      24 +#                                                              
+      25  # # Suppress HuggingFace warnings by setting offline mode
+      26  # os.environ["HF_HUB_OFFLINE"] = "1"
+      27 -#                                                              
+      27 +#                                                              
+      28  # # Configure pipeline to use local models only
+      29  # pipeline_options = PdfPipelineOptions()
+      30  # pipeline_options.do_ocr = False  # Disable OCR to avoid model
+           downloads
+      31  # pipeline_options.do_table_structure = True
+      32 -#                                                              
+      32 +#                                                              
+      33  # converter = DocumentConverter(
+      34  #     format_options={
+      35  #         InputFormat.PDF: pipeline_options,
+      36  #     }
+      37  # )
+      38 -# result = converter.convert(source)                           
+      38 +# result = converter.convert(source)                           
+  ⎿  Updated tests/test_content.py (+2 -5)
+      58  
+      59  def test_every_rules_table_file_is_the_source_of_exactly_one_ta
+          ble():
+      60      files = {p.relative_to(REPO).as_posix() for p in (REPO / "g
+          ameRules/tables").rglob("*.md")}
+      61 -    sources = Counter(                                         
+      62 -        t.source for t in [*CONTENT.tables.values(), *CONTENT.c
+         -atalogue.values()]                                             
+      63 -    )                                                          
+      61 +    sources = Counter(t.source for t in [*CONTENT.tables.values
+         +(), *CONTENT.catalogue.values()])                              
+      62      assert set(sources) == files
+      63      assert [s for s, n in sources.items() if n > 1] == []
+      64  
+     ...
+      102  
+      103  def test_town_exploration_7_rolls_d6_for_house_or_special_even
+           ts():
+      104      assert TOWN.entry_for(7).text == (
+      107 -        "Roll d6. On a 1-5, roll on the House table. "        
+      108 -        "On a 6, roll on the Special Events table."           
+      105 +        "Roll d6. On a 1-5, roll on the House table. On a 6, r
+          +oll on the Special Events table."                             
+      106      )
+      107  
+      108  
+
+⏺ Formatting also touched gameRules/extractor/main.py, which isn't part of this
+  task. I'm checking what CI runs before deciding whether to keep that change.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ CI only runs ruff check, not the format check, so I'm reverting the unrelated
+  whitespace change to the extractor.
+
+⏺ Bash(git checkout -- gameRules/extractor/main.py && git status --short)
+  ⎿   M gameRules/tables/5_1_search_rolls_table.md
+      M gameRules/tables/5_2_random_encounters_table.md
+      M gameRules/tables/5_3_missions_table.md
+     … +6 lines (ctrl+o to expand)
+  ⎿  Updated gameRules/extractor/main.py (+4 -4)
+  ⎿  (a git step in this command can move the working tree, so these may be
+     its changes, not edits) (ctrl+o to expand)
+
+⏺ Now two small fixes to the design note: the table-name rule ("Search rolls
+  table" became table.search), and the tables printed inside events.
+
+⏺ Update(design/content.md)
+  ⎿  Added 1 line, removed 1 line
+      60  
+      61  | What | ID | Rule |
+      62  | --- | --- | --- |
+      63 -| A table | `table.town_exploration` | the book's table name wi
+         -thout "table"; `/` becomes `_or_` (`table.woods_or_park`) |    
+      63 +| A table | `table.town_exploration` | a short name from the ta
+         +ble's heading, without "table"; `/` becomes `_or_` (`table.wood
+         +s_or_park`). The heading's number is kept ("Random book table" 
+         +gives `table.random_book`); "Search rolls table" is `table.sear
+         +ch`, the name the rules use |                                  
+      64  | An entry | `table.town_exploration.7` | table ID, then the ro
+          ll as printed: `7`, `2-5` |
+      65  | An entry of a nested table | `table.random_encounter.3.3-5` |
+           parent entry ID, then the roll |
+      66  | A named entry | `mission.bring_home_the_bacon` | an entry tha
+          t is a thing of its own takes that thing's ID instead |
+
+⏺ Update(design/content.md)
+  ⎿  Added 1 line, removed 1 line
+      112  - **`catalogue.yaml` lists every table not copied yet**, with 
+           its ID, name, dice and Markdown source. A reference to a catal
+           ogued table is valid.
+      113  - **Each batch moves its tables out** of the catalogue into th
+           eir own files. When the catalogue is empty, Milestone 3 is don
+           e.
+      114  - **Book mode uses it as the fallback**: until a table is copi
+           ed, the engine can still roll its dice and point to the Markdo
+           wn file and entry number ([MVP scope](mvp-scope.md#where-the-t
+           ext-comes-from)).
+      115 -- It lists the tables of `gameRules/tables/`. The optional ran
+          -dom Skill tables come after the MVP. Events are added by the b
+          -atch that first refers to one.                                
+      115 +- It lists the tables of `gameRules/tables/`, so every table I
+          +D is already fixed. Tables printed inside an event (the Fluid 
+          +table) come with the events batch, R6. The optional random Ski
+          +ll tables come after the MVP. Events are added by the batch th
+          +at first refers to one.                                       
+      116  
+      117  ## Checks
+      118  
+
+  Searched for 1 pattern (ctrl+o to expand)
+⏺ Bash(python3 - <<'EOF'
+      from pathlib import Path…)
+  ⎿  --- a/CLAUDE.md
+     +++ b/CLAUDE.md
+     -- `src/alone_against_fear/` — package; `tests/` — pytest; `design/` —
+     … +17 lines (ctrl+o to expand)
+  ⎿  Updated CLAUDE.md (+1 -1)
+      21  
+      22  ## Layout and commands
+      23  
+      24 -- `src/alone_against_fear/` — package; `tests/` — pytest; `desi
+         -gn/` — domain design (Mermaid); `gameRules/` — extracted rules;
+         - `claude-logs/` — session logs.                                
+      24 +- `src/alone_against_fear/` — package; `src/alone_against_fear/
+         +content/` — rules text in YAML (layout and IDs: [`design/conten
+         +t.md`](design/content.md)); `tests/` — pytest; `design/` — doma
+         +in design (Mermaid); `gameRules/` — extracted rules; `claude-lo
+         +gs/` — session logs.                                           
+      25  - Setup: `python -m venv .venv && .venv/bin/pip install -e '.[d
+          ev]'`
+      26  - Tests: `.venv/bin/pytest`  ·  Lint: `.venv/bin/ruff check .` 
+           ·  Format: `.venv/bin/ruff format .`
+      27  - Tests first; stop at the task's "Done when".
+  ⎿  Updated design/mvp-scope.md (+2 -2)
+      50  
+      51  ### Where the text comes from
+      52  
+      53 -- **The rules text is copied into YAML files.** Each table, ent
+         -ry, creature, item, event and Skill gets a stable ID, its dice 
+         -and entries, and its text as written in the book. While copying
+         -, OCR damage is fixed against the original PDFs in `origin_rule
+         -s/`, and page references become table names.                   
+      53 +- **The rules text is copied into YAML files.** Each table, ent
+         +ry, creature, item, event and Skill gets a stable ID, its dice 
+         +and entries, and its text as written in the book. While copying
+         +, OCR damage is fixed against the original PDFs in `origin_rule
+         +s/`, and page references become table names. Files, IDs and the
+         + shape of a table: [rules text in YAML](content.md).           
+      54  - **Behaviour stays in Python**, keyed by the same ID. YAML hol
+          ds no rules logic, so no rules language is invented ([D1](../Re
+          adme.md#deferred)). Whether plain data (creature stats, item we
+          ight, Skill XP cost) also goes into YAML is decided when the en
+          gine writes its first content (E6 in the [roadmap](../Readme.md
+          #milestone-6--step-1-bring-home-the-bacon)).
+      55  - **The Markdown in `gameRules/` stays** as the readable copy. 
+          The YAML is the copy the engine reads. Both are fixed together.
+      56  - **Everything is copied before step 1 is playable**: every tab
+          le, event, item and Skill, in batches ordered by when the engin
+          e needs them ([Milestone 3](../Readme.md#milestone-3--rules-tex
+          t-in-yaml)). This replaces the Markdown-only cleanup. Until an 
+          entry is copied, book mode shows its file and entry number inst
+          ead.
+     ...
+      118  
+      119  - Which item uses are written in step 1 (weapons, ammo, Food i
+           tems, first aid kit, backpack and armor need step 1 mechanisms
+           ; most others can wait).
+      120  - A free note on the box or the character, for book-mode effec
+           ts that last ("for the next 3 boxes", a curse).
+      121 -- The YAML file layout and ID scheme (R1 in the [roadmap](../R
+          -eadme.md#milestone-3--rules-text-in-yaml)).                   
+      121 +- ~~The YAML file layout and ID scheme~~: decided in R1, see [
+          +rules text in YAML](content.md).                              
+      122  
+      123  ## Order of work
+      124  
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ R1 is built and its "Done when" is met: all 76 tests pass and ruff is clean.
+  Nothing is committed yet.
+
+  What's done (in a separate worktree, branch r1-yaml-tables)
+
+  - design/content.md records your four choices: the files, the IDs, the shape
+    of a table, the table's own text versus notes on rows, and the catalogue.
+    mvp-scope.md and CLAUDE.md now link to it.
+  - YAML in src/alone_against_fear/content/: the four tables plus
+    catalogue.yaml, which lists the 34 tables not copied yet (ID, name, dice,
+    Markdown file). Every table ID in the book is now fixed.
+  - Text checked against the ebook: a script confirmed that all 44 copied texts
+    match the ebook word for word, apart from the removed page references.
+  - Loader and checks in Python, with PyYAML added as a dependency:
+    - every table covers its dice range;
+    - every reference and note points to something that exists;
+    - IDs are unique and follow the scheme;
+    - each Markdown table file is the source of exactly one table;
+    - no page reference is left.
+  - Tests:
+    - 61 run against the real tables. They cover those checks plus what the book
+      says, for example that Random Encounter 3 then 6 sends you to Unique
+      Vampires with the note.
+    - 15 try each check on a small table that is broken on purpose, so a check
+      that never fires can't pass silently.
+  - Markdown copies of the four tables rewritten: columns un-swapped, the nested
+    d6→d6 laid out as a table, roll numbers added to Missions, page references
+    removed.
+
+  Points for you to decide
+
+  1. Search 6 says "Useful Items table". No table has that name. I kept the text
+     as printed and pointed the reference to the Useful Stuff table. Is that
+     right? If so, I'll write it into design/rulings.md.
+  2. Mission table text. I used the paragraph that sits beside the table in "How
+     the Game Works" (the reroll rule, plus 7 Hell Gates to win), kept as
+     printed, so it still says "the Mission table below".
+  3. What counts as a reference. I only added one where the entry tells you to
+     roll on a table or play an event. Missions that merely mention places
+     (House, Lab, Clinic, Street, Store, Farm) get none, and neither does We
+     Need Weapons with its ±1 on the Town Exploration roll.
+  4. Unique sentence in the Markdown. The Markdown copy keeps it where the book
+     prints it, under 6 / 4-6. Only the YAML holds it as a shared note.
+
+  One small suggestion: your main checkout shows .claude/worktrees/ as
+  untracked. Adding it to .gitignore in this PR would prevent the stray-gitlink
+  problem the setup session had.
+
+  Once you've answered these, I'll do the end-of-session wrap-up: update the
+  Readme and NextSession, write the log, then ask you to export the transcript
+  before I commit, push and open the PR.
+
+✻ Crunched for 8m 40s · done 22:50
+
+❯ 1. yes this is right                                                          
+  2. At some point we will stop display this text right ? If yes then no need   
+  to worry we can keep it for the time it is displayed as we will stop showing  
+  it. If not then lets discuss it                                               
+  3. I don t get your question                                                  
+  4. What is "it" in this sentence ?                                            
+                                                                                
+  I think for future session that we should check if we actually need a         
+  worktree, right now, as an exemple, we are only doing one thing so a branch   
+  on main would have been enough                                                
+
+  Ran 1 shell command, searched memories (ctrl+o to expand)
+
+⏺ Saving the worktree feedback now: a memory for future sessions, and the same
+  rule in WorkingWithClaude.md.
+
+  Wrote 1 memory (ctrl+o to expand)
+
+⏺ Bash(cd /Users/nathanchalot/.claude/projects/-Users-nathanchalot-Code-RPGs-Alo
+      neVsFEear/memory && python3 - <<'EOF'
+      from pathlib import Path…)
+  ⎿  No version is set for command python3
+     Consider adding one of the following versions in your config file at /
+     Users/nathanchalot/.claude/projects/-Users-nathanchalot-Code-RPGs-Alon
+     … +17 lines (ctrl+o to expand)
+  ⎿  Updated WorkingWithClaude.md (+1 -1)
+       6  
+       7  1. Start from [NextSession.md](NextSession.md), the [Readme](Re
+          adme.md) and the latest log in [`claude-logs/`](claude-logs/).
+       8  2. From Milestone 5 on, create a GitHub issue from the task fir
+          st (title and "Done when" from the Readme); the PR says `Closes
+           #N`.
+       9 -3. Work in a dedicated worktree and branch; one PR per session.
+         - During the session, Claude never commits or pushes without exp
+         -licit permission.                                              
+       9 +3. Work on a dedicated branch; one PR per session. Create the b
+         +ranch in the main checkout; use a worktree only when another se
+         +ssion runs at the same time (see [Parallel sessions](#parallel-
+         +sessions)). During the session, Claude never commits or pushes 
+         +without explicit permission.                                   
+      10  4. End by updating the Readme (checkboxes, decisions) and `Next
+          Session.md` (remove the done session, adjust the plan).
+      11  5. Claude writes the session log in `claude-logs/YYYYMMDDHHmm-s
+          ession-name.md`.
+      12  6. The user exports the transcript with `/export claude-logs/tr
+          anscripts/YYYYMMDDHHmm-session-name.txt` (same name as the log)
+          .
+
+⏺ The memory-index edit failed: no Python version is set in the memory folder.
+  Retrying with the project's Python.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Memory saved. Now the ruling for point 1:
+
+⏺ Update(design/rulings.md)
+  ⎿  Added 1 line
+      56  - **Limits are campaign-wide, and numbered events happen once, 
+          unless the text says otherwise.** `interpretation` "Once in the
+           game" (Special Events) and "twice in a game" (Woods/Park 1 and
+           6) count over the whole campaign; the book says "mission" when
+           it means one (Fluid needle, Children's Stuff, events #9 and #1
+          0). A numbered event with no stated limit is played once per ca
+          mpaign; when it is reached again, the fallback written where it
+           is called applies, or nothing happens. The callers support thi
+          s: House 6 and Street 6 give a fallback "if you have already pl
+          ayed" #1 and #3. Events meant to repeat say so (#2, #33). Weak 
+          point: "between games" in the main rules means between missions
+          .
+      57  - **SNOWY is a campaign keyword.** `interpretation` The book wr
+          ites keywords on "your play sheet", but SNOWY records a change 
+          in the town (new content becomes reachable), not something the 
+          character carries or knows. Following the town/person test ([en
+          counters](encounters.md)), it outlives the character. CLOWNFACE
+           describes the character and dies with them.
+      58  - **A box counts as every place table rolled in it.** `gap` Whe
+          n a place result chains to another place table (Clinic 1 → Haun
+          ted House), the box is a haunted clinic: it counts as a Clinic 
+          and as a Haunted House for rules that read the place ("every ti
+          me you visit a Clinic box", Medical Supplies). If a rule needs 
+          a single place, the first one wins: the place given by the Town
+           Exploration table. A box whose content never reached a place t
+          able (Town Exploration 2) has no place.
+      59 +- **The "Useful Items table" of Search 6 is the Useful Stuff ta
+         +ble.** `interpretation` No table has that name. Search 6 offers
+         + "the Useful Items table or the Random Object table", the same 
+         +pair the play aids give at creation ("the Useful Stuff table or
+         + the Random Objects table"). The text stays as printed; its ref
+         +erence points to the Useful Stuff table (`5_1_search_rolls_tabl
+         +e.md`).                                                        
+      60  
+      61  ## Effects
+      62  
+
+⏺ Update(src/alone_against_fear/content/tables/search.yaml)
+  ⎿  Added 1 line, removed 1 line
+      12    - roll: 2-5
+      13      text: Nothing found.
+      14    - roll: 6
+      15 -    # "Useful Items table" as printed: no table has that name, 
+         -see the R1 log.                                                
+      15 +    # "Useful Items table" as printed: it is the Useful Stuff t
+         +able (design/rulings.md).                                      
+      16      text: >-
+      17        Success! Roll 4 times on the Useful Items table or on the
+           Random Object
+      18        table, and pick a single result, or Roll on the Random Bo
+          ok table if you
+
+  Listed 1 directory, ran 1 shell command (ctrl+o to expand)
+
+⏺ The session started at 22:27, so the log will be 202610312227-r1-yaml-tables.
+  I'm preparing the wrap-up documents now. Nothing gets committed before your
+  answer and the transcript export.
+
+⏺ Bash(.venv/bin/python - <<'EOF'
+      from pathlib import Path…)
+  ⎿  --- a/NextSession.md
+     +++ b/NextSession.md
+     -1. **R1** — YAML layout, ID scheme and the four exploration tables, f
+     … +45 lines (ctrl+o to expand)
+  ⎿  Updated NextSession.md (+5 -6)
+       8  
+       9  ## Plan
+      10  
+      11 -1. **R1** — YAML layout, ID scheme and the four exploration tab
+         -les, fixed against the original PDFs in `origin_rules/`, with t
+         -he validation tests.                                           
+      12 -2. **E1 and E2** — dice and game state.                        
+      13 -3. **E3** — town map, moves and time.                          
+      14 -4. **E4** — engine/interface protocol and game loop. Start with
+         - a short design discussion before any code: it is the main arch
+         -itecture choice.                                               
+      15 -5. **E5** — book mode. The skeleton is done: a whole game can b
+         -e walked in book mode.                                         
+      16 -6. **Step 1** — E6 to E17, one task per session, with the R bat
+         -ches done ahead of the task that needs them (R2 and R3 before E
+         -6, R4 before E12, R5 before E16). The batches do not touch the 
+         -engine and can run as parallel sessions. Everything is copied t
+         -o YAML before step 1 is playable.                              
+      11 +1. **E1 and E2** — dice and game state. First session with engi
+         +ne code and the first GitHub issue (Milestone 5). The table dic
+         +e codes (`d6`, `2d6`, `d66`) already exist in `content/model.py
+         +` for the YAML checks; E1 may move them into the dice module.  
+      12 +2. **E3** — town map, moves and time.                          
+      13 +3. **E4** — engine/interface protocol and game loop. Start with
+         + a short design discussion before any code: it is the main arch
+         +itecture choice.                                               
+      14 +4. **E5** — book mode. The skeleton is done: a whole game can b
+         +e walked in book mode. Decides how a table's own rules text is 
+         +shown (on request, or the first time); notes are shown with the
+         + entries that point to them ([rules text in YAML](design/conten
+         +t.md)).                                                        
+      15 +5. **Step 1** — E6 to E17, one task per session, with the R bat
+         +ches done ahead of the task that needs them (R2 and R3 before E
+         +6, R4 before E12, R5 before E16). The batches do not touch the 
+         +engine and can run as parallel sessions (in a worktree; otherwi
+         +se a plain branch is enough). Each batch moves its tables out o
+         +f `content/catalogue.yaml`. Everything is copied to YAML before
+         + step 1 is playable.                                           
+  ⎿  Updated Readme.md (+4 -4)
+       8  
+       9  ## Status
+      10  
+      11 -MVP phase. Rules extraction and domain design ([`design/`](desi
+         -gn/)) are done; the game engine has not been started.          
+      11 +MVP phase. Rules extraction and domain design ([`design/`](desi
+         +gn/)) are done. The rules text is being copied into YAML: the f
+         +ormat and the four exploration tables are in (R1). The game eng
+         +ine has not been started.                                      
+      12  
+      13  **MVP goal:** play a whole campaign in the terminal, in two ste
+          ps ([MVP scope](design/mvp-scope.md)):
+      14  
+     ...
+      32  - **Language:** Python. Strongest ecosystem for planned genAI f
+          eatures (local LLMs, image and video generation).
+      33  - **Interface:** terminal CLI first. Engine stays UI-agnostic s
+          o other front ends can be added.
+      34  - **MVP scope** (was D6): two steps, Bring Home the Bacon then 
+          Close a Hell Gate with campaign play; unwritten content goes th
+          rough book mode. See [MVP scope](design/mvp-scope.md).
+      35 -- **Rules text in YAML** (part of D1): every table, entry, crea
+         -ture, item, event and Skill gets a stable ID and its text in YA
+         -ML; behaviour stays in Python, keyed by the same ID. The Markdo
+         -wn in `gameRules/` stays as the readable copy, fixed together w
+         -ith the YAML.                                                  
+      35 +- **Rules text in YAML** (part of D1): every table, entry, crea
+         +ture, item, event and Skill gets a stable ID and its text in YA
+         +ML; behaviour stays in Python, keyed by the same ID. The Markdo
+         +wn in `gameRules/` stays as the readable copy, fixed together w
+         +ith the YAML. Files, IDs (`table.town_exploration.7`, `mission.
+         +bring_home_the_bacon`) and the shape of a table: [rules text in
+         + YAML](design/content.md).                                     
+      36  
+      37  ### Guidelines
+      38  
+     ...
+      88  
+      89  The text of every table, entry, creature, item, event and Skill
+           is copied into YAML with a stable ID, so book mode can show it
+           on screen ([MVP scope](design/mvp-scope.md#where-the-text-come
+          s-from)). The OCR mangled the book's two-column layout: each ba
+          tch fixes the damage against the original PDFs in `origin_rules
+          /`, in the YAML and in the Markdown at once, and turns book pag
+          e references into table names. Batches follow the order the eng
+          ine needs them; all are done before step 1 is playable.
+      90  
+      91 -#### [ ] R1 — YAML layout, IDs and exploration tables          
+      92 -Decide the file layout and the ID scheme. Copy the Town Explora
+         -tion, Random Encounter, Search and Missions tables.            
+      91 +#### [x] R1 — YAML layout, IDs and exploration tables          
+      92 +Decide the file layout and the ID scheme ([rules text in YAML](
+         +design/content.md)). Copy the Town Exploration, Random Encounte
+         +r, Search and Missions tables.                                 
+      93  - Fixes: Town Exploration (swapped columns, split rows 2 and 12
+          ), Random Encounter (nested d6→d6 structure), Missions (missing
+           roll numbers).
+      94  - Done when: the four tables are in YAML, and tests check that 
+          every table covers its dice range and every reference points to
+           an existing ID.
+      95  - Depends on: Milestone 4.
+
+⏺ Now the session log:
+
+⏺ Write(claude-logs/202610312227-r1-yaml-tables.md)
+  ⎿  Wrote 43 lines to claude-logs/202610312227-r1-yaml-tables.md
+       1 # R1: YAML layout, IDs and exploration tables
+       2 
+       3 - Date: 2026-10-31
+       4 - Session ID: e0a5c635-7d50-475d-8b0d-c6998075c817
+       5 - Branch / PR: `r1-yaml-tables` / not committed yet
+       6 - Transcript: [transcripts/202610312227-r1-yaml-tables.txt](tran
+         scripts/202610312227-r1-yaml-tables.txt)
+       7 
+       8 ## Goal
+       9 
+     … +34 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Point 1 is done: the ruling is in design/rulings.md and the YAML comment
+  points to it. Your other points:
+
+  2. Mission table text: yes, it never shows during play. The engine rolls the
+  mission and applies the "reroll if same as last time" rule itself, and
+  missions never go through book mode. The paragraph would only appear if you
+  ask to read the table's rules, like opening the book. So "the Mission table
+  below" can stay.
+
+  3. Simpler version: some entries get shortcut buttons in book mode, like "Go
+  to the Slashers table". I only added a shortcut when the text says "roll on
+  the X table", not when it just names a place. For example, Medical Supplies
+  says "every time you visit a Clinic box", which isn't an instruction to roll
+  on the Clinic table, so it gets no button. Nothing to decide unless you
+  disagree.
+
+  4. "It" is the sentence about Unique creatures ("When rolling on tables of
+  Unique creatures, reroll any monster…"). There are two copies of the rules:
+  - The Markdown in gameRules/, the readable copy for humans, keeps the sentence
+    where the book prints it: at the end of row 6 / 4-6.
+  - The YAML, which the engine reads, has it as the shared note on the three
+    Unique rows.
+
+  The words are the same in both, only the layout differs. Is that fine with
+  you?
+
+  Worktree: you're right, a branch would have been enough. I saved a memory for
+  future sessions: a plain branch by default, a worktree only when sessions run
+  in parallel. WorkingWithClaude.md now says the same. This session stays in its
+  worktree; I can remove the worktree after the PR.
+
+  Wrap-up is ready:
+  - R1 is ticked in the Readme.
+  - R1 is removed from NextSession; E1 and E2 are next.
+  - The log is written as claude-logs/202610312227-r1-yaml-tables.md.
+
+  The tests still pass (76) and ruff is clean. Once you've answered point 4,
+  please export the transcript:
+
+  /export claude-logs/transcripts/202610312227-r1-yaml-tables.txt
+
+  The export lands in your main checkout. I'll move it into the worktree, then
+  commit, push, open the PR, and add the PR link to the log.
+
+✻ Brewed for 2m 6s · done 22:57
+
+❯ 2. maybe just remove the "below" for clarity                                  
+  3. I m ok, I don't see why we would need a btn for the case you describe:     
+  'For example, Medical Supplies says "every time you visit a Clinic box"' .    
+  Can you see an argument in favor ?                                            
+  4. oh ok, we discussed it and its fine                                        
+
+⏺ Point 2: I'll drop "below" from the Mission table text, and from the same
+  sentence in 5_how_the_game_works.md so the two copies match.
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Bash(sed -i '' 's/roll on the Mission table below to determine/roll on the
+      Mission table to determine/'
+      src/alone_against_fear/content/tables/mission.yaml && sed -i…)
+  ⎿  src/alone_against_fear/content/tables/mission.yaml:3:name: Mission tab
+     le
+     src/alone_against_fear/content/tables/mission.yaml:8:  At the start of
+     … +4 lines (ctrl+o to expand)
+  ⎿  Updated gameRules/5_how_the_game_works.md (+1 -1)
+      40  
+      41  ## Mission
+      42  
+      43 -At the start of a play session, roll on  the [ Mission  table](
+         -tables/5_3_missions_table.md)  below  to determine what you mus
+         -t do to win  this  session  of  the  game.                     
+      43 +At the start of a play session, roll on  the [ Mission  table](
+         +tables/5_3_missions_table.md) to determine what you must do to 
+         +win  this  session  of  the  game.                             
+      44  
+      45  If you roll the same Mission that you played  last  time,  you 
+           may  reroll until you select a different one. 
+      46  
+  ⎿  Updated src/alone_against_fear/content/tables/mission.yaml (+1 -1)
+       5  source: gameRules/tables/5_3_missions_table.md
+       6  # From the Mission section of How the Game Works, printed besid
+          e the table.
+       7  text: >-
+       8 -  At the start of a play session, roll on the Mission table bel
+         -ow to determine                                                
+       8 +  At the start of a play session, roll on the Mission table to 
+         +determine                                                      
+       9    what you must do to win this session of the game. If you roll
+           the same
+      10    Mission that you played last time, you may reroll until you s
+          elect a
+      11    different one. To win the campaign, you must close seven Hell
+           Gates in any
+
+⏺ Now the design note and the log, so later batches follow the same rule:
+
+⏺ Update(design/content.md)
+  ⎿  Added 1 line, removed 1 line
+      35  ```
+      36  
+      37  - **YAML holds the text, Python the behaviour**, both keyed by 
+          the same ID ([D1](../Readme.md#deferred)). The YAML holds no ru
+          les logic.
+      38 -- **The text is copied as printed.** OCR damage is fixed agains
+         -t the original PDFs in `origin_rules/`, and page references bec
+         -ome table names ("Roll on the Clinic table (p. 46)" becomes "Ro
+         -ll on the Clinic table"). Nothing else changes. The Markdown in
+         - `gameRules/` is fixed in the same batch, so both copies say th
+         -e same thing.                                                  
+      38 +- **The text is copied as printed.** OCR damage is fixed agains
+         +t the original PDFs in `origin_rules/`, and page references bec
+         +ome table names ("Roll on the Clinic table (p. 46)" becomes "Ro
+         +ll on the Clinic table"), and words that point at the page layo
+         +ut are dropped ("the Mission table below"). Nothing else change
+         +s. The Markdown in `gameRules/` is fixed in the same batch, so 
+         +both copies say the same thing.                                
+      39  
+      40  ## Files
+      41  
+
+⏺ Update(claude-logs/202610312227-r1-yaml-tables.md)
+  ⎿  Added 2 lines, removed 2 lines
+      27  - **A catalogue of every table now**, which batches empty. Refe
+          rences validate against it, and it gives book mode its fallback
+           (dice and Markdown source). Rejected: stub files per table, an
+           allowlist in tests.
+      28  - **The Unique-creatures sentence of Random Encounter is a shar
+          ed note** pointed to by 3 / 6, 6 / 1-3 and 6 / 4-6, shown with 
+          those entries in book mode until the engine rerolls by itself (
+          E10). A table's own `text` (how to roll it, its modifiers) is a
+          pplied by the engine and shown only on request. Rejected: keepi
+          ng it only in 6 / 4-6, copying it three times, table text shown
+           on demand only.
+      29  - **Table slugs**: a short name from the heading, its singular 
+          or plural kept (`table.random_book`, `table.random_objects`); S
+          earch rolls is `table.search`.
+      30 -- **Mission table `text`** is the Mission paragraph of How the 
+         -Game Works, kept as printed. The engine applies its reroll rule
+         -, so it is only read on request.                               
+      31 -- **`refs`** list only what an entry tells you to roll on or pl
+         -ay, not places it merely names.                                
+      30 +- **Mission table `text`** is the Mission paragraph of How the 
+         +Game Works. The engine applies its reroll rule, so it is only r
+         +ead on request. "Below" was dropped (in the Markdown too): word
+         +s pointing at the page layout go, like page references.        
+      31 +- **`refs`** list only what an entry tells you to roll on or pl
+         +ay, not places it merely names ("every time you visit a Clinic 
+         +box" is a condition the rules check, not an action). Missions n
+         +ever use book mode, so their refs are never shown as actions an
+         +yway.                                                          
+      32  - **Worktrees**: the user noted a branch would have been enough
+           for a single session. A worktree is now used only for parallel
+           sessions.
+      33  
+      34  ## Open questions
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Point 2 is done: "below" is gone from the YAML and from
+  5_how_the_game_works.md. The design note now says that words pointing at the
+  page layout are dropped, like page references. Tests still pass (76) and ruff
+  is clean.
+
+  3. I can't see a real argument for a button there.
+  - "Every time you visit a Clinic box" is a condition the rules check, not
+    something you do, so there's nothing for a button to start.
+  - Missions never go through book mode: the engine plays them. So their
+    shortcuts would never show as buttons anyway.
+  - The closest case is a list of every table a text names, for example to
+    highlight the places a mission cares about on the map. That would be a
+    different field with a different purpose, Python can read it from the
+    mission's behaviour, and nothing needs it now.
+
+  So refs stays as it is, and the log says why.
+
+  4. Noted, thanks.
+
+  Everything is ready for the wrap-up. Please export the transcript:
+
+  /export claude-logs/transcripts/202610312227-r1-yaml-tables.txt
+
+  Then I'll move it into the worktree, commit, push, open the PR, add the PR
+  link to the log and push again.
+
+✻ Cogitated for 37s · done 23:00
+
+❯ I d like you to do the commits but wait before the PR etc, maybe dop multiple 
+  commit instead of a big one ?                                                 
+
+⏺ I'll make six commits on r1-yaml-tables, grouped so each one stands on its
+  own:
+
+  1. Design of the YAML format
+  2. The loader and its checks
+  3. The four tables in YAML, with their tests and the ruling
+  4. The Markdown fixes
+  5. The worktree workflow note
+  6. The session wrap-up (Readme, NextSession, log)
+
+  The transcript gets its own commit once you've exported it. No push and no PR
+  until you say so.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Six commits, working tree clean. I'm checking that the two code commits each
+  pass the tests on their own, so the history stays usable commit by commit:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ I've made the six commits on r1-yaml-tables, and nothing is pushed:
+
+  b375279 docs: R1 session wrap-up (Readme, next sessions, log)
+  e9019ff docs: use a worktree only for parallel sessions
+  245554e docs: fix the exploration tables in the Markdown
+  824388a feat: copy the four exploration tables into YAML
+  3709506 feat: load the rules text from YAML and check it
+  882c55d docs: design the rules text format in YAML
+
+  Each code commit passes the tests on its own: 16 at 3709506, before the tables
+  exist, and all 76 from 824388a on.
+
+  Next, whenever you're ready:
+
+  1. Export the transcript with /export 
+     claude-logs/transcripts/202610312227-r1-yaml-tables.txt. I'll move it into
+     the worktree and commit it separately.
+  2. Tell me when to push and open the PR. I'll then add the PR link to the log,
+     push again, and remove the worktree if you like.
+
+✻ Brewed for 36s · done 23:01
+
+❯ Right now we have all the models in a single file, should we rework this      
+  right now ?                                                                   
+
+⏺ No, I wouldn't split it now.
+
+  Why one file is fine for now:
+  - content/model.py is about 150 lines: five small dataclasses (Roll, Entry,
+    Table, CatalogueTable, Content) and three check functions.
+  - It all describes one thing, a table of rules text, and the pieces refer to
+    each other (Entry holds a nested Table, Table holds Entrys). Split across
+    files, you'd jump between them to read one idea.
+  - The loader is already separate, which is the split that matters: reading
+    YAML versus what the content is.
+
+  When it will be worth splitting:
+  - E1 (dice): TABLE_DICE belongs with the dice, so it should move to the dice
+    module. This is already noted in NextSession.
+  - R2 to R4, when Skills, items and creatures arrive. Each brings its own
+    model, probably one module per kind (content/creatures.py…). D1, decided in
+    E6, settles how much data they hold, so the right shape is clearer then than
+    now.
+  - If the checks grow past these three, for example when events add their own,
+    they can move to a checks.py.
+
+  Splitting now would mean guessing at boundaries that R2 to R4 and D1 will draw
+  for us. The "design before code, decide only what is worth deciding yet" rule
+  points the same way.
+
+  If you agree, I'll add one line to the log's open questions ("split
+  content/model.py per kind when R2 to R4 add their models; dice codes move in
+  E1") in a small extra commit. Otherwise the commits stay as they are, and I'm
+  still waiting for the transcript export and your go for the push and PR.
+
+✻ Cogitated for 11s · done 23:02
+
+❯ No we will split when required. However I think that having a documentation,  
+  that we can evolve as we go, of how those different classes interact should   
+  be nice. Is it too early ?                                                    
+
+⏺ Not too early, as long as it stays small and is updated at every session's
+  wrap-up. That's the moment to start it: there's one package, so it takes ten
+  minutes, and E1 to E5 will add the pieces that make it useful (dice, game
+  state, the engine/interface boundary in E4).
+
+  How I'd shape it:
+  - A new file, design/architecture.md, describing the code: packages, modules,
+    the main classes, who calls whom. It's kept apart from the domain docs:
+    - design/content.md describes the YAML format and why it is that way;
+    - design/architecture.md describes how the Python is built.
+  - Contents today:
+    - the content package (loader.py, model.py, the YAML files);
+    - a Mermaid class diagram with the real class names: Content, Table, Entry,
+      Roll, CatalogueTable;
+    - the flow: YAML files → load_content() → Content → checks, and lookups by
+      ID.
+  - Only what exists. No boxes for future modules: each session adds what it
+    builds. E4 will add the biggest piece, the engine/interface protocol.
+  - Kept up to date by the wrap-up. One step added to WorkingWithClaude.md:
+    "update design/architecture.md if the code structure changed". That's what
+    keeps it from drifting.
+
+  Diagrams generated from the code (e.g. pyreverse) would never drift, but they
+  show structure without intent. I'd add them later only if the hand-written one
+  starts lagging.
+
+  Shall I write it now, as a seventh commit together with the wrap-up step? The
+  push and PR still wait for you, and the transcript export too.
+
+✻ Churned for 21s · done 23:04
+
+❯ Yes we can add them, but I don't think they should go in design/ maybe a      
+  docs/ ?                                                                       
+
+⏺ I'll put it in a new docs/ folder: design/ stays domain design, and docs/
+  holds the code documentation. Writing docs/architecture.md now.
+
+⏺ Write(docs/architecture.md)
+  ⎿  Wrote 100 lines to docs/architecture.md
+       1 # Architecture
+       2 
+       3 How the Python code is built: packages, modules, the main classe
+         s and who calls whom. What the game is lives in [`design/`](../d
+         esign/), in domain terms; this page is about the code that imple
+         ments it.
+       4 
+       5 It describes only what exists. Each session updates it at wrap-u
+         p when the code structure changes ([Working with Claude](../Work
+         ingWithClaude.md#how-a-session-works)).
+     … +95 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Now the wrap-up step in WorkingWithClaude.md and CLAUDE.md, plus the log:
+
+⏺ Bash(.venv/bin/python - <<'EOF'
+      from pathlib import Path…)
+  ⎿  7:- Small planned sessions, one branch and one PR each. **Never commit
+      or push without permission**, except the agreed end-of-session wrap-u
+     p (update Readme, NextSession and, if the code structure changed, `doc
+     … +8 lines (ctrl+o to expand)
+  ⎿  Updated CLAUDE.md (+2 -2)
+       4  
+       5  ## Working rules
+       6  
+       7 -- Small planned sessions, one branch and one PR each. **Never c
+         -ommit or push without permission**, except the agreed end-of-se
+         -ssion wrap-up (update Readme and NextSession, write the log, as
+         -k for the transcript export, commit, push, PR, add the PR link 
+         -to the log).                                                   
+       7 +- Small planned sessions, one branch and one PR each. **Never c
+         +ommit or push without permission**, except the agreed end-of-se
+         +ssion wrap-up (update Readme, NextSession and, if the code stru
+         +cture changed, `docs/architecture.md`; write the log; ask for t
+         +he transcript export, commit, push, PR, add the PR link to the 
+         +log).                                                          
+       8  - Design before code: model in domain terms in `design/` first.
+           Decide only what is worth deciding yet; propose, do not decide
+          .
+       9  - **Rule interpretations**: suggest options, never rule. Ask fi
+          rst; rulings go to `design/rulings.md`, kept switchable.
+      10  - **No spoilers**: event names are fine, no plot details in cha
+          t or docs.
+     ...
+      21  
+      22  ## Layout and commands
+      23  
+      24 -- `src/alone_against_fear/` — package; `src/alone_against_fear/
+         -content/` — rules text in YAML (layout and IDs: [`design/conten
+         -t.md`](design/content.md)); `tests/` — pytest; `design/` — doma
+         -in design (Mermaid); `gameRules/` — extracted rules; `claude-lo
+         -gs/` — session logs.                                           
+      24 +- `src/alone_against_fear/` — package; `src/alone_against_fear/
+         +content/` — rules text in YAML (layout and IDs: [`design/conten
+         +t.md`](design/content.md)); `tests/` — pytest; `design/` — doma
+         +in design (Mermaid); `docs/` — code documentation ([`docs/archi
+         +tecture.md`](docs/architecture.md): packages, classes, who call
+         +s whom); `gameRules/` — extracted rules; `claude-logs/` — sessi
+         +on logs.                                                       
+      25  - Setup: `python -m venv .venv && .venv/bin/pip install -e '.[d
+          ev]'`
+      26  - Tests: `.venv/bin/pytest`  ·  Lint: `.venv/bin/ruff check .` 
+           ·  Format: `.venv/bin/ruff format .`
+      27  - Tests first; stop at the task's "Done when".
+  ⎿  Updated WorkingWithClaude.md (+1 -1)
+       7  1. Start from [NextSession.md](NextSession.md), the [Readme](Re
+          adme.md) and the latest log in [`claude-logs/`](claude-logs/).
+       8  2. From Milestone 5 on, create a GitHub issue from the task fir
+          st (title and "Done when" from the Readme); the PR says `Closes
+           #N`.
+       9  3. Work on a dedicated branch; one PR per session. Create the b
+          ranch in the main checkout; use a worktree only when another se
+          ssion runs at the same time (see [Parallel sessions](#parallel-
+          sessions)). During the session, Claude never commits or pushes 
+          without explicit permission.
+      10 -4. End by updating the Readme (checkboxes, decisions) and `Next
+         -Session.md` (remove the done session, adjust the plan).        
+      10 +4. End by updating the Readme (checkboxes, decisions), `NextSes
+         +sion.md` (remove the done session, adjust the plan) and, if the
+         + code structure changed, [`docs/architecture.md`](docs/architec
+         +ture.md).                                                      
+      11  5. Claude writes the session log in `claude-logs/YYYYMMDDHHmm-s
+          ession-name.md`.
+      12  6. The user exports the transcript with `/export claude-logs/tr
+          anscripts/YYYYMMDDHHmm-session-name.txt` (same name as the log)
+          .
+      13  7. Claude commits the session, pushes the branch, opens the PR,
+           writes the PR link in the log and pushes again. This end-of-se
+          ssion commit and push is agreed once and for all, so the next s
+          ession starts clean.
+  ⎿  Updated claude-logs/202610312227-r1-yaml-tables.md (+2 -0)
+      19  - Markdown of the four tables rewritten: Town Exploration colum
+          ns and split rows, Random Encounter as a first-d6 / second-d6 t
+          able, Missions with roll numbers and without the page-break hea
+          ding, page references turned into table names. The Unique-creat
+          ures sentence stays where the book prints it (6 / 4-6) in the M
+          arkdown.
+      20  - Ruling added: the "Useful Items table" of Search 6 is the Use
+          ful Stuff table.
+      21  - `WorkingWithClaude.md`: a plain branch by default, a worktree
+           only for parallel sessions.
+      22 +- [`docs/architecture.md`](../docs/architecture.md): how the co
+         +de is built (packages, classes, who calls whom), starting with 
+         +the `content` package. Updated at each wrap-up when the code st
+         +ructure changes.                                               
+      23  
+      24  ## Decisions
+      25  
+     ...
+      30  - **Table slugs**: a short name from the heading, its singular 
+          or plural kept (`table.random_book`, `table.random_objects`); S
+          earch rolls is `table.search`.
+      31  - **Mission table `text`** is the Mission paragraph of How the 
+          Game Works. The engine applies its reroll rule, so it is only r
+          ead on request. "Below" was dropped (in the Markdown too): word
+          s pointing at the page layout go, like page references.
+      32  - **`refs`** list only what an entry tells you to roll on or pl
+          ay, not places it merely names ("every time you visit a Clinic 
+          box" is a condition the rules check, not an action). Missions n
+          ever use book mode, so their refs are never shown as actions an
+          yway.
+      33 +- **Code documentation in `docs/`**, apart from the domain desi
+         +gn in `design/`: `docs/architecture.md` describes only what exi
+         +sts and grows at each wrap-up. Splitting `content/model.py` wai
+         +ts until it is needed (R2 to R4 bring their models; the dice co
+         +des move in E1). Generated diagrams (pyreverse) left out unless
+         + the hand-written page lags.                                   
+      34  - **Worktrees**: the user noted a branch would have been enough
+           for a single session. A worktree is now used only for parallel
+           sessions.
+      35  
+      36  ## Open questions
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ I've added docs/architecture.md and committed it as the seventh commit
+  (6055b98). Nothing is pushed yet.
+
+  - docs/architecture.md covers the code, while design/ stays domain design. It
+    has:
+    - a short map of the packages;
+    - for content, a flow diagram (YAML files → load_content() → Content →
+      checks and lookups by ID) and a class diagram using the real names
+      (Content, Table, Entry, Roll, CatalogueTable);
+    - notes on what isn't obvious from the code: everything is read-only, every
+      entry can be looked up by ID, nested tables take their entry's ID, and the
+      loader raises an error for malformed files while the checks return a list
+      of problems.
+    - It describes only what exists today.
+  - Wrap-up step: WorkingWithClaude.md and CLAUDE.md now say to update the page
+    at the end of a session whenever the code structure changed.
+  - The log records the choice of a docs/ folder, the decision to split model.py
+    only when needed, and that generated diagrams (pyreverse) are left out for
+    now.
+
+  I took "add them" to mean the page and the wrap-up step. If you meant the
+  generated pyreverse diagrams, tell me and I'll add them.
+
+  I haven't been able to render the Mermaid diagrams here, so check them once
+  they're on GitHub.
+
+  Still waiting on you:
+  1. Export the transcript: /export 
+     claude-logs/transcripts/202610312227-r1-yaml-tables.txt
+  2. Your go for the push and the PR.
+
+✻ Brewed for 1m 2s · done 23:07
+
+※ recap: R1 (copying the four exploration tables into YAML) is finished and committed in seven commits on r1-yaml-tables, but not pushed. Next, export the transcript to claude-logs/transcripts/202610312227-r1-yaml-tables.txt, then give the go to push and open the PR. (disable recaps in /config)
