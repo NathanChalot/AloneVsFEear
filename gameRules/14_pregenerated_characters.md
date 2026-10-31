@@ -1,7 +1,6 @@
 ## Sample pregenerated characters
 
-Transcribed from the two filled-in character sheets at the end of the book (pp. 105-106).
- They use the [character sheet](12_character_sheet.md), with "Pregenerated Character" as the title and "Mental scars" instead of "Insanities". Empty fields are left out.
+Transcribed from the two filled-in character sheets at the end of the book. They use the [character sheet](12_character_sheet.md), with "Pregenerated Character" as the title and "Mental scars" instead of "Insanities". Empty fields are left out.
 
 ### Anna Miller
 
