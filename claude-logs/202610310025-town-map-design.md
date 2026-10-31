@@ -25,6 +25,8 @@ Finish Milestone 1 (the three image transcriptions) from the original PDFs, then
 - **New sheet after a mission before the current one is full** — left open, it only matters for campaign play.
 - **Forest map of #41** — size and entry decided with the MVP scope.
 - **Milestone 3 without format conversion** — the user does not want to convert tables to another format yet.
+- **No book page references in the committed docs** — the user removed them from the transcriptions, `NextSession.md` and this log.
+- **Transcripts are kept verbatim**, even though they quote rules text — the repo is private and `gameRules/` already holds the book; a hand-edited transcript is no longer a record. If the repo ever goes public, `gameRules/` and the transcripts are handled together.
 
 ## Open questions
 
