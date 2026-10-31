@@ -1,4 +1,4 @@
-# Every table of the book that is not copied yet (design/content.md).
+# Every table of the book that is not copied yet (docs/content.md).
 # A YAML batch moves its tables out of here into their own files.
 # Book mode rolls a catalogued table's dice and points to its source.
 

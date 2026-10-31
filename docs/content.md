@@ -1,6 +1,6 @@
 # Rules text in YAML
 
-How the rules text is stored for the engine: files, IDs, the shape of a table, references between tables, and what is known but not copied yet. Why the text is copied at all is in [MVP scope](mvp-scope.md#where-the-text-comes-from). Words are defined in the [glossary](glossary.md). Decided in the R1 session.
+How the rules text is stored for the engine: files, IDs, the shape of a table, references between tables, and what is known but not copied yet. Why the text is copied at all is in [MVP scope](../design/mvp-scope.md#where-the-text-comes-from). Words are defined in the [glossary](../design/glossary.md). How the code loads and checks it: [architecture](architecture.md#content-the-rules-text). Decided in the R1 session.
 
 ## Structure
 
@@ -111,7 +111,7 @@ entries:
 
 - **`catalogue.yaml` lists every table not copied yet**, with its ID, name, dice and Markdown source. A reference to a catalogued table is valid.
 - **Each batch moves its tables out** of the catalogue into their own files. When the catalogue is empty, Milestone 3 is done.
-- **Book mode uses it as the fallback**: until a table is copied, the engine can still roll its dice and point to the Markdown file and entry number ([MVP scope](mvp-scope.md#where-the-text-comes-from)).
+- **Book mode uses it as the fallback**: until a table is copied, the engine can still roll its dice and point to the Markdown file and entry number ([MVP scope](../design/mvp-scope.md#where-the-text-comes-from)).
 - It lists the tables of `gameRules/tables/`, so every table ID is already fixed. Tables printed inside an event (the Fluid table) come with the events batch, R6. The optional random Skill tables come after the MVP. Events are added by the batch that first refers to one.
 
 ## Checks

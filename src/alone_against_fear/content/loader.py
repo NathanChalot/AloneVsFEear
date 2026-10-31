@@ -1,4 +1,4 @@
-"""Load the rules text from the YAML files of this package (design/content.md)."""
+"""Load the rules text from the YAML files of this package (docs/content.md)."""
 
 from __future__ import annotations
 

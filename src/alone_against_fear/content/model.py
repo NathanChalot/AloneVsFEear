@@ -1,6 +1,6 @@
 """The rules text as the engine sees it: tables, entries, and the checks they must pass.
 
-See design/content.md. The text is data only: what an entry does is Python, keyed by ID.
+See docs/content.md. The text is data only: what an entry does is Python, keyed by ID.
 """
 
 from __future__ import annotations

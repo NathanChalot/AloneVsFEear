@@ -1,6 +1,6 @@
 """The rules text, copied from the book into the YAML files of this package.
 
-See design/content.md for the file layout, the ID scheme and the shape of a table.
+See docs/content.md for the file layout, the ID scheme and the shape of a table.
 """
 
 from .loader import CONTENT_DIR, load_content

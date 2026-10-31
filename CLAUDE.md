@@ -21,7 +21,7 @@ Digital solo play of **Alone Against Fear** (Four Against Darkness engine). Read
 
 ## Layout and commands
 
-- `src/alone_against_fear/` — package; `src/alone_against_fear/content/` — rules text in YAML (layout and IDs: [`design/content.md`](design/content.md)); `tests/` — pytest; `design/` — domain design (Mermaid); `docs/` — code documentation ([`docs/architecture.md`](docs/architecture.md): packages, classes, who calls whom); `gameRules/` — extracted rules; `claude-logs/` — session logs.
+- `src/alone_against_fear/` — package; `src/alone_against_fear/content/` — rules text in YAML (layout and IDs: [`docs/content.md`](docs/content.md)); `tests/` — pytest; `design/` — domain design (Mermaid); `docs/` — code documentation: [`architecture.md`](docs/architecture.md) (packages, classes, who calls whom), [`content.md`](docs/content.md) (rules text in YAML: files, IDs, table shape); `gameRules/` — extracted rules; `claude-logs/` — session logs.
 - Setup: `python -m venv .venv && .venv/bin/pip install -e '.[dev]'`
 - Tests: `.venv/bin/pytest`  ·  Lint: `.venv/bin/ruff check .`  ·  Format: `.venv/bin/ruff format .`
 - Tests first; stop at the task's "Done when".

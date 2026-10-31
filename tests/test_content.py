@@ -1,5 +1,5 @@
 """The rules text copied into YAML: checks over the whole content, then what each
-table says, written from the book (see design/content.md)."""
+table says, written from the book (see docs/content.md)."""
 
 import re
 from collections import Counter

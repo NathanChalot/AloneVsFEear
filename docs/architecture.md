@@ -19,7 +19,7 @@ Rules that hold for every package ([`CLAUDE.md`](../CLAUDE.md)): the engine neve
 
 ## `content`: the rules text
 
-The book's text, copied into YAML, loaded once and read by ID. The format (files, IDs, fields) and the reasons behind it are in [rules text in YAML](../design/content.md).
+The book's text, copied into YAML, loaded once and read by ID. The format (files, IDs, fields) and the reasons behind it are in [rules text in YAML](content.md).
 
 ```mermaid
 flowchart LR
