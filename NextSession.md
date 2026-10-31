@@ -1,15 +1,6 @@
 # Next sessions
 
-Planned work sessions with Claude, in order. The [Readme](Readme.md) holds the roadmap and decisions; this file holds the plan for upcoming sessions.
-
-## How a session works
-
-1. Start from this file, the [Readme](Readme.md) and the latest log in [`claude-logs/`](claude-logs/).
-2. Work in a dedicated worktree and branch; one PR per session. During the session, Claude never commits or pushes without explicit permission.
-3. End by updating the Readme (checkboxes, decisions) and this file (remove the done session, adjust the plan).
-4. Claude writes the session log in `claude-logs/YYYYMMDDHHmm-session-name.md`.
-5. The user exports the transcript with `/export claude-logs/transcripts/YYYYMMDDHHmm-session-name.txt` (same name as the log).
-6. Claude commits the session, pushes the branch, opens the PR, writes the PR link in the log and pushes again. This end-of-session commit and push is agreed once and for all, so the next session starts clean.
+Planned work sessions with Claude, in order. The [Readme](Readme.md) holds the roadmap and decisions; this file holds the plan for upcoming sessions. How a session runs, which model to use and how to prompt it: see [Working with Claude](WorkingWithClaude.md).
 
 ## Reminders
 
@@ -17,8 +8,10 @@ Planned work sessions with Claude, in order. The [Readme](Readme.md) holds the r
 
 ## Plan
 
-1. **MVP scope** — which tables, creatures and events, and the fallback for the rest. Also decide the forest map of #41 (size, entering and leaving), left open by the [town map](design/town-map.md#open) design.
-2. **Project setup** — Milestone 4 except the Python bootstrap: `.tool-versions` (blocks running Python in the repo), minimal `CLAUDE.md`, `.claude/settings.json`.
-3. **GitHub planning** — milestones, labels and issues from the roadmap; decide whether issues or the Readme are the source of truth.
-4. **Review engine tasks** against the design, then start the engine in dependency order, bootstrapping the Python project with common defaults.
-5. **Rules cleanup** — Milestone 3, as the engine needs each table. Fix the Markdown against the original PDFs in `origin_rules/`; no format conversion yet.
+1. **Project setup and GitHub planning** — Milestone 4: `.tool-versions` (blocks running Python in the repo), minimal `CLAUDE.md` (include book mode and the YAML/Python split), `.claude/settings.json`, Python bootstrap with common defaults. Then milestones, labels and issues from the roadmap (R1–R7, E1–E20); decide whether issues or the Readme are the source of truth.
+2. **R1** — YAML layout, ID scheme and the four exploration tables, fixed against the original PDFs in `origin_rules/`, with the validation tests.
+3. **E1 and E2** — dice and game state.
+4. **E3** — town map, moves and time.
+5. **E4** — engine/interface protocol and game loop. Start with a short design discussion before any code: it is the main architecture choice.
+6. **E5** — book mode. The skeleton is done: a whole game can be walked in book mode.
+7. **Step 1** — E6 to E17, one task per session, with the R batches done ahead of the task that needs them (R2 and R3 before E6, R4 before E12, R5 before E16). The batches do not touch the engine and can run as parallel sessions. Everything is copied to YAML before step 1 is playable.

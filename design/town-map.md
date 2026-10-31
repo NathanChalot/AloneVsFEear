@@ -27,7 +27,7 @@ classDiagram
 - **A sheet's open edges are walls until it is full.** "If you visit all the boxes on a sheet and you haven't completed your mission yet, just attach a new paper sheet" (`5_how_the_game_works.md`). Once all 30 boxes are visited, the player may attach a new sheet and walk onto it.
 - **A new sheet may also be started after a mission** ([creator answers](creator-answers.md)), even if the current one is not full. Where the character goes then is open (see below).
 - **Home is any box** of the first sheet, chosen by the player. It is box 1 and has no content roll ([game flow](game-flow.md)).
-- **Side maps** are separate grids outside the town: #41 asks to "prepare a separate map diagram" for a forest. They use the same boxes and neighbours, but are not attached to the town grid. Their size and how you enter and leave them are decided with the MVP scope.
+- **Side maps** are separate grids outside the town: #41 asks to "prepare a separate map diagram" for a forest. They use the same boxes and neighbours, but are not attached to the town grid. Their size and how you enter and leave them are decided when #41 is written: it is not in the [MVP scope](mvp-scope.md).
 
 ## Neighbours and distance
 
@@ -83,8 +83,8 @@ A box can be numbered more than once: each entry writes a new number in it (the 
 
 ## Open
 
-- **Starting a new sheet after a mission** before the current one is full: does the character walk onto it from an edge, or start anywhere on it? Matters only for campaign play.
-- **The forest map of #41**: size, how you enter and leave it, and whether box numbers and Food run there. Decided with the MVP scope.
+- **Starting a new sheet after a mission** before the current one is full: does the character walk onto it from an edge, or start anywhere on it? Matters only for campaign play: decided when step 2 starts ([MVP scope](mvp-scope.md#to-decide-when-step-2-starts)).
+- **The forest map of #41**: size, how you enter and leave it, and whether box numbers and Food run there. Decided when #41 is written, after the MVP ([MVP scope](mvp-scope.md#after-the-mvp)).
 - **#16's jump**: whether the box in between counts as crossed (numbered, encounter roll) or skipped, and whether the jump takes 1 box of time or 2.
 - **"Most distant unrevealed box"** (Side Missions 2): on the current sheet or the whole town, and what happens if every box of the current sheet is revealed.
 - **Distance around a missing sheet**: when sheets form an L, the straight count can cross a spot with no sheet, so the real walk is longer. Count the grid or the walk? Rare, and only matters for the closest Safe House.
