@@ -50,7 +50,7 @@ flowchart TD
 
 ### Where the text comes from
 
-- **The rules text is copied into YAML files.** Each table, entry, creature, item, event and Skill gets a stable ID, its dice and entries, and its text as written in the book. While copying, OCR damage is fixed against the original PDFs in `origin_rules/`, and page references become table names.
+- **The rules text is copied into YAML files.** Each table, entry, creature, item, event and Skill gets a stable ID, its dice and entries, and its text as written in the book. While copying, OCR damage is fixed against the original PDFs in `origin_rules/`, and page references become table names. Files, IDs and the shape of a table: [rules text in YAML](content.md).
 - **Behaviour stays in Python**, keyed by the same ID. YAML holds no rules logic, so no rules language is invented ([D1](../Readme.md#deferred)). Whether plain data (creature stats, item weight, Skill XP cost) also goes into YAML is decided when the engine writes its first content (E6 in the [roadmap](../Readme.md#milestone-6--step-1-bring-home-the-bacon)).
 - **The Markdown in `gameRules/` stays** as the readable copy. The YAML is the copy the engine reads. Both are fixed together.
 - **Everything is copied before step 1 is playable**: every table, event, item and Skill, in batches ordered by when the engine needs them ([Milestone 3](../Readme.md#milestone-3--rules-text-in-yaml)). This replaces the Markdown-only cleanup. Until an entry is copied, book mode shows its file and entry number instead.
@@ -118,7 +118,7 @@ Every Skill is written: almost all are roll modifiers, stat modifiers or rule pa
 
 - Which item uses are written in step 1 (weapons, ammo, Food items, first aid kit, backpack and armor need step 1 mechanisms; most others can wait).
 - A free note on the box or the character, for book-mode effects that last ("for the next 3 boxes", a curse).
-- The YAML file layout and ID scheme (R1 in the [roadmap](../Readme.md#milestone-3--rules-text-in-yaml)).
+- ~~The YAML file layout and ID scheme~~: decided in R1, see [rules text in YAML](content.md).
 
 ## Order of work
 
