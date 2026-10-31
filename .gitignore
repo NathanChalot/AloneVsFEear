@@ -1,0 +1,16 @@
+# Original rulebook files (commercial, never commit)
+origin_rules/
+*.pdf
+*.zip
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OS
+.DS_Store

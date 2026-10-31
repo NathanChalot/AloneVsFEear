@@ -4,11 +4,11 @@ A program that runs a full session of **Alone Against Fear**, a survival-horror 
 
 The game rules are extracted from the rulebook PDF into Markdown under `gameRules/`, which serve as the reference for the engine. 
 
-The rules text is from a commercial book: keep this repository private.
+The rules text is from a commercial book: keep this repository private. The original PDFs go in `origin_rules/` at the repository root, which is git-ignored.
 
 ## Status
 
-MVP phase. Rules extraction is mostly done; domain design is under way in [`design/`](design/); the game engine has not been started.
+MVP phase. Rules extraction is done; domain design is under way in [`design/`](design/); the game engine has not been started.
 
 **MVP goal:** play one complete mission in the terminal — create a character, roll a mission, explore the town box by box, resolve encounters, search, manage inventory, food and health, and end by completing the mission and returning home, or by dying / going insane. Campaign play (several missions with the same character) comes after the MVP, but the game state is shaped as a campaign from the start: the map, the box counter, Food and Clues carry on across missions (see [game flow](design/game-flow.md)).
 
@@ -54,13 +54,11 @@ D5 (town map layout) and D6 (MVP content scope) are design topics, see Milestone
 
 ### Milestone 1 — Rules extraction
 
-The sheet transcriptions do not block design: the character sheet and town map feed the design topics.
-
 - [x] Parse the rulebook PDF (`gameRules/extractor/`)
 - [x] Split parsed output into sections: global rules, rolling tables, how the game works, game overview, random skill generation
-- [ ] Character sheet (image in the PDF, needs manual transcription)
-- [ ] Town map sheet (image in the PDF, needs manual transcription) — feeds the map design
-- [ ] Pregenerated characters (image in the PDF, needs manual transcription)
+- [x] [Character sheet](gameRules/12_character_sheet.md)
+- [x] [Town map sheet](gameRules/13_town_map.md)
+- [x] [Pregenerated characters](gameRules/14_pregenerated_characters.md)
 
 ### Milestone 2 — Domain design
 
@@ -75,7 +73,7 @@ Understand and diagram how the game works in domain terms before coding. Lives i
 - [x] [Combat](design/combat.md): attack, defense, surprise, escape, groups and waves, ammo, armor
 - [x] [Encounters and tables](design/encounters.md): how table results chain, choices, left-behind encounters, Unique Events
 - [x] [Effects and game moments](design/effects.md): holders, kinds, lifetimes, moments, reactions
-- [ ] Town map: grid shape, sheets, distances (was D5; uses the town map transcription)
+- [x] [Town map](design/town-map.md): grid shape, sheets, distances (was D5)
 - [ ] MVP scope: which tables, creatures and events, and the fallback for the rest (was D6)
 - [ ] Review the engine tasks below against the design
 
@@ -95,7 +93,7 @@ The OCR mangled the book's two-column layout. Content is complete, but many tabl
 ### Milestone 4 — Project setup
 
 - [ ] Fix `.tool-versions` (pins Python 3.14.5, not installed locally)
-- [ ] Add a `.gitignore` (PDF, virtualenvs, caches)
+- [x] Add a `.gitignore` (original rulebook files, virtualenvs, caches)
 - [ ] Write `CLAUDE.md` with established facts and conventions; extend it as decisions are made
 - [ ] Configure `.claude/settings.json` permissions
 - [ ] Bootstrap the Python project with common defaults (package layout, test run, CI optional)
@@ -133,7 +131,7 @@ Roll d6 on the Mission table at session start; track mission progress and comple
 - Depends on: E2, missions table fix.
 
 #### [ ] E6 — Town map, movement and time
-Grid of boxes per D5; start in any box; move to any neighbour including diagonals; number each box entered (time counter, ~2 hours per box); consume 1 Food every 5 boxes or lose 1 Life; effects lasting N boxes; annotate box content, Searched flag, occupied boxes (monsters you fled from), Safe Houses (max 3 in play).
+Grid of boxes per the [town map design](design/town-map.md); start in any box; move to any neighbour including diagonals; number each box entered (time counter, ~2 hours per box); consume 1 Food every 5 boxes or lose 1 Life; effects lasting N boxes; annotate box content, Searched flag, occupied boxes (monsters you fled from), Safe Houses (max 3 in play).
 - Rules: [how the game works](gameRules/5_how_the_game_works.md) (Movement and Mapping, Moving Through Visited Areas), [game overview](gameRules/9_game_overview.md)
 - Depends on: town map design, E2.
 

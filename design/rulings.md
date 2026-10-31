@@ -8,6 +8,11 @@ Our decisions where the book and the [creator answers](creator-answers.md) do no
 
 ## Map
 
+See [town map](town-map.md).
+
+- **Distance counts moves, a diagonal step counting as 1.** `interpretation` The book counts "the number of boxes on the town map that you should cross to reach that location" (Safe House results) and lets you "move diagonally if you wish" (`5_how_the_game_works.md`). The boxes you should cross are the fewest you walk through, so a diagonal neighbour is 1 box away. It also keeps #16's "1 or 2 boxes" in line with moves. Counting only orthogonal steps is the other reading; the two can pick a different closest Safe House.
+- **The town is one grid; sheets attach on seams.** `interpretation` Sheets are added "next to the previous ones" (`1_1_main_rules.md`), so boxes across a seam are neighbours and distances cross sheets. The player picks the side.
+- **A sheet's open edges are walls until it is full.** `interpretation` A new sheet is attached when "you visit all the boxes on a sheet" (`5_how_the_game_works.md`), or after a mission ([creator answers](creator-answers.md)).
 - **Hunting works in any box.** `interpretation` "You may encounter that creature in your next box" applies to visited and unexplored boxes alike. A creature hunting you does not care whether you have been there before.
 
 ## Character
