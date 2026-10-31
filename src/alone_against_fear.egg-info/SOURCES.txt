@@ -1,0 +1,8 @@
+pyproject.toml
+src/alone_against_fear/__init__.py
+src/alone_against_fear.egg-info/PKG-INFO
+src/alone_against_fear.egg-info/SOURCES.txt
+src/alone_against_fear.egg-info/dependency_links.txt
+src/alone_against_fear.egg-info/requires.txt
+src/alone_against_fear.egg-info/top_level.txt
+tests/test_smoke.py

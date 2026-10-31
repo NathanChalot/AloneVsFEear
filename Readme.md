@@ -131,11 +131,12 @@ Housekeeping, any time:
 
 ### Milestone 4 — Project setup
 
-- [ ] Fix `.tool-versions` (pins Python 3.14.5, not installed locally)
+- [x] Fix `.tool-versions` (now pins Python 3.14.2, the installed version)
 - [x] Add a `.gitignore` (original rulebook files, virtualenvs, caches)
-- [ ] Write `CLAUDE.md` with established facts and conventions; extend it as decisions are made
-- [ ] Configure `.claude/settings.json` permissions
-- [ ] Bootstrap the Python project with common defaults (package layout, test run, CI optional)
+- [x] Write `CLAUDE.md` with established facts and conventions; extend it as decisions are made
+- [x] Configure `.claude/settings.json` permissions (added by hand: an agent cannot edit its own permissions)
+- [x] Bootstrap the Python project with common defaults: `pyproject.toml`, src layout, pytest, ruff, CI
+- [ ] From Milestone 5 on, create one GitHub issue per session from the task (title and "Done when" copied from here); the PR closes it. Not before: setup and R1 are too small and nothing depends on them yet. The Readme stays the source of truth.
 
 ### Milestone 5 — Engine skeleton
 

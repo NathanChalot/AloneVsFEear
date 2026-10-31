@@ -1,0 +1,8 @@
+Metadata-Version: 2.4
+Name: alone-against-fear
+Version: 0.0.0
+Summary: Digital solo play of Alone Against Fear
+Requires-Python: >=3.13
+Provides-Extra: dev
+Requires-Dist: pytest>=8; extra == "dev"
+Requires-Dist: ruff>=0.8; extra == "dev"

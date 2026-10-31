@@ -5,11 +5,19 @@ How the work sessions run, and recommendations for them: how many to expect, whi
 ## How a session works
 
 1. Start from [NextSession.md](NextSession.md), the [Readme](Readme.md) and the latest log in [`claude-logs/`](claude-logs/).
-2. Work in a dedicated worktree and branch; one PR per session. During the session, Claude never commits or pushes without explicit permission.
-3. End by updating the Readme (checkboxes, decisions) and `NextSession.md` (remove the done session, adjust the plan).
-4. Claude writes the session log in `claude-logs/YYYYMMDDHHmm-session-name.md`.
-5. The user exports the transcript with `/export claude-logs/transcripts/YYYYMMDDHHmm-session-name.txt` (same name as the log).
-6. Claude commits the session, pushes the branch, opens the PR, writes the PR link in the log and pushes again. This end-of-session commit and push is agreed once and for all, so the next session starts clean.
+2. From Milestone 5 on, create a GitHub issue from the task first (title and "Done when" from the Readme); the PR says `Closes #N`.
+3. Work in a dedicated worktree and branch; one PR per session. During the session, Claude never commits or pushes without explicit permission.
+4. End by updating the Readme (checkboxes, decisions) and `NextSession.md` (remove the done session, adjust the plan).
+5. Claude writes the session log in `claude-logs/YYYYMMDDHHmm-session-name.md`.
+6. The user exports the transcript with `/export claude-logs/transcripts/YYYYMMDDHHmm-session-name.txt` (same name as the log).
+7. Claude commits the session, pushes the branch, opens the PR, writes the PR link in the log and pushes again. This end-of-session commit and push is agreed once and for all, so the next session starts clean.
+
+## How we develop
+
+- **TDD** for the engine: tests from the task's "Done when" first, shown failing, then the code, then tidying.
+- **BDD style in plain pytest**: scenario tests (given/when/then in names and comments) that a scripted interface plays through the engine, one or a few per user story. Gherkin feature files were considered and left out for now; reconsider if feature files should become the shared spec.
+- Ambiguous rules: discuss with options, simpler version first if switchable, write the ruling in `design/rulings.md`, and only then the test and the code.
+- Decided 2026-10-31 in the project setup session.
 
 ## How many sessions
 
@@ -34,6 +42,7 @@ Rough estimates, for sessions of about 1.5 hours. Not commitments.
 | Architecture: choices later tasks depend on | R1 (IDs), E1 + E2, E4, E6 (rest of D1), E7, E8, E10, E12 | Opus, high effort |
 | Clear spec: the design already says what to build | E3, E5, E9, E11, E13–E20 | Sonnet |
 | Copying rules text | R2–R7 | Sonnet, medium effort; Opus for a messy batch (events) |
+| Writing user stories and session issues | From Milestone 5 on | Sonnet, medium effort; Opus if slicing the game into stories turns into a design debate |
 | Routine setup | Project setup and GitHub planning | Sonnet (it posts to GitHub, so not Haiku) |
 | Small chores | renames, housekeeping | Haiku; never for rules text, where a misreading costs more than it saves |
 
