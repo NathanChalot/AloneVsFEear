@@ -6,7 +6,6 @@ See docs/content.md for the file layout, the ID scheme and the shape of a table.
 from .loader import CONTENT_DIR, load_content
 from .model import (
     KINDS,
-    TABLE_DICE,
     CatalogueTable,
     Content,
     ContentError,
@@ -21,7 +20,6 @@ from .model import (
 __all__ = [
     "CONTENT_DIR",
     "KINDS",
-    "TABLE_DICE",
     "CatalogueTable",
     "Content",
     "ContentError",

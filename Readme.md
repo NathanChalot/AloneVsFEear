@@ -8,7 +8,7 @@ The rules text is from a commercial book: keep this repository private. The orig
 
 ## Status
 
-MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables are in (R1). The game engine has not been started.
+MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables are in (R1). The engine has started: dice (E1) and the game state (E2).
 
 **MVP goal:** play a whole campaign in the terminal, in two steps ([MVP scope](design/mvp-scope.md)):
 
@@ -19,7 +19,7 @@ The engine follows the whole design, but only a thin slice of content is written
 
 ## How to use this roadmap
 
-The roadmap is split into milestones. Each `####` entry is sized to become one GitHub issue: its title, description, rules references, "Done when" and "Depends on" lines are the issue body. Check the box when it is done. Decisions are tracked as issues too, so they are made deliberately when they block work, not up front. Before deciding, ask: is it worth deciding yet, or is it a constraint we would have to fight later?
+The roadmap is split into milestones. Each `####` entry is sized to be one session's task: title, description, rules references, "Done when" and "Depends on". Check the box when it is done. GitHub issues are kept for user stories and bugs, only when needed. Deferred decisions are tracked here, so they are made deliberately when they block work, not up front. Before deciding, ask: is it worth deciding yet, or is it a constraint we would have to fight later?
 
 ## Working with Claude
 
@@ -136,19 +136,19 @@ Housekeeping, any time:
 - [x] Write `CLAUDE.md` with established facts and conventions; extend it as decisions are made
 - [x] Configure `.claude/settings.json` permissions (added by hand: an agent cannot edit its own permissions)
 - [x] Bootstrap the Python project with common defaults: `pyproject.toml`, src layout, pytest, ruff, CI
-- [ ] From Milestone 5 on, create one GitHub issue per session from the task (title and "Done when" copied from here); the PR closes it. Not before: setup and R1 are too small and nothing depends on them yet. The Readme stays the source of truth.
+- [x] GitHub issues: only for user stories and bugs, and only when needed (decided in the E1 and E2 session). Engine tasks with no user story get none: the Readme stays the source of truth, the PR and the session log record the work.
 
 ### Milestone 5 — Engine skeleton
 
 A whole game playable in book mode with nothing written yet: the engine keeps the state, the map and the time, and shows the text of every entry reached. Every later task replaces part of book mode and can be tried in the game straight away.
 
-#### [ ] E1 — Dice
+#### [x] E1 — Dice
 d3, d6, d6±n, 2d6, d6×d6, d66, "x in 6" chances. Seedable for reproducible tests. A roll result keeps the natural die as well as the total.
 - Rules: [main rules](gameRules/1_1_main_rules.md) (Dice Codes)
 - Done when: every dice code is unit tested.
 - Depends on: Milestone 4.
 
-#### [ ] E2 — Game state
+#### [x] E2 — Game state
 The campaign, character and mission levels and what each remembers: the map and its boxes, the box counter, the history (played, found, killed, keywords). For now the character holds plain numbers (Life, Sanity, Food, XP, Clues) and a list of named items. The state refers to content by ID and never holds code, so saving stays easy to add.
 - Design: [encounters](design/encounters.md#what-the-game-remembers), [game flow](design/game-flow.md)
 - Done when: the state can be built, queried and changed through the engine API, with tests.

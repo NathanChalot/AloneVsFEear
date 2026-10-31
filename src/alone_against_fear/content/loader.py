@@ -8,7 +8,8 @@ from typing import Any
 
 import yaml
 
-from .model import TABLE_DICE, CatalogueTable, Content, ContentError, Entry, Roll, Table
+from ..dice import DiceCode, DiceError
+from .model import CatalogueTable, Content, ContentError, Entry, Roll, Table
 
 CONTENT_DIR = Path(__file__).parent
 CATALOGUE = "catalogue.yaml"
@@ -66,10 +67,10 @@ def _check_keys(raw: Any, allowed: set[str], required: set[str], what: str) -> N
 
 
 def _dice(raw: dict, what: str) -> str:
-    dice = raw["dice"]
-    if dice not in TABLE_DICE:
-        raise ContentError(f"{what}: unknown dice {dice!r}")
-    return dice
+    try:
+        return str(DiceCode.parse(str(raw["dice"])))
+    except DiceError as error:
+        raise ContentError(f"{what}: {error}") from error
 
 
 def _catalogue_table(raw: Any, path: Path) -> CatalogueTable:

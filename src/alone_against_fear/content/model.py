@@ -9,15 +9,10 @@ from collections import Counter
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass, field
 
+from ..dice import DiceCode
+
 KINDS = frozenset({"table", "mission"})
 """First segment of every ID. A YAML batch adds the kinds it needs."""
-
-TABLE_DICE: Mapping[str, tuple[int, ...]] = {
-    "d6": tuple(range(1, 7)),
-    "2d6": tuple(range(2, 13)),
-    "d66": tuple(10 * tens + units for tens in range(1, 7) for units in range(1, 7)),
-}
-"""The results each table dice code can give."""
 
 
 class ContentError(Exception):
@@ -57,6 +52,7 @@ class Entry:
 class Table:
     id: str
     dice: str
+    """A dice code in standard form (see dice.DiceCode)."""
     entries: tuple[Entry, ...]
     name: str | None = None
     text: str | None = None
@@ -115,7 +111,7 @@ class Content:
 def coverage_problems(table: Table) -> list[str]:
     """Every result of the table's dice has exactly one entry. Nested tables are not
     included: check each one."""
-    results = TABLE_DICE[table.dice]
+    results = DiceCode.parse(table.dice).results()
     problems = []
     counts: Counter[int] = Counter()
     for entry in table.entries:

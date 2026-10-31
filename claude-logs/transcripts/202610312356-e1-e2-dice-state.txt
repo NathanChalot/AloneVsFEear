@@ -1,0 +1,1483 @@
+ ▐▛███▛█   Claude Code v2.1.316
+▝▜██████▀  Opus 5.5 · Claude Pro
+ ▝▝   ▝▝   ~/Code/RPGs/AloneVsFEear
+
+
+❯ /model                                                                        
+  ⎿  Set model to Opus 5.5 and saved as your default for new sessions with high
+     effort
+
+❯ LEts got with next session                                                    
+
+  Searched for 1 pattern, read 1 file, listed 2 directories, ran 1 shell command (ctrl+o to expand)
+
+⏺ Starting E1 + E2 (dice and game state). I've read the plan, the log and the
+  dice rules. Now reading the game-state design, then I'll restate the goal and
+  propose options before writing code.
+
+  Searched for 2 patterns, ran 2 shell commands (ctrl+o to expand)
+
+⏺ Having reviewed the plan, logs, and design docs, I'm moving on to E1 (dice)
+  and E2 (game state) on Opus at high effort — building seedable/scripted dice
+  covering all the book's dice codes, and a three-level
+  Campaign/Character/Mission state with map storage, using plain data only. I've
+  listed the default decisions I'll take unless told otherwise, covering dice
+  results, "x in 6" convention, map scope, no clamping of numbers, and the
+  plain-data test.
+
+⏺ User declined to answer questions
+  ⎿  · How should E2's game state change? (Every later engine task builds on 
+     this.) (Mutable dataclasses (Recommended) / Event-sourced)
+     · What shape should the history kept at each level (campaign, character, 
+     mission) take? (Log of records (Recommended) / Counters per kind)
+     · How should dice codes be written in code and in the YAML? (Parse printed 
+     codes (Recommended) / Constructors only)
+     · This is the first session with GitHub issues. How should E1 and E2 be 
+     filed? (Two issues, one PR (Recommended) / One combined issue)
+
+⏺ Thanks. So far: mutable dataclasses and a log of records for the history.
+
+  That leaves two open:
+
+  - Dice codes: parse the printed codes ("2d6+12", "3 in 6"), or use Python
+    constructors only.
+  - GitHub issues: two issues closed by one PR, or one combined issue.
+
+  What would you like to clarify about these?
+
+✻ Cooked for 1m 45s · done samedi 23:44
+
+❯ First why do we need the logs ?                                               
+  Dice codes -> what are the pros and cons ?                                    
+  Github issues -> issues should map to user stories and only if needed. Do we  
+  need them or is it just to follow whats on the readme etc ?                   
+
+  Searched for 2 patterns (ctrl+o to expand)
+
+⏺ Why keep a history at all
+
+  Many rules ask about the past, so the game has to remember it. I found these
+  in the rules text:
+
+  - Once per game or campaign: each Special Event, each Unique Vampire, each
+    book, each ritual, and the Dark clothes bonus.
+  - Once per mission: Children's Stuff findings, event #9 at the farm, and some
+    Arcane Skills.
+  - Already defeated: Slashers are rerolled if you've beaten them, and Destroy
+    the Coven counts the witches killed.
+  - First time: Railways 4 gives 1 Clue the first time you find it.
+  - Keywords: SNOWY, CLOWNFACE.
+
+  Each level has its own history because each forgets at a different time. A new
+  character loses what the old one knew, but the town still remembers which
+  Slashers are dead.
+
+  Why a log, though: I can't justify it. Every rule I found asks "has X
+  happened?" or "how many times?". None asks when. The log's only advantage over
+  counters is the box number, and nothing uses it. So I'd switch my
+  recommendation to counters per kind plus a keyword set. That's smaller, and it
+  covers every rule above. If a rule ever needs the "when", a counter can
+  become a log without changing who calls it.
+
+  Dice codes: pros and cons
+
+  Pros
+  Parse printed codes ("2d6+12"): Same notation as the book and the YAML (tables
+
+  already say dice: 2d6). Content written later can say "d6 Food" or "3d6
+  zombies" as plain strings. Tests read like the rules.
+  Constructors only (nd6(2, plus=12)): No parser to write. The type checker
+  catches mistakes.
+  ────────────────────────────────────────
+  Cons
+  Parse printed codes ("2d6+12"): A small parser to write and test, about 30
+  lines. A typo in a code only shows when content loads, not in the editor.
+  Constructors only (nd6(2, plus=12)): The YAML strings still need turning into
+  dice somewhere, which is a parser by another name. That leaves two ways to
+  write the same thing.
+
+  What decides it is how much the YAML will hold dice codes. Today that's only
+  three table codes (d6, 2d6, d66). More, like "d6 Food", arrives only if D1
+  puts amounts in YAML (E6). So there's a fair "not yet" option: constructors
+  now, plus the three table codes, and a parser when D1 needs one.
+
+  I'd still parse now. The parser is cheap, the book's notation is the spec, and
+  it makes the dice tests a direct copy of the Dice Codes section. Your call.
+
+  GitHub issues
+
+  You're right: issues for E1 and E2 would only be following the Readme. Nobody
+  else works on the repo, the Readme is the source of truth, and the PR and the
+  session log already record the work. E1 and E2 are engine internals with no
+  user story, since a player sees nothing yet. An issue would just copy the
+  roadmap entry.
+
+  Issues would earn their place for:
+
+  - User stories, once there's something to play. The earliest are E4 ("a player
+    walks 10 boxes") and E5 ("walks the town in book mode").
+  - Bugs and rule misreadings found while playing.
+
+  So I'd file no issues this session, and change the docs at wrap-up to match.
+  That means WorkingWithClaude.md step 2, the Milestone 4 checkbox and the model
+  table's "session issues" row: issues for user stories and bugs, only when
+  needed.
+
+  So, to confirm: counters for the history, parse or wait for dice codes, and no
+  issues this session?
+
+✻ Cooked for 35s · done samedi 23:46
+
+❯ Counters is fine but logging in a file is cool and could help us debug so I   
+  ll keep the counter for the mechanics but logs stuff to log file, parse dice  
+  codes, no issues                                                              
+
+⏺ Agreed on all three:
+
+  - History: counters for the rules, and the engine also writes what happens to
+    a log file.
+  - Dice codes: parsed from the printed codes.
+  - Issues: none this session.
+
+  For the log file, the engine will use Python's standard logging and only send
+  messages. The interface decides where they go, so the terminal interface (E4)
+  will open the file. Tests can capture the messages in the meantime. That keeps
+  the engine free of output.
+
+  Creating the branch now, then a look at where the content code uses dice.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ I'll structure the code into dice.py for dice sources, engine/state.py for
+  state dataclasses, and engine/game.py for the Game API. I'll start by writing
+  tests first, beginning with E1 from the Dice Codes section.
+
+⏺ Write(tests/test_dice.py)
+  ⎿  Wrote 221 lines to tests/test_dice.py
+      1 """E1: every dice code of the book, written from the Dice Codes s
+        ection of the main rules.
+      2 
+      3 Rule tests use scripted dice (the faces the dice show, in order);
+         reproducibility tests use
+      4 seeded dice.
+      5 """
+      6 
+      7 import logging
+      8 
+     … +213 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ The tests fail because the module doesn't exist yet. Writing dice.py:
+
+⏺ Write(src/alone_against_fear/dice.py)
+  ⎿  Wrote 176 lines to src/alone_against_fear/dice.py
+      1 """Dice codes and dice sources (E1).
+      2 
+      3 A dice code is plain data, parsed from the code the book prints (
+        "2d6+1", "d6 x d6", "d66");
+      4 a chance is "x in 6". Rolling takes a dice source: `RandomDice` f
+        or play and seeded tests,
+      5 `ScriptedDice` for rule tests that state the faces shown. Every r
+        oll keeps the faces shown as
+      6 well as the total, and is written to the log.
+      7 """
+     … +169 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ All 66 dice tests pass. Next, TABLE_DICE moves out of the content model: the
+  loader and the coverage check will read table dice through DiceCode.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      import re…)
+  ⎿  =========================== short test summary info ==================
+     ==========
+     FAILED tests/test_content_validation.py::test_a_table_dice_code_is_kep
+     … +2 lines (ctrl+o to expand)
+  ⎿  Updated tests/test_content_validation.py (+7 -0)
+      83      assert coverage_problems(content.table("table.test")) == ["
+          table.test: no entry for 66"]
+      84  
+      85  
+      86 +def test_a_table_dice_code_is_kept_in_standard_form(root):     
+      87 +    entries = "  - {roll: 3-13, text: a}\n"                    
+      88 +    content = load_one(root, d6_table(entries).replace("dice: d
+         +6", "dice: 2d6 +1"))                                           
+      89 +    assert content.table("table.test").dice == "2d6+1"         
+      90 +    assert coverage_problems(content.table("table.test")) == []
+      91 +                                                               
+      92 +                                                               
+      93  def test_an_unknown_dice_code_is_refused(root):
+      94      with pytest.raises(ContentError, match="d7"):
+      95          load_one(root, d6_table("  - {roll: 1-6, text: a}\n").r
+          eplace("dice: d6", "dice: d7"))
+
+⏺ Bash(python3 - <<'EOF'
+      p='src/alone_against_fear/content/model.py'…)
+  ⎿  9:from collections.abc import Iterator, Mapping
+     62:    notes: Mapping[str, str] = field(default_factory=dict)
+     97:    tables: Mapping[str, Table]
+     … +7 lines (ctrl+o to expand)
+  ⎿  Updated gameRules/extractor/main.py (+4 -4)
+      21  # import os
+      22  # from docling.datamodel.base_models import InputFormat
+      23  # from docling.datamodel.pipeline_options import PdfPipelineOpt
+          ions
+      24 -#                                                              
+      24 +#                                                              
+      25  # # Suppress HuggingFace warnings by setting offline mode
+      26  # os.environ["HF_HUB_OFFLINE"] = "1"
+      27 -#                                                              
+      27 +#                                                              
+      28  # # Configure pipeline to use local models only
+      29  # pipeline_options = PdfPipelineOptions()
+      30  # pipeline_options.do_ocr = False  # Disable OCR to avoid model
+           downloads
+      31  # pipeline_options.do_table_structure = True
+      32 -#                                                              
+      32 +#                                                              
+      33  # converter = DocumentConverter(
+      34  #     format_options={
+      35  #         InputFormat.PDF: pipeline_options,
+      36  #     }
+      37  # )
+      38 -# result = converter.convert(source)                           
+      38 +# result = converter.convert(source)                           
+  ⎿  Updated src/alone_against_fear/content/__init__.py (+0 -2)
+       6  from .loader import CONTENT_DIR, load_content
+       7  from .model import (
+       8      KINDS,
+       9 -    TABLE_DICE,                                                
+       9      CatalogueTable,
+      10      Content,
+      11      ContentError,
+     ...
+      20  __all__ = [
+      21      "CONTENT_DIR",
+      22      "KINDS",
+      24 -    "TABLE_DICE",                                              
+      23      "CatalogueTable",
+      24      "Content",
+      25      "ContentError",
+  ⎿  Updated src/alone_against_fear/content/loader.py (+6 -5)
+       8  
+       9  import yaml
+      10  
+      11 -from .model import TABLE_DICE, CatalogueTable, Content, Content
+         -Error, Entry, Roll, Table                                      
+      11 +from ..dice import DiceCode, DiceError                         
+      12 +from .model import CatalogueTable, Content, ContentError, Entry
+         +, Roll, Table                                                  
+      13  
+      14  CONTENT_DIR = Path(__file__).parent
+      15  CATALOGUE = "catalogue.yaml"
+     ...
+      67  
+      68  
+      69  def _dice(raw: dict, what: str) -> str:
+      69 -    dice = raw["dice"]                                         
+      70 -    if dice not in TABLE_DICE:                                 
+      71 -        raise ContentError(f"{what}: unknown dice {dice!r}")   
+      72 -    return dice                                                
+      70 +    try:                                                       
+      71 +        return str(DiceCode.parse(str(raw["dice"])))           
+      72 +    except DiceError as error:                                 
+      73 +        raise ContentError(f"{what}: {error}") from error      
+      74  
+      75  
+      76  def _catalogue_table(raw: Any, path: Path) -> CatalogueTable:
+  ⎿  Updated src/alone_against_fear/content/model.py (+4 -8)
+       9  from collections.abc import Iterator, Mapping
+      10  from dataclasses import dataclass, field
+      11  
+      12 +from ..dice import DiceCode                                    
+      13 +                                                               
+      14  KINDS = frozenset({"table", "mission"})
+      15  """First segment of every ID. A YAML batch adds the kinds it ne
+          eds."""
+      16  
+      15 -TABLE_DICE: Mapping[str, tuple[int, ...]] = {                  
+      16 -    "d6": tuple(range(1, 7)),                                  
+      17 -    "2d6": tuple(range(2, 13)),                                
+      18 -    "d66": tuple(10 * tens + units for tens in range(1, 7) for 
+         -units in range(1, 7)),                                         
+      19 -}                                                              
+      20 -"""The results each table dice code can give."""               
+      21 -                                                               
+      17  
+      18  class ContentError(Exception):
+      19      """The YAML content is malformed and cannot be loaded."""
+     ...
+      52  class Table:
+      53      id: str
+      54      dice: str
+      55 +    """A dice code in standard form (see dice.DiceCode)."""    
+      56      entries: tuple[Entry, ...]
+      57      name: str | None = None
+      58      text: str | None = None
+     ...
+      111  def coverage_problems(table: Table) -> list[str]:
+      112      """Every result of the table's dice has exactly one entry.
+            Nested tables are not
+      113      included: check each one."""
+      118 -    results = TABLE_DICE[table.dice]                          
+      114 +    results = DiceCode.parse(table.dice).results()            
+      115      problems = []
+      116      counts: Counter[int] = Counter()
+      117      for entry in table.entries:
+
+⏺ E1 is done. The content checks now read table dice through DiceCode, and all
+  143 tests pass.
+
+  Now E2. The game-state tests, in given/when/then style:
+
+⏺ Write(tests/test_game_state.py)
+  ⎿  Wrote 236 lines to tests/test_game_state.py
+       1 """E2: the game state, built, queried and changed through the en
+         gine API.
+       2 
+       3 Levels nest: the campaign outlives its characters, a character o
+         utlives its missions
+       4 (design/encounters.md, What the game remembers). Rules that limi
+         t or gate content read the
+       5 history of a level: what was played, found or killed there, and 
+         its keywords.
+       6 """
+     … +230 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+⏺ The tests fail as expected. Writing the state and the engine API:
+
+⏺ Write(src/alone_against_fear/engine/state.py)
+  ⎿  Wrote 102 lines to src/alone_against_fear/engine/state.py
+       1 """The game state (E2): plain data only, content referred to by 
+         ID, never code.
+       2 
+       3 Three nested levels, each forgotten at its own time (design/enco
+         unters.md, What the game
+       4 remembers): the campaign is never forgotten, a character is forg
+         otten at death or insanity,
+       5 a mission when a new one is rolled. Only the engine (`Game`) cha
+         nges the state.
+       6 """
+     … +96 lines (ctrl+o to expand)
+
+⏺ Write(src/alone_against_fear/engine/game.py)
+  ⎿  Wrote 124 lines to src/alone_against_fear/engine/game.py
+       1 """The engine API (E2): the only way the game state is changed.
+       2 
+       3 Every change is written to the log (logger `alone_against_fear`)
+         ; the interface decides where
+       4 the log goes. The rules about these changes (limits, what a loss
+          below zero means) come with
+       5 the tasks that need them.
+       6 """
+       7 
+       8 from __future__ import annotations
+     … +116 lines (ctrl+o to expand)
+
+⏺ Write(src/alone_against_fear/engine/__init__.py)
+  ⎿  Wrote 31 lines to src/alone_against_fear/engine/__init__.py
+       1 """The game engine: it keeps the game state and applies the rule
+         s. It never reads input or
+       2 prints; it logs what happens to the `alone_against_fear` logger.
+         """
+       3 
+       4 from .game import Game, GameError
+       5 from .state import (
+       6     Box,
+       7     Campaign,
+       8     Character,
+     … +23 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ All 168 tests pass and ruff is clean. One tidy-up: gain and lose share a
+  clumsy helper.
+
+⏺ Update(src/alone_against_fear/engine/game.py)
+  ⎿  Added 10 lines, removed 10 lines
+      65          return self.campaign.character
+      66  
+      67      def gain(self, stat: Stat, amount: int) -> int:
+      68 -        return self._change(stat, amount, "gains")             
+      68 +        """Add to one of the character's numbers; returns the n
+         +ew value."""                                                   
+      69 +        _check_amount(stat, amount)                            
+      70 +        return self._set(stat, getattr(self.character, stat) + 
+         +amount, f"gains {amount}")                                     
+      71  
+      72      def lose(self, stat: Stat, amount: int) -> int:
+      71 -        return self._change(stat, -amount, "loses", amount)    
+      73 +        """Take from one of the character's numbers; returns th
+         +e new value. Not clamped:                                      
+      74 +        what a loss below zero means is a rule, decided by the 
+         +task that needs it."""                                         
+      75 +        _check_amount(stat, amount)                            
+      76 +        return self._set(stat, getattr(self.character, stat) - 
+         +amount, f"loses {amount}")                                     
+      77  
+      73 -    def _change(self, stat: Stat, delta: int, verb: str, amount
+         -: int | None = None) -> int:                                   
+      74 -        amount = delta if amount is None else amount           
+      75 -        if amount < 0:                                         
+      76 -            raise GameError(f"cannot {verb[:-1]} a negative amo
+         -unt of {stat}: {amount}")                                      
+      77 -        character = self.character                             
+      78 -        value = getattr(character, stat) + delta               
+      79 -        setattr(character, stat, value)                        
+      80 -        log.info("character %s %d %s, now %d", verb, amount, st
+         -at, value)                                                     
+      78 +    def _set(self, stat: Stat, value: int, change: str) -> int:
+      79 +        setattr(self.character, stat, value)                   
+      80 +        log.info("character %s %s, now %d", change, stat, value
+         +)                                                              
+      81          return value
+      82  
+      83      def add_item(self, name: str) -> None:
+
+⏺ Bash(cat >> src/alone_against_fear/engine/game.py <<'EOF'…)
+  ⎿  All checks passed!
+     103 files left unchanged
+     ........................
+     … +2 lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/engine/game.py (+6 -1)
+       94  
+       95      def start_mission(self, mission_id: str) -> Mission:
+       96          """A new mission; the last one is forgotten."""
+       97 -        if mission_id not in self.content.entries or not missi
+          -on_id.startswith("mission."):                                 
+       97 +        if not mission_id.startswith("mission.") or mission_id
+          + not in self.content:                                         
+       98              raise GameError(f"no such mission: {mission_id}")
+       99          self.character.mission = Mission(id=mission_id)
+      100          log.info("mission starts: %s", mission_id)
+     ...
+      122      def add_keyword(self, level: Level, keyword: str) -> None:
+      123          self.history(level).keywords.add(keyword)
+      124          log.info("%s keyword: %s", level, keyword)
+      125 +                                                              
+      126 +                                                              
+      127 +def _check_amount(stat: Stat, amount: int) -> None:           
+      128 +    if amount < 0:                                            
+      129 +        raise GameError(f"a negative amount of {stat}: {amount
+          +}")                                                           
+
+⏺ Both "Done when" lines are met: every dice code is unit tested, and the game
+  state can be built, queried and changed through the engine API. All 168 tests
+  pass and ruff is clean. The work is on branch e1-e2-dice-state; nothing is
+  committed yet.
+
+  E1, dice (src/alone_against_fear/dice.py)
+  - Dice codes are parsed from the printed form ("d6 x d6", "12+d6") and shown
+    back in a standard form. The parser covers every code the rules text uses
+    (d3, d3+1, d6±n, 2d6, 3d6, 2d6+12, 12+d6, d6xd6, d66) and refuses anything
+    else.
+  - "x in 6" chances succeed on a die showing x or less.
+  - Two dice sources: RandomDice(seed), and ScriptedDice([6, 6, 2]) for rule
+    tests. Scripted dice fail a test loudly if they run out.
+  - A roll result keeps the total and every die shown, so rules can read the
+    natural die.
+  - TABLE_DICE is gone. The content loader reads table dice through DiceCode, so
+    any printed code can be a table's dice.
+  - Every roll is logged.
+
+  E2, game state (src/alone_against_fear/engine/)
+  - State: Campaign ⊃ Character ⊃ Mission, as mutable plain dataclasses. Each
+    level has its own history: counters of what was played, found and killed,
+    plus a keyword set.
+  - Map: boxes are kept by position, and each box keeps every number written in
+    it.
+  - The Game API: create a character (the new one continues the campaign), gain
+    or lose any of the character's numbers, add or remove items, start a mission
+    (the ID must exist in the content), number a box, record what happened, add
+    keywords.
+  - A test checks the state holds only plain data, so the "no code in the state"
+    rule is enforced.
+  - Every change is logged to the alone_against_fear logger. Nothing writes the
+    file yet: the terminal interface opens it in E4.
+
+  Left open, nothing decided:
+  - Losses aren't clamped. Food or Life can go below 0 for now. What a loss
+    bigger than what you have means comes with E3, E5 and E13.
+  - IDs written to the history aren't checked against the content, because
+    creatures and events aren't in YAML yet.
+  - The dice aren't saved with the campaign. A resumed game won't continue the
+    same dice sequence. That only matters when save and resume exists.
+
+  When you've looked at the code, shall I start the wrap-up? That covers the
+  Readme, NextSession.md (with the model review), docs/architecture.md, and the
+  issue rule in WorkingWithClaude.md and the Readme. Then the log, your
+  transcript export, and the commit, push and PR.
+
+✻ Churned for 3m 32s · done samedi 23:55
+
+❯ Once your done, I d like your opinion about parallelizing some of the         
+  remaining steps. Maybe with a parent session acting like a coordinator or     
+  project manager and some sub agents working on the different task. The PM     
+  would ask me for clarification when needed. Don't do it now, I m just asking  
+  if you think we could do it to gain time                                      
+
+⏺ I'll do the wrap-up first and give my view on parallel sessions before asking
+  you for the transcript export, so it's in the transcript. Updating the docs
+  now.
+
+⏺ Bash(python3 - <<'EOF'
+      p='Readme.md'…)
+  ⎿  Readme.md:22:The roadmap is split into milestones. Each `####` entry i
+     s sized to become one GitHub issue: its title, description, rules refe
+     rences, "Done when" and "Depends on" lines are the issue body. Check t
+     … +19 lines (ctrl+o to expand)
+  ⎿  Updated Readme.md (+4 -4)
+       8  
+       9  ## Status
+      10  
+      11 -MVP phase. Rules extraction and domain design ([`design/`](desi
+         -gn/)) are done. The rules text is being copied into YAML: the f
+         -ormat and the four exploration tables are in (R1). The game eng
+         -ine has not been started.                                      
+      11 +MVP phase. Rules extraction and domain design ([`design/`](desi
+         +gn/)) are done. The rules text is being copied into YAML: the f
+         +ormat and the four exploration tables are in (R1). The engine h
+         +as started: dice (E1) and the game state (E2).                 
+      12  
+      13  **MVP goal:** play a whole campaign in the terminal, in two ste
+          ps ([MVP scope](design/mvp-scope.md)):
+      14  
+     ...
+      136  - [x] Write `CLAUDE.md` with established facts and conventions
+           ; extend it as decisions are made
+      137  - [x] Configure `.claude/settings.json` permissions (added by 
+           hand: an agent cannot edit its own permissions)
+      138  - [x] Bootstrap the Python project with common defaults: `pypr
+           oject.toml`, src layout, pytest, ruff, CI
+      139 -- [ ] From Milestone 5 on, create one GitHub issue per session
+          - from the task (title and "Done when" copied from here); the P
+          -R closes it. Not before: setup and R1 are too small and nothin
+          -g depends on them yet. The Readme stays the source of truth.  
+      139 +- [x] GitHub issues: only for user stories and bugs, and only 
+          +when needed (decided in the E1 and E2 session). Engine tasks w
+          +ith no user story get none: the Readme stays the source of tru
+          +th, the PR and the session log record the work.               
+      140  
+      141  ### Milestone 5 — Engine skeleton
+      142  
+      143  A whole game playable in book mode with nothing written yet: t
+           he engine keeps the state, the map and the time, and shows the
+            text of every entry reached. Every later task replaces part o
+           f book mode and can be tried in the game straight away.
+      144  
+      145 -#### [ ] E1 — Dice                                            
+      145 +#### [x] E1 — Dice                                            
+      146  d3, d6, d6±n, 2d6, d6×d6, d66, "x in 6" chances. Seedable for 
+           reproducible tests. A roll result keeps the natural die as wel
+           l as the total.
+      147  - Rules: [main rules](gameRules/1_1_main_rules.md) (Dice Codes
+           )
+      148  - Done when: every dice code is unit tested.
+      149  - Depends on: Milestone 4.
+      150  
+      151 -#### [ ] E2 — Game state                                      
+      151 +#### [x] E2 — Game state                                      
+      152  The campaign, character and mission levels and what each remem
+           bers: the map and its boxes, the box counter, the history (pla
+           yed, found, killed, keywords). For now the character holds pla
+           in numbers (Life, Sanity, Food, XP, Clues) and a list of named
+            items. The state refers to content by ID and never holds code
+           , so saving stays easy to add.
+      153  - Design: [encounters](design/encounters.md#what-the-game-reme
+           mbers), [game flow](design/game-flow.md)
+      154  - Done when: the state can be built, queried and changed throu
+           gh the engine API, with tests.
+
+⏺ Bash(python3 - <<'EOF'
+      edits={…)
+  ⎿   CLAUDE.md                                  |  2 +-
+      Readme.md                                  | 10 +++++-----
+      WorkingWithClaude.md                       |  4 ++--
+     … +6 lines (ctrl+o to expand)
+  ⎿  Updated CLAUDE.md (+1 -1)
+      29  ## Testing approach
+      30  
+      31  - **TDD** for the engine: write the tests from the task's "Done
+           when" line, see them fail, implement, tidy. Unit tests per rul
+          e; dice are seeded so runs are reproducible.
+      32 -- **BDD style in plain pytest** (no Gherkin): scenario tests na
+         -med and commented given/when/then, driven by a scripted interfa
+         -ce that answers the engine's requests. One or a few scenarios p
+         -er user story or session issue.                                
+      32 +- **BDD style in plain pytest** (no Gherkin): scenario tests na
+         +med and commented given/when/then, driven by a scripted interfa
+         +ce that answers the engine's requests. One or a few scenarios p
+         +er user story or bug.                                          
+      33  - A test per rule, written from the Markdown rules text, so a m
+          isreading shows up as a failing test.
+      34  - **Ambiguous rules** (tests are rulings written as code): disc
+          uss first, with options proposed; if switchable, start with the
+           simpler version; write the ruling in `design/rulings.md`; only
+           then write the test and the code.
+  ⎿  Updated Readme.md (+1 -1)
+      19  
+      20  ## How to use this roadmap
+      21  
+      22 -The roadmap is split into milestones. Each `####` entry is size
+         -d to become one GitHub issue: its title, description, rules ref
+         -erences, "Done when" and "Depends on" lines are the issue body.
+         - Check the box when it is done. Decisions are tracked as issues
+         - too, so they are made deliberately when they block work, not u
+         -p front. Before deciding, ask: is it worth deciding yet, or is 
+         -it a constraint we would have to fight later?                  
+      22 +The roadmap is split into milestones. Each `####` entry is size
+         +d to be one session's task: title, description, rules reference
+         +s, "Done when" and "Depends on". Check the box when it is done.
+         + GitHub issues are kept for user stories and bugs, only when ne
+         +eded. Deferred decisions are tracked here, so they are made del
+         +iberately when they block work, not up front. Before deciding, 
+         +ask: is it worth deciding yet, or is it a constraint we would h
+         +ave to fight later?                                            
+      23  
+      24  ## Working with Claude
+      25  
+  ⎿  Updated WorkingWithClaude.md (+2 -2)
+       5  ## How a session works
+       6  
+       7  1. Start from [NextSession.md](NextSession.md), the [Readme](Re
+          adme.md) and the latest log in [`claude-logs/`](claude-logs/).
+       8 -2. From Milestone 5 on, create a GitHub issue from the task fir
+         -st (title and "Done when" from the Readme); the PR says `Closes
+         - #N`.                                                          
+       8 +2. GitHub issues only for user stories and bugs, and only when 
+         +needed; the PR then says `Closes #N`. An engine task with no us
+         +er story gets no issue: the Readme entry is the task.          
+       9  3. Work on a dedicated branch; one PR per session. Create the b
+          ranch in the main checkout; use a worktree only when another se
+          ssion runs at the same time (see [Parallel sessions](#parallel-
+          sessions)). During the session, Claude never commits or pushes 
+          without explicit permission.
+      10  4. End by updating the Readme (checkboxes, decisions), `NextSes
+          sion.md` (remove the done session, adjust the plan, review the 
+          model and effort of each planned session in light of this one) 
+          and, if the code structure changed, [`docs/architecture.md`](do
+          cs/architecture.md).
+      11  5. Claude writes the session log in `claude-logs/YYYYMMDDHHmm-s
+          ession-name.md`.
+     ...
+      42  | Architecture: choices later tasks depend on | R1 (IDs), E1 + 
+          E2, E4, E6 (rest of D1), E7, E8, E10, E12 | Opus, high effort |
+      43  | Clear spec: the design already says what to build | E3, E5, E
+          9, E11, E13–E20 | Sonnet |
+      44  | Copying rules text | R2–R7 | Sonnet, medium effort; Opus for 
+          a messy batch (events) |
+      45 -| Writing user stories and session issues | From Milestone 5 on
+         - | Sonnet, medium effort; Opus if slicing the game into stories
+         - turns into a design debate |                                  
+      45 +| Writing user stories and their issues | When a task has a pla
+         +yer-facing story (E4 on) | Sonnet, medium effort; Opus if slici
+         +ng the game into stories turns into a design debate |          
+      46  | Routine setup | Project setup and GitHub planning | Sonnet (i
+          t posts to GitHub, so not Haiku) |
+      47  | Small chores | renames, housekeeping | Haiku; never for rules
+           text, where a misreading costs more than it saves |
+      48  
+
+⏺ ruff format also reformatted gameRules/extractor/main.py, which has nothing to
+  do with this session. Checking what changed before undoing it:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ It only strips trailing whitespace in commented-out lines. If I undo it, every
+  future ruff format . will make the same change again, so I'll keep it and
+  note it in the log. Next, NextSession.md:
+
+⏺ Bash(python3 - <<'EOF'
+      p='NextSession.md'…)
+  ⎿  ## Plan
+
+     1. **E3** — town map, moves and time. Builds on `Game.number_box` and
+     … +24 lines (ctrl+o to expand)
+  ⎿  Updated NextSession.md (+5 -7)
+       8  
+       9  ## Plan
+      10  
+      11 -1. **E1 and E2** — dice and game state. First session with engi
+         -ne code and the first GitHub issue (Milestone 5). The table dic
+         -e codes (`d6`, `2d6`, `d66`) already exist in `content/model.py
+         -` for the YAML checks; E1 may move them into the dice module.  
+      12 -   Model: **Opus, high effort**. Architecture: every later task
+         - builds on the game state.                                     
+      13 -2. **E3** — town map, moves and time.                          
+      14 -   Model: **Sonnet**. Clear spec: [town map](design/town-map.md
+         -) already says what to build.                                  
+      15 -3. **E4** — engine/interface protocol and game loop. Start with
+         - a short design discussion before any code: it is the main arch
+         -itecture choice.                                               
+      11 +1. **E3** — town map, moves and time. Builds on `Game.number_bo
+         +x` and the `Box` / `TownMap` of E2: sheets, neighbours, distanc
+         +e, moves, Food every 5 boxes, what a box remembers. First rule 
+         +question to expect: what losing Food you do not have means (E2 
+         +does not clamp).                                               
+      12 +   Model: **Sonnet**. Clear spec: [town map](design/town-map.md
+         +) already says what to build. E1 and E2 showed that a clear des
+         +ign makes the code straightforward once the few API choices are
+         + settled.                                                      
+      13 +2. **E4** — engine/interface protocol and game loop. Start with
+         + a short design discussion before any code: it is the main arch
+         +itecture choice. Also wires the engine's log (logger `alone_aga
+         +inst_fear`) to a file in the terminal interface. First task wit
+         +h a user story: the first GitHub issue, if one is wanted.      
+      14     Model: **Opus, high effort**; xhigh if the design discussion
+           turns hard.
+      17 -4. **E5** — book mode. The skeleton is done: a whole game can b
+         -e walked in book mode. Decides how a table's own rules text is 
+         -shown (on request, or the first time); notes are shown with the
+         - entries that point to them ([rules text in YAML](docs/content.
+         -md)).                                                          
+      15 +3. **E5** — book mode. The skeleton is done: a whole game can b
+         +e walked in book mode. Decides how a table's own rules text is 
+         +shown (on request, or the first time); notes are shown with the
+         + entries that point to them ([rules text in YAML](docs/content.
+         +md)).                                                          
+      16     Model: **Sonnet**. Clear spec; switch to Opus if how a table
+          's rules are shown turns into a design debate.
+      19 -5. **Step 1** — E6 to E17, one task per session, with the R bat
+         -ches done ahead of the task that needs them (R2 and R3 before E
+         -6, R4 before E12, R5 before E16). The batches do not touch the 
+         -engine and can run as parallel sessions (in a worktree; otherwi
+         -se a plain branch is enough). Each batch moves its tables out o
+         -f `content/catalogue.yaml`. Everything is copied to YAML before
+         - step 1 is playable.                                           
+      17 +4. **Step 1** — E6 to E17, one task per session, with the R bat
+         +ches done ahead of the task that needs them (R2 and R3 before E
+         +6, R4 before E12, R5 before E16). The batches do not touch the 
+         +engine and can run as parallel sessions (in a worktree; otherwi
+         +se a plain branch is enough). Each batch moves its tables out o
+         +f `content/catalogue.yaml`. Everything is copied to YAML before
+         + step 1 is playable.                                           
+      18     Model: per task, from the [model table](WorkingWithClaude.md
+          #which-model-for-which-session): Opus, high effort for E6, E7, 
+          E8, E10 and E12; Sonnet for the others; Sonnet, medium effort f
+          or the R batches, Opus for R6 (events).
+
+⏺ Now docs/architecture.md: adding the dice module and the engine package.
+
+⏺ Bash(python3 - <<'EOF'
+      p='docs/architecture.md'…)
+  ⎿  202610312356
+      M CLAUDE.md
+      M NextSession.md
+     … +12 lines (ctrl+o to expand)
+  ⎿  Updated docs/architecture.md (+116 -2)
+       8  
+       9  ```
+      10  src/alone_against_fear/
+      11 +  dice.py           dice codes, chances, dice sources (shared b
+         +y content and engine)                                          
+      12 +  engine/           the game: state and the engine API         
+      13 +    state.py        Campaign, Character, Mission, History, Town
+         +Map, Box (plain data)                                          
+      14 +    game.py         Game: the only way the state changes       
+      15    content/          the rules text: YAML files, their loader an
+          d model
+      16      loader.py       YAML files → Content
+      17      model.py        Content, Table, Entry, Roll, CatalogueTable
+          , the checks
+     ...
+       21  
+       22  Rules that hold for every package ([`CLAUDE.md`](../CLAUDE.md)
+           ): the engine never reads input or prints, and the game state 
+           refers to content by ID only and never holds code.
+       23  
+       24 +**Logging.** Every module logs to a child of the `alone_agains
+          +t_fear` logger (standard `logging`): rolls at DEBUG, state cha
+          +nges at INFO. The engine only emits; the interface decides whe
+          +re the log goes (a file, from E4). Tests read it with `caplog`
+          +.                                                             
+       25 +                                                              
+       26 +## `dice`: dice codes and dice sources                        
+       27 +                                                              
+       28 +```mermaid                                                    
+       29 +classDiagram                                                  
+       30 +    direction LR                                              
+       31 +    DiceCode ..> Dice : roll(dice)                            
+       32 +    Chance ..> Dice : roll(dice)                              
+       33 +    DiceCode --> DiceRoll : gives                             
+       34 +    Chance --> ChanceRoll : gives                             
+       35 +    Dice <|.. RandomDice                                      
+       36 +    Dice <|.. ScriptedDice                                    
+       37 +    class DiceCode {                                          
+       38 +        count                                                 
+       39 +        sides                                                 
+       40 +        plus                                                  
+       41 +        combine                                               
+       42 +        parse(code)$                                          
+       43 +        roll(dice) DiceRoll                                   
+       44 +        results() every total                                 
+       45 +    }                                                         
+       46 +    class Chance {                                            
+       47 +        in_6                                                  
+       48 +        parse(code)$                                          
+       49 +        roll(dice) ChanceRoll                                 
+       50 +    }                                                         
+     … 102 more lines (ctrl+o to expand)
+
+⏺ Writing the session log:
+
+⏺ Write(claude-logs/202610312356-e1-e2-dice-state.md)
+  ⎿  Wrote 50 lines to claude-logs/202610312356-e1-e2-dice-state.md
+      1 # E1 and E2: dice and game state
+      2 
+      3 - Date: 2026-10-31
+      4 - Session ID: dbb1db62-4b0a-464b-925e-40ab49f73b55
+      5 - Branch / PR: `e1-e2-dice-state` / (PR link added after push)
+      6 - Transcript: [transcripts/202610312356-e1-e2-dice-state.txt](tra
+        nscripts/202610312356-e1-e2-dice-state.txt)
+      7 - Model: Opus, high effort
+      8 
+      9 ## Goal
+     … +41 lines (ctrl+o to expand)
+
+⏺ The wrap-up docs are written: Readme, NextSession.md, WorkingWithClaude.md,
+  CLAUDE.md, docs/architecture.md, and the log at
+  claude-logs/202610312356-e1-e2-dice-state.md. The doc changes come with the
+  new GitHub issue rule: issues only for user stories and bugs, when needed.
+
+  Parallel sessions with a coordinator: my opinion
+
+  Yes, but only for part of the remaining work, and the time saved is smaller 
+  than it looks.
+
+  Where it helps: the YAML batches, R2 to R7.
+  - They don't depend on each other and don't touch the engine.
+  - The existing tests check them: dice coverage, references, notes.
+  - The prompt is already "copy, list doubtful readings, don't guess", so the
+    work ends with questions rather than decisions. A coordinator handles that
+    well: it dispatches 2–3 batch agents, each in its own worktree, collects
+    their doubtful readings, asks you in one go, then opens the PRs.
+  - That could turn the estimated 5–6 batch sessions into 1–2 coordinator
+    sessions.
+
+  Where it doesn't help: the engine tasks.
+  - E3 through E20 form a chain. Only two pairs can run side by side: E8 with
+    E9, and E15 alongside E12–E14. That chain is the critical path, roughly 15
+    sessions, and parallel work barely shortens it.
+  - Engine sessions are also where your design choices get made. Today there
+    were four API choices, and one of them changed after you asked "why?". A
+    subagent can't ask you directly. With a coordinator relaying, that
+    back-and-forth gets slower and loses detail.
+
+  Practical problems to settle before a pilot:
+  - Shared files: every batch edits catalogue.yaml, the Readme and
+    NextSession.md. Only the coordinator should edit those; the batch agents
+    touch only their own YAML and Markdown files.
+  - origin_rules/ is git-ignored, so a fresh worktree won't have the PDFs. The
+    agents need the main checkout's absolute path.
+  - Logs and transcripts: subagent transcripts can't be exported the way you
+    export a session. The coordinator would write one log per batch from each
+    agent's report.
+  - Cost and review: each agent starts from scratch and re-reads the docs, so
+    you save time but spend more. Reviewing several PRs and answering their
+    questions becomes the real bottleneck.
+
+  My suggestion: pilot it with one coordinator session running R2 and R3, the
+  batches E6 needs. It can run at the same time as an interactive E3 or E4
+  session. Overall that might save 4–5 of the ~25 sessions. That's worth having,
+  but it doesn't change the shape of the plan.
+
+  To finish the wrap-up, please export the transcript:
+
+  /export claude-logs/transcripts/202610312356-e1-e2-dice-state.txt
+
+  Then I'll commit, push, open the PR and add its link to the log.
+
+✻ Brewed for 1m 41s · done samedi 23:56
+
+❯ About quesiton left open:                                                     
+  - Losses aren't clamped => so we should wait for handling it ?                
+  - IDs written to the history aren't checked -> Is it an issue yet?            
+  - The dice aren't saved with the campaign -> does it even matter later on ? I 
+  mean dice roll should be random in reality does nt they ?                     
+                                                                                
+  Okay so we can only run 2  sessions in parallel  and it would be better no    
+  too at all. noted.                                                            
+
+⏺ Losses aren't clamped. Yes, wait. Each case arrives with its own rules text,
+  so the task that meets it can decide with the text in hand:
+  - E3: the Food upkeep already says what happens when you have none: "1 Food
+    every 5 boxes or lose 1 Life".
+  - E5: manual actions raise the cases with no text behind them. For example,
+    the player types "lose 3 Food" with only 2. There, losing and spending
+    probably differ: losing Food goes down to 0, but spending Clues or XP you
+    don't have should be refused. That's a rule question to put to you then.
+  - E13: death at 0 Life and insanity at 0 Sanity.
+
+  Clamping is a one-line change whenever it's decided, so waiting costs nothing.
+
+  History IDs aren't checked. Not an issue yet. Only tests write to the history
+  today. The risk shows up once content code records things (E10 on): a mistyped
+  ID would make a check like "has event 9 been played?" answer "no" forever,
+  with no error. The fix is to check IDs against the content once creatures and
+  events exist in YAML.
+
+  Dice not saved with the campaign. You're right, it doesn't matter for play:
+  dice should be random. Saving the dice state would only serve two things:
+  - Stopping save-scumming: reload and the same roll comes back. In a solo game
+    you'd only be cheating yourself.
+  - Replaying a game exactly to reproduce a bug: the log file covers most of
+    that.
+
+  So I'd drop it from the open questions.
+
+  One correction on parallel sessions: it's the other way round. The YAML
+  batches (R2 to R7) can all run in parallel, more than two at once. It's the
+  engine tasks that are a chain and can't. So a coordinator pays off for the
+  batches, not the engine. Whether to try it is your call; nothing is decided.
+
+  Updating the log's open questions to match:
+
+⏺ Bash(python3 - <<'EOF'
+      p='claude-logs/202610312356-e1-e2-dice-state.md'…)
+  ⎿  130:- **The dice are not part of the state**: a resumed campaign does
+     not continue the same dice sequence.
+  ⎿  Updated claude-logs/202610312356-e1-e2-dice-state.md (+3 -3)
+      30  - **E2 keeps the map to storage** (boxes by position, their num
+          bers); geometry, sheets, moves and box memory are E3.
+      31  - **No clamping in E2**: losses can go below zero; what that me
+          ans is a rule for E3, E5 and E13. `Game` refuses only what the 
+          state cannot hold (no character, unknown mission, negative amou
+          nt, missing item).
+      32  - **GitHub issues only for user stories and bugs, only when nee
+          ded** (the user). E1 and E2 have no user story, so no issue: an
+           issue would only copy the Readme entry. The first candidate is
+           E4.
+      33 +- **The dice are not saved with the campaign**, and need not be
+         +: play should be random. Saving the dice state would only stop 
+         +reloading to reroll (a solo player cheats only themself) or rep
+         +lay a game exactly for a bug (the log file covers most of that)
+         +. Dropped from the open questions.                             
+      34  - **Model review**: Opus at high effort fitted. The design ques
+          tions were worth it (four API choices, one reversed after discu
+          ssion); the code itself was straightforward. E3 stays on Sonnet
+          , E4 on Opus high.
+      35  
+      36  ## Open questions
+      37  
+      37 -- What a loss bigger than what you have means (Food, Life): E3,
+         - E5, E13.                                                      
+      38 -- History IDs are not checked against the content: creatures an
+         -d events are not in YAML yet.                                  
+      39 -- The dice are not saved with the campaign: a resumed game does
+         - not continue the same sequence. Matters only with save and res
+         -ume.                                                           
+      38 +- What a loss bigger than what you have means: decided by the t
+         +ask that meets it, with the rules text in hand. E3 has the Food
+         + upkeep (its text already says what happens without Food); E5's
+         + manual actions raise the cases with no text (losing may stop a
+         +t 0, while spending Clues or XP you do not have should be refus
+         +ed, to be asked); E13 has death and insanity. Clamping is a one
+         +-line change.                                                  
+      39 +- History IDs are not checked against the content. Not an issue
+         + yet: only tests write records. From E10 on, a mistyped ID woul
+         +d make a gate silently answer "not played"; check IDs once crea
+         +tures and events are in YAML.                                  
+      40  - Parallel sessions with a coordinating session (see below): th
+          e user asked for an opinion, nothing decided.
+      41  
+      42  ## Parallelizing the remaining work (opinion asked, nothing dec
+          ided)
+⏺ Bash(sed -i '' 's/- \*\*The dice are not part of the state\*\*: a resumed
+      campaign does not continue the same dice sequence./- **The dice are not
+      part of the state**…)
+  ⎿  130:- **The dice are not part of the state**: play is random, so a res
+     umed campaign rolls fresh dice.
+  ⎿  Updated docs/architecture.md (+1 -1)
+      127  - **Levels nest as in the design**: the campaign never forgets
+           , a new character replaces the last one (and its history), a n
+           ew mission replaces the last one. `Level` names them; `Game.hi
+           story(level)` finds the right one.
+      128  - **The history counts, it does not log**: `Happened.PLAYED`, 
+           `FOUND`, `KILLED` per ID, plus keywords. The rules only ask "h
+           as it happened?" and "how many times?". The story of the game 
+           goes to the log file instead.
+      129  - **`Game` is the only writer.** It checks only what the state
+            cannot hold (no character, unknown mission, negative amount, 
+           missing item) and raises `GameError`; the rules about limits c
+           ome with their tasks. `Position` is a `(column, row)` named tu
+           ple; sheets, neighbours and moves come in E3.
+      130 -- **The dice are not part of the state**: a resumed campaign d
+          -oes not continue the same dice sequence.                      
+      130 +- **The dice are not part of the state**: play is random, so a
+          + resumed campaign rolls fresh dice.                           
+      131  
+      132  ## `content`: the rules text
+      133  
+
+⏺ I've updated the log and docs/architecture.md to match:
+
+  - Losses: each task decides when it meets the first case.
+  - History IDs: they get checked once content code writes records, from E10 on.
+  - Dice state: dropped from the open questions, since play is meant to be
+    random.
+
+  Nothing is committed yet. To finish, please export the transcript:
+
+  /export claude-logs/transcripts/202610312356-e1-e2-dice-state.txt
+
+  Then I'll commit, push, open the PR and add its link to the log.
+
+✻ Cooked for 32s · done 0:01
+
+❯ Dice not saved with the campaign. - MAybe writting the seed to the log would  
+  help to replay no?                                                            
+  What does the batches do (R2 to R7) ?                                         
+
+⏺ Writing the seed to the log: yes, that helps, but only once two more things
+  hold.
+
+  - The player's choices are logged too. The same seed replays the same game
+    only if the player makes the same choices in the same order. Those choices
+    are the interface's answers to the engine's requests, which arrive with E4.
+    Seed plus logged choices is enough to replay a game through the scripted
+    interface, the same one the tests use.
+  - The code hasn't changed in between. If a rule starts rolling one extra die,
+    every roll after it shifts. So a replay is good for reproducing a bug soon
+    after it happens, not for replaying a game from months ago.
+
+  The dice part is tiny: RandomDice picks a seed when none is given and logs it
+  when it's created. That's about three lines and one test. I can add it now, or
+  leave it for E4, where it goes with logging the choices and opening the log
+  file. I'd lean towards E4 so replay is built in one place, but it's equally
+  fine now if you'd like it in this PR.
+
+  The R2 to R7 batches copy the rest of the book's rules text into YAML, the way
+  R1 did for the four exploration tables. Each one:
+  - copies the text of its tables or entries into YAML files, with stable IDs;
+  - fixes the OCR damage against the original PDFs, in the YAML and the
+    gameRules/ Markdown together (merged rows, missing roll numbers, body text
+    parsed as headings);
+  - turns book page references into table names;
+  - moves its tables out of catalogue.yaml, the list of tables not copied yet.
+
+  ┌───────┬───────────────────────────────────────────┬─────────────────────┐
+  │ Batch │                  Content                  │    Needed before    │
+  ├───────┼───────────────────────────────────────────┼─────────────────────┤
+  │ R2    │ the 21 Skills, the 11 Arcane Skills, the  │ E6 (creation)       │
+  │       │ Injury and Insanity tables                │                     │
+  ├───────┼───────────────────────────────────────────┼─────────────────────┤
+  │ R3    │ Random Weapon table, weapon summary,      │ E6                  │
+  │       │ Random Objects, Useful Stuff              │                     │
+  ├───────┼───────────────────────────────────────────┼─────────────────────┤
+  │ R4    │ the 12 creature tables                    │ E12 (combat)        │
+  ├───────┼───────────────────────────────────────────┼─────────────────────┤
+  │ R5    │ the 14 place tables, Special Events,      │ E16                 │
+  │       │ Children's Stuff                          │                     │
+  ├───────┼───────────────────────────────────────────┼─────────────────────┤
+  │ R6    │ the 42 numbered events                    │ — (book mode, later │
+  │       │                                           │  events)            │
+  ├───────┼───────────────────────────────────────────┼─────────────────────┤
+  │ R7    │ Random Books, Random Magic Items,         │ E18                 │
+  │       │ Rewards, Side Missions                    │                     │
+  └───────┴───────────────────────────────────────────┴─────────────────────┘
+
+  Why it matters: book mode (E5) shows each entry's text from YAML, and every
+  engine task writes its behaviour keyed by those IDs. The batches are
+  copy-and-check work with no engine code, which is why they can run in
+  parallel. Their risk is misreading, not design: each batch ends with a list of
+  doubtful readings for you to settle.
+
+  Seed now or in E4? Either way, after that it's your transcript export, then
+  I'll commit, push and open the PR.
+
+✻ Worked for 15s · done 0:03
+
+❯ Seed in E4.                                                                   
+
+⏺ Bash(python3 - <<'EOF'
+      p='NextSession.md'…)
+  ⎿   NextSession.md | 12 +++++-------
+      1 file changed, 5 insertions(+), 7 deletions(-)
+  ⎿  Updated NextSession.md (+1 -1)
+      10  
+      11  1. **E3** — town map, moves and time. Builds on `Game.number_bo
+          x` and the `Box` / `TownMap` of E2: sheets, neighbours, distanc
+          e, moves, Food every 5 boxes, what a box remembers. First rule 
+          question to expect: what losing Food you do not have means (E2 
+          does not clamp).
+      12     Model: **Sonnet**. Clear spec: [town map](design/town-map.md
+          ) already says what to build. E1 and E2 showed that a clear des
+          ign makes the code straightforward once the few API choices are
+           settled.
+      13 -2. **E4** — engine/interface protocol and game loop. Start with
+         - a short design discussion before any code: it is the main arch
+         -itecture choice. Also wires the engine's log (logger `alone_aga
+         -inst_fear`) to a file in the terminal interface. First task wit
+         -h a user story: the first GitHub issue, if one is wanted.      
+      13 +2. **E4** — engine/interface protocol and game loop. Start with
+         + a short design discussion before any code: it is the main arch
+         +itecture choice. Also wires the engine's log (logger `alone_aga
+         +inst_fear`) to a file in the terminal interface, and makes game
+         +s replayable for debugging: `RandomDice` picks and logs its see
+         +d, and the player's answers are logged too (seed + answers repl
+         +ay a game through the scripted interface, as long as the code h
+         +as not changed). First task with a user story: the first GitHub
+         + issue, if one is wanted.                                      
+      14     Model: **Opus, high effort**; xhigh if the design discussion
+           turns hard.
+      15  3. **E5** — book mode. The skeleton is done: a whole game can b
+          e walked in book mode. Decides how a table's own rules text is 
+          shown (on request, or the first time); notes are shown with the
+           entries that point to them ([rules text in YAML](docs/content.
+          md)).
+      16     Model: **Sonnet**. Clear spec; switch to Opus if how a table
+          's rules are shown turns into a design debate.
+  ⎿  Updated claude-logs/202610312356-e1-e2-dice-state.md (+1 -1)
+      30  - **E2 keeps the map to storage** (boxes by position, their num
+          bers); geometry, sheets, moves and box memory are E3.
+      31  - **No clamping in E2**: losses can go below zero; what that me
+          ans is a rule for E3, E5 and E13. `Game` refuses only what the 
+          state cannot hold (no character, unknown mission, negative amou
+          nt, missing item).
+      32  - **GitHub issues only for user stories and bugs, only when nee
+          ded** (the user). E1 and E2 have no user story, so no issue: an
+           issue would only copy the Readme entry. The first candidate is
+           E4.
+      33 -- **The dice are not saved with the campaign**, and need not be
+         -: play should be random. Saving the dice state would only stop 
+         -reloading to reroll (a solo player cheats only themself) or rep
+         -lay a game exactly for a bug (the log file covers most of that)
+         -. Dropped from the open questions.                             
+      33 +- **The dice are not saved with the campaign**, and need not be
+         +: play should be random. Saving the dice state would only stop 
+         +reloading to reroll (a solo player cheats only themself) or rep
+         +lay a game exactly for a bug (the log file covers most of that)
+         +. Dropped from the open questions. For replay, E4 logs the seed
+         + and the player's answers (the user's idea): together they repl
+         +ay a game through the scripted interface, as long as the code h
+         +as not changed.                                                
+      34  - **Model review**: Opus at high effort fitted. The design ques
+          tions were worth it (four API choices, one reversed after discu
+          ssion); the code itself was straightforward. E3 stays on Sonnet
+          , E4 on Opus high.
+      35  
+      36  ## Open questions
+
+⏺ I've added logging the seed and the player's answers to E4 in NextSession.md,
+  and noted it in the session log.
+
+  Please export the transcript so I can finish the wrap-up:
+
+  /export claude-logs/transcripts/202610312356-e1-e2-dice-state.txt
+
+✻ Worked for 8s · done 0:05
+
+❯ Suggest me a prompt ro process the R in parallel as we discussed just now,    
+  just make sure each one runs on a separate branch and that I can exchange     
+  with them if they have doubt.                                                 
+  I have no idea how to launch something like that                              
+
+⏺ You talk only to one session, the coordinator. It starts the batch agents in
+  the background and passes their doubts on to you. When you answer, it sends
+  the answer back to the right agent, which carries on. Each agent works in its
+  own worktree on its own branch.
+
+  Agents can't ask you directly. Answering through the coordinator works, but
+  takes one hop. If you'd rather talk to each batch directly, use the
+  alternative at the end.
+
+  How to launch it
+
+  1. Merge this session's PR first, so the batches start from the new loader.
+  2. Open a terminal and run:
+  cd ~/Code/RPGs/AloneVsFEear && git checkout main && git pull
+  claude
+  3. Type /model and pick Opus, high effort, for the coordinator. The agents
+     will run on Sonnet, as the prompt says.
+  4. Paste the prompt below. Then just chat with the coordinator. You can ask
+     "status?" at any time.
+
+  I'd pilot with R2 and R3 only. They're the batches E6 needs, and both hold
+  content that isn't a plain table (Skills, the weapon summary). Those need a
+  YAML shape you decide, so the prompt settles that with you before any agent
+  starts.
+
+  The prompt
+
+  Coordinator session: YAML batches R2 and R3 in parallel. Read NextSession.md, 
+  the Readme
+  (Milestone 3), docs/content.md and the latest log in claude-logs/.
+
+  You coordinate; one background agent per batch does the copying. You never 
+  copy rules text
+  yourself.
+
+  Before any agent starts:
+  1. For each batch, list the content that is not a plain table (Skills, Arcane 
+  Skills, the
+     weapon summary...) and propose its YAML shape and ID kind, with options. 
+  Ask me; nothing
+     is launched until I answer. D1 (where plain stats go) stays open: keep 
+  stats as text
+     unless I decide otherwise.
+  2. Confirm the branch names with me: r2-skills-harm, r3-weapons-items.
+
+  Then launch one agent per batch (Agent tool, isolation "worktree", model 
+  sonnet, effort
+  medium). Tell each agent:
+  - Work only on your branch, in your worktree. Create your own venv there
+    (python -m venv .venv && .venv/bin/pip install -e '.[dev]'): the main 
+  checkout's venv
+    runs the main checkout's code.
+  - The original PDFs are git-ignored and not in your worktree: read them from
+    /Users/nathanchalot/Code/RPGs/AloneVsFEear/origin_rules/
+  - Copy every entry of your batch into YAML as R1 did (docs/content.md), using 
+  the shapes I
+    agreed. Fix OCR damage in the YAML and the gameRules Markdown together, turn
+  page
+    references into table names, remove your tables from catalogue.yaml. Never 
+  change the
+    meaning.
+  - Touch only your own files, your lines of catalogue.yaml and the KINDS you 
+  need. Never
+    edit the Readme, NextSession.md, claude-logs/ or another batch's files.
+  - Never guess and never rule. When a reading is doubtful or the format does 
+  not fit, note
+    it and carry on with the rest; stop and report only if the doubt blocks the 
+  batch.
+  - Tests and ruff must pass. Do not commit or push.
+  - No spoilers, no book page references in what you write.
+  - End with a report: what was copied, files touched, test results, and a 
+  numbered list
+    of doubts (the passage, the possible readings, your suggestion).
+
+  While they run: tell me when each agent finishes. Gather every doubt and ask 
+  me in one
+  go, saying which batch each comes from. Send my answers back to the right 
+  agent
+  (SendMessage) and let it finish. Rulings go to design/rulings.md, kept 
+  switchable.
+
+  At the end, for each batch and only after I approve: commit on its branch, 
+  push, open its
+  PR. Then wrap up on a branch of your own (r2-r3-wrap-up): Readme checkboxes, 
+  NextSession
+  (including how this parallel run went, and whether to repeat it for R4 to R7),
+  one log
+  per batch in claude-logs/, and ask me for this session's transcript export.
+
+  If you'd rather talk to each batch directly
+
+  Open one terminal per batch, each with its own worktree and branch:
+
+  cd ~/Code/RPGs/AloneVsFEear
+  git worktree add ../AloneVsFEear-r2 -b r2-skills-harm
+  cd ../AloneVsFEear-r2 && claude
+
+  Use the batch prompt from WorkingWithClaude.md in each terminal, and do the
+  same for R3 in a second terminal. You then talk to each batch directly, but
+  you juggle the terminals and do the Readme and NextSession updates yourself
+  afterwards.
+
+  I can save the coordinator prompt in WorkingWithClaude.md, under Parallel
+  sessions, as part of this PR so it's in the repo next time. Shall I?
+
+  Either way, the wrap-up still needs your export:
+
+  /export claude-logs/transcripts/202610312356-e1-e2-dice-state.txt
+
+✻ Baked for 50s · done 0:06
+
+❯ yes save it in WorkingWithClaude.md                                           
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Bash(cat >> WorkingWithClaude.md <<'EOF'…)
+  ⎿   M CLAUDE.md
+      M NextSession.md
+      M Readme.md
+     … +12 lines (ctrl+o to expand)
+  ⎿  Updated NextSession.md (+1 -1)
+      14     Model: **Opus, high effort**; xhigh if the design discussion
+           turns hard.
+      15  3. **E5** — book mode. The skeleton is done: a whole game can b
+          e walked in book mode. Decides how a table's own rules text is 
+          shown (on request, or the first time); notes are shown with the
+           entries that point to them ([rules text in YAML](docs/content.
+          md)).
+      16     Model: **Sonnet**. Clear spec; switch to Opus if how a table
+          's rules are shown turns into a design debate.
+      17 -4. **Step 1** — E6 to E17, one task per session, with the R bat
+         -ches done ahead of the task that needs them (R2 and R3 before E
+         -6, R4 before E12, R5 before E16). The batches do not touch the 
+         -engine and can run as parallel sessions (in a worktree; otherwi
+         -se a plain branch is enough). Each batch moves its tables out o
+         -f `content/catalogue.yaml`. Everything is copied to YAML before
+         - step 1 is playable.                                           
+      17 +4. **Step 1** — E6 to E17, one task per session, with the R bat
+         +ches done ahead of the task that needs them (R2 and R3 before E
+         +6, R4 before E12, R5 before E16). The batches do not touch the 
+         +engine and can run as parallel sessions (in a worktree; otherwi
+         +se a plain branch is enough); R2 and R3 can be piloted with a [
+         +coordinator session](WorkingWithClaude.md#coordinator-session).
+         + Each batch moves its tables out of `content/catalogue.yaml`. E
+         +verything is copied to YAML before step 1 is playable.         
+      18     Model: per task, from the [model table](WorkingWithClaude.md
+          #which-model-for-which-session): Opus, high effort for E6, E7, 
+          E8, E10 and E12; Sonnet for the others; Sonnet, medium effort f
+          or the R batches, Opus for R6 (events).
+  ⎿  Updated WorkingWithClaude.md (+64 -0)
+       81  ## Parallel sessions
+       82  
+       83  The YAML batches do not touch the engine, so a batch can run i
+           n its own worktree and branch while an engine session runs in 
+           another. Each still ends with its own log and PR.
+       84 +                                                              
+       85 +Only the YAML batches really parallelize: the engine tasks for
+          +m a chain (only E8 ∥ E9 and E15 ∥ E12–E14 could overlap), and 
+          +their design choices are made in conversation with the user. R
+          +unning batches in parallel saves time, not cost, and reviewing
+          + several PRs becomes the bottleneck. Not tried yet: pilot with
+          + R2 and R3, then review it at wrap-up.                        
+       86 +                                                              
+       87 +### Coordinator session                                       
+       88 +                                                              
+       89 +One session (Opus, high effort) talks with the user and launch
+          +es one background agent per batch (Sonnet, medium effort), eac
+          +h in its own worktree and branch. Agents cannot ask the user: 
+          +the coordinator gathers their doubts, asks the user in one go 
+          +and sends the answers back to the right agent. Merge the previ
+          +ous session's PR first, start `claude` on an up-to-date `main`
+          +, pick the model with `/model`, then paste:                   
+       90 +                                                              
+       91 +```                                                           
+       92 +Coordinator session: YAML batches R2 and R3 in parallel. Read 
+          +NextSession.md, the Readme                                    
+       93 +(Milestone 3), docs/content.md and the latest log in claude-lo
+          +gs/.                                                          
+       94 +                                                              
+       95 +You coordinate; one background agent per batch does the copyin
+          +g. You never copy rules text                                  
+       96 +yourself.                                                     
+       97 +                                                              
+       98 +Before any agent starts:                                      
+       99 +1. For each batch, list the content that is not a plain table 
+          +(Skills, Arcane Skills, the                                   
+      100 +   weapon summary...) and propose its YAML shape and ID kind, 
+          +with options. Ask me; nothing                                 
+      101 +   is launched until I answer. D1 (where plain stats go) stays
+          + open: keep stats as text                                     
+      102 +   unless I decide otherwise.                                 
+      103 +2. Confirm the branch names with me: r2-skills-harm, r3-weapon
+          +s-items.                                                      
+      104 +                                                              
+      105 +Then launch one agent per batch (Agent tool, isolation "worktr
+          +ee", model sonnet, effort                                     
+      106 +medium). Tell each agent:                                     
+      107 +- Work only on your branch, in your worktree. Create your own 
+          +venv there                                                    
+      108 +  (python -m venv .venv && .venv/bin/pip install -e '.[dev]'):
+          + the main checkout's venv                                     
+      109 +  runs the main checkout's code.                              
+      110 +- The original PDFs are git-ignored and not in your worktree: 
+          +read them from                                                
+      111 +  /Users/nathanchalot/Code/RPGs/AloneVsFEear/origin_rules/    
+      112 +- Copy every entry of your batch into YAML as R1 did (docs/con
+          +tent.md), using the shapes I                                  
+      113 +  agreed. Fix OCR damage in the YAML and the gameRules Markdow
+          +n together, turn page                                         
+      114 +  references into table names, remove your tables from catalog
+          +ue.yaml. Never change the                                     
+      115 +  meaning.                                                    
+      116 +- Touch only your own files, your lines of catalogue.yaml and 
+          +the KINDS you need. Never                                     
+      117 +  edit the Readme, NextSession.md, claude-logs/ or another bat
+          +ch's files.                                                   
+      118 +- Never guess and never rule. When a reading is doubtful or th
+          +e format does not fit, note                                   
+      119 +  it and carry on with the rest; stop and report only if the d
+          +oubt blocks the batch.                                        
+      120 +- Tests and ruff must pass. Do not commit or push.            
+     … 27 more lines (ctrl+o to expand)
+  ⎿  Updated claude-logs/202610312356-e1-e2-dice-state.md (+1 -0)
+      44  - Only the YAML batches (R2 to R7) really parallelize; the engi
+          ne chain E3 → E20 is sequential except E8 ∥ E9 and E15 ∥ E12–E1
+          4, and it is the critical path.
+      45  - A coordinating session dispatching batch agents fits the R ba
+          tches: clear spec, checked by the existing tests, doubtful read
+          ings listed rather than decided. Engine tasks should stay inter
+          active: their design choices are made in conversation with the 
+          user.
+      46  - Things to settle first: subagents cannot ask the user (questi
+          ons go through the coordinator); `catalogue.yaml`, the Readme a
+          nd the logs are shared files (the coordinator edits them); `ori
+          gin_rules/` is git-ignored, so a worktree does not have it (giv
+          e the main checkout's path); the log and transcript workflow ne
+          eds adapting; the gain is time, not cost, and reviewing several
+           PRs becomes the bottleneck.
+      47 +- The coordinator prompt (with these points built in) and the o
+         +ne-terminal-per-batch alternative are saved in [Working with Cl
+         +aude](../WorkingWithClaude.md#coordinator-session), at the user
+         +'s request. Suggested pilot: R2 and R3.                        
+      48  
+      49  ## Next
+      50  
+
+⏺ The prompt is saved in WorkingWithClaude.md, under Parallel sessions, with:
+
+  - When it's worth it: only the YAML batches parallelize, not the engine tasks.
+  - How to launch it: merge the previous PR, start claude on an up-to-date main,
+    pick Opus with /model, paste the prompt.
+  - The coordinator prompt itself.
+  - The one-terminal-per-batch alternative, for talking to each batch directly.
+
+  NextSession.md and the session log both link to it, with R2 and R3 suggested
+  as the pilot.
+
+  Everything for this session is ready, and nothing is committed yet. Please
+  export the transcript:
+
+  /export claude-logs/transcripts/202610312356-e1-e2-dice-state.txt
+
+  Then I'll commit, push, open the PR and add its link to the log.
+
+✻ Brewed for 24s · done 0:08
+
+❯ Now do all the commits needed for this PR, tell me what to do next and then I 
+  ll run the export and say you to go ahead with the push and PRs               
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ I made three commits on e1-e2-dice-state. Tests (168) and ruff passed right
+  before committing, and the working tree is clean.
+
+  - c100e59 E1: dice codes, chances and dice sources, plus the loader switch to
+    DiceCode.
+  - f2a4b97 E2: game state and the Game engine API.
+  - 7d6b9e5 docs: the wrap-up (Readme, NextSession, architecture, session log,
+    the issue rule, the coordinator prompt) and the extractor whitespace fix
+    from ruff format.
+
+  What to do next
+
+  1. Run the export:
+  /export claude-logs/transcripts/202610312356-e1-e2-dice-state.txt
+  2. Tell me to go ahead. I'll then:
+     - commit the transcript;
+     - push the branch;
+     - open the PR (no "Closes": there are no issues this session);
+     - add the PR link to the log, commit it and push again.
+  3. Review and merge the PR on GitHub.
+  4. Next session, one or both of these, since they can run side by side:
+     - E3, town map, moves and time, on Sonnet. On an up-to-date main, start
+       claude, then: "Next session: E3. Read NextSession.md, the Readme and the 
+       latest log. Short plan, then implement with tests. Flag anything the 
+       design doesn't cover instead of deciding it."
+     - The R2 + R3 pilot with a coordinator, on Opus, high effort. In a second
+       terminal on an up-to-date main, paste the prompt from the Coordinator
+       session section of WorkingWithClaude.md.
+
+     Merge this PR before starting either: both need the new loader and the
+     engine package.
+
+✻ Cooked for 20s · done 0:09

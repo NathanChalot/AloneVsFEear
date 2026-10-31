@@ -21,15 +21,15 @@ print(f"Markdown exported to {output_file}")
 # import os
 # from docling.datamodel.base_models import InputFormat
 # from docling.datamodel.pipeline_options import PdfPipelineOptions
-# 
+#
 # # Suppress HuggingFace warnings by setting offline mode
 # os.environ["HF_HUB_OFFLINE"] = "1"
-# 
+#
 # # Configure pipeline to use local models only
 # pipeline_options = PdfPipelineOptions()
 # pipeline_options.do_ocr = False  # Disable OCR to avoid model downloads
 # pipeline_options.do_table_structure = True
-# 
+#
 # converter = DocumentConverter(
 #     format_options={
 #         InputFormat.PDF: pipeline_options,
