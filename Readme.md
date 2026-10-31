@@ -23,7 +23,7 @@ The roadmap is split into milestones. Each `####` entry is sized to become one G
 
 ## Working with Claude
 
-Work happens in small, planned sessions with Claude. The upcoming sessions are listed in [`NextSession.md`](NextSession.md); past sessions are summarized in [`claude-logs/`](claude-logs/).
+Work happens in small, planned sessions with Claude. The upcoming sessions are listed in [`NextSession.md`](NextSession.md); past sessions are summarized in [`claude-logs/`](claude-logs/). [`WorkingWithClaude.md`](WorkingWithClaude.md) describes how a session runs and holds recommendations: session estimates, which model for which session, prompt templates.
 
 ## Decisions
 
