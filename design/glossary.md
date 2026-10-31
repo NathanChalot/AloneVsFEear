@@ -72,3 +72,10 @@ The domain vocabulary. Docs, issues and code use these words with these meanings
 - **Search** — a roll on the Search table after an encounter is resolved (or when there is none).
 - **Hunting** — spending Clues equal to a creature's L to meet it in the next box.
 - **Loot** — items or Food gained after an encounter.
+
+## Building the game
+
+- **Written** — content whose rules the engine plays itself. Content that is not written yet goes through book mode. See [MVP scope](mvp-scope.md).
+- **Book mode** — the fallback for unwritten content: the engine shows the text of the entry reached, and the player applies it with manual actions. What was reached is still recorded.
+- **Manual action** — a game operation the player calls in book mode: gain or lose a resource, add or remove an item, go to a table or event, make a roll vs L or a Search roll, fight a creature, mark a box. It goes through the rules like written content.
+- **Step 1** / **Step 2** — the two parts of the MVP: Bring Home the Bacon (one mission), then Close a Hell Gate with campaign play.

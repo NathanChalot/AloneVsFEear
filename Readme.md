@@ -1,16 +1,21 @@
 # Alone Against Fear — digital solo play
 
-A program that runs a full session of **Alone Against Fear**, a survival-horror solo tabletop game based on the Four Against Darkness engine, from character creation to the end of the mission.
+A program that runs a full campaign of **Alone Against Fear**, a survival-horror solo tabletop game based on the Four Against Darkness engine, from character creation to the last Hell Gate.
 
-The game rules are extracted from the rulebook PDF into Markdown under `gameRules/`, which serve as the reference for the engine. 
+The game rules are extracted from the rulebook PDF into Markdown under `gameRules/`, which serve as the reference for the engine. The text of every table, entry, event, item and Skill is also copied into YAML, for the engine to show on screen (Milestone 3).
 
 The rules text is from a commercial book: keep this repository private. The original PDFs go in `origin_rules/` at the repository root, which is git-ignored.
 
 ## Status
 
-MVP phase. Rules extraction is done; domain design is under way in [`design/`](design/); the game engine has not been started.
+MVP phase. Rules extraction and domain design ([`design/`](design/)) are done; the game engine has not been started.
 
-**MVP goal:** play one complete mission in the terminal — create a character, roll a mission, explore the town box by box, resolve encounters, search, manage inventory, food and health, and end by completing the mission and returning home, or by dying / going insane. Campaign play (several missions with the same character) comes after the MVP, but the game state is shaped as a campaign from the start: the map, the box counter, Food and Clues carry on across missions (see [game flow](design/game-flow.md)).
+**MVP goal:** play a whole campaign in the terminal, in two steps ([MVP scope](design/mvp-scope.md)):
+
+1. **Bring Home the Bacon** — one complete mission: create a character, explore the town box by box, resolve encounters, search, manage inventory, Food and health, and end back Home with the Food, dead or insane.
+2. **Close a Hell Gate** — Arcane Skills, books, and missions played one after another until 7 Hell Gates are closed. The game state is shaped as a campaign from the start: the map, the box counter, Food and Clues carry on across missions (see [game flow](design/game-flow.md)).
+
+The engine follows the whole design, but only a thin slice of content is written. Everything else goes through **book mode**: the engine shows the entry's text and the player applies it with manual actions.
 
 ## How to use this roadmap
 
@@ -26,6 +31,8 @@ Work happens in small, planned sessions with Claude. The upcoming sessions are l
 
 - **Language:** Python. Strongest ecosystem for planned genAI features (local LLMs, image and video generation).
 - **Interface:** terminal CLI first. Engine stays UI-agnostic so other front ends can be added.
+- **MVP scope** (was D6): two steps, Bring Home the Bacon then Close a Hell Gate with campaign play; unwritten content goes through book mode. See [MVP scope](design/mvp-scope.md).
+- **Rules text in YAML** (part of D1): every table, entry, creature, item, event and Skill gets a stable ID and its text in YAML; behaviour stays in Python, keyed by the same ID. The Markdown in `gameRules/` stays as the readable copy, fixed together with the YAML.
 
 ### Guidelines
 
@@ -40,15 +47,15 @@ Former decisions that are better kept as guidelines than settled up front.
 ### Deferred
 
 #### [ ] D1 — Rules content format
-Start with content written as plain Python while implementing it; extract a data format only if patterns emerge. Most entries mix plain stats with unique rules, so the format must handle both without inventing a DSL.
-- Decide when: the engine implements its first tables (E7).
+Partly decided: the text lives in YAML and behaviour in Python, both keyed by ID (see Made). Still open: where plain data goes (creature stats, item weights, Skill XP costs), in the YAML next to the text or in Python next to the behaviour. Most entries mix plain stats with unique rules, so the format must handle both without inventing a DSL.
+- Decide when: the engine writes its first content (E6).
 
 #### [ ] D8 — genAI integration
 Where narration / image generation plug in, kept optional and behind interfaces. Post-MVP, but should not be blocked by MVP architecture.
 
 ### Moved to domain design
 
-D5 (town map layout) and D6 (MVP content scope) are design topics, see Milestone 2.
+D5 (town map layout) and D6 (MVP content scope) were settled as design topics, see Milestone 2.
 
 ## Roadmap
 
@@ -74,21 +81,53 @@ Understand and diagram how the game works in domain terms before coding. Lives i
 - [x] [Encounters and tables](design/encounters.md): how table results chain, choices, left-behind encounters, Unique Events
 - [x] [Effects and game moments](design/effects.md): holders, kinds, lifetimes, moments, reactions
 - [x] [Town map](design/town-map.md): grid shape, sheets, distances (was D5)
-- [ ] MVP scope: which tables, creatures and events, and the fallback for the rest (was D6)
-- [ ] Review the engine tasks below against the design
+- [x] [MVP scope](design/mvp-scope.md): two steps, the content written in each, book mode for the rest (was D6)
+- [x] Review the engine tasks below against the design: rewritten as Milestones 5 to 7
 
-### Milestone 3 — Rules cleanup
+### Milestone 3 — Rules text in YAML
 
-The OCR mangled the book's two-column layout. Content is complete, but many tables are structurally damaged. If D1 converts tables to another format, fix them during conversion instead of fixing the Markdown twice.
+The text of every table, entry, creature, item, event and Skill is copied into YAML with a stable ID, so book mode can show it on screen ([MVP scope](design/mvp-scope.md#where-the-text-comes-from)). The OCR mangled the book's two-column layout: each batch fixes the damage against the original PDFs in `origin_rules/`, in the YAML and in the Markdown at once, and turns book page references into table names. Batches follow the order the engine needs them; all are done before step 1 is playable.
 
-- [ ] Fix tables with missing or misplaced roll numbers: missions, beasts, undead, lab horrors, ghosts, house, clinic, street, magic items
-- [ ] Restore the nested d6→d6 structure of the random encounter table
-- [ ] Fix the town exploration table (swapped columns, split rows 2 and 12)
-- [ ] Fix merged rows: insanity table (2/3), random skill tables
-- [ ] Fix body text parsed as headings in `6_unique_events.md`
-- [ ] Replace book page references (`p. 65`) with links to the matching files
+#### [ ] R1 — YAML layout, IDs and exploration tables
+Decide the file layout and the ID scheme. Copy the Town Exploration, Random Encounter, Search and Missions tables.
+- Fixes: Town Exploration (swapped columns, split rows 2 and 12), Random Encounter (nested d6→d6 structure), Missions (missing roll numbers).
+- Done when: the four tables are in YAML, and tests check that every table covers its dice range and every reference points to an existing ID.
+- Depends on: Milestone 4.
+
+#### [ ] R2 — Skills and harm tables
+The 21 Skills, the 11 Arcane Skills, the Injury and Insanity tables.
+- Fixes: Insanity table (merged rows 2 and 3).
+- Depends on: R1.
+
+#### [ ] R3 — Weapons and items
+Random Weapon table, weapon summary, Random Objects, Useful Stuff.
+- Depends on: R1.
+
+#### [ ] R4 — Creatures
+The 12 creature tables.
+- Fixes: missing or misplaced roll numbers in Beasts, Undead, Lab Horrors, Ghosts.
+- Depends on: R1.
+
+#### [ ] R5 — Places
+The 14 place tables, Special Events, Children's Stuff.
+- Fixes: missing or misplaced roll numbers in House, Clinic, Street.
+- Depends on: R1.
+
+#### [ ] R6 — Events
+The 42 numbered events.
+- Fixes: body text parsed as headings in `6_unique_events.md`.
+- Depends on: R1.
+
+#### [ ] R7 — The rest
+Random Books, Random Magic Items, Rewards, Side Missions.
+- Fixes: Random Magic Items (missing roll numbers).
+- Depends on: R1.
+
+Housekeeping, any time:
+
 - [ ] Repair `0_table_of_content.md`
 - [ ] Remove or complete stub files (`gameRules/Readme.md`, `2_0_tables.md`), rename `7__optional_rules.md`
+- [ ] Fix merged rows in the random skill tables (optional rule, after the MVP)
 
 ### Milestone 4 — Project setup
 
@@ -98,83 +137,153 @@ The OCR mangled the book's two-column layout. Content is complete, but many tabl
 - [ ] Configure `.claude/settings.json` permissions
 - [ ] Bootstrap the Python project with common defaults (package layout, test run, CI optional)
 
-### Milestone 5 — Engine MVP
+### Milestone 5 — Engine skeleton
 
-To be revised once Milestone 2 is done.
+A whole game playable in book mode with nothing written yet: the engine keeps the state, the map and the time, and shows the text of every entry reached. Every later task replaces part of book mode and can be tried in the game straight away.
 
-#### [ ] E1 — Dice and rolls
-d3, d6, d6±n, 2d6, d6×d6, d66, "x in 6" chances. Seedable for reproducible tests. Generic roll vs L with modifiers: natural 1 always fails, natural 6 always succeeds. Covers Saves, Charisma, Stealth, Escape, Magic, Strength rolls.
-- Rules: [main rules](gameRules/1_1_main_rules.md) (Dice Codes, Saves, Other Rolls)
-- Done when: every dice code and the roll-vs-L rule are unit tested.
+#### [ ] E1 — Dice
+d3, d6, d6±n, 2d6, d6×d6, d66, "x in 6" chances. Seedable for reproducible tests. A roll result keeps the natural die as well as the total.
+- Rules: [main rules](gameRules/1_1_main_rules.md) (Dice Codes)
+- Done when: every dice code is unit tested.
+- Depends on: Milestone 4.
 
-#### [ ] E2 — Character sheet
-Name; Life and Sanity (8 each + 3 points to distribute, or traded for 1 extra Skill / extra table roll); current vs max values; Skills with Basic/Expert level; XP; Food; Clues; up to 3 Injuries and 3 Mental Scars; death at 0 Life, insanity at 0 Sanity.
-- Rules: [main rules](gameRules/1_1_main_rules.md) (Your Character, Sanity, Life, Food, Experience), [skills](gameRules/1_2_skills.md)
-- Done when: a character can be built and its state queried and modified through the engine API, with tests.
+#### [ ] E2 — Game state
+The campaign, character and mission levels and what each remembers: the map and its boxes, the box counter, the history (played, found, killed, keywords). For now the character holds plain numbers (Life, Sanity, Food, XP, Clues) and a list of named items. The state refers to content by ID and never holds code, so saving stays easy to add.
+- Design: [encounters](design/encounters.md#what-the-game-remembers), [game flow](design/game-flow.md)
+- Done when: the state can be built, queried and changed through the engine API, with tests.
 - Depends on: E1.
 
-#### [ ] E3 — Inventory and encumbrance
-Two hands (one two-handed weapon uses both); 10 carried items; Food carried separately (10, extra Food takes item slots); negligible-weight items; +5 with backpack (losing it drops everything not in hand), +3 / +5 with Strong / Strong (Expert), hard max 20. Ammo tracked per weapon type (bullets, rifle bullets, bolts, arrows, shells). Stash and retrieve items at a Safe House.
-- Rules: [encumbrance summary](gameRules/11_encumbrance_summary.md), [main rules](gameRules/1_1_main_rules.md) (Equipment), [combat](gameRules/3_combat.md) (Keep Track of Ammo)
-- Done when: picking up, equipping, discarding and stashing respect every limit, with tests.
+#### [ ] E3 — Town map, moves and time
+A grid of boxes made of 5×6 sheets; Home in any box of the first sheet; neighbours including diagonals; distance; a new sheet once one is full; every move numbers the box entered; 1 Food every 5 boxes or lose 1 Life; what a box remembers (visited, Searched, places, marks).
+- Rules: [how the game works](gameRules/5_how_the_game_works.md) (Movement and Mapping), [game overview](gameRules/9_game_overview.md)
+- Design: [town map](design/town-map.md)
+- Done when: moves, numbering, distance, sheets and Food are unit tested.
 - Depends on: E2.
 
-#### [ ] E4 — Character creation
-Choose 2 Skills (no Arcane Skills, no Expert) or roll them randomly; distribute 3 points; 1 random weapon + 1 knife; 1 Random Object + 1 Useful Stuff item, rerolling duplicates; d6 starting Food.
-- Rules: [main rules](gameRules/1_1_main_rules.md), [random skill generation](gameRules/10_optional_skills_generation.md), [weapons table](gameRules/tables/1_4_random_weapons_table.md), [random objects](gameRules/tables/2_1_random_object_tables.md), [useful stuff](gameRules/tables/2_2_useful_stuff_table.md)
-- Done when: the CLI walks the player through creation and produces a valid character.
-- Depends on: E2, E3, related Milestone 3 table fixes.
+#### [ ] E4 — Engine/interface protocol and game loop
+The engine asks, the interface answers: every choice is a request, so the engine never reads input or prints. The turn loop: move, arrive, Search, free actions; it ends at death, insanity or when the player quits. A scripted interface plays games in tests; a minimal terminal interface shows the map, the character and the requests.
+- Design: [game flow](design/game-flow.md)
+- Done when: a scripted test walks 10 boxes, and the terminal lets a player do the same.
+- Depends on: E3.
 
-#### [ ] E5 — Mission
-Roll d6 on the Mission table at session start; track mission progress and completion conditions; mission ends on returning Home with the goal met.
-- Rules: [how the game works](gameRules/5_how_the_game_works.md) (Mission), [missions table](gameRules/tables/5_3_missions_table.md)
-- Depends on: E2, missions table fix.
+#### [ ] E5 — Book mode
+Load the YAML by ID; roll a table's dice and show only the entry reached. Manual actions that go through the rules: gain or lose Life, Sanity, Food, XP or Clues; add or remove an item; go to a table or event; make a roll vs L (modifier typed by the player until E7); make a Search roll; mark a Safe House. Record what was reached. Arriving: a new box rolls Town Exploration, a visited box has a 1 in 6 Random Encounter, all shown in book mode. Fights are applied by hand until E12.
+- Design: [MVP scope](design/mvp-scope.md#book-mode)
+- Done when: a player can walk the town in the terminal, every box shown as text and applied with manual actions, until death or quitting.
+- Depends on: E4, R1.
 
-#### [ ] E6 — Town map, movement and time
-Grid of boxes per the [town map design](design/town-map.md); start in any box; move to any neighbour including diagonals; number each box entered (time counter, ~2 hours per box); consume 1 Food every 5 boxes or lose 1 Life; effects lasting N boxes; annotate box content, Searched flag, occupied boxes (monsters you fled from), Safe Houses (max 3 in play).
-- Rules: [how the game works](gameRules/5_how_the_game_works.md) (Movement and Mapping, Moving Through Visited Areas), [game overview](gameRules/9_game_overview.md)
-- Depends on: town map design, E2.
+### Milestone 6 — Step 1: Bring Home the Bacon
 
-#### [ ] E7 — Exploration and encounter tables
-New box: roll on the Town Exploration table (2d6) then the place sub-table; no roll for the first box. Visited box: 1 in 6 random encounter (nested d6→d6 table); occupied box requires a Stealth roll. Safe House: no encounter, heal Life/Sanity. Generic table-resolution mechanism shared by all tables.
-- Rules: [town exploration](gameRules/tables/5_4_town_exploration_table.md), [random encounters](gameRules/tables/5_2_random_encounters_table.md), [places](gameRules/tables/places/), [creatures](gameRules/tables/creatures/), [special events](gameRules/tables/5_19_special_events_table.md)
-- Depends on: D1, MVP scope, E6, Milestone 3 table fixes.
+Each task writes an engine part together with the content that uses it.
 
-#### [ ] E8 — Combat
-Surprise (x in 6, reduced by Danger Sense); player attacks first otherwise; damage = attack total / L rounded down; groups of 1-Life monsters; monster turns as Defense rolls; weapon modifiers and Damage; exploding sixes; ammo consumption; vulnerabilities (2 Damage per use) and exorcism; XP on victory only; loot.
-- Rules: [combat](gameRules/3_combat.md), [monster rules](gameRules/4_monster_rules.md), [weapons](gameRules/1_4_weapons.md), [weapon summary](gameRules/8_weapon_summary_table.md)
-- Depends on: E1, E2, E3.
+#### [ ] E6 — Character and creation
+Life and Sanity with current and max values; the 21 Skills at Basic and Expert; earning and spending XP at any time (Expert costs the Skill's cost again). Creation: 2 Skills (no Arcane, no Expert), 3 points on Life and Sanity or traded for 1 extra Skill or table roll, a random weapon and a knife, 1 Random Object and 1 Useful Stuff rerolling duplicates, d6 Food. Skill effects stay text until E7.
+- Rules: [main rules](gameRules/1_1_main_rules.md) (Your Character, Experience), [skills](gameRules/1_2_skills.md), [weapons table](gameRules/tables/1_4_random_weapons_table.md), [random objects](gameRules/tables/2_1_random_object_tables.md), [useful stuff](gameRules/tables/2_2_useful_stuff_table.md)
+- Design: [character](design/character.md)
+- Decides: the rest of D1.
+- Done when: the terminal walks the player through creation, and XP can be spent.
+- Depends on: E5, R2, R3.
 
-#### [ ] E9 — Escape, stealth and charisma
-Escape rolls vs L (auto-escape from Slow monsters, failures take Damage, retreat to a visited neighbour then 1 in 6 encounter, monsters stay in the box at +1 L). Stealth rolls to slip past. Charisma rolls to negotiate (failure gives -1 to first Attack).
-- Rules: [combat](gameRules/3_combat.md)
-- Depends on: E6, E8.
+#### [ ] E7 — Rolls and effects
+Roll types and context tags; roll vs L with natural 1 and 6; effects with source, holder, kind and lifetime; a roll collects matching modifiers from every holder, with stacking limits; max values calculated from effects. Every Skill written as effects. Manual rolls in book mode now get their modifiers.
+- Design: [rolls](design/rolls.md), [effects](design/effects.md), [character](design/character.md)
+- Done when: every Skill's effect is tested.
+- Depends on: E6.
 
-#### [ ] E10 — Search, clues and hunting
-One Search per box (not in Safe Houses; libraries repeatable for 1 book or 1 Clue); Investigator bonus, natural 1 stays 1; Clues; hunting a specific creature by spending Clues equal to its L (minus Investigator, min 1).
-- Rules: [how the game works](gameRules/5_how_the_game_works.md) (Search Rolls, Hunting), [search table](gameRules/tables/5_1_search_rolls_table.md)
-- Depends on: E6, E3.
+#### [ ] E8 — Moments and reactions
+Announce moments; reactions with their scripts; lifetimes that end on a moment, a count or a condition; "would" moments with an ordered chain; helpful reactions first, then the player picks. Food every 5 boxes becomes a reaction (Resistant to Hunger changes it); "for the next N boxes" effects.
+- Design: [effects](design/effects.md)
+- Done when: tests cover each lifetime and the reaction order.
+- Depends on: E7.
 
-#### [ ] E11 — Sanity, injuries and mental scars
-Optionally negate a loss by rolling on the Insanity or Injury table (max 3 each, reroll duplicates); apply the permanent effects as modifiers; end the game at 0 Life or 0 Sanity.
+#### [ ] E9 — Inventory
+Two hands; carry limit 10, +5 with a backpack, +3 / +5 with Strong, max 20; Food limit 10, 15 with a backpack, extra Food takes item slots; light items; ammo per weapon type; discarding (items left behind may vanish); stash; losing the backpack; items as effect holders. The item uses that need these (backpack, Food items, ammo).
+- Rules: [encumbrance summary](gameRules/11_encumbrance_summary.md), [main rules](gameRules/1_1_main_rules.md) (Equipment), [combat](gameRules/3_combat.md) (Keep Track of Ammo)
+- Design: [inventory](design/inventory.md)
+- Done when: picking up, holding, discarding and stashing respect every limit, with tests.
+- Depends on: E7.
+
+#### [ ] E10 — Tables and result scripts
+Results as scripts of steps: encounter, chain, choice, gate, gain or loss, effect, box mark, movement; forced and shifted results; limits and fallbacks read the history; timed steps hooked to moments; an unwritten entry goes to book mode. Town Exploration, Random Encounter and Search written.
+- Rules: [town exploration](gameRules/tables/5_4_town_exploration_table.md), [random encounters](gameRules/tables/5_2_random_encounters_table.md), [search table](gameRules/tables/5_1_search_rolls_table.md)
+- Design: [encounters](design/encounters.md)
+- Done when: arriving in a new box plays itself until it reaches an unwritten entry.
+- Depends on: E8, E9.
+
+#### [ ] E11 — Arriving and encounters
+The full arrival flow: new box, visited box, left-behind encounters. An encounter is met, then resolved or left behind; hazards and people are encounters too. Search only after dealing with the box, once per box (libraries again for 1 book or 1 Clue), natural 1 stays 1, Investigator bonus; Clues.
+- Rules: [how the game works](gameRules/5_how_the_game_works.md) (Search Rolls)
+- Design: [game flow](design/game-flow.md#3-arriving-in-a-box), [encounters](design/encounters.md#an-encounters-life)
+- Done when: the arrival flow is tested for new, visited and left-behind boxes.
+- Depends on: E10.
+
+#### [ ] E12 — Combat
+Creature profiles, groups and members; surprise; rounds; Attack with exploding sixes and hits = total ÷ L; Defense with fumbles; weapon modifiers, Damage and specials on the natural die; ammo; automatic Damage (vulnerabilities, grenade); XP and loot; end-of-combat reactions. The stats of every creature and every weapon written; special rules stay text, with manual actions open during the fight (creature Life up or down). The "fight a creature" manual action.
+- Rules: [combat](gameRules/3_combat.md), [monster rules](gameRules/4_monster_rules.md), [weapons](gameRules/1_4_weapons.md), [weapon summary](gameRules/8_weapon_summary_table.md), [creatures](gameRules/tables/creatures/)
+- Design: [combat](design/combat.md)
+- Done when: a fight against any creature can be played, with a test on the book's worked example.
+- Depends on: E11, R4.
+
+#### [ ] E13 — Harm
+Life and Sanity losses as "would" moments: armor, Luck, then the Injury or Mental Scar offer (max 3 each, duplicates rerolled, the whole loss negated), then the loss; death at 0 Life, insanity at 0 Sanity. The Injury and Insanity tables, armor, helmet and first aid kit written.
 - Rules: [main rules](gameRules/1_1_main_rules.md) (Sanity, Life), [combat](gameRules/3_combat.md) (Mental Scars and Injuries), [insanity table](gameRules/tables/3_1_insanity_table.md), [injury table](gameRules/tables/3_2_injury_table.md)
-- Depends on: E2, insanity table fix.
+- Design: [character](design/character.md#life-and-sanity), [combat](design/combat.md#defense-and-taking-damage)
+- Done when: the Damage chain is tested in order.
+- Depends on: E12.
 
-#### [ ] E12 — Unique events
-Numbered events triggered by tables, with player choices, chained events and persistent effects. Scope per the MVP scope design.
-- Rules: [unique events](gameRules/6_unique_events.md)
-- Depends on: MVP scope, E7, events headings fix.
+#### [ ] E14 — Escape, Stealth and Charisma
+Escape vs L (free from Slow creatures, none from Flying ones, Damage on a failure, to a visited neighbour, 1 in 6 encounter unless it is a Safe House, creatures stay behind with their wounds); Stealth to slip past or strike first, +1 L on a failure; Charisma; several groups in waves.
+- Rules: [combat](gameRules/3_combat.md)
+- Design: [combat](design/combat.md#escape), [rulings](design/rulings.md#combat)
+- Done when: escaping and sneaking past several groups follow the rulings, with tests.
+- Depends on: E13.
 
-#### [ ] E13 — Terminal game loop
-Ties everything together: creation → mission → move/explore/resolve/search loop → end screen (mission complete and back Home, death or insanity). Displays character sheet, inventory and map on demand. Save/resume of the campaign state.
-- Rules: [game overview](gameRules/9_game_overview.md)
-- Done when: a full mission can be played from start to finish in the terminal.
-- Depends on: E4–E12.
+#### [ ] E15 — Safe Houses
+Created by a result, with that result's healing; no random encounter; healing on each visit; max 3, the closest one stops being one (ties broken randomly); stash, stolen on a d6 of 1-3 when its Safe House is lost.
+- Design: [Safe Houses](design/safe-houses.md)
+- Done when: the lifecycle is tested.
+- Depends on: E11.
+
+#### [ ] E16 — Street, Store and Farm
+The three place tables of Bring Home the Bacon written; their chains to events, books and other tables stay in book mode.
+- Rules: [street](gameRules/tables/places/5_5_street_table.md), [store](gameRules/tables/places/5_13_store_table.md), [farm](gameRules/tables/places/5_11_farm_table.md)
+- Done when: every entry of the three tables plays itself up to an unwritten chain.
+- Depends on: E14, E15, R5.
+
+#### [ ] E17 — Missions and Bring Home the Bacon
+A mission as a holder of effects, with a goal and rewards; rolled among the written missions; it ends back Home with the goal met. Bring Home the Bacon: 2d6+12 Food on top of your own, an optional backpack, a stash at Home or a Safe House, a 3 in 6 chance of d6 Food at Street, Store and Farm locations, 3 XP or 3 Useful Stuff rolls.
+- Rules: [how the game works](gameRules/5_how_the_game_works.md) (Mission), [missions table](gameRules/tables/5_3_missions_table.md)
+- Done when: Bring Home the Bacon can be played from creation to the end screen. **Step 1 done.**
+- Depends on: E16.
+
+### Milestone 7 — Step 2: Close a Hell Gate
+
+#### [ ] E18 — Arcane Skills and books
+Learning Arcane Skills works for all 11 (prerequisites: a book read, a Skill, Clues spent in a Hell Gate box; XP cost); Gate written, the other effects in book mode. The Random Books table; reading takes d3 boxes of time, which advances the clock without entering a box; each book once per game.
+- Rules: [arcane skills](gameRules/1_3_arcane_skills.md), [random books](gameRules/tables/5_32_random_books_table.md)
+- Design: [character](design/character.md#xp-and-skills), [rulings](design/rulings.md#effects)
+- Done when: Gate can be learned through each of its prerequisites, with tests.
+- Depends on: E17, R7.
+
+#### [ ] E19 — Close a Hell Gate
+The mission: a Hell Gate after 12+d6 new boxes and another in the 30th box if none was found. Hell Gates as box marks, also from table results (manual action: mark a Hell Gate). The closing roll; Hell Gates can be closed during any mission.
+- Rules: [missions table](gameRules/tables/5_3_missions_table.md), [arcane skills](gameRules/1_3_arcane_skills.md) (Gate)
+- Open: Will or Magic roll to close ([MVP scope](design/mvp-scope.md#to-decide-when-step-2-starts)).
+- Done when: a Hell Gate can be found and closed, with tests.
+- Depends on: E18.
+
+#### [ ] E20 — Campaign play
+Missions one after another: rewards, Life and Sanity back to max, reroll the same mission; abort at a Safe House; a new character after death or insanity continues the campaign without the previous one's Food, Clues and stash; won when the 7th Hell Gate is closed.
+- Design: [game flow](design/game-flow.md#1-campaign)
+- Open: a new map sheet after a mission, whether a new character keeps the map ([MVP scope](design/mvp-scope.md#to-decide-when-step-2-starts)).
+- Done when: a whole campaign can be played in the terminal. **MVP done.**
+- Depends on: E19.
 
 ### Later
 
-- [ ] Campaign play: persisting character between missions (Life/Sanity restored, Injuries/Scars/XP/equipment kept), closing 7 Hell Gates to win, new character after death
-- [ ] Spending XP on Skills and Expert levels; Arcane Skills and spells
-- [ ] Side missions, rewards, books, magic items beyond MVP scope
-- [ ] Optional rules ([optional rules](gameRules/7__optional_rules.md))
+- [ ] Save and resume the campaign
+- [ ] The other missions: Predator and Prey and Destroy the Coven (with hunting by Clues), Medical Supplies, We Need Weapons
+- [ ] Switchable rule options (campaign modes)
+- [ ] The remaining content, each piece replacing part of book mode: place tables, events (with the forest map of #41), side missions, rewards, magic items, book effects, Arcane Skill effects
+- [ ] Optional rules ([optional rules](gameRules/7__optional_rules.md)) and random Skill generation
 - [ ] genAI features: narration (Claude / local LLM), image and video generation (D8)

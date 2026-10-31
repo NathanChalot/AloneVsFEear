@@ -17,8 +17,8 @@ Planned work sessions with Claude, in order. The [Readme](Readme.md) holds the r
 
 ## Plan
 
-1. **MVP scope** — which tables, creatures and events, and the fallback for the rest. Also decide the forest map of #41 (size, entering and leaving), left open by the [town map](design/town-map.md#open) design.
-2. **Project setup** — Milestone 4 except the Python bootstrap: `.tool-versions` (blocks running Python in the repo), minimal `CLAUDE.md`, `.claude/settings.json`.
-3. **GitHub planning** — milestones, labels and issues from the roadmap; decide whether issues or the Readme are the source of truth.
-4. **Review engine tasks** against the design, then start the engine in dependency order, bootstrapping the Python project with common defaults.
-5. **Rules cleanup** — Milestone 3, as the engine needs each table. Fix the Markdown against the original PDFs in `origin_rules/`; no format conversion yet.
+1. **Project setup** — Milestone 4 except the Python bootstrap: `.tool-versions` (blocks running Python in the repo), minimal `CLAUDE.md` (include book mode and the YAML/Python split), `.claude/settings.json`.
+2. **GitHub planning** — milestones, labels and issues from the roadmap (R1–R7, E1–E20); decide whether issues or the Readme are the source of truth.
+3. **R1** — YAML layout, ID scheme and the exploration tables, fixed against the original PDFs in `origin_rules/`. Bootstrap the Python project with common defaults for its tests.
+4. **Engine skeleton** — E1 to E5, until a whole game can be walked in book mode.
+5. **Step 1** — E6 to E17, with the R batches done in the order the engine needs them (R2 and R3 before E6, R4 before E12, R5 before E16). Everything copied to YAML before step 1 is playable.
