@@ -83,6 +83,13 @@ def test_d66_uses_two_digits_from_1_to_6(root):
     assert coverage_problems(content.table("table.test")) == ["table.test: no entry for 66"]
 
 
+def test_a_table_dice_code_is_kept_in_standard_form(root):
+    entries = "  - {roll: 3-13, text: a}\n"
+    content = load_one(root, d6_table(entries).replace("dice: d6", "dice: 2d6 +1"))
+    assert content.table("table.test").dice == "2d6+1"
+    assert coverage_problems(content.table("table.test")) == []
+
+
 def test_an_unknown_dice_code_is_refused(root):
     with pytest.raises(ContentError, match="d7"):
         load_one(root, d6_table("  - {roll: 1-6, text: a}\n").replace("dice: d6", "dice: d7"))
