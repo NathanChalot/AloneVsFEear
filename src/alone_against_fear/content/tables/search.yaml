@@ -1,0 +1,20 @@
+id: table.search
+name: Search table
+dice: d6
+source: gameRules/tables/5_1_search_rolls_table.md
+text: >-
+  Roll at +1 if you have the Investigator Skill, +2 if you have Investigator
+  (Expert). A roll of 1 remains a 1.
+entries:
+  - roll: 1
+    text: Roll on the random encounter table.
+    refs: [table.random_encounter]
+  - roll: 2-5
+    text: Nothing found.
+  - roll: 6
+    # "Useful Items table" as printed: it is the Useful Stuff table (design/rulings.md).
+    text: >-
+      Success! Roll 4 times on the Useful Items table or on the Random Object
+      table, and pick a single result, or Roll on the Random Book table if you
+      are in a Library; OR gain 1 Clue.
+    refs: [table.useful_stuff, table.random_objects, table.random_book]

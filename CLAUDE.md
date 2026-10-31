@@ -4,7 +4,7 @@ Digital solo play of **Alone Against Fear** (Four Against Darkness engine). Read
 
 ## Working rules
 
-- Small planned sessions, one branch and one PR each. **Never commit or push without permission**, except the agreed end-of-session wrap-up (update Readme and NextSession, write the log, ask for the transcript export, commit, push, PR, add the PR link to the log).
+- Small planned sessions, one branch and one PR each. **Never commit or push without permission**, except the agreed end-of-session wrap-up (update Readme, NextSession, reviewing each planned session's model and effort, and, if the code structure changed, `docs/architecture.md`; write the log; ask for the transcript export, commit, push, PR, add the PR link to the log).
 - Design before code: model in domain terms in `design/` first. Decide only what is worth deciding yet; propose, do not decide.
 - **Rule interpretations**: suggest options, never rule. Ask first; rulings go to `design/rulings.md`, kept switchable.
 - **No spoilers**: event names are fine, no plot details in chat or docs.
@@ -21,7 +21,7 @@ Digital solo play of **Alone Against Fear** (Four Against Darkness engine). Read
 
 ## Layout and commands
 
-- `src/alone_against_fear/` — package; `tests/` — pytest; `design/` — domain design (Mermaid); `gameRules/` — extracted rules; `claude-logs/` — session logs.
+- `src/alone_against_fear/` — package; `src/alone_against_fear/content/` — rules text in YAML (layout and IDs: [`docs/content.md`](docs/content.md)); `tests/` — pytest; `design/` — domain design (Mermaid); `docs/` — code documentation: [`architecture.md`](docs/architecture.md) (packages, classes, who calls whom), [`content.md`](docs/content.md) (rules text in YAML: files, IDs, table shape); `gameRules/` — extracted rules; `claude-logs/` — session logs.
 - Setup: `python -m venv .venv && .venv/bin/pip install -e '.[dev]'`
 - Tests: `.venv/bin/pytest`  ·  Lint: `.venv/bin/ruff check .`  ·  Format: `.venv/bin/ruff format .`
 - Tests first; stop at the task's "Done when".

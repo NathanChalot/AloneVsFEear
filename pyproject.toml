@@ -3,7 +3,7 @@ name = "alone-against-fear"
 version = "0.0.0"
 description = "Digital solo play of Alone Against Fear"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = ["pyyaml>=6"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.8"]
@@ -14,6 +14,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+alone_against_fear = ["content/**/*.yaml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

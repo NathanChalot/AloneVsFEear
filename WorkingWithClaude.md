@@ -6,8 +6,8 @@ How the work sessions run, and recommendations for them: how many to expect, whi
 
 1. Start from [NextSession.md](NextSession.md), the [Readme](Readme.md) and the latest log in [`claude-logs/`](claude-logs/).
 2. From Milestone 5 on, create a GitHub issue from the task first (title and "Done when" from the Readme); the PR says `Closes #N`.
-3. Work in a dedicated worktree and branch; one PR per session. During the session, Claude never commits or pushes without explicit permission.
-4. End by updating the Readme (checkboxes, decisions) and `NextSession.md` (remove the done session, adjust the plan).
+3. Work on a dedicated branch; one PR per session. Create the branch in the main checkout; use a worktree only when another session runs at the same time (see [Parallel sessions](#parallel-sessions)). During the session, Claude never commits or pushes without explicit permission.
+4. End by updating the Readme (checkboxes, decisions), `NextSession.md` (remove the done session, adjust the plan, review the model and effort of each planned session in light of this one) and, if the code structure changed, [`docs/architecture.md`](docs/architecture.md).
 5. Claude writes the session log in `claude-logs/YYYYMMDDHHmm-session-name.md`.
 6. The user exports the transcript with `/export claude-logs/transcripts/YYYYMMDDHHmm-session-name.txt` (same name as the log).
 7. Claude commits the session, pushes the branch, opens the PR, writes the PR link in the log and pushes again. This end-of-session commit and push is agreed once and for all, so the next session starts clean.
@@ -47,7 +47,8 @@ Rough estimates, for sessions of about 1.5 hours. Not commitments.
 | Small chores | renames, housekeeping | Haiku; never for rules text, where a misreading costs more than it saves |
 
 - Any task can turn out harder than planned: switch to Opus when a Sonnet session hits a design question.
-- Fable: no reliable information on what it is best at yet. Try it on one session and compare before using it more.
+- Fable: not used. It does not follow the same pricing rules as the other models.
+- No default effort. Model and effort are picked per session in [NextSession.md](NextSession.md) and reviewed at each wrap-up with what the session showed: a session that struggled moves similar ones up, an easy one moves them down. The table above is only the starting point.
 - The memory files (ask before ruling, no spoilers, commit rules) load the same way whatever the model.
 
 ## Prompts

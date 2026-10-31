@@ -8,7 +8,7 @@ The rules text is from a commercial book: keep this repository private. The orig
 
 ## Status
 
-MVP phase. Rules extraction and domain design ([`design/`](design/)) are done; the game engine has not been started.
+MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables are in (R1). The game engine has not been started.
 
 **MVP goal:** play a whole campaign in the terminal, in two steps ([MVP scope](design/mvp-scope.md)):
 
@@ -32,7 +32,7 @@ Work happens in small, planned sessions with Claude. The upcoming sessions are l
 - **Language:** Python. Strongest ecosystem for planned genAI features (local LLMs, image and video generation).
 - **Interface:** terminal CLI first. Engine stays UI-agnostic so other front ends can be added.
 - **MVP scope** (was D6): two steps, Bring Home the Bacon then Close a Hell Gate with campaign play; unwritten content goes through book mode. See [MVP scope](design/mvp-scope.md).
-- **Rules text in YAML** (part of D1): every table, entry, creature, item, event and Skill gets a stable ID and its text in YAML; behaviour stays in Python, keyed by the same ID. The Markdown in `gameRules/` stays as the readable copy, fixed together with the YAML.
+- **Rules text in YAML** (part of D1): every table, entry, creature, item, event and Skill gets a stable ID and its text in YAML; behaviour stays in Python, keyed by the same ID. The Markdown in `gameRules/` stays as the readable copy, fixed together with the YAML. Files, IDs (`table.town_exploration.7`, `mission.bring_home_the_bacon`) and the shape of a table: [rules text in YAML](docs/content.md).
 
 ### Guidelines
 
@@ -88,8 +88,8 @@ Understand and diagram how the game works in domain terms before coding. Lives i
 
 The text of every table, entry, creature, item, event and Skill is copied into YAML with a stable ID, so book mode can show it on screen ([MVP scope](design/mvp-scope.md#where-the-text-comes-from)). The OCR mangled the book's two-column layout: each batch fixes the damage against the original PDFs in `origin_rules/`, in the YAML and in the Markdown at once, and turns book page references into table names. Batches follow the order the engine needs them; all are done before step 1 is playable.
 
-#### [ ] R1 — YAML layout, IDs and exploration tables
-Decide the file layout and the ID scheme. Copy the Town Exploration, Random Encounter, Search and Missions tables.
+#### [x] R1 — YAML layout, IDs and exploration tables
+Decide the file layout and the ID scheme ([rules text in YAML](docs/content.md)). Copy the Town Exploration, Random Encounter, Search and Missions tables.
 - Fixes: Town Exploration (swapped columns, split rows 2 and 12), Random Encounter (nested d6→d6 structure), Missions (missing roll numbers).
 - Done when: the four tables are in YAML, and tests check that every table covers its dice range and every reference points to an existing ID.
 - Depends on: Milestone 4.

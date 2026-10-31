@@ -1,21 +1,31 @@
 ## Mission table (d6)
 
-Medical Supplies . A loved one is in need for specific medicines. You gain 3 XP as soon as you return to your starting box with 3 doses of the required medicines. You have a 1 in 6 of finding 1 'dose' every time you roll on a House or Lab box and a 3 in 6 every time you visit a Clinic box. If you have visited all boxes and didn't find any, the last box you visit will be a clinic and you will automatically find 3 doses.
+### 1 — Medical Supplies
 
-Predator and Prey . You must defeat a random Slasher from the Slashers table on p. 65. You must spend a number of Clues equal to the Slasher's L to locate your target in the next box you enter. If you meet ANY Slasher through a random roll, there is a 4 in 6 chance that you encounter exactly the one you are hunting. Once you have defeated the Slasher and returned to your starting location OR to any Safe House, you gain 5 XP or 2 rolls on the Useful Stuff table (p. 26).
+A loved one is in need for specific medicines. You gain 3 XP as soon as you return to your starting box with 3 doses of the required medicines. You have a 1 in 6 of finding 1 “dose” every time you roll on a House or Lab box and a 3 in 6 every time you visit a Clinic box. If you have visited all boxes and didn’t find any, the last box you visit will be a clinic and you will automatically find 3 doses.
 
-See also the optional rules for Slashers in campaigns on p. 97.
+### 2 — Predator and Prey
 
-Bring Home the Bacon . You must bring back to your starting location a large quantity (2d6+12) of Food. This is IN ADDITION to any Food points currently on your character's sheet. You automatically are given a backpack if desired, and you may leave any of your items in your starting box (or in any Safe House) in order to have more space to carry Food. You have a 3 in 6 chance of finding d6 Food points every time you visit a location from the Street, Store, or Farm tables. Once you return to your starting box with the Food, the Food is given to the local survivors and you gain 3 XP OR 3 rolls on the Useful Stuff table (p. 26), your choice. You may also keep the backpack.
+You must defeat a random Slasher from the Slashers table. You must spend a number of Clues equal to the Slasher’s L to locate your target in the next box you enter. If you meet ANY Slasher through a random roll, there is a 4 in 6 chance that you encounter exactly the one you are hunting. Once you have defeated the Slasher and returned to your starting location OR to any Safe House, you gain 5 XP or 2 rolls on the Useful Stuff table.
 
-## Mission table (d6, continued)
+See also the optional rules for Slashers in campaigns.
 
-We Need Weapons . You must explore the town and bring back to your starting box firearms (pistols, rifles, shotguns). When you do so, you gain 1 XP per every firearm with at least 6 ammo with a maximum gain of 5 XP. You may alter the Town Exploration roll by +1 or -1 if this lets you reach a Military Installation or a Store. All the weapons and ammo that you deliver are given to other survivors at the end of the mission, but you may use them during the game.
+### 3 — Bring Home the Bacon
 
-Destroy the Coven . You must defeat 5 witches hiding in town. To find a witch, when you enter a new box you must spend 3 Clues. Spend just 2 Clues if you have the Investigator Skill and 1 Clue if you have Investigator (Expert). If you do not have enough Clues, roll for the random content of that box as usual. You will automatically meet a witch in any of the last 5 locations that you visit on your town map, but if you did not discover them by spending Clues, they will have a 5 in 6 chance of surprising you. If you want, you may spend 1 or more Clues to reduce this chance of surprise by 1 for every Clue spent. Also your Danger Sense Skill will reduce their chance of surprising you.
+You must bring back to your starting location a large quantity (2d6+12) of Food. This is IN ADDITION to any Food points currently on your character’s sheet. You automatically are given a backpack if desired, and you may leave any of your items in your starting box (or in any Safe House) in order to have more space to carry Food. You have a 3 in 6 chance of finding d6 Food points every time you visit a location from the Street, Store, or Farm tables. Once you return to your starting box with the Food, the Food is given to the local survivors and you gain 3 XP OR 3 rolls on the Useful Stuff table, your choice. You may also keep the backpack.
+
+### 4 — We Need Weapons
+
+You must explore the town and bring back to your starting box firearms (pistols, rifles, shotguns). When you do so, you gain 1 XP per every firearm with at least 6 ammo with a maximum gain of 5 XP. You may alter the Town Exploration roll by +1 or -1 if this lets you reach a Military Installation or a Store. All the weapons and ammo that you deliver are given to other survivors at the end of the mission, but you may use them during the game.
+
+### 5 — Destroy the Coven
+
+You must defeat 5 witches hiding in town. To find a witch, when you enter a new box you must spend 3 Clues. Spend just 2 Clues if you have the Investigator Skill and 1 Clue if you have Investigator (Expert). If you do not have enough Clues, roll for the random content of that box as usual. You will automatically meet a witch in any of the last 5 locations that you visit on your town map, but if you did not discover them by spending Clues, they will have a 5 in 6 chance of surprising you. If you want, you may spend 1 or more Clues to reduce this chance of surprise by 1 for every Clue spent. Also your Danger Sense Skill will reduce their chance of surprising you.
 
 If you take a witch alive (attacking her in hand-to-hand combat at -2 inflicting non-lethal Damage, or defeating her with the Sign of Hypnos or the Hand of Glory), you gain 1 Clue that you may use ONLY to find the next witch.
 
-Witches are L4 humans, 4 Life. They inflict no Damage but each turn you are in combat with a witch, you must perform a L5 Will Save (lose 1 Sanity if you fail). You gain 1 XP every time you defeat a witch and 2 XP and 1 item from the Useful Stuff table on p. 26 (roll three times and pick the best result) when you defeat the last one.
+Witches are L4 humans, 4 Life. They inflict no Damage but each turn you are in combat with a witch, you must perform a L5 Will Save (lose 1 Sanity if you fail). You gain 1 XP every time you defeat a witch and 2 XP and 1 item from the Useful Stuff table (roll three times and pick the best result) when you defeat the last one.
 
-Close a Hell Gate . This is the default activity of the campaign. You may always attempt this even during other missions, because closing 7 gates over the course of a campaign completes the campaign and ends the game in a victory. When you play this mission, if you do not find any hell gate through random rolls, you will find one automatically after 12+d6 boxes, and another one in the 30 th  box that you visit. To close a Hell Gate, you need to possess the Gate Arcane Skill and perform an L6 Magic roll. Add +1 if you have Will and +2 if you have Will (Expert). You lose 1 Sanity and 1 Life for each failed attempt.
+### 6 — Close a Hell Gate
+
+This is the default activity of the campaign. You may always attempt this even during other missions, because closing 7 gates over the course of a campaign completes the campaign and ends the game in a victory. When you play this mission, if you do not find any hell gate through random rolls, you will find one automatically after 12+d6 boxes, and another one in the 30th box that you visit. To close a Hell Gate, you need to possess the Gate Arcane Skill and perform an L6 Magic roll. Add +1 if you have Will and +2 if you have Will (Expert). You lose 1 Sanity and 1 Life for each failed attempt.
