@@ -15,3 +15,6 @@ __pycache__/
 
 # OS
 .DS_Store
+
+# Game logs written by the terminal
+logs/
