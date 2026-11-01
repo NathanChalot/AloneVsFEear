@@ -34,7 +34,7 @@ The engine asks, the interface answers; the turn loop until death, insanity or q
 
 - Request shapes beyond `Choose` (a number, an order of reactions): with the tasks that need them (E5 manual actions, E8 reactions).
 - Saving mid-request is not possible with callbacks; saving between turns is the plan (saves are not a task yet).
-- A Mermaid parse error in the new sequence diagram (a participant named `Loop` clashes with the `loop` keyword) was fixed by hand; the diagrams were not rendered to check, as the Mermaid CLI is not installed yet.
+- A Mermaid parse error in the new sequence diagram (a participant named `Loop` clashes with the `loop` keyword) was fixed. Once the user installed the Mermaid CLI (and set the Node.js version in `.tool-versions`), every diagram of the repository was rendered with `mmdc`: all 40 pass.
 
 ## Next
 
