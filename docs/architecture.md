@@ -204,7 +204,7 @@ classDiagram
 - **Requests and events are plain data.** `Choose(topic, options)` is the only request so far; the topic tells the interface how to show it (a map for `HOME` and `MOVE`). Other shapes (a number, an order) come with the tasks that need them. Events are `Arrival` (from `Game.move`, and for Home) and `Ended`.
 - **The answer must be one of the options.** `loop.ask` refuses anything else with `GameError`, logs the answer and returns the option itself. A scripted answer that is not an option fails the test; the terminal checks the input before answering.
 - **`Quit`** may be raised by an interface at any request: the game ends with `End.QUIT` (the terminal raises it on Ctrl-D or Ctrl-C).
-- **The loop** (`play(game, interface) -> End`): creates the placeholder character if there is none (Life 8, Sanity 8, Food d6, until E6), asks for Home if it is not chosen, then turns: an action (`MOVE` or `QUIT`), then a box among `Game.targets()`, listed in reading order. It ends at 0 Life (dead, checked first, [ruling](../design/rulings.md#character)), 0 Sanity (insane) or quit. Arriving, Search and free actions are hook points for E5 and later.
+- **The loop** (`play(game, interface) -> End`): creates the placeholder character if there is none (Life 8, Sanity 8, Food d6, until E6), asks for Home if it is not chosen, then turns: an action (`MOVE` or `QUIT`), then a box among `Game.targets()`, listed in reading order. It ends at 0 Life (dead, checked first, [ruling](../design/rulings.md#character)), 0 Sanity (insane) or quit. Arriving, Search and free actions are hook points for book mode (E5a, E5b) and later.
 - **Interfaces read the game, never change it**: the terminal reads `Game` to draw the status line and the map; only its answers move the game on.
 
 ## `interface`: scripted and terminal
@@ -285,7 +285,7 @@ classDiagram
 - **A table's `dice`** is any dice code, kept in standard form; the coverage check asks `DiceCode` for its results.
 - **`KINDS`** lists the first segments an ID may have (`table`, `mission`); a YAML batch adds the kinds it needs.
 
-Used by: the tests, and `Game.start_mission`, which checks mission IDs. Book mode (E5) will be the first real engine user.
+Used by: the tests, and `Game.start_mission`, which checks mission IDs. Book mode (E5a) will be the first real engine user.
 
 ## Tests
 

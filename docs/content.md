@@ -128,4 +128,4 @@ Tests over the whole content:
 ## Open
 
 - **Where plain data goes** (creature stats, item weights, Skill XP costs): next to the text in the YAML, or in Python next to the behaviour. Decided in E6 ([D1](../Readme.md#deferred)).
-- **How book mode shows a table's own rules**: on request, or the first time the table is rolled. Decided in E5.
+- **How book mode shows a table's own rules**: on request, or the first time the table is rolled. Decided in E5a.

@@ -39,8 +39,8 @@ Rough estimates, for sessions of about 1.5 hours. Not commitments.
 
 | Kind of session | Tasks | Model |
 | --- | --- | --- |
-| Architecture: choices later tasks depend on | R1 (IDs), E1 + E2, E4, E6 (rest of D1), E7, E8, E10, E12 | Opus, high effort |
-| Clear spec: the design already says what to build | E3, E5, E9, E11, E13–E20 | Sonnet |
+| Architecture: choices later tasks depend on | R1 (IDs), E1 + E2, E4, E5a, E5b, E6 (rest of D1), E7, E8, E10, E12 | Opus, high effort |
+| Clear spec: the design already says what to build | E3, E9, E11, E13–E20 | Sonnet |
 | Copying rules text | R2–R7 | Sonnet, medium effort; Opus for a messy batch (events) |
 | Writing user stories and their issues | When a task has a player-facing story (E4 on) | Sonnet, medium effort; Opus if slicing the game into stories turns into a design debate |
 | Step-back review: an adversarial review of the whole project, findings only | Project review (after E4) | Opus, high effort |
