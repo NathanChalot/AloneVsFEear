@@ -159,3 +159,37 @@ def test_a_table_both_copied_and_catalogued_is_refused(root):
     )
     with pytest.raises(ContentError, match="table.test"):
         load_one(root, d6_table("  - {roll: 1-6, text: a}\n"))
+
+
+# --- Catalogued events ------------------------------------------------------
+
+
+def test_a_catalogued_event_has_a_number_a_name_and_a_source(root):
+    write(
+        root,
+        "catalogue.yaml",
+        "- {id: event.7, name: Some event, source: events.md}\n",
+    )
+    content = load_content(root)
+    event = content.catalogue["event.7"]
+    assert (event.number, event.name, event.source) == (7, "Some event", "events.md")
+    assert "event.7" in content
+    assert content.events() == [event]
+
+
+def test_references_to_a_catalogued_event_are_valid(root):
+    write(root, "catalogue.yaml", "- {id: event.1, name: An event, source: events.md}\n")
+    content = load_one(root, d6_table("  - {roll: 1-6, text: a, refs: [event.1]}\n"))
+    assert reference_problems(content) == []
+
+
+def test_a_catalogued_event_with_dice_is_refused(root):
+    write(root, "catalogue.yaml", "- {id: event.1, name: E, dice: d6, source: events.md}\n")
+    with pytest.raises(ContentError, match="event.1"):
+        load_content(root)
+
+
+def test_a_catalogued_event_needs_a_number_as_its_id(root):
+    write(root, "catalogue.yaml", "- {id: event.first, name: E, source: events.md}\n")
+    with pytest.raises(ContentError, match="event.first"):
+        load_content(root)

@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 
 from ..dice import DiceCode
 
-KINDS = frozenset({"table", "mission"})
+KINDS = frozenset({"table", "mission", "event"})
 """First segment of every ID. A YAML batch adds the kinds it needs."""
 
 
@@ -93,9 +93,21 @@ class CatalogueTable:
 
 
 @dataclass(frozen=True)
+class CatalogueEvent:
+    """A numbered event of the book that is not copied yet (R6): book mode points to its
+    source and records it as played."""
+
+    id: str
+    number: int
+    name: str
+    source: str
+
+
+@dataclass(frozen=True)
 class Content:
     tables: Mapping[str, Table]
-    catalogue: Mapping[str, CatalogueTable]
+    catalogue: Mapping[str, CatalogueTable | CatalogueEvent]
+    """Tables and events known but not copied yet."""
     entries: Mapping[str, Entry]
 
     def table(self, id_: str) -> Table:
@@ -103,6 +115,11 @@ class Content:
 
     def entry(self, id_: str) -> Entry:
         return self.entries[id_]
+
+    def events(self) -> list[CatalogueEvent]:
+        """Every numbered event, in the book's order."""
+        events = [item for item in self.catalogue.values() if isinstance(item, CatalogueEvent)]
+        return sorted(events, key=lambda event: event.number)
 
     def __contains__(self, id_: str) -> bool:
         return id_ in self.tables or id_ in self.catalogue or id_ in self.entries
@@ -128,7 +145,7 @@ def coverage_problems(table: Table) -> list[str]:
 
 
 def reference_problems(content: Content) -> list[str]:
-    """Every reference points to a table, an entry or a catalogued table."""
+    """Every reference points to a table, an entry, or a catalogued table or event."""
     return [
         f"{entry.id}: no such ID {ref}"
         for table in content.tables.values()

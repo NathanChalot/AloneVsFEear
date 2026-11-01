@@ -58,7 +58,8 @@ def test_ids_follow_the_scheme():
 
 def test_every_rules_table_file_is_the_source_of_exactly_one_table():
     files = {p.relative_to(REPO).as_posix() for p in (REPO / "gameRules/tables").rglob("*.md")}
-    sources = Counter(t.source for t in [*CONTENT.tables.values(), *CONTENT.catalogue.values()])
+    catalogued = [t for t in CONTENT.catalogue.values() if t.id.startswith("table.")]
+    sources = Counter(t.source for t in [*CONTENT.tables.values(), *catalogued])
     assert set(sources) == files
     assert [s for s, n in sources.items() if n > 1] == []
 
@@ -69,6 +70,24 @@ def test_no_page_reference_is_left():
     texts += [note for t in CONTENT.tables.values() for note in t.notes.values()]
     texts += [e.text for e in all_entries()]
     assert [t for t in texts if t and page.search(t)] == []
+
+
+# --- Events (catalogued until R6) -------------------------------------------
+
+
+def test_the_42_numbered_events_are_catalogued():
+    events = CONTENT.events()
+    assert [event.id for event in events] == [f"event.{n}" for n in range(1, 43)]
+    assert {event.source for event in events} == {"gameRules/6_unique_events.md"}
+
+
+def test_each_catalogued_event_has_its_heading_name():
+    headings = {}
+    for line in (REPO / "gameRules/6_unique_events.md").read_text().splitlines():
+        if match := re.match(r"###\s*(\d+)\s*[-.]\s*(.+?)\.?\s*$", line):
+            headings[int(match[1])] = match[2]
+    for event in CONTENT.events():
+        assert event.name.lower() == headings[event.number].lower(), event.id
 
 
 # --- Town Exploration -------------------------------------------------------

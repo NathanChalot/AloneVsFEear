@@ -9,7 +9,7 @@ from typing import Any
 import yaml
 
 from ..dice import DiceCode, DiceError
-from .model import CatalogueTable, Content, ContentError, Entry, Roll, Table
+from .model import CatalogueEvent, CatalogueTable, Content, ContentError, Entry, Roll, Table
 
 CONTENT_DIR = Path(__file__).parent
 CATALOGUE = "catalogue.yaml"
@@ -18,7 +18,9 @@ _TABLE_KEYS = {"id", "name", "dice", "text", "source", "notes", "entries"}
 _NESTED_KEYS = {"dice", "entries"}
 _ENTRY_KEYS = {"roll", "id", "name", "text", "refs", "notes", "table"}
 _CATALOGUE_KEYS = {"id", "name", "dice", "source"}
+_CATALOGUE_EVENT_KEYS = {"id", "name", "source"}
 _RANGE = re.compile(r"(\d+)-(\d+)")
+_EVENT_ID = re.compile(r"event\.(\d+)")
 
 
 def load_content(root: Path | str | None = None) -> Content:
@@ -34,9 +36,9 @@ def load_content(root: Path | str | None = None) -> Content:
     catalogue = {}
     catalogue_path = root / CATALOGUE
     for raw in _read(catalogue_path) or []:
-        table = _catalogue_table(raw, catalogue_path)
-        register(table.id, catalogue_path)
-        catalogue[table.id] = table
+        item = _catalogued(raw, catalogue_path)
+        register(item.id, catalogue_path)
+        catalogue[item.id] = item
 
     tables, entries = {}, {}
     for path in sorted(root.rglob("*.yaml")):
@@ -73,8 +75,16 @@ def _dice(raw: dict, what: str) -> str:
         raise ContentError(f"{what}: {error}") from error
 
 
-def _catalogue_table(raw: Any, path: Path) -> CatalogueTable:
+def _catalogued(raw: Any, path: Path) -> CatalogueTable | CatalogueEvent:
+    """A catalogued table, or a numbered event (its ID starts with `event.`)."""
     what = f"{path}: {raw.get('id', raw) if isinstance(raw, dict) else raw}"
+    if isinstance(raw, dict) and str(raw.get("id", "")).startswith("event."):
+        _check_keys(raw, _CATALOGUE_EVENT_KEYS, _CATALOGUE_EVENT_KEYS, what)
+        if not (match := _EVENT_ID.fullmatch(raw["id"])):
+            raise ContentError(f"{what}: an event ID is event. and its number")
+        return CatalogueEvent(
+            id=raw["id"], number=int(match[1]), name=raw["name"], source=raw["source"]
+        )
     _check_keys(raw, _CATALOGUE_KEYS, _CATALOGUE_KEYS, what)
     return CatalogueTable(
         id=raw["id"], name=raw["name"], dice=_dice(raw, what), source=raw["source"]

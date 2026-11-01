@@ -1,6 +1,7 @@
-# Every table of the book that is not copied yet (docs/content.md).
+# Every table and numbered event of the book that is not copied yet (docs/content.md).
 # A YAML batch moves its tables out of here into their own files.
-# Book mode rolls a catalogued table's dice and points to its source.
+# Book mode rolls a catalogued table's dice and points to its source; it points to a
+# catalogued event's source and records it as played.
 
 # Items (R3)
 - {id: table.random_weapon, name: Random Weapon table, dice: d6, source: gameRules/tables/1_4_random_weapons_table.md}
@@ -47,3 +48,47 @@
 - {id: table.rewards, name: Rewards table, dice: d6, source: gameRules/tables/5_33_rewards_table.md}
 - {id: table.side_mission, name: Side Mission table, dice: d6, source: gameRules/tables/5_34_side_missions_table.md}
 - {id: table.random_magic_item, name: Random Magic Item table, dice: d6, source: gameRules/tables/5_35_random_magic_items_table.md}
+
+# Events (R6): the numbered events, their names as printed (case fixed where the OCR lost it).
+- {id: event.1, name: Creepy Old Mansion, source: gameRules/6_unique_events.md}
+- {id: event.2, name: Desecrated church, source: gameRules/6_unique_events.md}
+- {id: event.3, name: Possessed car, source: gameRules/6_unique_events.md}
+- {id: event.4, name: The Fluid, source: gameRules/6_unique_events.md}
+- {id: event.5, name: Pighead, source: gameRules/6_unique_events.md}
+- {id: event.6, name: Pighead's farm, source: gameRules/6_unique_events.md}
+- {id: event.7, name: Star of Ill Omen, source: gameRules/6_unique_events.md}
+- {id: event.8, name: Eliza's Curse, source: gameRules/6_unique_events.md}
+- {id: event.9, name: Old man, source: gameRules/6_unique_events.md}
+- {id: event.10, name: Giant earthworm, source: gameRules/6_unique_events.md}
+- {id: event.11, name: Into the sewers, source: gameRules/6_unique_events.md}
+- {id: event.12, name: The sewer people, source: gameRules/6_unique_events.md}
+- {id: event.13, name: The Clown's Mask, source: gameRules/6_unique_events.md}
+- {id: event.14, name: Speeding train, source: gameRules/6_unique_events.md}
+- {id: event.15, name: Wearing the mask, source: gameRules/6_unique_events.md}
+- {id: event.16, name: Train to nowhere, source: gameRules/6_unique_events.md}
+- {id: event.17, name: The Rosen House, source: gameRules/6_unique_events.md}
+- {id: event.18, name: A strange blade, source: gameRules/6_unique_events.md}
+- {id: event.19, name: Climbing the tree, source: gameRules/6_unique_events.md}
+- {id: event.20, name: Exploring the Rosen House, source: gameRules/6_unique_events.md}
+- {id: event.21, name: Digging around the tree, source: gameRules/6_unique_events.md}
+- {id: event.22, name: Shattering The Dark Mirror, source: gameRules/6_unique_events.md}
+- {id: event.23, name: The fate of the Rosens, source: gameRules/6_unique_events.md}
+- {id: event.24, name: Amusement park ride, source: gameRules/6_unique_events.md}
+- {id: event.25, name: The bloodthirsty blade, source: gameRules/6_unique_events.md}
+- {id: event.26, name: The kid disappears, source: gameRules/6_unique_events.md}
+- {id: event.27, name: The kid gets in trouble, source: gameRules/6_unique_events.md}
+- {id: event.28, name: Black mirror ritual, source: gameRules/6_unique_events.md}
+- {id: event.29, name: The Good Doctor, source: gameRules/6_unique_events.md}
+- {id: event.30, name: One of us, source: gameRules/6_unique_events.md}
+- {id: event.31, name: "Grabbed!", source: gameRules/6_unique_events.md}
+- {id: event.32, name: The Halloween gang, source: gameRules/6_unique_events.md}
+- {id: event.33, name: The hand of glory, source: gameRules/6_unique_events.md}
+- {id: event.34, name: The Axe, source: gameRules/6_unique_events.md}
+- {id: event.35, name: The sketchbook, source: gameRules/6_unique_events.md}
+- {id: event.36, name: Witch's knots, source: gameRules/6_unique_events.md}
+- {id: event.37, name: Mark Tells a Story, source: gameRules/6_unique_events.md}
+- {id: event.38, name: Mysterious Alien Stone, source: gameRules/6_unique_events.md}
+- {id: event.39, name: The Kid tells a story, source: gameRules/6_unique_events.md}
+- {id: event.40, name: The Carved Pumpkin, source: gameRules/6_unique_events.md}
+- {id: event.41, name: Eliza's Forest, source: gameRules/6_unique_events.md}
+- {id: event.42, name: Snowy Samuel, source: gameRules/6_unique_events.md}
