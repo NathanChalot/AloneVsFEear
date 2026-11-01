@@ -315,6 +315,7 @@ Missions one after another: rewards, Life and Sanity back to max, reroll the sam
 
 ### Later
 
+- [ ] Design review once the MVP is done: a review session reworks `design/` against what the implementation taught. It should not be needed, but the design was written before the code.
 - [ ] Save and resume the campaign. A save is the campaign as it stood at the start of the turn: a turn changes the state as it goes, so quitting mid-turn leaves it half played.
 - [ ] The other missions: Predator and Prey and Destroy the Coven (with hunting by Clues), Medical Supplies, We Need Weapons
 - [ ] Switchable rule options (campaign modes)
