@@ -43,6 +43,7 @@ Rough estimates, for sessions of about 1.5 hours. Not commitments.
 | Clear spec: the design already says what to build | E3, E5, E9, E11, E13–E20 | Sonnet |
 | Copying rules text | R2–R7 | Sonnet, medium effort; Opus for a messy batch (events) |
 | Writing user stories and their issues | When a task has a player-facing story (E4 on) | Sonnet, medium effort; Opus if slicing the game into stories turns into a design debate |
+| Step-back review: an adversarial review of the whole project, findings only | Project review (after E4) | Opus, high effort |
 | Routine setup | Project setup and GitHub planning | Sonnet (it posts to GitHub, so not Haiku) |
 | Small chores | renames, housekeeping | Haiku; never for rules text, where a misreading costs more than it saves |
 

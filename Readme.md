@@ -8,7 +8,7 @@ The rules text is from a commercial book: keep this repository private. The orig
 
 ## Status
 
-MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables are in (R1). The engine has started: dice (E1), the game state (E2) and the town map with moves and time (E3).
+MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables are in (R1). The engine has started: dice (E1), the game state (E2), the town map with moves and time (E3), and the engine/interface protocol with the game loop (E4): a player can walk the town in the terminal (`alone-against-fear`).
 
 **MVP goal:** play a whole campaign in the terminal, in two steps ([MVP scope](design/mvp-scope.md)):
 
@@ -32,6 +32,7 @@ Work happens in small, planned sessions with Claude. The upcoming sessions are l
 - **Language:** Python. Strongest ecosystem for planned genAI features (local LLMs, image and video generation).
 - **Interface:** terminal CLI first. Engine stays UI-agnostic so other front ends can be added.
 - **MVP scope** (was D6): two steps, Bring Home the Bacon then Close a Hell Gate with campaign play; unwritten content goes through book mode. See [MVP scope](design/mvp-scope.md).
+- **Engine/interface protocol** (E4): callbacks. The engine calls `ask(request)` when the player chooses (the answer must be one of the options) and `tell(event)` when something happens. Chosen over generators and a state machine: rules that ask deep inside other rules stay simple; the game is saved between turns. Interfaces read the game state and change it only through their answers. See [architecture](docs/architecture.md).
 - **Rules text in YAML** (part of D1): every table, entry, creature, item, event and Skill gets a stable ID and its text in YAML; behaviour stays in Python, keyed by the same ID. The Markdown in `gameRules/` stays as the readable copy, fixed together with the YAML. Files, IDs (`table.town_exploration.7`, `mission.bring_home_the_bacon`) and the shape of a table: [rules text in YAML](docs/content.md).
 
 ### Guidelines
@@ -161,7 +162,7 @@ A grid of boxes made of 5×6 sheets; Home in any box of the first sheet; neighbo
 - Done when: moves, numbering, distance, sheets and Food are unit tested.
 - Depends on: E2.
 
-#### [ ] E4 — Engine/interface protocol and game loop
+#### [x] E4 — Engine/interface protocol and game loop
 The engine asks, the interface answers: every choice is a request, so the engine never reads input or prints. The turn loop: move, arrive, Search, free actions; it ends at death, insanity or when the player quits. A scripted interface plays games in tests; a minimal terminal interface shows the map, the character and the requests.
 - Design: [game flow](design/game-flow.md)
 - Done when: a scripted test walks 10 boxes, and the terminal lets a player do the same.

@@ -1,0 +1,1341 @@
+ ▐▛███▛█   Claude Code v2.1.316
+▝▜██████▀  Opus 5.5 · Claude Pro
+ ▝▝   ▝▝   ~/Code/RPGs/AloneVsFEear
+
+
+❯ /model                                                                        
+  ⎿  Set model to Opus 5.5 and saved as your default for new sessions
+
+❯ Lets proceed with the next session                                            
+
+  Listed 3 directories, ran 3 shell commands (ctrl+o to expand)
+
+⏺ I've read the plan — this session (E4) covers the engine/interface protocol
+  and game loop. Before proposing options, I'm checking which player choices the
+  later designs (effects, combat) will need the protocol to support.
+
+  Listed 1 directory, ran 2 shell commands (ctrl+o to expand)
+
+⏺ I'm on branch e4-protocol-game-loop and the tests are green (229). Here is the
+  E4 proposal. No code yet.
+
+  Goal (restated)
+
+  The engine asks and the interface answers. The engine never reads input and
+  never prints. The turn loop is: move, arrive, (Search), (free actions). It
+  ends at death (Life 0), insanity (Sanity 0) or when the player quits. A
+  scripted interface plays games in tests, and a minimal terminal shows the map,
+  the character and the requests. Done when: a scripted test walks 10 boxes,
+  and the terminal lets a player do the same.
+
+  1. How the engine asks (the main choice)
+
+  Later rules ask the player deep inside other steps: during a fight inside an
+  event inside an arrival, and when choosing the order of reactions. The
+  protocol has to make that cheap.
+
+  A. Callback
+  How it works: The engine holds an Interface. Any rule calls ask(request) and
+  gets the answer back right away.
+  For: Rule code reads like the book. Nested choices cost nothing. Simple to
+  test.
+  Against: Python's stack holds the game while a request waits, so saving
+  happens
+  only between turns. A later GUI or web app would run the engine in a thread
+  (an adapter, not a rewrite).
+  ────────────────────────────────────────
+  B. Generators
+  How it works: Every rule that may ask is a generator: it yields a request, and
+
+  a driver sends the answer back.
+  For: The engine stays passive and suits async UIs.
+  Against: Contagious: every function on the path needs yield from, including
+  the
+  reaction chains. Easy to get wrong.
+  ────────────────────────────────────────
+  C. State machine
+  How it works: The engine shows a pending() request, and answer(a) moves it on.
+  For: It can save at any request.
+  Against: Every multi-step rule (42 events, combat, reactions) has to be cut
+  into explicit states. That costs a lot.
+
+  I recommend A. "Saving = saving the campaign" already points to saving between
+  turns.
+
+  2. What goes over the protocol (recommendation)
+
+  - ask(Request) -> answer: one generic Choose request with a topic (HOME,
+    ACTION, MOVE… as an enum) and plain-data options (positions, action names).
+    The interface uses the topic to decide how to show it; for example, a MOVE
+    request shows the map. Other request shapes (a number, an order) get added
+    when a task needs them.
+  - The answer is always one of the options. The engine refuses anything else by
+    raising GameError, so a bad scripted answer fails the test, and the
+    terminal checks input before answering.
+  - tell(Event): the engine reports what happened (arrived in box 7, ate 1 Food,
+    starved, died), in order, as plain data. The interface narrates it. The log
+    stays a debugging tool.
+  - Layout: requests, events and the Interface protocol in engine/protocol.py,
+    the loop in engine/loop.py. interface/scripted.py lives in the package
+    rather than in tests/, because replay uses it. interface/terminal.py is the
+    terminal, with an alone-against-fear console script.
+
+  3. Log and replay (recommendation)
+
+  - The terminal writes the log at DEBUG to logs/<date-time>.log, and I add
+    logs/ to .gitignore.
+  - RandomDice() with no seed picks a seed and logs it. Every answer is logged
+    on a line the code can read back.
+  - alone-against-fear --replay logs/x.log plays the logged answers back with
+    the same seed, then hands over to the player at the point where the log
+    stops. A test checks that seed + answers give the same final state.
+
+  4. Settled by the rules, no ruling needed
+
+  - Life reaching 0 means death; Sanity reaching 0 means insanity. Both are in
+    the main rules. The loop checks after every step. What comes next (a new
+    character, the campaign going on) is E13.
+  - Search and the free actions are hook points in the loop, with nothing in
+    them yet. E5 adds the manual Search roll and the Town Exploration roll on
+    arrival.
+
+  Four decisions are yours:
+
+⏺ User answered Claude's questions:
+  ⎿  · How should the engine ask the interface for choices? (A: rules call ask()
+     and get the answer back right away; B: rules are generators yielding 
+     requests; C: the engine is a state machine with pending()/answer()) → A. 
+     Callback (Recommended)
+     · How should a turn ask the player what to do? → Action, then box 
+     (Recommended)
+     · Character creation comes with E6. What character should E4 and E5 start 
+     with? → Fixed placeholder (Recommended)
+     · E4 is the first task with a player-facing story. Should I open a GitHub 
+     issue for it and close it with the PR? → No issue
+
+❯ I don't thiunk we need the log replay for now though                          
+
+⏺ Dropping replay support (no --replay option or test) but keeping the file
+  logging with seed and answers for debugging. Decisions locked in: callback
+  protocol, "action, then box" turns, fixed placeholder character (Life 8,
+  Sanity 8, Food d6), no GitHub issue — next I'll review the existing code style
+  and write tests first.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Writing the tests first: scenario tests for the loop, then tests for the
+  terminal and the dice seed.
+
+⏺ Write(tests/test_game_loop.py)
+  ⎿  Wrote 252 lines to tests/test_game_loop.py
+      1 """E4: the engine/interface protocol and the game loop (design/ga
+        me-flow.md, Mission).
+      2 
+      3 The engine asks, the interface answers: every choice is a `Choose
+        ` request whose answer must be
+      4 one of its options, and the engine tells the interface what happe
+        ned. The loop: choose Home on
+      5 the first game, then each turn choose an action (move or quit) an
+        d, to move, a box. It ends at
+      6 death (Life 0), insanity (Sanity 0) or when the player quits.
+     … +246 lines (ctrl+o to expand)
+
+⏺ I wrote a couple of those assertions sloppily. Fixing them:
+
+⏺ Bash(python3 - <<'EOF'
+      p='tests/test_game_loop.py'…)
+  ⎿  Updated tests/test_game_loop.py (+3 -2)
+      86      arrivals = [event for event in interface.told if isinstance
+          (event, Arrival)]
+      87      assert [arrival.position for arrival in arrivals] == [HOME,
+           *WALK]
+      88      assert [arrival.number for arrival in arrivals] == list(ran
+          ge(1, 12))
+      89 -    assert arrivals[5].upkeep is Upkeep.ATE  # box 6? no: index
+         - 5 is box 6                                                    
+      89 +    assert [arrival.upkeep for arrival in arrivals if arrival.u
+         +pkeep] == [Upkeep.ATE] * 2                                     
+      90 +    assert arrivals[4].upkeep is arrivals[9].upkeep is Upkeep.A
+         +TE  # boxes 5 and 10                                           
+      91      assert interface.told[-1] == Ended(End.QUIT)
+      92  
+      93  
+     ...
+      152  
+      153      move = interface.asked[2]
+      154      assert move.topic is Topic.MOVE
+      154 -    assert set(move.options) == set(game.campaign.map.sheets a
+          -nd _neighbours_of_home())                                     
+      155 +    assert set(move.options) == _neighbours_of_home()         
+      156  
+      157  
+      158  def _neighbours_of_home():
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='tests/test_dice.py'…)
+  ⎿  Updated tests/test_dice.py (+14 -0)
+      194      assert [code.roll(first) for _ in range(20)] == [code.roll
+           (second) for _ in range(20)]
+      195  
+      196  
+      197 +def test_unseeded_dice_pick_a_seed_and_log_it(caplog):        
+      198 +    # so a game played with real dice can be played again with
+          + the same rolls                                               
+      199 +    caplog.set_level(logging.INFO, logger="alone_against_fear"
+          +)                                                             
+      200 +    dice = RandomDice()                                       
+      201 +    assert isinstance(dice.seed, int)                         
+      202 +    assert f"dice seed {dice.seed}" in caplog.messages        
+      203 +    again = RandomDice(seed=dice.seed)                        
+      204 +    assert [dice.d6() for _ in range(20)] == [again.d6() for _
+          + in range(20)]                                                
+      205 +                                                              
+      206 +                                                              
+      207 +def test_seeded_dice_keep_their_seed():                       
+      208 +    assert RandomDice(seed=42).seed == 42                     
+      209 +                                                              
+      210 +                                                              
+      211  def test_random_dice_only_show_faces_1_to_6():
+      212      dice = RandomDice(seed=1)
+      213      assert {dice.d6() for _ in range(600)} == {1, 2, 3, 4, 5, 
+           6}
+
+⏺ Write(tests/test_terminal.py)
+  ⎿  Wrote 114 lines to tests/test_terminal.py
+       1 """E4: the minimal terminal interface.
+       2 
+       3 It shows the character, the map and each request with numbered o
+         ptions, reads the player's
+       4 choice and checks it before answering; it narrates what the engi
+         ne tells it. Input and output
+       5 are passed in, so a test plays the terminal with typed lines.
+       6 """
+       7 
+       8 import pytest
+     … +106 lines (ctrl+o to expand)
+
+⏺ Running the new tests to see them fail first:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Both test files fail on the missing modules, as expected. Now the code,
+  starting with the protocol and the loop.
+
+⏺ Write(src/alone_against_fear/engine/protocol.py)
+  ⎿  Wrote 78 lines to src/alone_against_fear/engine/protocol.py
+      1 """The engine/interface protocol (E4): the engine asks, the inter
+        face answers.
+      2 
+      3 The engine holds an `Interface` and calls it while the rules run:
+         `ask` when the player has a
+      4 choice to make, `tell` when something happened. Requests, answers
+         and events are plain data,
+      5 so an interface can show them any way it likes and a scripted one
+         can play them in tests.
+      6 The answer to a `Choose` must be one of its options; the engine r
+     … +73 lines (~2 KB) (ctrl+o to expand)
+
+⏺ Write(src/alone_against_fear/engine/loop.py)
+  ⎿  Wrote 88 lines to src/alone_against_fear/engine/loop.py
+      1 """The game loop (E4): a mission played turn by turn (design/game
+        -flow.md, Mission).
+      2 
+      3 The first game asks for Home. Then each turn: choose an action, m
+        ove to a box (numbered, Food
+      4 upkeep), arrive. Arriving does nothing more yet: the Town Explora
+        tion roll, the Search and the
+      5 free actions come with book mode (E5) and later tasks. The loop e
+        nds at death (Life 0),
+      6 insanity (Sanity 0) or when the player quits.
+     … +82 lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='src/alone_against_fear/engine/loop.py'…)
+  ⎿  Updated src/alone_against_fear/engine/loop.py (+2 -8)
+      11  import logging
+      12  
+      13  from ..dice import DiceCode
+      14 -from .game import Game, GameError                              
+      14 +from .game import Arrival, Game, GameError                     
+      15  from .protocol import Action, Choose, End, Ended, Interface, Qu
+          it, Request, Topic
+      16  from .state import Position
+      17  from .town import boxes_of
+     ...
+      43      if game.campaign.home is None:
+      44          home = ask(interface, Choose(Topic.HOME, tuple(boxes_of
+          (FIRST_SHEET))))
+      45          number = game.choose_home(home)
+      46 -        interface.tell(_home_arrival(game, home, number))      
+      46 +        interface.tell(Arrival(home, number))                  
+      47      while (end := _ended(game)) is None:
+      48          action = ask(interface, Choose(Topic.ACTION, (Action.MO
+          VE, Action.QUIT)))
+      49          if action is Action.QUIT:
+     ...
+      71      return None
+      72  
+      73  
+      74 -def _home_arrival(game: Game, home: Position, number: int):    
+      75 -    from .game import Arrival                                  
+      76 -                                                               
+      77 -    return Arrival(home, number)                               
+      78 -                                                               
+      79 -                                                               
+      74  def _reading_order(positions: set[Position]) -> tuple[Position,
+           ...]:
+      75      """Row by row, left to right, as the boxes are read on the 
+          map."""
+      76      return tuple(sorted(positions, key=lambda p: (p.row, p.colu
+          mn)))
+
+⏺ Bash(python3 - <<'EOF'
+      p='src/alone_against_fear/dice.py'…)
+  ⎿  Updated src/alone_against_fear/dice.py (+5 -2)
+      33  
+      34  
+      35  class RandomDice:
+      36 -    """Real dice. The same seed gives the same rolls."""       
+      36 +    """Real dice. The same seed gives the same rolls; without o
+         +ne, the dice pick a seed and                                   
+      37 +    log it, so a game can be played again with the same rolls."
+         +""                                                             
+      38  
+      39      def __init__(self, seed: int | None = None) -> None:
+      39 -        self._random = random.Random(seed)                     
+      40 +        self.seed = seed if seed is not None else random.randra
+         +nge(2**32)                                                     
+      41 +        self._random = random.Random(self.seed)                
+      42 +        log.info("dice seed %d", self.seed)                    
+      43  
+      44      def d6(self) -> int:
+      45          return self._random.randint(1, 6)
+
+⏺ Bash(python3 - <<'EOF'
+      p='src/alone_against_fear/engine/loop.py'…)
+  ⎿  ......................................................................
+     .. [ 87%]
+     ..........
+     … +2 lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/engine/loop.py (+1 -1)
+      59      if answer not in request.options:
+      60          raise GameError(f"{answer!r} is not one of the options 
+          for {request.topic}")
+      61      log.info("answer %s: %s", request.topic, _shown(answer))
+      62 -    return answer                                              
+      62 +    return request.options[request.options.index(answer)]  # th
+         +e option itself, not a copy                                    
+      63  
+      64  
+      65  def _ended(game: Game) -> End | None:
+  ⎿  Created src/alone_against_fear/interface/__init__.py (+2 -0)
+      1 +"""Interfaces: they answer the engine's requests and show what i
+        +t tells them. The engine                                        
+      2 +never reads input or prints; an interface does both."""         
+  ⎿  Created src/alone_against_fear/interface/scripted.py (+34 -0)
+       1 +"""A scripted interface (E4): it gives prepared answers in orde
+         +r, for tests."""                                               
+       2 +                                                               
+       3 +from __future__ import annotations                             
+       4 +                                                               
+       5 +from collections.abc import Iterable                           
+       6 +                                                               
+       7 +from ..engine.protocol import Event, Request                   
+       8 +                                                               
+       9 +                                                               
+      10 +class ScriptError(Exception):                                  
+      11 +    """The script has no answer left for a request."""         
+      12 +                                                               
+      13 +                                                               
+      14 +class ScriptedInterface:                                       
+      15 +    """Answers each request with the next prepared answer, and 
+         +remembers what the engine                                      
+      16 +    asked and told."""                                         
+      17 +                                                               
+      18 +    def __init__(self, answers: Iterable[object]) -> None:     
+      19 +        self._answers = list(answers)                          
+      20 +        self.asked: list[Request] = []                         
+      21 +        self.told: list[Event] = []                            
+      22 +                                                               
+      23 +    @property                                                  
+      24 +    def remaining(self) -> int:                                
+      25 +        return len(self._answers)                              
+      26 +                                                               
+      27 +    def ask(self, request: Request) -> object:                 
+      28 +        self.asked.append(request)                             
+      29 +        if not self._answers:                                  
+      30 +            raise ScriptError(f"no answer left for {request}") 
+      31 +        return self._answers.pop(0)                            
+      32 +                                                               
+      33 +    def tell(self, event: Event) -> None:                      
+      34 +        self.told.append(event)                                
+
+⏺ Loop tests pass. The terminal needs read-only access to the Game to draw the
+  map and character, so I'm updating its tests to pass the game in, keeping
+  changes limited to its answers.
+
+⏺ Bash(python3 - <<'EOF'
+      p='tests/test_terminal.py'…)  ⎿  38:def terminal(game, lines):
+     41:    return TerminalInterface(game, input_fn=Typist(lines), output_f
+     n=output.append), output
+     … +8 lines (ctrl+o to expand)
+  ⎿  Updated tests/test_terminal.py (+10 -8)
+      1  """E4: the minimal terminal interface.
+      2  
+      3  It shows the character, the map and each request with numbered o
+         ptions, reads the player's
+      4 -choice and checks it before answering; it narrates what the engi
+        -ne tells it. Input and output                                   
+      5 -are passed in, so a test plays the terminal with typed lines.   
+      4 +choice and checks it before answering; it narrates what the engi
+        +ne tells it. It reads the game                                  
+      5 +state to show it, and changes it only through its answers. Input
+        + and output are passed in, so a                                 
+      6 +test plays the terminal with typed lines.                       
+      7  """
+      8  
+      9  import pytest
+     ...
+      35          return self.lines.pop(0)
+      36  
+      37  
+      37 -def terminal(lines):                                           
+      38 +def terminal(game, lines):                                     
+      39 +    """A terminal that reads the game to show it, typing the gi
+         +ven lines."""                                                  
+      40      output = []
+      39 -    return TerminalInterface(input_fn=Typist(lines), output_fn=
+         -output.append), output                                         
+      41 +    return TerminalInterface(game, input_fn=Typist(lines), outp
+         +ut_fn=output.append), output                                   
+      42  
+      43  
+      44  # Options are numbered from 1 in reading order (row by row). Ho
+          me in the top-left box is
+     ...
+      52  def test_a_player_walks_ten_boxes_in_the_terminal(content):
+      53      # given a new game played in the terminal
+      54      game = Game(dice=ScriptedDice([3]), content=content)
+      53 -    interface, output = terminal([HOME_TOP_LEFT, *BACK_AND_FORT
+         -H * 10, QUIT])                                                 
+      55 +    interface, output = terminal(game, [HOME_TOP_LEFT, *BACK_AN
+         +D_FORTH * 10, QUIT])                                           
+      56  
+      57      # when the player types Home, ten moves, then quit
+      58      end = play(game, interface)
+     ...
+      71  
+      72  def test_the_map_shows_where_the_character_stands_and_the_numbe
+          red_choices(content):
+      73      game = Game(dice=ScriptedDice([3]), content=content)
+      72 -    interface, output = terminal([HOME_TOP_LEFT, "1", "1", QUIT
+         -])                                                             
+      74 +    interface, output = terminal(game, [HOME_TOP_LEFT, "1", "1"
+         +, QUIT])                                                       
+      75  
+      76      play(game, interface)
+      77  
+     ...
+      84      game = Game(dice=ScriptedDice([3]), content=content)
+     … 15 more lines (ctrl+o to expand)
+
+⏺ Write(src/alone_against_fear/interface/terminal.py)
+  ⎿  Wrote 163 lines to src/alone_against_fear/interface/terminal.py
+      1 """The terminal interface (E4): a minimal way to play.
+      2 
+      3 It shows the character, the map and each request with numbered op
+        tions, reads the player's
+      4 choice and checks it before answering, and narrates what the engi
+        ne tells it. It reads the
+      5 game state to show it and changes it only through its answers. En
+        d of input (Ctrl-D) or Ctrl-C
+      6 quits. `main` sets up a game, with the log written to a file.
+      7 """
+     … +156 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ All 250 tests pass. One unused import to clean up, then I'll play a real game
+  through the console script:
+
+⏺ Bash(.venv/bin/ruff check --fix -q . ; .venv/bin/ruff format . &&
+      .venv/bin/ruff check . && .venv/bin/pytest -q 2>&1 | tail -1 && printf
+      '13\n1\n1\n1\n8\n1\n8\n1\n8\…)
+  ⎿  115 files left unchanged
+     All checks passed!
+     250 passed in 0.26s
+     … +50 lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/interface/terminal.py (+1 -1)
+      18  from ..dice import RandomDice
+      19  from ..engine import Arrival, Game, Position, Upkeep
+      20  from ..engine.loop import play
+      21 -from ..engine.protocol import Choose, End, Ended, Event, Quit, 
+         -Request, Topic                                                 
+      21 +from ..engine.protocol import End, Ended, Event, Quit, Request,
+         + Topic                                                         
+      22  from ..engine.town import SHEET_COLUMNS, SHEET_ROWS
+      23  
+      24  CELL = 5
+
+⏺ Bash(python3 - <<'EOF'
+      p='src/alone_against_fear/interface/terminal.py'…)
+  ⎿  250 passed in 0.24s
+     All checks passed!
+     115 files already formatted
+     … +10 lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/interface/terminal.py (+1 -0)
+      48          options = request.options
+      49          match request.topic:
+      50              case Topic.ACTION:
+      51 +                self._output("")                               
+      52                  self._output(self._status())
+      53                  self._output("  ".join(f"{n}) {option}" for n, 
+          option in _numbered(options)))
+      54                  prompt = "What do you do? "
+
+⏺ E4's "Done when" is met. A scripted test walks 10 boxes, and the terminal lets
+  a player do the same. I also played a real game through the
+  alone-against-fear command. 250 tests pass (21 new) and ruff is clean. Nothing
+  is committed yet.
+
+  What's in:
+  - The engine asks, the interface answers (engine/protocol.py):
+    - When the player has a choice, the engine calls ask(Choose(topic, 
+      options)). The topics so far are Home, Action and Move.
+    - When something happens, it calls tell(event): arriving in a box, or the
+      game ending.
+    - An answer that isn't one of the options is refused with GameError.
+    - An interface raises Quit at any request to leave the game.
+  - The game loop (engine/loop.py):
+    - If there's no character yet, it creates the placeholder: Life 8, Sanity 8,
+      Food d6.
+    - If Home isn't chosen yet, it asks for it. A campaign already under way
+      goes on from where it stands.
+    - Each turn asks Move or Quit, then which box. The boxes are listed row by
+      row.
+    - It stops at Life 0, Sanity 0 or Quit. Search and arriving do nothing yet;
+      they are left for E5.
+  - Interfaces:
+    - interface/scripted.py gives prepared answers and remembers what it was
+      asked and told.
+    - interface/terminal.py shows a status line, a map with numbered choices, @
+      for the character, H for Home and box numbers. It asks again after a bad
+      answer, and Ctrl-D or Ctrl-C quits.
+    - The terminal reads the game state to draw it, but changes it only through
+      its answers. I chose this because the protocol doesn't carry the map.
+  - Log file: the terminal writes it to logs/<date-time>.log, which I added to
+    .gitignore. Without --seed, the dice pick a seed and log it; every answer is
+    logged too. There is no replay, as you asked.
+
+  One small choice for you: if Life and Sanity both reach 0 at the same moment,
+  I report it as dead. Either way the game is lost; only the message differs.
+  Should I keep that and write it in design/rulings.md, or would you rather show
+  "insane"?
+
+  To try it yourself: ! .venv/bin/alone-against-fear (or --seed 3 to get the
+  same dice each time).
+
+  When you're happy with it, I'll do the wrap-up: Readme, NextSession,
+  docs/architecture.md, the log, then the commit, push and PR.
+
+✻ Churned for 3m 43s · done 10:36
+
+※ recap: E4 is built: the scripted test and the terminal both walk 10 boxes, and all tests pass, but nothing is committed yet. Next, decide whether Life and Sanity both at 0 counts as dead or insane, then I do the wrap-up. (disable recaps in /config)
+
+❯ Keep dead, before wrapping up I think we should update the docs don t we ?    
+
+⏺ Yes. Before the wrap-up these need updating: the ruling in design/rulings.md,
+  docs/architecture.md (new modules and the protocol), and CLAUDE.md (how to
+  play). The Readme and NextSession get updated as part of the wrap-up itself.
+  Let me check how the first two are laid out.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='design/rulings.md'…)
+  ⎿  # Architecture
+
+     How the Python code is built: packages, modules, the main classes and
+     … +13 lines (ctrl+o to expand)
+  ⎿  Updated design/rulings.md (+1 -0)
+      20  ## Character
+      21  
+      22  - **An Injury or Mental Scar negates the whole loss.** `interpr
+          etation` `switchable` The main rules say it prevents "the loss 
+          of 1 or 2 points" (`1_1_main_rules.md`, Sanity and Life), the c
+          ombat chapter says it negates "all Damage from a single attack"
+           (`3_combat.md`, Mental Scars and Injuries). We follow the comb
+          at chapter: it is less punitive and leaves room for spectacular
+           moments (losing an arm to survive a massive blow). The Zombie 
+          Tiger ("if you already have 3 Injuries, lose 3 Life instead") s
+          upports this reading. Switchable: the strict reading (absorb at
+           most 2 points) could be a harder game mode.
+      23 +- **At 0 Life and 0 Sanity at once, the character is dead.** `g
+         +ap` The book ends the game at 0 Life (dead) and at 0 Sanity (in
+         +sane) but never says which wins when both happen together. Eith
+         +er way the game is lost; only the ending differs. Death is chec
+         +ked first.                                                     
+      24  - **Expert costs the Skill's XP cost again.** `gap` The book ne
+          ver states the upgrade cost. Learning the Basic Skill then payi
+          ng the same cost again for Expert follows "skills may be added 
+          at any moment in the game, after paying their XP cost" (`1_2_sk
+          ills.md`) and "some Arcane Skills may be learned twice (they ha
+          ve an Expert level)" (`1_3_arcane_skills.md`). Matches a commun
+          ity answer on BoardGameGeek.
+      25  
+      26  ## Inventory
+
+⏺ Ruling added. Now docs/architecture.md. It's also missing test_town_map.py
+  from its tests table, so I'm fixing that while I'm in there.
+
+⏺ Bash(python3 - <<'EOF'
+      p='docs/architecture.md'…)
+  ⎿  25:- Setup: `python -m venv .venv && .venv/bin/pip install -e '.[dev]'
+     `
+     26:- Tests: `.venv/bin/pytest`  ·  Lint: `.venv/bin/ruff check .`  ·
+     Format: `.venv/bin/ruff format .`
+  ⎿  Updated docs/architecture.md (+81 -3)
+       8  
+       9  ```
+      10  src/alone_against_fear/
+      11 +  __main__.py       python -m alone_against_fear: the terminal 
+      12    dice.py           dice codes, chances, dice sources (shared b
+          y content and engine)
+      13    engine/           the game: state and the engine API
+      14      state.py        Campaign, Character, Mission, History, Town
+          Map, Box (plain data)
+      15      town.py         sheets, neighbours, distance (pure geometry
+          )
+      16      game.py         Game: the only way the state changes
+      17 +    protocol.py     requests, events, Interface: how the engine
+         + talks to an interface                                         
+      18 +    loop.py         play(): the game loop                      
+      19 +  interface/        what answers the engine: reads input, shows
+         + the game                                                      
+      20 +    scripted.py     ScriptedInterface: prepared answers, for te
+         +sts                                                            
+      21 +    terminal.py     TerminalInterface and main(): play in the t
+         +erminal                                                        
+      22    content/          the rules text: YAML files, their loader an
+          d model
+      23      loader.py       YAML files → Content
+      24      model.py        Content, Table, Entry, Roll, CatalogueTable
+          , the checks
+     ...
+      28  
+      29  Rules that hold for every package ([`CLAUDE.md`](../CLAUDE.md))
+          : the engine never reads input or prints, and the game state re
+          fers to content by ID only and never holds code.
+      30  
+      25 -**Logging.** Every module logs to a child of the `alone_against
+         -_fear` logger (standard `logging`): rolls at DEBUG, state chang
+         -es at INFO. The engine only emits; the interface decides where 
+         -the log goes (a file, from E4). Tests read it with `caplog`.   
+      31 +**Logging.** Every module logs to a child of the `alone_against
+         +_fear` logger (standard `logging`): rolls at DEBUG, state chang
+         +es at INFO. Every answer to a request is logged at INFO (`answe
+         +r move: (2, 3)`). The engine only emits; the interface decides 
+         +where the log goes: the terminal writes it to `logs/<date-time>
+         +.log` (git-ignored) at DEBUG. Tests read it with `caplog`.     
+      32  
+      33  ## `dice`: dice codes and dice sources
+      34  
+     ...
+      60          d6() int
+      61      }
+      62      class RandomDice {
+      57 -        seed                                                   
+      63 +        seed, picked and logged if not given                   
+      64      }
+      65      class ScriptedDice {
+      66          faces, in order
+     ...
+      78  ```
+      79  
+      80  - **Dice codes are parsed from the book's notation** (`"2d6+1"`
+          , `"d6 x d6"`, `"12+d6"`, `"d66"`) and shown back in a standard
+           form (`str(code)`). `Combine` says how the dice make the total
+          : sum, product (`d6xd6`) or digits (`d66`). A d3 is a d6 halved
+          . `"x in 6"` is a `Chance`, true on a die showing x or less.
+      75 -- **Every roll goes through a `Dice` source** that only rolls d
+         -6: `RandomDice(seed)` for play and reproducible tests, `Scripte
+         -dDice([...])` for rule tests that state the faces shown. A resu
+         -lt keeps every face, so rules can read the natural die.        
+      81 +- **Every roll goes through a `Dice` source** that only rolls d
+         +6: `RandomDice(seed)` for play and reproducible tests (with no 
+         +seed it picks one and logs it, so a game's dice can be rolled a
+         +gain), `ScriptedDice([...])` for rule tests that state the face
+         +s shown. A result keeps every face, so rules can read the natur
+         +al die.                                                        
+      82  - **Plain data.** Codes and results are frozen dataclasses; the
+           content loader stores a table's dice in standard form and its 
+          coverage check asks `DiceCode.results()`.
+      83  
+     … 83 more lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='CLAUDE.md'…)
+  ⎿   .gitignore                     |  3 ++
+      CLAUDE.md                      |  4 +-
+      design/rulings.md              |  1 +
+     … +6 lines (ctrl+o to expand)
+  ⎿  Updated CLAUDE.md (+3 -1)
+      14  ## Established facts
+      15  
+      16  - Python, terminal CLI first. The engine is UI-agnostic: it nev
+          er reads input or prints; it asks requests, an interface answer
+          s. No genAI code in the engine.
+      17 +- **Callback protocol** (E4): the engine calls `interface.ask(r
+         +equest)` for a choice (the answer must be one of the options) a
+         +nd `interface.tell(event)` for what happened. Interfaces read t
+         +he game state but change it only through their answers. Saving 
+         +happens between turns.                                         
+      18  - **Whole model, thin content.** The engine follows the whole d
+          esign; only a slice of content is written. Anything unwritten g
+          oes through **book mode**: show the entry's text, the player ap
+          plies it with manual actions (which still go through the rules)
+          .
+      19  - **Rules text in YAML** (stable ID per table, entry, creature,
+           item, event, Skill); **behaviour in Python**, keyed by the sam
+          e ID. Plain data placement (stats, weights) is open until E6 (D
+          1). The Markdown in `gameRules/` is the readable copy, fixed to
+          gether with the YAML.
+      20  - Game state refers to content by ID and never holds code (savi
+          ng = saving the campaign).
+     ...
+      22  
+      23  ## Layout and commands
+      24  
+      24 -- `src/alone_against_fear/` — package; `src/alone_against_fear/
+         -content/` — rules text in YAML (layout and IDs: [`docs/content.
+         -md`](docs/content.md)); `tests/` — pytest; `design/` — domain d
+         -esign (Mermaid); `docs/` — code documentation: [`architecture.m
+         -d`](docs/architecture.md) (packages, classes, who calls whom), 
+         -[`content.md`](docs/content.md) (rules text in YAML: files, IDs
+         -, table shape); `gameRules/` — extracted rules; `claude-logs/` 
+         -— session logs.                                                
+      25 +- `src/alone_against_fear/` — package (`engine/` the rules and 
+         +state, `interface/` scripted and terminal); `src/alone_against_
+         +fear/content/` — rules text in YAML (layout and IDs: [`docs/con
+         +tent.md`](docs/content.md)); `tests/` — pytest; `design/` — dom
+         +ain design (Mermaid); `docs/` — code documentation: [`architect
+         +ure.md`](docs/architecture.md) (packages, classes, who calls wh
+         +om), [`content.md`](docs/content.md) (rules text in YAML: files
+         +, IDs, table shape); `gameRules/` — extracted rules; `claude-lo
+         +gs/` — session logs.                                           
+      26  - Setup: `python -m venv .venv && .venv/bin/pip install -e '.[d
+          ev]'`
+      27 +- Play: `.venv/bin/alone-against-fear [--seed N]` (log in `logs
+         +/`, git-ignored)                                               
+      28  - Tests: `.venv/bin/pytest`  ·  Lint: `.venv/bin/ruff check .` 
+           ·  Format: `.venv/bin/ruff format .`
+      29  - Tests first; stop at the task's "Done when".
+      30  
+
+⏺ Done. I updated three docs:
+
+  - design/rulings.md (Character): new ruling. When Life and Sanity reach 0
+    together the character is dead, because death is checked first.
+  - docs/architecture.md:
+    - The package tree now has protocol.py, loop.py and interface/.
+    - A new section explains the protocol: a sequence diagram of the loop, the
+      class diagram of the interfaces, and why callbacks won over generators and
+      a state machine.
+    - The interfaces and main are described.
+    - Logging now covers the answers and the log file, and RandomDice notes that
+      it picks and logs a seed.
+    - The tests table has the two new test files, plus test_town_map.py, which
+      was missing.
+  - CLAUDE.md: the callback protocol is listed as an established fact, the
+    layout mentions interface/, and there's a "Play" command line.
+
+  design/game-flow.md is unchanged: its Mission diagram already describes the
+  turn in game terms, and the protocol is a code choice, so it belongs in docs/.
+
+  Tests and ruff still pass. Shall I go ahead with the wrap-up? That's the
+  Readme (E4 checked, the decisions), NextSession (E4 removed, models and effort
+  reviewed), the log, then your transcript export, commit, push and PR.
+
+✻ Worked for 52s · done 10:44
+
+❯ Thre is a parse error :                                                       
+  Parse error on line 7:                                                        
+  ... Home yet    UI-->>Loop: a box    Loop                                     
+  ----------------------^                                                       
+  Expecting 'link', '+', '-', '()', 'ACTOR', got 'loop'                         
+
+⏺ The participant named Loop clashes with Mermaid's loop keyword. I'm renaming
+  it.
+
+⏺ Bash(python3 - <<'EOF'
+      import re…)
+  ⎿  sequenceDiagram
+         participant UI as Interface (terminal, scripted)
+         participant P as play()
+     … +16 lines (ctrl+o to expand)
+  ⎿  Updated docs/architecture.md (+14 -14)
+      149  ```mermaid
+      150  sequenceDiagram
+      151      participant UI as Interface (terminal, scripted)
+      152 -    participant Loop as play()                                
+      152 +    participant P as play()                                   
+      153      participant Game
+      154 -    Loop->>Game: create_character (placeholder), if none      
+      155 -    Loop->>UI: ask(Choose HOME, 30 boxes), if no Home yet     
+      156 -    UI-->>Loop: a box                                         
+      157 -    Loop->>Game: choose_home                                  
+      158 -    Loop->>UI: tell(Arrival)                                  
+      154 +    P->>Game: create_character (placeholder), if none         
+      155 +    P->>UI: ask(Choose HOME, 30 boxes), if no Home yet        
+      156 +    UI-->>P: a box                                            
+      157 +    P->>Game: choose_home                                     
+      158 +    P->>UI: tell(Arrival)                                     
+      159      loop each turn, until dead, insane or quit
+      160 -        Loop->>UI: ask(Choose ACTION, move / quit)            
+      161 -        UI-->>Loop: move                                      
+      162 -        Loop->>Game: targets()                                
+      163 -        Loop->>UI: ask(Choose MOVE, targets)                  
+      164 -        UI-->>Loop: a box                                     
+      165 -        Loop->>Game: move(box)                                
+      166 -        Loop->>UI: tell(Arrival)                              
+      160 +        P->>UI: ask(Choose ACTION, move / quit)               
+      161 +        UI-->>P: move                                         
+      162 +        P->>Game: targets()                                   
+      163 +        P->>UI: ask(Choose MOVE, targets)                     
+      164 +        UI-->>P: a box                                        
+      165 +        P->>Game: move(box)                                   
+      166 +        P->>UI: tell(Arrival)                                 
+      167      end
+      168 -    Loop->>UI: tell(Ended)                                    
+      168 +    P->>UI: tell(Ended)                                       
+      169  ```
+      170  
+      171  ```mermaid
+
+⏺ Mermaid is interpreting "Loop" as a loop…end block, and the sequence diagram
+  now shows participant P labeled "play()". I'll check if a Mermaid CLI is
+  installed so I can validate all the diagrams in the file.
+
+  Searched for 1 pattern, ran 1 shell command (ctrl+o to expand)
+  ⎿  1 action blocked by auto mode
+     │ Auto mode: [Code from External]
+
+⏺ I wasn't able to render the diagrams since the Mermaid CLI via npx was
+  blocked, so I'm manually reviewing them instead. I spotted colons inside class
+  bodies that could trip a strict parser, so I'm removing them now.
+
+⏺ Bash(sed -i '' -e 's/        topic: HOME, ACTION, MOVE/        topic HOME,
+      ACTION or MOVE/' -e 's/        end: DEAD, INSANE, QUIT/        end DEAD,
+      INSANE or QUIT/'…)
+  ⎿  151:    participant UI as Interface (terminal, scripted)
+     152:    participant P as play()
+     153:    participant Game
+     … +2 lines (ctrl+o to expand)
+  ⎿  Updated docs/architecture.md (+2 -2)
+      183          tell(event)
+      184      }
+      185      class Choose {
+      186 -        topic: HOME, ACTION, MOVE                             
+      186 +        topic HOME, ACTION or MOVE                            
+      187          options
+      188      }
+      189      class Ended {
+      190 -        end: DEAD, INSANE, QUIT                               
+      190 +        end DEAD, INSANE or QUIT                              
+      191      }
+      192      class ScriptedInterface {
+      193          answers, in order
+
+⏺ I fixed the parse error in docs/architecture.md. The sequence diagram had a
+  participant called Loop, and Mermaid read that as the start of its loop … end
+  block. The participant is now P, still shown as "play()" in the boxes, and the
+  loop each turn … block is unchanged.
+
+  In the class diagram I also removed the colons from Choose and Ended (now
+  topic HOME, ACTION or MOVE and end DEAD, INSANE or QUIT), in case a strict
+  parser objects to them.
+
+  I haven't confirmed that the diagrams render now. Checking them needs the
+  Mermaid CLI downloaded through npx, and the permission check blocked that.
+  Could you reload the page in your viewer? If anything still fails, paste the
+  error and I'll fix it before the wrap-up.
+
+✻ Churned for 38s · done 10:46
+
+❯ I use mermaid extensively so I could install a mermaid cli, tell me what      
+  commands to run.                                                              
+  Before wrapping up, after commiting etc but before adding the export and its  
+  commit + opening a PR I think we may want to alunch an adversarial review of  
+  the projhect so far ? Or does it need its own session ? Just in order to take 
+  a step back and get feedback                                                  
+
+⏺ Installing the Mermaid CLI
+
+  Your Node comes through asdf (npx is an asdf shim), so after a global install
+  the shims need refreshing:
+
+  ! npm install -g @mermaid-js/mermaid-cli && asdf reshim nodejs
+
+  The first run downloads a headless Chromium for Puppeteer, which takes a
+  minute. mmdc accepts a Markdown file directly, renders every ```mermaid block
+  in it and fails on the first one that doesn't parse. That makes it a handy
+  check, for example:
+
+  ! mmdc -i docs/architecture.md -o /tmp/arch.md
+
+  I can't change my own permissions, so if you want me to run it myself in later
+  sessions, add Bash(mmdc:*) to the allow list in .claude/settings.json.
+
+  Adversarial review: here, or its own session?
+
+  I recommend its own session, right after this one and before E5. My reasons:
+
+  - Fresh eyes. I wrote E4 and have been inside this project's framing all
+    session, so I'm the worst reviewer of it. A new session starts cold and
+    reads the repo the way an outsider would.
+  - Good timing. E1–E4 plus the protocol choice are the foundation everything
+    else builds on. A step back costs least now, before book mode and the
+    batches build on it.
+  - Clean scope. This PR stays E4. The review gets its own log, and its findings
+    become roadmap changes or rulings, not hidden edits in an E4 PR.
+  - Size. A whole-project review means reading the design docs, the rulings, the
+    roadmap, the code and the process docs, which is a lot of context. Done at
+    the end of this session, it would compete with the wrap-up.
+
+  Suggested shape: Opus, high effort, findings only and no fixes during the
+  review. Each finding gets a severity and a proposed action, then we go through
+  them together one at a time, as with the batch doubts. Angles to cover:
+
+  1. Design coherence: are the docs consistent with each other and with the
+     rules?
+  2. Architecture risks, especially the callback protocol versus later needs:
+     saving, reactions, a GUI.
+  3. Whether the roadmap order and estimates still hold.
+  4. Code and test quality.
+  5. Process overhead: are the docs and rituals worth what they cost?
+
+  If you'd still rather have it before this PR, I can launch fresh agents that
+  read the repo cold, one per angle, while we wrap up. Their findings would only
+  be reported in this session's log, not acted on. One caveat either way:
+  /code-review and ultra review look at a branch's diff, not the whole project,
+  so they don't fit a step back. Ultra review is also something only you can
+  launch, and it's billed.
+
+  Which do you prefer? If it's a separate session, I'll add it to NextSession as
+  step 1, before E5, with this prompt and the model during the wrap-up.
+✻ Churned for 21s · done 10:49
+
+❯ separate session, add it to NextSession and wrap up                           
+
+  Searched for 1 pattern, ran 1 shell command (ctrl+o to expand)
+
+⏺ Writing the wrap-up now: Readme, NextSession (with the review as step 1), then
+  the log.
+
+⏺ Bash(python3 - <<'EOF'
+      p='Readme.md'…)
+  ⎿  #### [x] E4 — Engine/interface protocol and game loop
+     The engine asks, the interface answers: every choice is a request, so
+     the engine never reads input or prints. The turn loop: move, arrive, S
+     … +7 lines (ctrl+o to expand)
+  ⎿  Updated Readme.md (+3 -2)
+       8  
+       9  ## Status
+      10  
+      11 -MVP phase. Rules extraction and domain design ([`design/`](desi
+         -gn/)) are done. The rules text is being copied into YAML: the f
+         -ormat and the four exploration tables are in (R1). The engine h
+         -as started: dice (E1), the game state (E2) and the town map wit
+         -h moves and time (E3).                                         
+      11 +MVP phase. Rules extraction and domain design ([`design/`](desi
+         +gn/)) are done. The rules text is being copied into YAML: the f
+         +ormat and the four exploration tables are in (R1). The engine h
+         +as started: dice (E1), the game state (E2), the town map with m
+         +oves and time (E3), and the engine/interface protocol with the 
+         +game loop (E4): a player can walk the town in the terminal (`al
+         +one-against-fear`).                                            
+      12  
+      13  **MVP goal:** play a whole campaign in the terminal, in two ste
+          ps ([MVP scope](design/mvp-scope.md)):
+      14  
+     ...
+      32  - **Language:** Python. Strongest ecosystem for planned genAI f
+          eatures (local LLMs, image and video generation).
+      33  - **Interface:** terminal CLI first. Engine stays UI-agnostic s
+          o other front ends can be added.
+      34  - **MVP scope** (was D6): two steps, Bring Home the Bacon then 
+          Close a Hell Gate with campaign play; unwritten content goes th
+          rough book mode. See [MVP scope](design/mvp-scope.md).
+      35 +- **Engine/interface protocol** (E4): callbacks. The engine cal
+         +ls `ask(request)` when the player chooses (the answer must be o
+         +ne of the options) and `tell(event)` when something happens. Ch
+         +osen over generators and a state machine: rules that ask deep i
+         +nside other rules stay simple; the game is saved between turns.
+         + Interfaces read the game state and change it only through thei
+         +r answers. See [architecture](docs/architecture.md).           
+      36  - **Rules text in YAML** (part of D1): every table, entry, crea
+          ture, item, event and Skill gets a stable ID and its text in YA
+          ML; behaviour stays in Python, keyed by the same ID. The Markdo
+          wn in `gameRules/` stays as the readable copy, fixed together w
+          ith the YAML. Files, IDs (`table.town_exploration.7`, `mission.
+          bring_home_the_bacon`) and the shape of a table: [rules text in
+           YAML](docs/content.md).
+      37  
+      38  ### Guidelines
+     ...
+      162  - Done when: moves, numbering, distance, sheets and Food are u
+           nit tested.
+      163  - Depends on: E2.
+      164  
+      164 -#### [ ] E4 — Engine/interface protocol and game loop         
+      165 +#### [x] E4 — Engine/interface protocol and game loop         
+      166  The engine asks, the interface answers: every choice is a requ
+           est, so the engine never reads input or prints. The turn loop:
+            move, arrive, Search, free actions; it ends at death, insanit
+           y or when the player quits. A scripted interface plays games i
+           n tests; a minimal terminal interface shows the map, the chara
+           cter and the requests.
+      167  - Design: [game flow](design/game-flow.md)
+      168  - Done when: a scripted test walks 10 boxes, and the terminal 
+           lets a player do the same.
+
+⏺ Now NextSession: E4 comes out, the review goes in as step 1, and the models
+  get reviewed.
+
+⏺ Bash(python3 - <<'EOF'
+      p='NextSession.md'…)
+  ⎿  # Next sessions
+
+     Planned work sessions with Claude, in order, each with the model and e
+     … +49 lines (ctrl+o to expand)
+  ⎿  Updated NextSession.md (+19 -3)
+       4  
+       5  ## Reminders
+       6  
+       7 +- E4 dropped log replay (seed + answers played back through the
+         + scripted interface): not needed for now. The seed and every an
+         +swer are still logged, so it can be added when a bug needs it. 
+       8  - Compare the pregenerated characters in [`gameRules/14_pregene
+          rated_characters.md`](gameRules/14_pregenerated_characters.md) 
+          against the original sheets in `origin_rules/`: image transcrip
+          tions are the part most likely to hold a misread.
+       9  
+      10  ## Plan
+      11  
+      11 -1. **E4** — engine/interface protocol and game loop. Start with
+         - a short design discussion before any code: it is the main arch
+         -itecture choice. Also wires the engine's log (logger `alone_aga
+         -inst_fear`) to a file in the terminal interface, and makes game
+         -s replayable for debugging: `RandomDice` picks and logs its see
+         -d, and the player's answers are logged too (seed + answers repl
+         -ay a game through the scripted interface, as long as the code h
+         -as not changed). First task with a user story: the first GitHub
+         - issue, if one is wanted.                                      
+      12 -   Model: **Opus, high effort**; xhigh if the design discussion
+         - turns hard.                                                   
+      12 +1. **Project review** — a step back before book mode: an advers
+         +arial review of the project so far (design, rulings, roadmap, a
+         +rchitecture, code and tests, process). Findings only, no fixes 
+         +during the review: each finding gets a severity and a proposed 
+         +action, then the user goes through them one at a time; what is 
+         +agreed becomes roadmap entries, rulings or doc fixes. A fresh s
+         +ession on purpose: it reads the repository cold, not the sessio
+         +n that wrote E4.                                               
+      13 +   Model: **Opus, high effort**.                               
+      14 +   Prompt:                                                     
+      15 +   ```                                                         
+      16 +   Project review session: an adversarial review of the project
+         + so far, before E5. Read                                       
+      17 +   CLAUDE.md, the Readme, NextSession.md, WorkingWithClaude.md,
+         + design/, docs/, the code and                                  
+      18 +   tests, and the latest logs in claude-logs/.                 
+      19 +   Look for what is wrong, risky or not worth its cost, on five
+         + angles: design coherence                                      
+      20 +   (docs consistent with each other and with gameRules/), archi
+         +tecture risks (the callback                                    
+      21 +   protocol against saving, reactions, a GUI; the state; conten
+         +t by ID), the roadmap (order,                                  
+      22 +   estimates, missing tasks), code and test quality, and the pr
+         +ocess (docs and rituals worth                                  
+      23 +   what they cost). Do not fix anything. Give me a short list f
+         +irst, one line per finding with                                
+      24 +   a severity and a proposed action, then go through them one a
+         +t a time, waiting for my answer.                               
+      25 +   Decide nothing and rule nothing yourself. No spoilers.      
+      26 +   ```                                                         
+      27 +   If the Mermaid CLI is installed (`mmdc`), also check that ev
+         +ery diagram renders.                                           
+      28  2. **E5** — book mode. The skeleton is done: a whole game can b
+          e walked in book mode. Decides how a table's own rules text is 
+          shown (on request, or the first time); notes are shown with the
+           entries that point to them ([rules text in YAML](docs/content.
+          md)).
+      14 -   Model: **Sonnet**. Clear spec; switch to Opus if how a table
+         -'s rules are shown turns into a design debate.                 
+      29 +   Builds on the E4 loop: arriving, Search and the free actions
+         + are its hook points; manual actions are new `Choose` topics (o
+         +r new request shapes). The placeholder character (Life 8, Sanit
+         +y 8, Food d6) stays until E6.                                  
+      30 +   Model: **Sonnet**. Clear spec, and E4 left a simple protocol
+         + to extend; switch to Opus if how a table's rules are shown, or
+         + a new request shape, turns into a design debate.              
+      31  3. **Step 1** — E6 to E17, one task per session, with the R bat
+          ches done ahead of the task that needs them (R2 and R3 before E
+          6, R4 before E12, R5 before E16). The batches do not touch the 
+          engine and can run as parallel sessions (in a worktree; otherwi
+          se a plain branch is enough); R2 and R3 can be piloted with a [
+          coordinator session](WorkingWithClaude.md#coordinator-session).
+           Each batch moves its tables out of `content/catalogue.yaml`. E
+          verything is copied to YAML before step 1 is playable.
+      32     Model: per task, from the [model table](WorkingWithClaude.md
+          #which-model-for-which-session): Opus, high effort for E6, E7, 
+          E8, E10 and E12; Sonnet for the others; Sonnet, medium effort f
+          or the R batches, Opus for R6 (events).
+
+⏺ Bash(python3 - <<'EOF'
+      p='WorkingWithClaude.md'…)
+  ⎿  250 passed in 0.25s
+     All checks passed!
+      M .gitignore
+     … +16 lines (ctrl+o to expand)
+  ⎿  Updated WorkingWithClaude.md (+1 -0)
+      43  | Clear spec: the design already says what to build | E3, E5, E
+          9, E11, E13–E20 | Sonnet |
+      44  | Copying rules text | R2–R7 | Sonnet, medium effort; Opus for 
+          a messy batch (events) |
+      45  | Writing user stories and their issues | When a task has a pla
+          yer-facing story (E4 on) | Sonnet, medium effort; Opus if slici
+          ng the game into stories turns into a design debate |
+      46 +| Step-back review: an adversarial review of the whole project,
+         + findings only | Project review (after E4) | Opus, high effort 
+         +|                                                              
+      47  | Routine setup | Project setup and GitHub planning | Sonnet (i
+          t posts to GitHub, so not Haiku) |
+      48  | Small chores | renames, housekeeping | Haiku; never for rules
+           text, where a misreading costs more than it saves |
+      49  
+  ⎿  Created claude-logs/202611011026-e4-protocol-game-loop.md (+41 -0)
+       1 +# E4: engine/interface protocol and game loop                  
+       2 +                                                               
+       3 +- Date: 2026-11-01                                             
+       4 +- Session ID: dbea6735-186c-4aa4-a54f-b768c61cc991 (`~/.claude/
+         +projects/-Users-nathanchalot-Code-RPGs-AloneVsFEear/`)         
+       5 +- Branch / PR: `e4-protocol-game-loop` / PR link added after op
+         +ening                                                          
+       6 +- Transcript: [transcripts/202611011026-e4-protocol-game-loop.t
+         +xt](transcripts/202611011026-e4-protocol-game-loop.txt)        
+       7 +- Model: Opus 5.5, high effort                                 
+       8 +                                                               
+       9 +## Goal                                                        
+      10 +                                                               
+      11 +The engine asks, the interface answers; the turn loop until dea
+         +th, insanity or quitting. Done when a scripted test walks 10 bo
+         +xes and the terminal lets a player do the same.                
+      12 +                                                               
+      13 +## Done                                                        
+      14 +                                                               
+      15 +- `engine/protocol.py`: `Choose(topic, options)` (topics Home, 
+         +Action, Move), events `Arrival` and `Ended(end)`, `End` (dead, 
+         +insane, quit), the `Interface` protocol (`ask`, `tell`), `Quit`
+         +.                                                              
+      16 +- `engine/loop.py`: `play(game, interface) -> End`. Placeholder
+         + character if none (Life 8, Sanity 8, Food d6), Home if not cho
+         +sen, then turns: action (move or quit), then a box among the ta
+         +rgets in reading order. Answers that are not options are refuse
+         +d (`GameError`) and every answer is logged.                    
+      17 +- `interface/scripted.py` (prepared answers, remembers what was
+         + asked and told) and `interface/terminal.py` (status line, map 
+         +with numbered options, `@` and `H`, asks again after a wrong ch
+         +oice, Ctrl-D or Ctrl-C quits). Console script `alone-against-fe
+         +ar` and `python -m alone_against_fear`, with `--seed` and `--lo
+         +g-dir`; the log goes to `logs/` (git-ignored) at DEBUG.        
+      18 +- `RandomDice()` with no seed picks one and logs it.           
+      19 +- 21 new tests written first (scenario tests through the script
+         +ed interface, the terminal played with typed lines, the dice se
+         +ed); 250 pass, ruff clean.                                     
+      20 +- Docs: `docs/architecture.md` (protocol, loop, interfaces, seq
+         +uence and class diagrams; `test_town_map.py` added to the tests
+         + table), `CLAUDE.md` (protocol as an established fact, Play com
+         +mand), `design/rulings.md`, Readme, NextSession, model table in
+         + `WorkingWithClaude.md`.                                       
+      21 +                                                               
+      22 +## Decisions                                                   
+      23 +                                                               
+      24 +- **Callback protocol** (the user, from three options: callback
+         +, generators, state machine). Nested choices stay simple; savin
+         +g happens between turns; a GUI would run the engine in a thread
+         +.                                                              
+      25 +- **A turn asks the action, then the box** (the user): one deci
+         +sion per request.                                              
+      26 +- **A fixed placeholder character** until E6 (the user): Life 8
+         +, Sanity 8, Food d6, no items.                                 
+      27 +- **No GitHub issue** for E4 (the user).                       
+      28 +- **No log replay for now** (the user): the seed and the answer
+         +s are still logged.                                            
+      29 +- **Dead before insane** when Life and Sanity reach 0 together 
+         +(the user). Ruling in `design/rulings.md`.                     
+      30 +- The terminal reads the game state to draw it; interfaces chan
+         +ge the game only through their answers.                        
+      31 +- **A project review session before E5** (the user): an adversa
+         +rial step back in a fresh session, findings only.              
+      32 +                                                               
+      33 +## Open questions                                              
+      34 +                                                               
+      35 +- Request shapes beyond `Choose` (a number, an order of reactio
+         +ns): with the tasks that need them (E5 manual actions, E8 react
+         +ions).                                                         
+      36 +- Saving mid-request is not possible with callbacks; saving bet
+         +ween turns is the plan (saves are not a task yet).             
+      37 +- A Mermaid parse error in the new sequence diagram (a particip
+         +ant named `Loop` clashes with the `loop` keyword) was fixed by 
+         +hand; the diagrams were not rendered to check, as the Mermaid C
+         +LI is not installed yet.                                       
+      38 +                                                               
+      39 +## Next                                                        
+      40 +                                                               
+     … 1 more lines (ctrl+o to expand)
+
+⏺ The wrap-up docs are written, and tests (250) and ruff still pass:
+
+  - Readme: E4 is checked, the status line is updated, and the callback protocol
+    is listed under decisions made.
+  - NextSession:
+    - Step 1 is now the Project review (Opus, high effort), with a
+      ready-to-paste prompt. It covers five angles, gives findings only, and
+      goes through them with you one at a time. If mmdc is installed, it also
+      checks that every diagram renders.
+    - E5 stays on Sonnet, with a note on how it builds on the E4 loop.
+    - A reminder records that log replay was dropped and why it's easy to add
+      later.
+  - WorkingWithClaude: a row for step-back reviews in the model table.
+  - Log: claude-logs/202611011026-e4-protocol-game-loop.md.
+
+  Next, please export the transcript:
+
+  /export claude-logs/transcripts/202611011026-e4-protocol-game-loop.txt
+
+  Tell me when it's done. I'll then commit, push e4-protocol-game-loop, open the
+  PR, add its link to the log and push again.
+
+✻ Cooked for 56s · done 10:51
+
+❯ /export claude-logs/transcripts/202611011026-e4-protocol-game-loop.txt        
+  ⎿  Conversation exported to: /Users/nathanchalot/Code/RPGs/AloneVsFEear/claude
+     -logs/transcripts/202611011026-e4-protocol-game-loop.txt
+
+❯ Done it s exported, now do separate little commits for history.And then push  
+  and open a pr                                                                 
+
+  Created PR #14, ran 2 shell commands (ctrl+o to expand)
+
+⏺ Bash(sed -i '' 's#`e4-protocol-game-loop` / PR link added after
+      opening#`e4-protocol-game-loop` /
+      [https://github.com/NathanChalot/AloneVsFEear/pull/14](https://gith…)
+  ⎿  5:- Branch / PR: `e4-protocol-game-loop` / [https://github.com/NathanC
+     halot/AloneVsFEear/pull/14](https://github.com/NathanChalot/AloneVsFEe
+     ar/pull/14)
+     ## e4-protocol-game-loop...origin/e4-protocol-game-loop
+  ⎿  Updated claude-logs/202611011026-e4-protocol-game-loop.md (+1 -1)
+      2  
+      3  - Date: 2026-11-01
+      4  - Session ID: dbea6735-186c-4aa4-a54f-b768c61cc991 (`~/.claude/p
+         rojects/-Users-nathanchalot-Code-RPGs-AloneVsFEear/`)
+      5 -- Branch / PR: `e4-protocol-game-loop` / PR link added after ope
+        -ning                                                            
+      5 +- Branch / PR: `e4-protocol-game-loop` / [https://github.com/Nat
+        +hanChalot/AloneVsFEear/pull/14](https://github.com/NathanChalot/
+        +AloneVsFEear/pull/14)                                           
+      6  - Transcript: [transcripts/202611011026-e4-protocol-game-loop.tx
+         t](transcripts/202611011026-e4-protocol-game-loop.txt)
+      7  - Model: Opus 5.5, high effort
+      8  
+
+⏺ The PR is open: https://github.com/NathanChalot/AloneVsFEear/pull/14
+
+  I made 9 small commits on e4-protocol-game-loop and pushed them all:
+
+  1. dice: unseeded dice pick a seed and log it
+  2. ruling: dead before insane when Life and Sanity reach 0 together
+  3. E4: engine/interface protocol and game loop
+  4. E4: terminal interface with the log written to a file
+  5. docs: E4 protocol, loop and interfaces in architecture and CLAUDE.md
+  6. docs: E4 wrap-up, project review planned before E5
+  7. docs: E4 session log
+  8. docs: E4 session transcript
+  9. docs: E4 PR link in the session log
+
+  The working tree is clean.
+
+  One box in the PR's test plan is still unticked: I couldn't check that the
+  Mermaid diagrams render, because the Mermaid CLI isn't installed. Once it is,
+  mmdc -i docs/architecture.md -o /tmp/arch.md will check them.
+
+  Next session: merge the PR, start claude on an up-to-date main with Opus, high
+  effort, and paste the Project review prompt from NextSession.md.
+
+✻ Worked for 58s · done 10:57
+
+※ recap: E4, the engine/interface protocol and game loop, is finished and open as PR #14. Next, merge it, then start the project review session on an up-to-date main with Opus at high effort, using the prompt in NextSession.md. (disable recaps in /config)
+
+❯ I added a commit tpo set nodjes version and installed the mermaid cli. I      
+  think we should re run the exporrt, recommit it and push before closing this  
+  session don t you ?                                                           
+
+⏺ Yes, the current export stops before the PR and this exchange, so re-exporting
+  is worth it. Since mmdc is installed now, I'll first check that the diagrams
+  render, so the transcript records the result and I can tick that box in the
+  PR. I'm pulling your commit first.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ All six architecture diagrams render. The other files all "failed", but that's
+  most likely only because the output folder didn't exist. Retrying with it
+  created:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ All 40 diagrams in the repository render: 6 in docs/architecture.md, 34 in
+  design/ and docs/content.md. I'm ticking the box in the PR and correcting the
+  log line that said they weren't checked:
+
+⏺ Bash(gh pr view 14 --json body -q .body | sed 's/- \[ \] Mermaid diagrams in
+      `docs\/architecture.md` render (not checked: no Mermaid CLI yet)/- [x]
+      Every Mermaid dia…)
+  ⎿  17:- [x] Every Mermaid diagram renders (`mmdc`, all 40 in `docs/` and
+     `design/`)
+      claude-logs/202611011026-e4-protocol-game-loop.md | 2 +-
+      1 file changed, 1 insertion(+), 1 deletion(-)
+  ⎿  Updated claude-logs/202611011026-e4-protocol-game-loop.md (+1 -1)
+      34  
+      35  - Request shapes beyond `Choose` (a number, an order of reactio
+          ns): with the tasks that need them (E5 manual actions, E8 react
+          ions).
+      36  - Saving mid-request is not possible with callbacks; saving bet
+          ween turns is the plan (saves are not a task yet).
+      37 -- A Mermaid parse error in the new sequence diagram (a particip
+         -ant named `Loop` clashes with the `loop` keyword) was fixed by 
+         -hand; the diagrams were not rendered to check, as the Mermaid C
+         -LI is not installed yet.                                       
+      37 +- A Mermaid parse error in the new sequence diagram (a particip
+         +ant named `Loop` clashes with the `loop` keyword) was fixed. On
+         +ce the user installed the Mermaid CLI (and set the Node.js vers
+         +ion in `.tool-versions`), every diagram of the repository was r
+         +endered with `mmdc`: all 40 pass.                              
+      38  
+      39  ## Next
+      40  
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ The PR checkbox is ticked and the log now says all 40 diagrams render (still
+  uncommitted, so it goes in with the new export). Next, please re-export to the
+  same file:
+
+  /export claude-logs/transcripts/202611011026-e4-protocol-game-loop.txt
+
+  Tell me when it's done. I'll then commit the log fix and the new transcript as
+  two small commits and push them to PR #14.
+
+✻ Brewed for 54s · done 11:06

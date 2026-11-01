@@ -33,10 +33,13 @@ class Dice(Protocol):
 
 
 class RandomDice:
-    """Real dice. The same seed gives the same rolls."""
+    """Real dice. The same seed gives the same rolls; without one, the dice pick a seed and
+    log it, so a game can be played again with the same rolls."""
 
     def __init__(self, seed: int | None = None) -> None:
-        self._random = random.Random(seed)
+        self.seed = seed if seed is not None else random.randrange(2**32)
+        self._random = random.Random(self.seed)
+        log.info("dice seed %d", self.seed)
 
     def d6(self) -> int:
         return self._random.randint(1, 6)

@@ -194,6 +194,20 @@ def test_seeded_dice_repeat_the_same_rolls():
     assert [code.roll(first) for _ in range(20)] == [code.roll(second) for _ in range(20)]
 
 
+def test_unseeded_dice_pick_a_seed_and_log_it(caplog):
+    # so a game played with real dice can be played again with the same rolls
+    caplog.set_level(logging.INFO, logger="alone_against_fear")
+    dice = RandomDice()
+    assert isinstance(dice.seed, int)
+    assert f"dice seed {dice.seed}" in caplog.messages
+    again = RandomDice(seed=dice.seed)
+    assert [dice.d6() for _ in range(20)] == [again.d6() for _ in range(20)]
+
+
+def test_seeded_dice_keep_their_seed():
+    assert RandomDice(seed=42).seed == 42
+
+
 def test_random_dice_only_show_faces_1_to_6():
     dice = RandomDice(seed=1)
     assert {dice.d6() for _ in range(600)} == {1, 2, 3, 4, 5, 6}
