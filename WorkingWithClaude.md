@@ -21,19 +21,16 @@ How the work sessions run, and recommendations for them: how many to expect, whi
 
 ## How many sessions
 
-Rough estimates, for sessions of about 1.5 hours. Not commitments.
+Rough sizes, for sessions of about 1.5 hours, to get an idea of the work left. Not commitments and not tracked: we work as much as we need.
 
 | Phase | Sessions |
 | --- | --- |
 | Project setup and GitHub planning | 1 |
 | R1 (YAML layout, IDs, first tables) | 1 |
-| Engine skeleton E1–E5 | 3–4 |
+| Engine skeleton E1–E5 | 5 (E5 in two sessions) |
 | YAML batches R2–R7 | 5–6, can run in parallel |
-| Step 1, E6–E17 | 10–14 (E7, E8, E10 and E12 are the big ones) |
+| Step 1, E6–E17 | 12 or more (E7, E8, E10 and E12 are the big ones) |
 | Step 2, E18–E20 | 3–4 |
-
-- Python code starts with R1 (session 2), engine code with E1 (session 3).
-- A game playable in book mode around session 6 or 7; step 1 playable around session 20; the MVP in roughly 25 to 30 sessions.
 
 ## Which model for which session
 
