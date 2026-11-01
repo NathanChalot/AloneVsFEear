@@ -8,7 +8,7 @@ The rules text is from a commercial book: keep this repository private. The orig
 
 ## Status
 
-MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables are in (R1). The engine has started: dice (E1), the game state (E2), the town map with moves and time (E3), and the engine/interface protocol with the game loop (E4): a player can walk the town in the terminal ([how to play](#how-to-play)). A project review after E4 split book mode into two tasks (E5a, E5b) and trimmed E8 to what its content needs.
+MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables are in (R1). The engine has started: dice (E1), the game state (E2), the town map with moves and time (E3), the engine/interface protocol with the game loop (E4), and book mode's reading half (E5a): a player can walk the town in the terminal, every box's entry shown as text ([how to play](#how-to-play)). Manual actions (E5b) come next.
 
 **MVP goal:** play a whole campaign in the terminal, in two steps ([MVP scope](design/mvp-scope.md)):
 
@@ -19,7 +19,7 @@ The engine follows the whole design, but only a thin slice of content is written
 
 ## How to play
 
-What the game does today: choose Home, walk the town box by box, eat 1 Food every 5 boxes (or lose 1 Life without Food), and quit. The boxes show nothing yet: book mode (E5a, E5b) comes next. The character is a placeholder (Life 8, Sanity 8, d6 Food) until character creation (E6).
+What the game does today: choose Home, walk the town box by box, eat 1 Food every 5 boxes (or lose 1 Life without Food), and quit. A new box rolls the Town Exploration table, a visited box a 1 in 6 chance of a Random Encounter, and the box is resolved before you do anything else: the entry reached is shown, and the game follows it to the next table (it asks when the text says "your choice", it rolls the die when the text rolls one). A table or event not copied yet points to its Markdown file and the number rolled, and you say where its text leads: another table, a numbered event, or nowhere else. You apply what the text does to you yourself, until the manual actions (E5b). Once every box of a sheet is visited, you can attach a new sheet. The character is a placeholder (Life 8, Sanity 8, d6 Food) until character creation (E6).
 
 Setup, with Python 3.13 or later (`.tool-versions` pins the version we use):
 
@@ -35,7 +35,7 @@ Play:
 .venv/bin/alone-against-fear --seed 7     # the dice of an earlier game
 ```
 
-- Type the number of an option and press Enter. Ctrl-D or Ctrl-C quits.
+- Type the number of an option and press Enter. Actions have letters: `m` move, `s` attach a new sheet (once a sheet is full), `q` quit; where a text leads: `t` a table, `e` a numbered event, `d` nowhere else; `r` the rules of the last table rolled in the box. Tables to choose from are numbered. Ctrl-D or Ctrl-C quits.
 - A status line comes before each action: box number, Life, Sanity, Food, XP, Clues.
 - The map: `[n]` the boxes you can choose, `@` where you stand, `H` Home, a number for the last box number written in a visited box, `.` a box not visited yet.
 - Each game writes a log to `logs/` (git-ignored; `--log-dir` to change it): the dice seed, every roll and every answer. Playing again with that seed and the same answers gives the same game.
@@ -191,10 +191,10 @@ The engine asks, the interface answers: every choice is a request, so the engine
 - Done when: a scripted test walks 10 boxes, and the terminal lets a player do the same.
 - Depends on: E3.
 
-#### [ ] E5a — Book mode: reading
+#### [x] E5a — Book mode: reading
 Load the YAML by ID; roll a table's dice and show only the entry reached, with the notes it points to; a catalogued table points to its Markdown file and entry number. Arriving: a new box rolls Town Exploration, a visited box has a 1 in 6 Random Encounter. Go to a table or event (the entry's references are offered). Record what was reached. When every box of a sheet is visited, the player can attach a new sheet and walk onto it.
 - Design: [MVP scope](design/mvp-scope.md#book-mode), [town map](design/town-map.md)
-- Decides: how a table's own rules text is shown (on request, or the first time).
+- Decided: the interface shows a table's own rules; the terminal shows them the first time the table is rolled in a game, and again on request. The 42 numbered events are catalogued (`event.12`) so they can be played and recorded before R6.
 - Done when: a player can walk the town in the terminal, every box's entry shown as text, and walk onto a new sheet once the first is full.
 - Depends on: E4, R1.
 
@@ -203,6 +203,10 @@ Manual actions that go through the rules: gain or lose Life, Sanity, Food, XP or
 - Design: [MVP scope](design/mvp-scope.md#book-mode)
 - Done when: a player can walk the town in the terminal, every box shown as text and applied with manual actions, until death or quitting.
 - Depends on: E5a.
+
+Any time:
+
+- [ ] Attach a sheet by stepping onto it: once a sheet is full, moves also offer the boxes across its edges, and stepping onto one attaches its sheet (replaces the "attach a new sheet" action of E5a; smoother to play). A small task of its own, in its own PR.
 
 ### Milestone 6 — Step 1: Bring Home the Bacon
 
@@ -273,8 +277,9 @@ Escape vs L (free from Slow creatures, none from Flying ones, Damage on a failur
 - Depends on: E13.
 
 #### [ ] E15 — Safe Houses
-Created by a result, with that result's healing; no random encounter; healing on each visit; max 3, the closest one stops being one (ties broken randomly); stash, stolen on a d6 of 1-3 when its Safe House is lost.
+Created by a result, with that result's healing; no random encounter; healing on each visit; max 3, the closest one stops being one (ties broken randomly); stash, stolen on a d6 of 1-3 when its Safe House is lost. Home is a Safe House from the start ([ruling](design/rulings.md#safe-houses), switchable).
 - Design: [Safe Houses](design/safe-houses.md)
+- Open: how much Home heals, and whether it counts toward the 3.
 - Done when: the lifecycle is tested.
 - Depends on: E11.
 
