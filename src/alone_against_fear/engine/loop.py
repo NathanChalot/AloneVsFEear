@@ -1,8 +1,10 @@
 """The game loop (E4): a mission played turn by turn (design/game-flow.md, Mission).
 
-The first game asks for Home. Then each turn: choose an action, move to a box (numbered, Food
-upkeep), arrive. Arriving does nothing more yet: the Town Exploration roll, the Search and the
-free actions come with book mode (E5) and later tasks. The loop ends at death (Life 0),
+The first game asks for Home. Then each turn: free actions, until the player moves to a
+box (numbered, Food upkeep) and arrives, or quits. Arriving rolls Town Exploration in a new box
+and a 1 in 6 chance of a Random Encounter in a visited one; what is reached goes through book
+mode (E5a), whose actions follow the entry to other tables and events. Home is box 1 and rolls
+nothing. The Search and the manual actions come with E5b. The loop ends at death (Life 0),
 insanity (Sanity 0) or when the player quits.
 """
 
@@ -10,9 +12,21 @@ from __future__ import annotations
 
 import logging
 
-from ..dice import DiceCode
-from .game import Arrival, Game, GameError
-from .protocol import Action, Choose, End, Ended, Interface, Quit, Request, Topic
+from ..dice import Chance, DiceCode
+from . import book_mode
+from .game import Arrival, Game
+from .protocol import (
+    Action,
+    Choose,
+    End,
+    Ended,
+    Interface,
+    Quit,
+    SheetAttached,
+    Topic,
+    Wandering,
+    ask,
+)
 from .state import Position
 from .town import boxes_of
 
@@ -21,6 +35,11 @@ PLACEHOLDER_SANITY = 8
 """Until character creation (E6): the base Life and Sanity, d6 Food, no items."""
 
 FIRST_SHEET = Position(0, 0)
+TOWN_EXPLORATION = "table.town_exploration"
+RANDOM_ENCOUNTER = "table.random_encounter"
+WANDERING = Chance(1)
+"""The Random Encounter chance in a visited box. Safe Houses (Home included, see
+design/rulings.md) and left-behind encounters change it with their tasks (E11, E15)."""
 
 log = logging.getLogger(__name__)
 
@@ -43,23 +62,41 @@ def _turns(game: Game, interface: Interface) -> End:
     if game.campaign.home is None:
         home = ask(interface, Choose(Topic.HOME, tuple(boxes_of(FIRST_SHEET))))
         number = game.choose_home(home)
-        interface.tell(Arrival(home, number))
+        interface.tell(Arrival(home, number, new=True))
     while (end := _ended(game)) is None:
-        action = ask(interface, Choose(Topic.ACTION, (Action.MOVE, Action.QUIT)))
-        if action is Action.QUIT:
-            return End.QUIT
-        to = ask(interface, Choose(Topic.MOVE, _reading_order(game.targets())))
-        interface.tell(game.move(to))
+        action = ask(interface, Choose(Topic.ACTION, _actions(game)))
+        match action:
+            case Action.QUIT:
+                return End.QUIT
+            case Action.MOVE:
+                to = ask(interface, Choose(Topic.MOVE, _reading_order(game.targets())))
+                _arrive(game, interface, game.move(to))
+            case Action.SHEET:
+                sheet = ask(interface, Choose(Topic.SHEET, _reading_order(game.new_sheets())))
+                game.add_sheet(sheet)
+                interface.tell(SheetAttached(sheet))
     return end
 
 
-def ask(interface: Interface, request: Request) -> object:
-    """Ask the interface, refuse an answer that is not an option, and log it."""
-    answer = interface.ask(request)
-    if answer not in request.options:
-        raise GameError(f"{answer!r} is not one of the options for {request.topic}")
-    log.info("answer %s: %s", request.topic, _shown(answer))
-    return request.options[request.options.index(answer)]  # the option itself, not a copy
+def _actions(game: Game) -> tuple[Action, ...]:
+    """The free actions: move first and quit last, so they keep their place."""
+    sheet = (Action.SHEET,) if game.new_sheets() else ()
+    return (Action.MOVE, *sheet, Action.QUIT)
+
+
+def _arrive(game: Game, interface: Interface, arrival: Arrival) -> None:
+    """Tell the arrival, then roll what the box calls for and resolve it, unless the Food
+    upkeep killed the character."""
+    interface.tell(arrival)
+    if _ended(game):
+        return
+    if arrival.new:
+        book_mode.resolve(game, interface, TOWN_EXPLORATION)
+        return
+    wandering = WANDERING.roll(game.dice)
+    interface.tell(Wandering(wandering.face, wandering.success))
+    if wandering.success:
+        book_mode.resolve(game, interface, RANDOM_ENCOUNTER)
 
 
 def _ended(game: Game) -> End | None:
@@ -74,9 +111,3 @@ def _ended(game: Game) -> End | None:
 def _reading_order(positions: set[Position]) -> tuple[Position, ...]:
     """Row by row, left to right, as the boxes are read on the map."""
     return tuple(sorted(positions, key=lambda p: (p.row, p.column)))
-
-
-def _shown(answer: object) -> str:
-    if isinstance(answer, Position):
-        return str(tuple(answer))
-    return str(answer)

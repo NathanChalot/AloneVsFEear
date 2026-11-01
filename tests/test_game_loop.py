@@ -16,7 +16,7 @@ from alone_against_fear.content import load_content
 from alone_against_fear.dice import ScriptedDice
 from alone_against_fear.engine import Arrival, Game, GameError, Position, Upkeep
 from alone_against_fear.engine.loop import PLACEHOLDER_LIFE, PLACEHOLDER_SANITY, play
-from alone_against_fear.engine.protocol import Action, Choose, End, Ended, Topic
+from alone_against_fear.engine.protocol import Action, Book, Choose, End, Ended, Topic
 from alone_against_fear.engine.town import boxes_of
 from alone_against_fear.interface.scripted import ScriptedInterface, ScriptError
 
@@ -45,11 +45,18 @@ def new_game(content, *faces):
     return Game(dice=ScriptedDice(faces), content=content)
 
 
+EXPLORE = (3, 3, 4)
+"""A new box: Town Exploration 6 (3 and 3) sends to the Street table, whose d6 shows 4."""
+WALK_DICE = EXPLORE * len(WALK)
+"""Every box of the walk is new."""
+
+
 def moves(*positions):
-    """The answers of a turn spent moving, for each position."""
+    """The answers of a turn spent moving to a new box, for each position: the Street table
+    is not copied yet, so the player says its text leads nowhere else."""
     answers = []
     for position in positions:
-        answers += [Action.MOVE, position]
+        answers += [Action.MOVE, position, Book.DONE]
     return answers
 
 
@@ -58,7 +65,7 @@ def moves(*positions):
 
 def test_a_scripted_player_walks_ten_boxes_and_quits(content):
     # given a new game, whose placeholder character rolls 3 Food
-    game = new_game(content, 3)
+    game = new_game(content, 3, *WALK_DICE)
     interface = ScriptedInterface([HOME, *moves(*WALK), Action.QUIT])
 
     # when the player chooses Home, moves ten times and quits
@@ -76,7 +83,7 @@ def test_a_scripted_player_walks_ten_boxes_and_quits(content):
 
 def test_the_interface_is_told_every_arrival_then_the_end(content):
     # given a new game with 3 Food
-    game = new_game(content, 3)
+    game = new_game(content, 3, *WALK_DICE)
     interface = ScriptedInterface([HOME, *moves(*WALK), Action.QUIT])
 
     # when the player walks ten boxes and quits
@@ -145,8 +152,8 @@ def test_each_turn_offers_move_and_quit(content):
 
 
 def test_moving_offers_the_boxes_the_engine_allows(content):
-    game = new_game(content, 3)
-    interface = ScriptedInterface([HOME, Action.MOVE, WALK[0], Action.QUIT])
+    game = new_game(content, 3, *EXPLORE)
+    interface = ScriptedInterface([HOME, *moves(WALK[0]), Action.QUIT])
 
     play(game, interface)
 
@@ -194,16 +201,17 @@ def test_a_scripted_interface_out_of_answers_says_so(content):
 
 
 def test_every_answer_is_logged(content, caplog):
-    game = new_game(content, 3)
+    game = new_game(content, 3, *EXPLORE)
     caplog.set_level(logging.INFO, logger="alone_against_fear")
 
-    play(game, ScriptedInterface([HOME, Action.MOVE, WALK[0], Action.QUIT]))
+    play(game, ScriptedInterface([HOME, *moves(WALK[0]), Action.QUIT]))
 
     answers = [r.getMessage() for r in caplog.records if r.getMessage().startswith("answer")]
     assert answers == [
         "answer home: (2, 2)",
         "answer action: move",
         "answer move: (2, 3)",
+        "answer book: done",
         "answer action: quit",
     ]
 
@@ -213,15 +221,15 @@ def test_every_answer_is_logged(content, caplog):
 
 def test_starving_to_death_ends_the_game(content):
     # given a character with 1 Life and no Food, standing Home
-    game = new_game(content)
+    game = new_game(content, *EXPLORE * 3)
     game.create_character(life=1, sanity=8, food=0)
     game.choose_home(HOME)
-    interface = ScriptedInterface(moves(*WALK[:4]))
+    interface = ScriptedInterface([*moves(*WALK[:3]), Action.MOVE, WALK[3]])
 
     # when the player walks to box 5, where the Food upkeep costs 1 Life
     end = play(game, interface)
 
-    # then the character is dead and the engine asks nothing more
+    # then the character is dead, the box is not explored and the engine asks nothing more
     assert end is End.DEAD
     assert game.character.life == 0
     assert interface.remaining == 0
