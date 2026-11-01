@@ -2,7 +2,7 @@
 
 How the Python code is built: packages, modules, the main classes and who calls whom. What the game is lives in [`design/`](../design/), in domain terms; this page is about the code that implements it.
 
-It describes only what exists. Each session updates it at wrap-up when the code structure changes ([Working with Claude](../WorkingWithClaude.md#how-a-session-works)).
+It describes only what exists. Each session updates it at wrap-up when the code structure changes ([Working with Claude](../WorkingWithClaude.md#how-a-session-works)). Diagrams show the classes and how they connect; their fields and methods are read in the code, so the diagrams do not drift from it.
 
 ## Packages
 
@@ -41,39 +41,8 @@ classDiagram
     Chance --> ChanceRoll : gives
     Dice <|.. RandomDice
     Dice <|.. ScriptedDice
-    class DiceCode {
-        count
-        sides
-        plus
-        combine
-        parse(code)$
-        roll(dice) DiceRoll
-        results() every total
-    }
-    class Chance {
-        in_6
-        parse(code)$
-        roll(dice) ChanceRoll
-    }
     class Dice {
         <<protocol>>
-        d6() int
-    }
-    class RandomDice {
-        seed, picked and logged if not given
-    }
-    class ScriptedDice {
-        faces, in order
-        remaining
-    }
-    class DiceRoll {
-        total
-        faces
-        natural
-    }
-    class ChanceRoll {
-        success
-        face
     }
 ```
 
@@ -96,43 +65,6 @@ classDiagram
     Character --> "0..1" Mission : mission
     Mission --> "1" History : history
     TownMap --> "*" Box : boxes by Position
-    class Game {
-        character
-        mission
-        history(level)
-        create_character()
-        gain(stat, n) / lose(stat, n)
-        add_item() / remove_item()
-        start_mission(id)
-        number_box(position)
-        choose_home(position)
-        targets(kind) / move(to, kind) Arrival
-        is_full(sheet) / add_sheet(sheet)
-        add_place() / mark_searched() / add_mark()
-        record(level, happened, id)
-        add_keyword(level, word)
-    }
-    class Campaign {
-        box_counter
-    }
-    class Character {
-        life, sanity, food, xp, clues
-        items
-    }
-    class Mission {
-        id
-    }
-    class History {
-        counts per Happened
-        keywords
-        count(happened, id)
-        has(happened, id)
-    }
-    class Box {
-        position
-        numbers
-        places, searched, marks
-    }
 ```
 
 - **The state is mutable plain data**: dataclasses of numbers, strings, enums, lists, dicts and counters, content referred to by ID. A test walks the whole campaign to check it holds no code, so saving it later is turning it into a dict.
@@ -179,24 +111,6 @@ classDiagram
     TerminalInterface ..> Game : reads
     class Interface {
         <<protocol>>
-        ask(request) answer
-        tell(event)
-    }
-    class Choose {
-        topic HOME, ACTION or MOVE
-        options
-    }
-    class Ended {
-        end DEAD, INSANE or QUIT
-    }
-    class ScriptedInterface {
-        answers, in order
-        asked
-        told
-    }
-    class TerminalInterface {
-        game
-        input_fn, output_fn
     }
 ```
 
@@ -204,7 +118,7 @@ classDiagram
 - **Requests and events are plain data.** `Choose(topic, options)` is the only request so far; the topic tells the interface how to show it (a map for `HOME` and `MOVE`). Other shapes (a number, an order) come with the tasks that need them. Events are `Arrival` (from `Game.move`, and for Home) and `Ended`.
 - **The answer must be one of the options.** `loop.ask` refuses anything else with `GameError`, logs the answer and returns the option itself. A scripted answer that is not an option fails the test; the terminal checks the input before answering.
 - **`Quit`** may be raised by an interface at any request: the game ends with `End.QUIT` (the terminal raises it on Ctrl-D or Ctrl-C).
-- **The loop** (`play(game, interface) -> End`): creates the placeholder character if there is none (Life 8, Sanity 8, Food d6, until E6), asks for Home if it is not chosen, then turns: an action (`MOVE` or `QUIT`), then a box among `Game.targets()`, listed in reading order. It ends at 0 Life (dead, checked first, [ruling](../design/rulings.md#character)), 0 Sanity (insane) or quit. Arriving, Search and free actions are hook points for E5 and later.
+- **The loop** (`play(game, interface) -> End`): creates the placeholder character if there is none (Life 8, Sanity 8, Food d6, until E6), asks for Home if it is not chosen, then turns: an action (`MOVE` or `QUIT`), then a box among `Game.targets()`, listed in reading order. It ends at 0 Life (dead, checked first, [ruling](../design/rulings.md#character)), 0 Sanity (insane) or quit. Arriving, Search and free actions are hook points for book mode (E5a, E5b) and later.
 - **Interfaces read the game, never change it**: the terminal reads `Game` to draw the status line and the map; only its answers move the game on.
 
 ## `interface`: scripted and terminal
@@ -236,46 +150,6 @@ classDiagram
     Table --> "1..*" Entry : entries
     Entry --> "1" Roll : roll
     Entry --> "0..1" Table : nested table
-    class Content {
-        tables
-        catalogue
-        entries
-        table(id) Table
-        entry(id) Entry
-        contains(id) bool
-    }
-    class Table {
-        id
-        name
-        dice
-        text
-        source
-        notes
-        entry_for(result) Entry
-        walk() entries, nested included
-        nested_tables()
-    }
-    class Entry {
-        id
-        roll
-        name
-        text
-        refs
-        notes
-        table
-    }
-    class Roll {
-        low
-        high
-        label
-        contains(result) bool
-    }
-    class CatalogueTable {
-        id
-        name
-        dice
-        source
-    }
 ```
 
 - **Read-only.** Every class is a frozen dataclass: content never changes once loaded. The game state will hold IDs pointing into it, never copies.
@@ -285,7 +159,7 @@ classDiagram
 - **A table's `dice`** is any dice code, kept in standard form; the coverage check asks `DiceCode` for its results.
 - **`KINDS`** lists the first segments an ID may have (`table`, `mission`); a YAML batch adds the kinds it needs.
 
-Used by: the tests, and `Game.start_mission`, which checks mission IDs. Book mode (E5) will be the first real engine user.
+Used by: the tests, and `Game.start_mission`, which checks mission IDs. Book mode (E5a) will be the first real engine user.
 
 ## Tests
 

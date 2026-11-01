@@ -4,10 +4,12 @@ Digital solo play of **Alone Against Fear** (Four Against Darkness engine). Read
 
 ## Working rules
 
-- Small planned sessions, one branch and one PR each. **Never commit or push without permission**, except the agreed end-of-session wrap-up (update Readme, NextSession, reviewing each planned session's model and effort, and, if the code structure changed, `docs/architecture.md`; write the log; ask for the transcript export, commit, push, PR, add the PR link to the log).
+- Small planned sessions, one branch and one PR each. **Never commit or push without permission**, except the agreed end-of-session wrap-up (update Readme, NextSession with the next session's model and effort, and, if the code structure changed, `docs/architecture.md`; write the log; ask for the transcript export; commit, push, open the PR).
 - Design before code: model in domain terms in `design/` first. Decide only what is worth deciding yet; propose, do not decide.
-- **Rule interpretations**: suggest options, never rule. Ask first; rulings go to `design/rulings.md`, kept switchable.
-- **No spoilers**: event names are fine, no plot details in chat or docs.
+- **Stay agile**: we are under development and learn as we implement. Settle things as we go when changing course later is cheap; prefer the least constraining option. Raise a question only if its answer changes what we build now; the rest goes to a "decide when implementing" list. Reviews too: no finding that asks to decide early what can wait.
+- `design/` describes the game once the MVP is done; a roadmap task can be a transitional step towards it. Where a design page and a ruling disagree, the ruling wins.
+- **Rule interpretations**: suggest options (the passages, the concrete case, a recommendation), never rule. Ask first; rulings go to `design/rulings.md`, kept switchable.
+- **No spoilers** in chat, `docs/`, the Readme, NextSession, WorkingWithClaude and the logs: event names are fine, no plot details (the user has not played the events). The rules (`gameRules/`, the YAML), `design/` and the code may hold whatever the rules say.
 - **No book page references** in committed docs; transcripts stay verbatim.
 - The rules text is from a commercial book: the repository stays private; `origin_rules/` (original PDFs) is git-ignored.
 

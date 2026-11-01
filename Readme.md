@@ -8,7 +8,7 @@ The rules text is from a commercial book: keep this repository private. The orig
 
 ## Status
 
-MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables are in (R1). The engine has started: dice (E1), the game state (E2), the town map with moves and time (E3), and the engine/interface protocol with the game loop (E4): a player can walk the town in the terminal (`alone-against-fear`).
+MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables are in (R1). The engine has started: dice (E1), the game state (E2), the town map with moves and time (E3), and the engine/interface protocol with the game loop (E4): a player can walk the town in the terminal ([how to play](#how-to-play)). A project review after E4 split book mode into two tasks (E5a, E5b) and trimmed E8 to what its content needs.
 
 **MVP goal:** play a whole campaign in the terminal, in two steps ([MVP scope](design/mvp-scope.md)):
 
@@ -16,6 +16,29 @@ MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. T
 2. **Close a Hell Gate** — Arcane Skills, books, and missions played one after another until 7 Hell Gates are closed. The game state is shaped as a campaign from the start: the map, the box counter, Food and Clues carry on across missions (see [game flow](design/game-flow.md)).
 
 The engine follows the whole design, but only a thin slice of content is written. Everything else goes through **book mode**: the engine shows the entry's text and the player applies it with manual actions.
+
+## How to play
+
+What the game does today: choose Home, walk the town box by box, eat 1 Food every 5 boxes (or lose 1 Life without Food), and quit. The boxes show nothing yet: book mode (E5a, E5b) comes next. The character is a placeholder (Life 8, Sanity 8, d6 Food) until character creation (E6).
+
+Setup, with Python 3.13 or later (`.tool-versions` pins the version we use):
+
+```
+python -m venv .venv
+.venv/bin/pip install -e .
+```
+
+Play:
+
+```
+.venv/bin/alone-against-fear              # or: .venv/bin/python -m alone_against_fear
+.venv/bin/alone-against-fear --seed 7     # the dice of an earlier game
+```
+
+- Type the number of an option and press Enter. Ctrl-D or Ctrl-C quits.
+- A status line comes before each action: box number, Life, Sanity, Food, XP, Clues.
+- The map: `[n]` the boxes you can choose, `@` where you stand, `H` Home, a number for the last box number written in a visited box, `.` a box not visited yet.
+- Each game writes a log to `logs/` (git-ignored; `--log-dir` to change it): the dice seed, every roll and every answer. Playing again with that seed and the same answers gives the same game.
 
 ## How to use this roadmap
 
@@ -168,11 +191,18 @@ The engine asks, the interface answers: every choice is a request, so the engine
 - Done when: a scripted test walks 10 boxes, and the terminal lets a player do the same.
 - Depends on: E3.
 
-#### [ ] E5 — Book mode
-Load the YAML by ID; roll a table's dice and show only the entry reached. Manual actions that go through the rules: gain or lose Life, Sanity, Food, XP or Clues; add or remove an item; go to a table or event; make a roll vs L (modifier typed by the player until E7); make a Search roll; mark a Safe House. Record what was reached. Arriving: a new box rolls Town Exploration, a visited box has a 1 in 6 Random Encounter, all shown in book mode. Fights are applied by hand until E12.
+#### [ ] E5a — Book mode: reading
+Load the YAML by ID; roll a table's dice and show only the entry reached, with the notes it points to; a catalogued table points to its Markdown file and entry number. Arriving: a new box rolls Town Exploration, a visited box has a 1 in 6 Random Encounter. Go to a table or event (the entry's references are offered). Record what was reached. When every box of a sheet is visited, the player can attach a new sheet and walk onto it.
+- Design: [MVP scope](design/mvp-scope.md#book-mode), [town map](design/town-map.md)
+- Decides: how a table's own rules text is shown (on request, or the first time).
+- Done when: a player can walk the town in the terminal, every box's entry shown as text, and walk onto a new sheet once the first is full.
+- Depends on: E4, R1.
+
+#### [ ] E5b — Book mode: manual actions
+Manual actions that go through the rules: gain or lose Life, Sanity, Food, XP or Clues; add or remove an item; make a roll vs L (modifier typed by the player until E7); make a Search roll; mark a Safe House. New request shapes as these actions need them (an amount, an item name, a roll). The turn ends as soon as Life or Sanity reaches 0, once effects have resolved. Fights are applied by hand until E12.
 - Design: [MVP scope](design/mvp-scope.md#book-mode)
 - Done when: a player can walk the town in the terminal, every box shown as text and applied with manual actions, until death or quitting.
-- Depends on: E4, R1.
+- Depends on: E5a.
 
 ### Milestone 6 — Step 1: Bring Home the Bacon
 
@@ -184,7 +214,7 @@ Life and Sanity with current and max values; the 21 Skills at Basic and Expert; 
 - Design: [character](design/character.md)
 - Decides: the rest of D1.
 - Done when: the terminal walks the player through creation, and XP can be spent.
-- Depends on: E5, R2, R3.
+- Depends on: E5b, R2, R3.
 
 #### [ ] E7 — Rolls and effects
 Roll types and context tags; roll vs L with natural 1 and 6; effects with source, holder, kind and lifetime; a roll collects matching modifiers from every holder, with stacking limits; max values calculated from effects. Every Skill written as effects. Manual rolls in book mode now get their modifiers.
@@ -193,9 +223,10 @@ Roll types and context tags; roll vs L with natural 1 and 6; effects with source
 - Depends on: E6.
 
 #### [ ] E8 — Moments and reactions
-Announce moments; reactions with their scripts; lifetimes that end on a moment, a count or a condition; "would" moments with an ordered chain; helpful reactions first, then the player picks. Food every 5 boxes becomes a reaction (Resistant to Hunger changes it); "for the next N boxes" effects.
+Announce moments; reactions with their scripts; the lifetimes the Skills and Food need (permanent, for the next N boxes, until a moment). Food every 5 boxes becomes a reaction (Resistant to Hunger and Eating Disorder change it); "for the next N boxes" effects. The rest of the effects design comes with the content that needs it: timed steps with E10, combat scopes and the order of reactions on one moment with E12, "would" moments with E13.
 - Design: [effects](design/effects.md)
-- Done when: tests cover each lifetime and the reaction order.
+- Open: the Food clock when the interval changes mid-game (the [ruling](design/rulings.md#map) eats on every multiple of 5); options at E8.
+- Done when: the Food upkeep is a reaction that Resistant to Hunger and Eating Disorder change, and "for the next N boxes" effects end on time, with tests.
 - Depends on: E7.
 
 #### [ ] E9 — Inventory
@@ -220,7 +251,7 @@ The full arrival flow: new box, visited box, left-behind encounters. An encounte
 - Depends on: E10.
 
 #### [ ] E12 — Combat
-Creature profiles, groups and members; surprise; rounds; Attack with exploding sixes and hits = total ÷ L; Defense with fumbles; weapon modifiers, Damage and specials on the natural die; ammo; automatic Damage (vulnerabilities, grenade); XP and loot; end-of-combat reactions. The stats of every creature and every weapon written; special rules stay text, with manual actions open during the fight (creature Life up or down). The "fight a creature" manual action.
+Creature profiles, groups and members; surprise; rounds; Attack with exploding sixes and hits = total ÷ L; Defense with fumbles; weapon modifiers, Damage and specials on the natural die; ammo; automatic Damage (vulnerabilities, grenade); XP and loot; end-of-combat reactions. Effects scoped to one attack, round or combat; several reactions on one moment (helpful first, then the player picks). The stats of every creature and every weapon written; special rules stay text, with manual actions open during the fight (creature Life up or down). The "fight a creature" manual action.
 - Rules: [combat](gameRules/3_combat.md), [monster rules](gameRules/4_monster_rules.md), [weapons](gameRules/1_4_weapons.md), [weapon summary](gameRules/8_weapon_summary_table.md), [creatures](gameRules/tables/creatures/)
 - Design: [combat](design/combat.md)
 - Done when: a fight against any creature can be played, with a test on the book's worked example.
@@ -229,7 +260,8 @@ Creature profiles, groups and members; surprise; rounds; Attack with exploding s
 #### [ ] E13 — Harm
 Life and Sanity losses as "would" moments: armor, Luck, then the Injury or Mental Scar offer (max 3 each, duplicates rerolled, the whole loss negated), then the loss; death at 0 Life, insanity at 0 Sanity. The Injury and Insanity tables, armor, helmet and first aid kit written.
 - Rules: [main rules](gameRules/1_1_main_rules.md) (Sanity, Life), [combat](gameRules/3_combat.md) (Mental Scars and Injuries), [insanity table](gameRules/tables/3_1_insanity_table.md), [injury table](gameRules/tables/3_2_injury_table.md)
-- Design: [character](design/character.md#life-and-sanity), [combat](design/combat.md#defense-and-taking-damage)
+- Design: [character](design/character.md#life-and-sanity), [combat](design/combat.md#defense-and-taking-damage), [effects](design/effects.md#would-and-did)
+- Open: can something that triggers after a loss bring the character back above 0 before death is checked? Leaning yes; settle it with tests and user stories.
 - Done when: the Damage chain is tested in order.
 - Depends on: E12.
 
@@ -283,7 +315,8 @@ Missions one after another: rewards, Life and Sanity back to max, reroll the sam
 
 ### Later
 
-- [ ] Save and resume the campaign
+- [ ] Design review once the MVP is done: a review session reworks `design/` against what the implementation taught. It should not be needed, but the design was written before the code.
+- [ ] Save and resume the campaign. A save is the campaign as it stood at the start of the turn: a turn changes the state as it goes, so quitting mid-turn leaves it half played.
 - [ ] The other missions: Predator and Prey and Destroy the Coven (with hunting by Clues), Medical Supplies, We Need Weapons
 - [ ] Switchable rule options (campaign modes)
 - [ ] The remaining content, each piece replacing part of book mode: place tables, events (with the forest map of #41), side missions, rewards, magic items, book effects, Arcane Skill effects

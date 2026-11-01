@@ -7,10 +7,10 @@ How the work sessions run, and recommendations for them: how many to expect, whi
 1. Start from [NextSession.md](NextSession.md), the [Readme](Readme.md) and the latest log in [`claude-logs/`](claude-logs/).
 2. GitHub issues only for user stories and bugs, and only when needed; the PR then says `Closes #N`. An engine task with no user story gets no issue: the Readme entry is the task.
 3. Work on a dedicated branch; one PR per session. Create the branch in the main checkout; use a worktree only when another session runs at the same time (see [Parallel sessions](#parallel-sessions)). During the session, Claude never commits or pushes without explicit permission.
-4. End by updating the Readme (checkboxes, decisions), `NextSession.md` (remove the done session, adjust the plan, review the model and effort of each planned session in light of this one) and, if the code structure changed, [`docs/architecture.md`](docs/architecture.md).
+4. End by updating the Readme (checkboxes, decisions, How to play when what a player can do changes), `NextSession.md` (remove the done session, adjust the plan, review the next session's model and effort in light of this one) and, if the code structure changed, [`docs/architecture.md`](docs/architecture.md).
 5. Claude writes the session log in `claude-logs/YYYYMMDDHHmm-session-name.md`.
 6. The user exports the transcript with `/export claude-logs/transcripts/YYYYMMDDHHmm-session-name.txt` (same name as the log).
-7. Claude commits the session, pushes the branch, opens the PR, writes the PR link in the log and pushes again. This end-of-session commit and push is agreed once and for all, so the next session starts clean.
+7. Claude commits the session, pushes the branch and opens the PR (the log names the branch, which is enough to find the PR). This end-of-session commit and push is agreed once and for all, so the next session starts clean.
 
 ## How we develop
 
@@ -21,26 +21,23 @@ How the work sessions run, and recommendations for them: how many to expect, whi
 
 ## How many sessions
 
-Rough estimates, for sessions of about 1.5 hours. Not commitments.
+Rough sizes, for sessions of about 1.5 hours, to get an idea of the work left. Not commitments and not tracked: we work as much as we need.
 
 | Phase | Sessions |
 | --- | --- |
 | Project setup and GitHub planning | 1 |
 | R1 (YAML layout, IDs, first tables) | 1 |
-| Engine skeleton E1–E5 | 3–4 |
+| Engine skeleton E1–E5 | 5 (E5 in two sessions) |
 | YAML batches R2–R7 | 5–6, can run in parallel |
-| Step 1, E6–E17 | 10–14 (E7, E8, E10 and E12 are the big ones) |
+| Step 1, E6–E17 | 12 or more (E7, E8, E10 and E12 are the big ones) |
 | Step 2, E18–E20 | 3–4 |
-
-- Python code starts with R1 (session 2), engine code with E1 (session 3).
-- A game playable in book mode around session 6 or 7; step 1 playable around session 20; the MVP in roughly 25 to 30 sessions.
 
 ## Which model for which session
 
 | Kind of session | Tasks | Model |
 | --- | --- | --- |
-| Architecture: choices later tasks depend on | R1 (IDs), E1 + E2, E4, E6 (rest of D1), E7, E8, E10, E12 | Opus, high effort |
-| Clear spec: the design already says what to build | E3, E5, E9, E11, E13–E20 | Sonnet |
+| Architecture: choices later tasks depend on | R1 (IDs), E1 + E2, E4, E5a, E5b, E6 (rest of D1), E7, E8, E10, E12 | Opus, high effort |
+| Clear spec: the design already says what to build | E3, E9, E11, E13–E20 | Sonnet |
 | Copying rules text | R2–R7 | Sonnet, medium effort; Opus for a messy batch (events) |
 | Writing user stories and their issues | When a task has a player-facing story (E4 on) | Sonnet, medium effort; Opus if slicing the game into stories turns into a design debate |
 | Step-back review: an adversarial review of the whole project, findings only | Project review (after E4) | Opus, high effort |
@@ -49,8 +46,8 @@ Rough estimates, for sessions of about 1.5 hours. Not commitments.
 
 - Any task can turn out harder than planned: switch to Opus when a Sonnet session hits a design question.
 - Fable: not used. It does not follow the same pricing rules as the other models.
-- No default effort. Model and effort are picked per session in [NextSession.md](NextSession.md) and reviewed at each wrap-up with what the session showed: a session that struggled moves similar ones up, an easy one moves them down. The table above is only the starting point.
-- The memory files (ask before ruling, no spoilers, commit rules) load the same way whatever the model.
+- No default effort. Model and effort are picked per session in [NextSession.md](NextSession.md); each wrap-up reviews the next session's with what the session showed: a session that struggled moves similar ones up, an easy one moves them down. The table above is only the starting point.
+- [`CLAUDE.md`](CLAUDE.md) (working rules: commits, rulings, spoilers) loads the same way whatever the model.
 
 ## Prompts
 

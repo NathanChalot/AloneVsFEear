@@ -1,0 +1,1571 @@
+ ▐▛███▛█   Claude Code v2.1.316
+▝▜██████▀  Opus 5.5 · Claude Pro
+ ▝▝   ▝▝   ~/Code/RPGs/AloneVsFEear
+
+
+❯ /model                                                                        
+  ⎿  Set model to Opus 5.5 and saved as your default for new sessions with xhigh
+     effort
+
+❯ proceed with next session, I believ it s a step backl with a review           
+
+  Read 2 files, listed 1 directory, ran 3 shell commands (ctrl+o to expand)
+
+⏺ I've reviewed the design docs for glossary, game flow, MVP scope, and rulings.
+  Now I'll go through the rest of design/, docs/, the code, and tests, then
+  report back with a short list of findings.
+
+  Read 2 files, ran 4 shell commands (ctrl+o to expand)
+
+⏺ Still reading: design and docs are done, the engine core too. Now the loop,
+  protocol, interfaces, content loader and the tests.
+
+  Searched for 1 pattern, read 1 file, ran 4 shell commands (ctrl+o to expand)
+
+⏺ All 250 tests pass and ruff is clean. Next I'll validate the Mermaid diagrams
+  with mmdc and check the YAML against its Markdown copy before compiling
+  findings.
+
+  Searched for 1 pattern, ran 6 shell commands (ctrl+o to expand)
+
+⏺ The review is done. I read everything cold: design/, docs/, the code, the
+  tests, the logs and the process docs.
+
+  Health checks: all 250 tests pass, ruff is clean, CI is green on main, and all
+  40 Mermaid diagrams render with mmdc. I've created a project-review branch
+  for the wrap-up and changed nothing.
+
+  Findings
+
+  High
+  1. Rules that need to ask the player have nowhere to live. Game changes the
+     state but holds no interface. Only play() holds one, and the "answer must
+     be an option" check is a loose function in loop.py. Book-mode actions (E5),
+     and later the Injury offer when Life is lost, have to ask from inside a
+     state change. → Add "Decides: where rules that ask live" to E5.
+  2. E5 is planned as a Sonnet "clear spec" session, but it is really an 
+     architecture session. It needs requests other than Choose (an amount, an
+     item name, a roll type and L) and has to settle 1, 3 and 4. → Run E5 on
+     Opus, or split it into E5a (arrive, roll, show the entry) and E5b (manual
+     actions and the new request types).
+
+  Medium
+  3. Death only ends the game at the start of a turn. The design says "at any
+  time". With E5's manual actions, Life can reach 0 mid-box and play carries on;
+  in E12, mid-fight. → E5 decides: stop the game at once (like Quit), or check
+  after every step.
+  4. The engine only reports Arrival and Ended; interfaces read the state for 
+  everything else. The effects design wants the order of reactions to be the
+  story a narrator tells. Adding events to every rule later is expensive. →
+  Settle the rule in E5: every change worth showing is reported as an event.
+  5. Quitting mid-turn leaves a half-played turn in the state. End.QUIT says
+  "the campaign can go on later", but the box is numbered and the Food eaten
+  before the box is resolved. Saving that state would skip the box's content. →
+  Write down now that a save is the state at the start of the turn, and that
+  interfaces read the state only during ask/tell.
+  6. E8 builds the whole reaction system before anything needs it. That includes
+  every kind of effect lifetime, "would" moments and the helpful-first order,
+  with only Food and Skills to use them. → Shrink E8 to what Skills and Food
+  need; move "would" moments to E13, timed steps to E10, combat scopes to E12.
+  7. There are two copies of the rules text and nothing checks that they agree.
+  5–6 batches, possibly parallel agents, will edit the YAML and the Markdown
+  together. Today they match: 43 of 44 texts appear word for word, and the other
+  comes from another chapter. → Add a test that each YAML text appears in its
+  Markdown source.
+  8. Some work has no slot in the roadmap. No task lets the player attach a new
+  sheet during play, and a sheet can fill up within one mission. R6 (events) has
+  no slot, although "everything is copied before step 1". The check of the
+  pregenerated characters has none either. → Give each one a task.
+
+  Low
+  9. Small inconsistencies:
+  - the glossary says an Injury prevents "1–2" points, but the ruling says the
+    whole loss;
+  - mvp-scope says fights are "always" run by the engine, but E5 has them done
+    by hand until E12;
+  - FOOD_INTERVAL says E9, the Readme says E8;
+  - the Game.move docstring still says this "comes with E4";
+  - the architecture class diagram misses remove_mark, home and position.
+       → Fix them at wrap-up.
+  10. game-flow says you can't Search in a Safe House, but neither the book nor 
+      rulings.md says so. → You decide: make it a ruling or drop it.
+  11. The Food ruling ("eat on every multiple of 5") breaks when the interval 
+      changes mid-game. Resistant to Hunger makes it 6, Eating Disorder makes
+      it 3. → Prepare options for E8; no ruling now.
+  12. The estimates are optimistic. "Step 1 around session 20" is more like
+      25–30: E5 lands at session 7–8, then 12 tasks (four of them big) and 5
+      batches. → Refresh the table.
+  13. The same facts are kept in up to four places. The callback decision is in
+      the Readme, CLAUDE.md, architecture.md and the E4 log. The working rules
+      are in CLAUDE.md, the memory files and WorkingWithClaude. Every wrap-up
+      updates several copies, and the hand-kept diagrams already drift (9). →
+      One home per fact, and a lighter wrap-up.
+  14. The no-spoiler rule is unclear. Several design pages describe what
+      specific numbered events and creatures do to the game. → Say in CLAUDE.md
+      whether game mechanics count as spoilers.
+  15. The coordinator run (R2+R3) left no log, and its commit 65f70c1 went 
+      straight to main without a PR. → Add a short log, or write down when an
+      exception is OK.
+  16. CI checks less than the local commands. It doesn't run ruff format 
+      --check, and nothing type-checks the Interface protocol. → Add the format
+      check.
+
+  ---
+
+  Finding 1: rules that need to ask the player
+
+  The callback protocol was chosen so that "a rule deep inside another asks the
+  same way". In the code, nothing deep in the engine can ask:
+
+  - Game changes all the state (engine/game.py), but it has only dice, content
+    and campaign, no interface.
+  - play() holds the interface (engine/loop.py:28), and the option check is the
+    free function loop.ask (loop.py:56). Any other code could call interface.ask
+    directly and skip the check.
+
+  E5 will hit this first. mvp-scope says manual actions "go through the rules,
+  exactly as written content would", for example losing Life offers an Injury.
+  That means asking from inside a change to Life. If nobody decides where this
+  goes, every later rule (E7–E14) will probably end up in Game, which is already
+  240 lines covering the character, missions, map, clock, box memory and
+  history.
+
+  The options E5 would choose from:
+  - (a) Game holds the interface and asks itself. Simplest, but Game becomes the
+    home of every rule.
+  - (b) Game stays a plain state writer. Rules that ask live in rule modules
+    that get a small context: game, interface, and the checked ask. Book mode
+    and later content call those modules.
+  - (c) Pass the interface into every rule function. Noisy.
+
+  My proposed action is to add "Decides: where rules that ask live" to E5 in the
+  Readme, with these three options. I'd also note it as open in
+  docs/architecture.md. I lean towards (b), but that's E5's call.
+
+  Do you agree with the action, want to change it, or want to settle the
+  question now?
+
+✻ Crunched for 7m 5s · done 11:16
+
+※ recap: I'm running the project review before E5: 16 findings are listed and we're working through them one at a time. Next I need your answer on finding 1: add "where rules that ask live" to E5, change it, or decide it now? (disable recaps in /config)
+
+❯ One global feedback about your rreview. We are un der development, so we      
+  don't know everything and don t want to make any decision that locks us in.   
+  We must be agile and be able to adapt and change as we implement. Does all    
+  your feedback take this into account ? We must not take rigid decision too    
+  soon.                                                                         
+  1. About finding 1: I m not sure what the issue is, isn t it something we can 
+  settle as we go ?                                                             
+  2. We can switch to opus aAND divide it into two sesions its perfectly fine   
+     3, 4. "the design says" -> what matters is the end user experience , I     
+  think that if when a turn ends and the result is the charcacter is dead then  
+  the next turn showing your dead is ok as long as the turn ends as soon as     
+  life reaches 0 (fter all effects resolution). BEside that I m not sure what   
+  the problem is.                                                               
+  5. Agree, a save is the state at the begining of a turn, but isn it something 
+  we want to handle once we we will build saving ?                              
+  6. Ok                                                                         
+  7. I m not sure we want to test YAML and markdown matches as YAML is meant to 
+  become lower and lower in content as we implement rules in python             
+  8. We can but we must focus on building the MVP                               
+  9. Some of your finding are kind of naturally linked to the in progress       
+  status of the current work. They should be settled when we have a running mvp 
+  don t you think ?                                                             
+  10. IMO we can search a safe ohouse as any other box                          
+  11. true                                                                      
+  12. We can refresh the table but its not a contract, if it behave like such   
+  then we should simply remove it. we do not care. It s just to get an          
+  estimate, we will work as much as we need.                                    
+  13. what is your proposal?                                                    
+  14. the no spoiler is not for the rules, its mpore in opur exchange during    
+  session. The rules have spoiler and thats normal  they are the rukles... Same 
+  for the code. The spoielr are to be avoided in the session not iun the        
+  codebase                                                                      
+  15. I don t really understand what s the problem here                         
+  16. true                                                                      
+
+⏺ Honestly, not fully. Several findings (1, 3, 4, 5 and part of 9) pushed to
+  settle early things that can be settled as we go. I treated "not written down
+  yet" as a risk, but at this size changing course later is cheap. The ones that
+  hold up from an agile point of view are cheap and lock nothing in. Finding 6
+  actually removes an early commitment.
+
+  1. Yes, it can be settled as we go. My worry was only that, if nobody thinks
+  about it, rules pile into Game by default. Moving code is cheap at this size,
+  and the Opus E5 sessions will run into it anyway. I'm dropping it, no action.
+
+  2. Done at wrap-up. Here's a proposed split:
+  - E5a, reading: load the YAML by ID, roll on arrival, show only the entry
+    reached, go to a table, record what was reached.
+  - E5b, manual actions: the actions themselves, plus the new kinds of request
+    they need.
+
+  3. Your requirement is clear, and the code meets it today. The only thing that
+  costs Life is the Food at the end of a move, and the check comes right after.
+  The gap only appears when E5 adds actions inside a turn. I'd carry your
+  sentence into E5b as a requirement: "the turn ends as soon as Life or Sanity
+  reaches 0, once effects have resolved". One rules question hides in "after all
+  effects", for E13 rather than now: can something that triggers after the loss
+  bring you back above 0?
+
+  4. In plain terms: today the terminal prints "You eat 1 Food (Food 2)" by
+  reading the state after the fact. That works while one thing happens at a
+  time. When several things happen in a row (armor absorbs, you lose Life, you
+  take an Injury), the state only shows the end result, not the sequence. But
+  adding events when a feature needs them is fine. Dropping it.
+
+  5. Agreed. At most I'd add one line to the "Save and resume" item under Later,
+  so the idea isn't lost.
+
+  6. At wrap-up I'll rewrite E8 to cover only moments and lifetimes for Skills
+  and Food, and move "would" moments to E13, timed steps to E10 and combat
+  scopes to E12.
+
+  7. Dropping the test. One point to check, though: the docs say the YAML keeps
+  the text even after the rules move to Python, to show it on screen and later
+  for a narrator. Only book mode shrinks. If you mean the YAML itself should
+  shrink, docs/content.md and mvp-scope.md should say so. Which is it?
+
+  8. Agreed on MVP focus. Only one of the three affects the MVP: attaching a new
+  sheet. Without it, once the 30 boxes of the first sheet are visited, there is
+  nothing new to explore. I'd add it to E5a. R6 and the pregenerated-characters
+  check stay where they are.
+
+  9. Partly agree. The stale comments and diagram gaps are normal
+  work-in-progress noise, so I'll leave them. Two are different, because the
+  next sessions read the design as the spec:
+  - The glossary says an Injury prevents "1–2 points", but the ruling says it
+    negates the whole loss. A test written from the glossary would code the
+    wrong rule.
+  - mvp-scope says fights are "always" run by the engine, but E5 has them done
+    by hand until E12.
+
+  Those are two one-line fixes; I'd do just those.
+
+  10. Then the clause in design/game-flow.md is simply wrong. I'd remove "and
+  the box is not a Safe House". No ruling needed: the book has no exception, so
+  a Safe House follows the normal Search rules.
+
+  11. I'll add a note to E8: "Open: the Food clock when the interval changes;
+  options at E8".
+
+  12. Dropping it. The only part that ages badly is the predictions ("around
+  session 6 or 7", "20", "25–30"). I can remove those and keep the table as
+  rough sizes, or leave everything. Your pick.
+
+  13. My honest view: the overlap between the Readme (current state), the log
+  (history) and CLAUDE.md (read first) is mostly fine. The cost is in the
+  wrap-up routine. Here's what I'd change:
+  - Review model and effort only for the next session, not every planned one.
+  - Drop the PR link from the log. The branch name is already there and GitHub
+    finds the PR from it, so the extra commit and push at the end go away.
+  - In architecture.md, class diagrams show classes and how they connect,
+    without field and method lists. Those lists copy the code, and they're the
+    part that drifts.
+  - Delete my memory files that repeat CLAUDE.md (commit rules, spoilers,
+    rulings, design first, session workflow), so CLAUDE.md is the one copy.
+
+  14. Clear. CLAUDE.md and my memory file currently say "no plot details in chat
+  or docs". I'll change both to "in chat" only, and add that the rules, design
+  and code may hold whatever the rules say.
+
+  15. The working rules say every session gets a log and its own PR. The first
+  coordinator run has neither: no log in claude-logs/, and its change to
+  WorkingWithClaude.md was committed directly on main. Its commit message
+  already records what it taught, so the cost is small. I'd drop it, unless you
+  want the rule to have no exceptions.
+
+  16. I'll add ruff format --check to CI at wrap-up.
+
+  I need your answers on 7, 12 and 13 (all four points, or only some?). I'll
+  apply the rest as described above unless you object, then start the wrap-up.
+
+✻ Cogitated for 1m 39s · done 11:32
+
+❯ 3. can something that triggers after the loss bring you back above 0? -> IMO  
+  yes, but we will need to think about it with tests and user stories           
+  7. Keep it as is, book mode shrinks, we will see about yaml in due time.      
+  8. The ruling must prevail on the glossary does nit ? E12 comes after E5      
+  doesn t it? So IMO the design state how the game should behave once we are    
+  done implementing the mvp and e5 is a transitional state before e12. does it  
+  make sense?                                                                   
+  12. remove them isf they are potentially noise and misleadingthe next         
+  sessions                                                                      
+  13. OK                                                                        
+  14. docs/ might be relevant, we don t want to spoil people reading the        
+  technical docs. Reading the rules or the code is different                    
+  15. I don t care, it s only one commit                                        
+
+⏺ User answered Claude's questions:
+  ⎿  · Spoilers: chat and docs/ stay spoiler-free, the rules and code may spoil.
+     What about design/ (the domain design, which describes what some events 
+     and creatures do to the game) and the other project docs (Readme, 
+     NextSession, logs)? → design/ may spoil, rest not (Recommended)
+     · The glossary says an Injury or Mental Scar avoids losing "1–2" Life or 
+     Sanity, while the ruling (which prevails) says it negates the whole loss. 
+     Change the glossary line? → point it to the ruling bu the confusion might 
+     come fromo the fact that this is listed as a switchable behaviour for a 
+     poossible future step that allow switching game mode ?
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ I'll link the glossary to the ruling—turns out the "1–2 points" wording was
+  describing the strict, switchable variant rather than the default (whole
+  loss). Applying the agreed changes now.
+
+  Read 5 files (ctrl+o to expand)
+
+⏺ Update(CLAUDE.md)
+  ⎿  Added 4 lines, removed 2 lines
+       4  
+       5  ## Working rules
+       6  
+       7 -- Small planned sessions, one branch and one PR each. **Never c
+         -ommit or push without permission**, except the agreed end-of-se
+         -ssion wrap-up (update Readme, NextSession, reviewing each plann
+         -ed session's model and effort, and, if the code structure chang
+         -ed, `docs/architecture.md`; write the log; ask for the transcri
+         -pt export, commit, push, PR, add the PR link to the log).      
+       7 +- Small planned sessions, one branch and one PR each. **Never c
+         +ommit or push without permission**, except the agreed end-of-se
+         +ssion wrap-up (update Readme, NextSession with the next session
+         +'s model and effort, and, if the code structure changed, `docs/
+         +architecture.md`; write the log; ask for the transcript export;
+         + commit, push, open the PR).                                   
+       8  - Design before code: model in domain terms in `design/` first.
+           Decide only what is worth deciding yet; propose, do not decide
+          .
+       9 +- **Stay agile**: we are under development and learn as we impl
+         +ement. Settle things as we go when changing course later is che
+         +ap; prefer the least constraining option. Raise a question only
+         + if its answer changes what we build now; the rest goes to a "d
+         +ecide when implementing" list. Reviews too: no finding that ask
+         +s to decide early what can wait.                               
+      10 +- `design/` describes the game once the MVP is done; a roadmap 
+         +task can be a transitional step towards it. Where a design page
+         + and a ruling disagree, the ruling wins.                       
+      11  - **Rule interpretations**: suggest options, never rule. Ask fi
+          rst; rulings go to `design/rulings.md`, kept switchable.
+      10 -- **No spoilers**: event names are fine, no plot details in cha
+         -t or docs.                                                     
+      12 +- **No spoilers** in chat, `docs/`, the Readme, NextSession, Wo
+         +rkingWithClaude and the logs: event names are fine, no plot det
+         +ails (the user has not played the events). The rules (`gameRule
+         +s/`, the YAML), `design/` and the code may hold whatever the ru
+         +les say.                                                       
+      13  - **No book page references** in committed docs; transcripts st
+          ay verbatim.
+      14  - The rules text is from a commercial book: the repository stay
+          s private; `origin_rules/` (original PDFs) is git-ignored.
+      15  
+
+⏺ Update(.github/workflows/ci.yml)
+  ⎿  Added 1 line
+      13            python-version: "3.13"
+      14        - run: pip install -e '.[dev]'
+      15        - run: ruff check .
+      16 +      - run: ruff format --check .                             
+      17        - run: pytest
+
+⏺ Update(claude-logs/README.md)
+  ⎿  Added 2 lines, removed 1 line
+      23  
+      24  - Date: YYYY-MM-DD
+      25  - Session ID: <Claude Code session id>
+      26 -- Branch / PR: <branch> / <PR link or "not committed">         
+      26 +- Branch: <branch> (the PR is found from it)                   
+      27 +- Model: <model, effort>                                       
+      28  - Transcript: [transcripts/YYYYMMDDHHmm-session-name.txt](trans
+          cripts/YYYYMMDDHHmm-session-name.txt)
+      29  
+      30  ## Goal
+
+⏺ Now WorkingWithClaude.md.
+
+⏺ Update(WorkingWithClaude.md)
+  ⎿  Added 1 line, removed 1 line
+       7  1. Start from [NextSession.md](NextSession.md), the [Readme](Re
+          adme.md) and the latest log in [`claude-logs/`](claude-logs/).
+       8  2. GitHub issues only for user stories and bugs, and only when 
+          needed; the PR then says `Closes #N`. An engine task with no us
+          er story gets no issue: the Readme entry is the task.
+       9  3. Work on a dedicated branch; one PR per session. Create the b
+          ranch in the main checkout; use a worktree only when another se
+          ssion runs at the same time (see [Parallel sessions](#parallel-
+          sessions)). During the session, Claude never commits or pushes 
+          without explicit permission.
+      10 -4. End by updating the Readme (checkboxes, decisions), `NextSes
+         -sion.md` (remove the done session, adjust the plan, review the 
+         -model and effort of each planned session in light of this one) 
+         -and, if the code structure changed, [`docs/architecture.md`](do
+         -cs/architecture.md).                                           
+      10 +4. End by updating the Readme (checkboxes, decisions), `NextSes
+         +sion.md` (remove the done session, adjust the plan, review the 
+         +next session's model and effort in light of this one) and, if t
+         +he code structure changed, [`docs/architecture.md`](docs/archit
+         +ecture.md).                                                    
+      11  5. Claude writes the session log in `claude-logs/YYYYMMDDHHmm-s
+          ession-name.md`.
+      12  6. The user exports the transcript with `/export claude-logs/tr
+          anscripts/YYYYMMDDHHmm-session-name.txt` (same name as the log)
+          .
+      13  7. Claude commits the session, pushes the branch, opens the PR,
+           writes the PR link in the log and pushes again. This end-of-se
+          ssion commit and push is agreed once and for all, so the next s
+          ession starts clean.
+
+⏺ Update(WorkingWithClaude.md)
+  ⎿  Added 1 line, removed 1 line
+      10  4. End by updating the Readme (checkboxes, decisions), `NextSes
+          sion.md` (remove the done session, adjust the plan, review the 
+          next session's model and effort in light of this one) and, if t
+          he code structure changed, [`docs/architecture.md`](docs/archit
+          ecture.md).
+      11  5. Claude writes the session log in `claude-logs/YYYYMMDDHHmm-s
+          ession-name.md`.
+      12  6. The user exports the transcript with `/export claude-logs/tr
+          anscripts/YYYYMMDDHHmm-session-name.txt` (same name as the log)
+          .
+      13 -7. Claude commits the session, pushes the branch, opens the PR,
+         - writes the PR link in the log and pushes again. This end-of-se
+         -ssion commit and push is agreed once and for all, so the next s
+         -ession starts clean.                                           
+      13 +7. Claude commits the session, pushes the branch and opens the 
+         +PR (the log names the branch, which is enough to find the PR). 
+         +This end-of-session commit and push is agreed once and for all,
+         + so the next session starts clean.                             
+      14  
+      15  ## How we develop
+      16  
+
+⏺ Update(WorkingWithClaude.md)
+  ⎿  Added 3 lines, removed 6 lines
+      21  
+      22  ## How many sessions
+      23  
+      24 -Rough estimates, for sessions of about 1.5 hours. Not commitmen
+         -ts.                                                            
+      24 +Rough sizes, for sessions of about 1.5 hours, to get an idea of
+         + the work left. Not commitments and not tracked: we work as muc
+         +h as we need.                                                  
+      25  
+      26  | Phase | Sessions |
+      27  | --- | --- |
+      28  | Project setup and GitHub planning | 1 |
+      29  | R1 (YAML layout, IDs, first tables) | 1 |
+      30 -| Engine skeleton E1–E5 | 3–4 |                                
+      30 +| Engine skeleton E1–E5 | 5 (E5 in two sessions) |             
+      31  | YAML batches R2–R7 | 5–6, can run in parallel |
+      32 -| Step 1, E6–E17 | 10–14 (E7, E8, E10 and E12 are the big ones)
+         - |                                                             
+      32 +| Step 1, E6–E17 | 12 or more (E7, E8, E10 and E12 are the big 
+         +ones) |                                                        
+      33  | Step 2, E18–E20 | 3–4 |
+      34  
+      35 -- Python code starts with R1 (session 2), engine code with E1 (
+         -session 3).                                                    
+      36 -- A game playable in book mode around session 6 or 7; step 1 pl
+         -ayable around session 20; the MVP in roughly 25 to 30 sessions.
+      37 -                                                               
+      35  ## Which model for which session
+      36  
+      37  | Kind of session | Tasks | Model |
+
+⏺ Update(WorkingWithClaude.md)  ⎿  Added 2 lines, removed 2 lines
+      36  
+      37  | Kind of session | Tasks | Model |
+      38  | --- | --- | --- |
+      39 -| Architecture: choices later tasks depend on | R1 (IDs), E1 + 
+         -E2, E4, E6 (rest of D1), E7, E8, E10, E12 | Opus, high effort |
+      40 -| Clear spec: the design already says what to build | E3, E5, E
+         -9, E11, E13–E20 | Sonnet |                                     
+      39 +| Architecture: choices later tasks depend on | R1 (IDs), E1 + 
+         +E2, E4, E5a, E5b, E6 (rest of D1), E7, E8, E10, E12 | Opus, hig
+         +h effort |                                                     
+      40 +| Clear spec: the design already says what to build | E3, E9, E
+         +11, E13–E20 | Sonnet |                                         
+      41  | Copying rules text | R2–R7 | Sonnet, medium effort; Opus for 
+          a messy batch (events) |
+      42  | Writing user stories and their issues | When a task has a pla
+          yer-facing story (E4 on) | Sonnet, medium effort; Opus if slici
+          ng the game into stories turns into a design debate |
+      43  | Step-back review: an adversarial review of the whole project,
+           findings only | Project review (after E4) | Opus, high effort 
+          |
+
+⏺ Update(WorkingWithClaude.md)
+  ⎿  Added 2 lines, removed 2 lines
+      46  
+      47  - Any task can turn out harder than planned: switch to Opus whe
+          n a Sonnet session hits a design question.
+      48  - Fable: not used. It does not follow the same pricing rules as
+           the other models.
+      49 -- No default effort. Model and effort are picked per session in
+         - [NextSession.md](NextSession.md) and reviewed at each wrap-up 
+         -with what the session showed: a session that struggled moves si
+         -milar ones up, an easy one moves them down. The table above is 
+         -only the starting point.                                       
+      50 -- The memory files (ask before ruling, no spoilers, commit rule
+         -s) load the same way whatever the model.                       
+      49 +- No default effort. Model and effort are picked per session in
+         + [NextSession.md](NextSession.md); each wrap-up reviews the nex
+         +t session's with what the session showed: a session that strugg
+         +led moves similar ones up, an easy one moves them down. The tab
+         +le above is only the starting point.                           
+      50 +- [`CLAUDE.md`](CLAUDE.md) (working rules: commits, rulings, sp
+         +oilers) loads the same way whatever the model.                 
+      51  
+      52  ## Prompts
+      53  
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ Update(design/game-flow.md)
+  ⎿  Added 1 line, removed 1 line
+      51  
+      52  The character must leave a box to play it again: no staying in 
+          place to heal twice. Home is not a Safe House.
+      53  
+      54 -Search is allowed when the encounter was not fled or ignored ([
+         -rulings](rulings.md)), the box was not Searched yet, and the bo
+         -x is not a Safe House. Libraries can be Searched again for 1 bo
+         -ok or 1 Clue.                                                  
+      54 +Search is allowed when the encounter was not fled or ignored ([
+         +rulings](rulings.md)) and the box was not Searched yet. A Safe 
+         +House follows the same rule as any box. Libraries can be Search
+         +ed again for 1 book or 1 Clue.                                 
+      55  
+      56  ## 3. Arriving in a box
+      57  
+
+⏺ Update(design/glossary.md)
+  ⎿  Added 1 line, removed 1 line
+      14  - **Character** — the single hero. Has a name, Life, Sanity, Sk
+          ills, XP, Food, Clues, Inventory, Injuries and Mental Scars.
+      15  - **Life** — physical health. At 0 the character dies. Fully re
+          stored between missions.
+      16  - **Sanity** — mental health. At 0 the character goes insane. F
+          ully restored between missions.
+      17 -- **Injury** / **Mental Scar** — permanent effect taken to avoi
+         -d losing 1–2 Life / Sanity. Max 3 of each per character lifetim
+         -e.                                                             
+      17 +- **Injury** / **Mental Scar** — permanent effect taken instead
+         + of losing Life / Sanity (how much of the loss it negates: see 
+         +[rulings](rulings.md#character)). Max 3 of each per character l
+         +ifetime.                                                       
+      18  - **Skill** — a capability with a Basic and an Expert level. Mo
+          st modify rolls. **Arcane Skills** have prerequisites (books, r
+          ituals).
+      19  - **XP** — experience points, earned by winning combats and mis
+          sions, spent at any time to buy Skills or upgrade them to Exper
+          t.
+      20  - **Clue** — currency of investigation. Spent to hunt a specifi
+          c creature.
+
+⏺ Now the Readme roadmap: splitting E5, trimming E8, and adding notes to E12,
+  E13 and Later.
+
+⏺ Update(Readme.md)
+  ⎿  Added 1 line, removed 1 line
+       8  
+       9  ## Status
+      10  
+      11 -MVP phase. Rules extraction and domain design ([`design/`](desi
+         -gn/)) are done. The rules text is being copied into YAML: the f
+         -ormat and the four exploration tables are in (R1). The engine h
+         -as started: dice (E1), the game state (E2), the town map with m
+         -oves and time (E3), and the engine/interface protocol with the 
+         -game loop (E4): a player can walk the town in the terminal (`al
+         -one-against-fear`).                                            
+      11 +MVP phase. Rules extraction and domain design ([`design/`](desi
+         +gn/)) are done. The rules text is being copied into YAML: the f
+         +ormat and the four exploration tables are in (R1). The engine h
+         +as started: dice (E1), the game state (E2), the town map with m
+         +oves and time (E3), and the engine/interface protocol with the 
+         +game loop (E4): a player can walk the town in the terminal (`al
+         +one-against-fear`). A project review after E4 split book mode i
+         +nto two tasks (E5a, E5b) and trimmed E8 to what its content nee
+         +ds.                                                            
+      12  
+      13  **MVP goal:** play a whole campaign in the terminal, in two ste
+          ps ([MVP scope](design/mvp-scope.md)):
+      14  
+
+⏺ Update(Readme.md)
+  ⎿  Added 10 lines, removed 3 lines
+      168  - Done when: a scripted test walks 10 boxes, and the terminal 
+           lets a player do the same.
+      169  - Depends on: E3.
+      170  
+      171 -#### [ ] E5 — Book mode                                       
+      172 -Load the YAML by ID; roll a table's dice and show only the ent
+          -ry reached. Manual actions that go through the rules: gain or 
+          -lose Life, Sanity, Food, XP or Clues; add or remove an item; g
+          -o to a table or event; make a roll vs L (modifier typed by the
+          - player until E7); make a Search roll; mark a Safe House. Reco
+          -rd what was reached. Arriving: a new box rolls Town Exploratio
+          -n, a visited box has a 1 in 6 Random Encounter, all shown in b
+          -ook mode. Fights are applied by hand until E12.               
+      171 +#### [ ] E5a — Book mode: reading                             
+      172 +Load the YAML by ID; roll a table's dice and show only the ent
+          +ry reached, with the notes it points to; a catalogued table po
+          +ints to its Markdown file and entry number. Arriving: a new bo
+          +x rolls Town Exploration, a visited box has a 1 in 6 Random En
+          +counter. Go to a table or event (the entry's references are of
+          +fered). Record what was reached. When every box of a sheet is 
+          +visited, the player can attach a new sheet and walk onto it.  
+      173 +- Design: [MVP scope](design/mvp-scope.md#book-mode), [town ma
+          +p](design/town-map.md)                                        
+      174 +- Decides: how a table's own rules text is shown (on request, 
+          +or the first time).                                           
+      175 +- Done when: a player can walk the town in the terminal, every
+          + box's entry shown as text, and walk onto a new sheet once the
+          + first is full.                                               
+      176 +- Depends on: E4, R1.                                         
+      177 +                                                              
+      178 +#### [ ] E5b — Book mode: manual actions                      
+      179 +Manual actions that go through the rules: gain or lose Life, S
+          +anity, Food, XP or Clues; add or remove an item; make a roll v
+          +s L (modifier typed by the player until E7); make a Search rol
+          +l; mark a Safe House. New request shapes as these actions need
+          + them (an amount, an item name, a roll). The turn ends as soon
+          + as Life or Sanity reaches 0, once effects have resolved. Figh
+          +ts are applied by hand until E12.                             
+      180  - Design: [MVP scope](design/mvp-scope.md#book-mode)
+      181  - Done when: a player can walk the town in the terminal, every
+            box shown as text and applied with manual actions, until deat
+           h or quitting.
+      175 -- Depends on: E4, R1.                                         
+      182 +- Depends on: E5a.                                            
+      183  
+      184  ### Milestone 6 — Step 1: Bring Home the Bacon
+      185  
+
+⏺ Update(Readme.md)
+  ⎿  Added 1 line, removed 1 line
+      191  - Design: [character](design/character.md)
+      192  - Decides: the rest of D1.
+      193  - Done when: the terminal walks the player through creation, a
+           nd XP can be spent.
+      194 -- Depends on: E5, R2, R3.                                     
+      194 +- Depends on: E5b, R2, R3.                                    
+      195  
+      196  #### [ ] E7 — Rolls and effects
+      197  Roll types and context tags; roll vs L with natural 1 and 6; e
+           ffects with source, holder, kind and lifetime; a roll collects
+            matching modifiers from every holder, with stacking limits; m
+           ax values calculated from effects. Every Skill written as effe
+           cts. Manual rolls in book mode now get their modifiers.
+
+⏺ Update(Readme.md)
+  ⎿  Added 3 lines, removed 2 lines
+      200  - Depends on: E6.
+      201  
+      202  #### [ ] E8 — Moments and reactions
+      203 -Announce moments; reactions with their scripts; lifetimes that
+          - end on a moment, a count or a condition; "would" moments with
+          - an ordered chain; helpful reactions first, then the player pi
+          -cks. Food every 5 boxes becomes a reaction (Resistant to Hunge
+          -r changes it); "for the next N boxes" effects.                
+      203 +Announce moments; reactions with their scripts; the lifetimes 
+          +the Skills and Food need (permanent, for the next N boxes, unt
+          +il a moment). Food every 5 boxes becomes a reaction (Resistant
+          + to Hunger and Eating Disorder change it); "for the next N box
+          +es" effects. The rest of the effects design comes with the con
+          +tent that needs it: timed steps with E10, combat scopes and th
+          +e order of reactions on one moment with E12, "would" moments w
+          +ith E13.                                                      
+      204  - Design: [effects](design/effects.md)
+      205 -- Done when: tests cover each lifetime and the reaction order.
+      205 +- Open: the Food clock when the interval changes mid-game (the
+          + [ruling](design/rulings.md#map) eats on every multiple of 5);
+          + options at E8.                                               
+      206 +- Done when: the Food upkeep is a reaction that Resistant to H
+          +unger and Eating Disorder change, and "for the next N boxes" e
+          +ffects end on time, with tests.                               
+      207  - Depends on: E7.
+      208  
+      209  #### [ ] E9 — Inventory
+
+⏺ Update(Readme.md)
+  ⎿  Added 1 line, removed 1 line
+      228  - Depends on: E10.
+      229  
+      230  #### [ ] E12 — Combat
+      231 -Creature profiles, groups and members; surprise; rounds; Attac
+          -k with exploding sixes and hits = total ÷ L; Defense with fumb
+          -les; weapon modifiers, Damage and specials on the natural die;
+          - ammo; automatic Damage (vulnerabilities, grenade); XP and loo
+          -t; end-of-combat reactions. The stats of every creature and ev
+          -ery weapon written; special rules stay text, with manual actio
+          -ns open during the fight (creature Life up or down). The "figh
+          -t a creature" manual action.                                  
+      231 +Creature profiles, groups and members; surprise; rounds; Attac
+          +k with exploding sixes and hits = total ÷ L; Defense with fumb
+          +les; weapon modifiers, Damage and specials on the natural die;
+          + ammo; automatic Damage (vulnerabilities, grenade); XP and loo
+          +t; end-of-combat reactions. Effects scoped to one attack, roun
+          +d or combat; several reactions on one moment (helpful first, t
+          +hen the player picks). The stats of every creature and every w
+          +eapon written; special rules stay text, with manual actions op
+          +en during the fight (creature Life up or down). The "fight a c
+          +reature" manual action.                                       
+      232  - Rules: [combat](gameRules/3_combat.md), [monster rules](game
+           Rules/4_monster_rules.md), [weapons](gameRules/1_4_weapons.md)
+           , [weapon summary](gameRules/8_weapon_summary_table.md), [crea
+           tures](gameRules/tables/creatures/)
+      233  - Design: [combat](design/combat.md)
+      234  - Done when: a fight against any creature can be played, with 
+           a test on the book's worked example.
+
+⏺ Update(Readme.md)
+  ⎿  Added 2 lines, removed 1 line
+      237  #### [ ] E13 — Harm
+      238  Life and Sanity losses as "would" moments: armor, Luck, then t
+           he Injury or Mental Scar offer (max 3 each, duplicates rerolle
+           d, the whole loss negated), then the loss; death at 0 Life, in
+           sanity at 0 Sanity. The Injury and Insanity tables, armor, hel
+           met and first aid kit written.
+      239  - Rules: [main rules](gameRules/1_1_main_rules.md) (Sanity, Li
+           fe), [combat](gameRules/3_combat.md) (Mental Scars and Injurie
+           s), [insanity table](gameRules/tables/3_1_insanity_table.md), 
+           [injury table](gameRules/tables/3_2_injury_table.md)
+      240 -- Design: [character](design/character.md#life-and-sanity), [c
+          -ombat](design/combat.md#defense-and-taking-damage)            
+      240 +- Design: [character](design/character.md#life-and-sanity), [c
+          +ombat](design/combat.md#defense-and-taking-damage), [effects](
+          +design/effects.md#would-and-did)                              
+      241 +- Open: can something that triggers after a loss bring the cha
+          +racter back above 0 before death is checked? Leaning yes; sett
+          +le it with tests and user stories.                            
+      242  - Done when: the Damage chain is tested in order.
+      243  - Depends on: E12.
+      244  
+
+⏺ Update(Readme.md)
+  ⎿  Added 1 line, removed 1 line
+      292  
+      293  ### Later
+      294  
+      295 -- [ ] Save and resume the campaign                            
+      295 +- [ ] Save and resume the campaign. A save is the campaign as 
+          +it stood at the start of the turn: a turn changes the state as
+          + it goes, so quitting mid-turn leaves it half played.         
+      296  - [ ] The other missions: Predator and Prey and Destroy the Co
+           ven (with hunting by Clues), Medical Supplies, We Need Weapons
+      297  - [ ] Switchable rule options (campaign modes)
+      298  - [ ] The remaining content, each piece replacing part of book
+            mode: place tables, events (with the forest map of #41), side
+            missions, rewards, magic items, book effects, Arcane Skill ef
+           fects
+
+  Searched for 2 patterns, read 1 file (ctrl+o to expand)
+
+⏺ Update(docs/architecture.md)
+  ⎿  Removed 31 lines
+      41      Chance --> ChanceRoll : gives
+      42      Dice <|.. RandomDice
+      43      Dice <|.. ScriptedDice
+      44 -    class DiceCode {                                           
+      45 -        count                                                  
+      46 -        sides                                                  
+      47 -        plus                                                   
+      48 -        combine                                                
+      49 -        parse(code)$                                           
+      50 -        roll(dice) DiceRoll                                    
+      51 -        results() every total                                  
+      52 -    }                                                          
+      53 -    class Chance {                                             
+      54 -        in_6                                                   
+      55 -        parse(code)$                                           
+      56 -        roll(dice) ChanceRoll                                  
+      57 -    }                                                          
+      44      class Dice {
+      45          <<protocol>>
+      60 -        d6() int                                               
+      46      }
+      62 -    class RandomDice {                                         
+      63 -        seed, picked and logged if not given                   
+      64 -    }                                                          
+      65 -    class ScriptedDice {                                       
+      66 -        faces, in order                                        
+      67 -        remaining                                              
+      68 -    }                                                          
+      69 -    class DiceRoll {                                           
+      70 -        total                                                  
+      71 -        faces                                                  
+      72 -        natural                                                
+      73 -    }                                                          
+      74 -    class ChanceRoll {                                         
+      75 -        success                                                
+      76 -        face                                                   
+      77 -    }                                                          
+      47  ```
+      48  
+      49  - **Dice codes are parsed from the book's notation** (`"2d6+1"`
+          , `"d6 x d6"`, `"12+d6"`, `"d66"`) and shown back in a standard
+           form (`str(code)`). `Combine` says how the dice make the total
+          : sum, product (`d6xd6`) or digits (`d66`). A d3 is a d6 halved
+          . `"x in 6"` is a `Chance`, true on a die showing x or less.
+
+⏺ Update(docs/architecture.md)
+  ⎿  Removed 37 lines
+       65      Character --> "0..1" Mission : mission
+       66      Mission --> "1" History : history
+       67      TownMap --> "*" Box : boxes by Position
+       68 -    class Game {                                              
+       69 -        character                                             
+       70 -        mission                                               
+       71 -        history(level)                                        
+       72 -        create_character()                                    
+       73 -        gain(stat, n) / lose(stat, n)                         
+       74 -        add_item() / remove_item()                            
+       75 -        start_mission(id)                                     
+       76 -        number_box(position)                                  
+       77 -        choose_home(position)                                 
+       78 -        targets(kind) / move(to, kind) Arrival                
+       79 -        is_full(sheet) / add_sheet(sheet)                     
+       80 -        add_place() / mark_searched() / add_mark()            
+       81 -        record(level, happened, id)                           
+       82 -        add_keyword(level, word)                              
+       83 -    }                                                         
+       84 -    class Campaign {                                          
+       85 -        box_counter                                           
+       86 -    }                                                         
+       87 -    class Character {                                         
+       88 -        life, sanity, food, xp, clues                         
+       89 -        items                                                 
+       90 -    }                                                         
+       91 -    class Mission {                                           
+       92 -        id                                                    
+       93 -    }                                                         
+       94 -    class History {                                           
+       95 -        counts per Happened                                   
+       96 -        keywords                                              
+       97 -        count(happened, id)                                   
+       98 -        has(happened, id)                                     
+       99 -    }                                                         
+      100 -    class Box {                                               
+      101 -        position                                              
+      102 -        numbers                                               
+      103 -        places, searched, marks                               
+      104 -    }                                                         
+       68  ```
+       69  
+       70  - **The state is mutable plain data**: dataclasses of numbers,
+            strings, enums, lists, dicts and counters, content referred t
+           o by ID. A test walks the whole campaign to check it holds no 
+           code, so saving it later is turning it into a dict.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Applying the agreed changes. The Readme, CLAUDE.md, WorkingWithClaude, CI,
+  glossary and game-flow are done. Now trimming the architecture diagrams, then
+  NextSession, my memory files and the log.
+
+⏺ Update(docs/architecture.md)
+  ⎿  Removed 18 lines
+      111      TerminalInterface ..> Game : reads
+      112      class Interface {
+      113          <<protocol>>
+      114 -        ask(request) answer                                   
+      115 -        tell(event)                                           
+      114      }
+      117 -    class Choose {                                            
+      118 -        topic HOME, ACTION or MOVE                            
+      119 -        options                                               
+      120 -    }                                                         
+      121 -    class Ended {                                             
+      122 -        end DEAD, INSANE or QUIT                              
+      123 -    }                                                         
+      124 -    class ScriptedInterface {                                 
+      125 -        answers, in order                                     
+      126 -        asked                                                 
+      127 -        told                                                  
+      128 -    }                                                         
+      129 -    class TerminalInterface {                                 
+      130 -        game                                                  
+      131 -        input_fn, output_fn                                   
+      132 -    }                                                         
+      115  ```
+      116  
+      117  - **Callback protocol.** The engine holds the interface and ca
+           lls it while the rules run: `ask(request)` returns the player'
+           s answer at once, `tell(event)` reports what happened, in orde
+           r. A rule deep inside another (a fight inside an event inside 
+           an arrival) asks the same way. Chosen over generators (every f
+           unction on the path would need `yield from`) and a state machi
+           ne (every multi-step rule cut into states). The price: the gam
+           e can only be saved between turns, which fits "saving = saving
+            the campaign"; a GUI would run the engine in a thread.
+
+⏺ Update(docs/architecture.md)
+  ⎿  Removed 40 lines
+      150      Table --> "1..*" Entry : entries
+      151      Entry --> "1" Roll : roll
+      152      Entry --> "0..1" Table : nested table
+      153 -    class Content {                                           
+      154 -        tables                                                
+      155 -        catalogue                                             
+      156 -        entries                                               
+      157 -        table(id) Table                                       
+      158 -        entry(id) Entry                                       
+      159 -        contains(id) bool                                     
+      160 -    }                                                         
+      161 -    class Table {                                             
+      162 -        id                                                    
+      163 -        name                                                  
+      164 -        dice                                                  
+      165 -        text                                                  
+      166 -        source                                                
+      167 -        notes                                                 
+      168 -        entry_for(result) Entry                               
+      169 -        walk() entries, nested included                       
+      170 -        nested_tables()                                       
+      171 -    }                                                         
+      172 -    class Entry {                                             
+      173 -        id                                                    
+      174 -        roll                                                  
+      175 -        name                                                  
+      176 -        text                                                  
+      177 -        refs                                                  
+      178 -        notes                                                 
+      179 -        table                                                 
+      180 -    }                                                         
+      181 -    class Roll {                                              
+      182 -        low                                                   
+      183 -        high                                                  
+      184 -        label                                                 
+      185 -        contains(result) bool                                 
+      186 -    }                                                         
+      187 -    class CatalogueTable {                                    
+      188 -        id                                                    
+      189 -        name                                                  
+      190 -        dice                                                  
+      191 -        source                                                
+      192 -    }                                                         
+      153  ```
+      154  
+      155  - **Read-only.** Every class is a frozen dataclass: content ne
+           ver changes once loaded. The game state will hold IDs pointing
+            into it, never copies.
+
+⏺ Update(docs/architecture.md)
+  ⎿  Added 1 line, removed 1 line
+      118  - **Requests and events are plain data.** `Choose(topic, optio
+           ns)` is the only request so far; the topic tells the interface
+            how to show it (a map for `HOME` and `MOVE`). Other shapes (a
+            number, an order) come with the tasks that need them. Events 
+           are `Arrival` (from `Game.move`, and for Home) and `Ended`.
+      119  - **The answer must be one of the options.** `loop.ask` refuse
+           s anything else with `GameError`, logs the answer and returns 
+           the option itself. A scripted answer that is not an option fai
+           ls the test; the terminal checks the input before answering.
+      120  - **`Quit`** may be raised by an interface at any request: the
+            game ends with `End.QUIT` (the terminal raises it on Ctrl-D o
+           r Ctrl-C).
+      121 -- **The loop** (`play(game, interface) -> End`): creates the p
+          -laceholder character if there is none (Life 8, Sanity 8, Food 
+          -d6, until E6), asks for Home if it is not chosen, then turns: 
+          -an action (`MOVE` or `QUIT`), then a box among `Game.targets()
+          -`, listed in reading order. It ends at 0 Life (dead, checked f
+          -irst, [ruling](../design/rulings.md#character)), 0 Sanity (ins
+          -ane) or quit. Arriving, Search and free actions are hook point
+          -s for E5 and later.                                           
+      121 +- **The loop** (`play(game, interface) -> End`): creates the p
+          +laceholder character if there is none (Life 8, Sanity 8, Food 
+          +d6, until E6), asks for Home if it is not chosen, then turns: 
+          +an action (`MOVE` or `QUIT`), then a box among `Game.targets()
+          +`, listed in reading order. It ends at 0 Life (dead, checked f
+          +irst, [ruling](../design/rulings.md#character)), 0 Sanity (ins
+          +ane) or quit. Arriving, Search and free actions are hook point
+          +s for book mode (E5a, E5b) and later.                         
+      122  - **Interfaces read the game, never change it**: the terminal 
+           reads `Game` to draw the status line and the map; only its ans
+           wers move the game on.
+      123  
+      124  ## `interface`: scripted and terminal
+
+⏺ Update(docs/architecture.md)
+  ⎿  Added 1 line, removed 1 line
+      159  - **A table's `dice`** is any dice code, kept in standard form
+           ; the coverage check asks `DiceCode` for its results.
+      160  - **`KINDS`** lists the first segments an ID may have (`table`
+           , `mission`); a YAML batch adds the kinds it needs.
+      161  
+      162 -Used by: the tests, and `Game.start_mission`, which checks mis
+          -sion IDs. Book mode (E5) will be the first real engine user.  
+      162 +Used by: the tests, and `Game.start_mission`, which checks mis
+          +sion IDs. Book mode (E5a) will be the first real engine user. 
+      163  
+      164  ## Tests
+      165  
+
+⏺ Update(docs/architecture.md)
+  ⎿  Added 1 line, removed 1 line
+      2  
+      3  How the Python code is built: packages, modules, the main classe
+         s and who calls whom. What the game is lives in [`design/`](../d
+         esign/), in domain terms; this page is about the code that imple
+         ments it.
+      4  
+      5 -It describes only what exists. Each session updates it at wrap-u
+        -p when the code structure changes ([Working with Claude](../Work
+        -ingWithClaude.md#how-a-session-works)).                         
+      5 +It describes only what exists. Each session updates it at wrap-u
+        +p when the code structure changes ([Working with Claude](../Work
+        +ingWithClaude.md#how-a-session-works)). Diagrams show the classe
+        +s and how they connect; their fields and methods are read in the
+        + code, so the diagrams do not drift from it.                    
+      6  
+      7  ## Packages
+      8  
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(docs/content.md)
+  ⎿  Added 1 line, removed 1 line
+      128  ## Open
+      129  
+      130  - **Where plain data goes** (creature stats, item weights, Ski
+           ll XP costs): next to the text in the YAML, or in Python next 
+           to the behaviour. Decided in E6 ([D1](../Readme.md#deferred)).
+      131 -- **How book mode shows a table's own rules**: on request, or 
+          -the first time the table is rolled. Decided in E5.            
+      131 +- **How book mode shows a table's own rules**: on request, or 
+          +the first time the table is rolled. Decided in E5a.           
+
+⏺ Write(NextSession.md)
+  ⎿  Added 7 lines, removed 20 lines
+       1  # Next sessions
+       2  
+       3 -Planned work sessions with Claude, in order, each with the mode
+         -l and effort to use, reviewed at the end of every session. The 
+         -[Readme](Readme.md) holds the roadmap and decisions; this file 
+         -holds the plan for upcoming sessions. How a session runs, which
+         - model to use and how to prompt it: see [Working with Claude](W
+         -orkingWithClaude.md).                                          
+       3 +Planned work sessions with Claude, in order, each with the mode
+         +l and effort to use; each wrap-up reviews the next session's. T
+         +he [Readme](Readme.md) holds the roadmap and decisions; this fi
+         +le holds the plan for upcoming sessions. How a session runs, wh
+         +ich model to use and how to prompt it: see [Working with Claude
+         +](WorkingWithClaude.md).                                       
+       4  
+       5  ## Reminders
+       6  
+       7  - E4 dropped log replay (seed + answers played back through the
+           scripted interface): not needed for now. The seed and every an
+          swer are still logged, so it can be added when a bug needs it.
+       8  - Compare the pregenerated characters in [`gameRules/14_pregene
+          rated_characters.md`](gameRules/14_pregenerated_characters.md) 
+          against the original sheets in `origin_rules/`: image transcrip
+          tions are the part most likely to hold a misread.
+       9 +- From the project review: settle things as we go. E5a and E5b 
+         +will meet questions the review left open on purpose: where the 
+         +rules that ask the player live (`Game` holds no interface, only
+         + `play()` does), and which events the engine tells the interfac
+         +e beyond `Arrival` and `Ended`. Decide them when the code needs
+         + it, not before.                                               
+      10  
+      11  ## Plan
+      12  
+      12 -1. **Project review** — a step back before book mode: an advers
+         -arial review of the project so far (design, rulings, roadmap, a
+         -rchitecture, code and tests, process). Findings only, no fixes 
+         -during the review: each finding gets a severity and a proposed 
+         -action, then the user goes through them one at a time; what is 
+         -agreed becomes roadmap entries, rulings or doc fixes. A fresh s
+         -ession on purpose: it reads the repository cold, not the sessio
+         -n that wrote E4.                                               
+      13 -   Model: **Opus, high effort**.                               
+      14 -   Prompt:                                                     
+      15 -   ```                                                         
+      16 -   Project review session: an adversarial review of the project
+         - so far, before E5. Read                                       
+      17 -   CLAUDE.md, the Readme, NextSession.md, WorkingWithClaude.md,
+         - design/, docs/, the code and                                  
+      18 -   tests, and the latest logs in claude-logs/.                 
+      19 -   Look for what is wrong, risky or not worth its cost, on five
+         - angles: design coherence                                      
+      20 -   (docs consistent with each other and with gameRules/), archi
+         -tecture risks (the callback                                    
+      21 -   protocol against saving, reactions, a GUI; the state; conten
+         -t by ID), the roadmap (order,                                  
+      22 -   estimates, missing tasks), code and test quality, and the pr
+         -ocess (docs and rituals worth                                  
+      23 -   what they cost). Do not fix anything. Give me a short list f
+         -irst, one line per finding with                                
+      24 -   a severity and a proposed action, then go through them one a
+         -t a time, waiting for my answer.                               
+      25 -   Decide nothing and rule nothing yourself. No spoilers.      
+      26 -   ```                                                         
+      27 -   If the Mermaid CLI is installed (`mmdc`), also check that ev
+         -ery diagram renders.                                           
+      28 -2. **E5** — book mode. The skeleton is done: a whole game can b
+         -e walked in book mode. Decides how a table's own rules text is 
+         -shown (on request, or the first time); notes are shown with the
+         - entries that point to them ([rules text in YAML](docs/content.
+         -md)).                                                          
+      29 -   Builds on the E4 loop: arriving, Search and the free actions
+         - are its hook points; manual actions are new `Choose` topics (o
+         -r new request shapes). The placeholder character (Life 8, Sanit
+         -y 8, Food d6) stays until E6.                                  
+      30 -   Model: **Sonnet**. Clear spec, and E4 left a simple protocol
+         - to extend; switch to Opus if how a table's rules are shown, or
+         - a new request shape, turns into a design debate.              
+      13 +1. **E5a** — book mode, reading. The skeleton is done: a whole 
+         +game can be walked with every box's entry shown. Load the YAML 
+         +by ID, roll on arriving (Town Exploration in a new box, 1 in 6 
+         +Random Encounter in a visited one), show only the entry reached
+         + with its notes, go to a table or event, record what was reache
+         +d, attach a new sheet when the first is full. Decides how a tab
+         +le's own rules text is shown (on request, or the first time) ([
+         +rules text in YAML](docs/content.md)).                         
+      14 +   Builds on the E4 loop: arriving is its hook point. The place
+         +holder character (Life 8, Sanity 8, Food d6) stays until E6.   
+      15 +   Model: **Opus, high effort**. First engine user of the conte
+         +nt, and the first requests beyond moving.                      
+      16 +2. **E5b** — book mode, manual actions: gain or lose, items, ro
+         +ll vs L, Search roll, mark a Safe House; the request shapes the
+         +y need (an amount, an item name, a roll). The turn ends as soon
+         + as Life or Sanity reaches 0, once effects have resolved.      
+      17 +   Model: **Opus, high effort**. New request shapes, and the fi
+         +rst rules that ask from inside a change.                       
+      18  3. **Step 1** — E6 to E17, one task per session, with the R bat
+          ches done ahead of the task that needs them (R2 and R3 before E
+          6, R4 before E12, R5 before E16). The batches do not touch the 
+          engine and can run as parallel sessions (in a worktree; otherwi
+          se a plain branch is enough); R2 and R3 can be piloted with a [
+          coordinator session](WorkingWithClaude.md#coordinator-session).
+           Each batch moves its tables out of `content/catalogue.yaml`. E
+          verything is copied to YAML before step 1 is playable.
+      19     Model: per task, from the [model table](WorkingWithClaude.md
+          #which-model-for-which-session): Opus, high effort for E6, E7, 
+          E8, E10 and E12; Sonnet for the others; Sonnet, medium effort f
+          or the R batches, Opus for R6 (events).
+
+⏺ Update(NextSession.md)
+  ⎿  Removed 2 lines
+       6  
+       7  - E4 dropped log replay (seed + answers played back through the
+           scripted interface): not needed for now. The seed and every an
+          swer are still logged, so it can be added when a bug needs it.
+       8  - Compare the pregenerated characters in [`gameRules/14_pregene
+          rated_characters.md`](gameRules/14_pregenerated_characters.md) 
+          against the original sheets in `origin_rules/`: image transcrip
+          tions are the part most likely to hold a misread.
+       9 -- From the project review: settle things as we go. E5a and E5b 
+         -will meet questions the review left open on purpose: where the 
+         -rules that ask the player live (`Game` holds no interface, only
+         - `play()` does), and which events the engine tells the interfac
+         -e beyond `Arrival` and `Ended`. Decide them when the code needs
+         - it, not before.                                               
+      10 -                                                               
+       9  ## Plan
+      10  
+      11  1. **E5a** — book mode, reading. The skeleton is done: a whole 
+          game can be walked with every box's entry shown. Load the YAML 
+          by ID, roll on arriving (Town Exploration in a new box, 1 in 6 
+          Random Encounter in a visited one), show only the entry reached
+           with its notes, go to a table or event, record what was reache
+          d, attach a new sheet when the first is full. Decides how a tab
+          le's own rules text is shown (on request, or the first time) ([
+          rules text in YAML](docs/content.md)).
+
+⏺ Update(CLAUDE.md)
+  ⎿  Added 1 line, removed 1 line
+       8  - Design before code: model in domain terms in `design/` first.
+           Decide only what is worth deciding yet; propose, do not decide
+          .
+       9  - **Stay agile**: we are under development and learn as we impl
+          ement. Settle things as we go when changing course later is che
+          ap; prefer the least constraining option. Raise a question only
+           if its answer changes what we build now; the rest goes to a "d
+          ecide when implementing" list. Reviews too: no finding that ask
+          s to decide early what can wait.
+      10  - `design/` describes the game once the MVP is done; a roadmap 
+          task can be a transitional step towards it. Where a design page
+           and a ruling disagree, the ruling wins.
+      11 -- **Rule interpretations**: suggest options, never rule. Ask fi
+         -rst; rulings go to `design/rulings.md`, kept switchable.       
+      11 +- **Rule interpretations**: suggest options (the passages, the 
+         +concrete case, a recommendation), never rule. Ask first; ruling
+         +s go to `design/rulings.md`, kept switchable.                  
+      12  - **No spoilers** in chat, `docs/`, the Readme, NextSession, Wo
+          rkingWithClaude and the logs: event names are fine, no plot det
+          ails (the user has not played the events). The rules (`gameRule
+          s/`, the YAML), `design/` and the code may hold whatever the ru
+          les say.
+      13  - **No book page references** in committed docs; transcripts st
+          ay verbatim.
+      14  - The rules text is from a commercial book: the repository stay
+          s private; `origin_rules/` (original PDFs) is git-ignored.
+
+  Ran 2 shell commands, recalled 2 memories, wrote 3 memories (ctrl+o to expand)
+
+⏺ Memory and docs are done. Next I'll re-render the edited diagrams and run the
+  checks, then write the log.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Write(claude-logs/202611011109-project-review.md)
+  ⎿  Wrote 58 lines to claude-logs/202611011109-project-review.md
+      1 # Project review
+      2 
+      3 - Date: 2026-11-01
+      4 - Session ID: 46ed82c6-c247-475c-827c-3ca66b0c9207 (`~/.claude/pr
+        ojects/-Users-nathanchalot-Code-RPGs-AloneVsFEear/`)
+      5 - Branch: `project-review` (the PR is found from it)
+      6 - Model: Opus 5.5, xhigh effort
+      7 - Transcript: [transcripts/202611011109-project-review.txt](trans
+        cripts/202611011109-project-review.txt)
+      8 
+     … +50 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ All agreed changes are applied on the project-review branch. Tests (250), ruff
+  and the format check still pass, and the edited diagrams render with mmdc.
+
+  Changes:
+  - CLAUDE.md gets four new or reworded rules:
+    - Stay agile: settle things as we go when changing course later is cheap;
+      ask only questions whose answer changes what we build now. This also
+      covers reviews.
+    - design/ describes the end state: it shows the game once the MVP is done, a
+      task can be a transitional step, and where a design page and a ruling
+      disagree, the ruling wins.
+    - Spoiler scope: chat, docs/, the Readme, NextSession, WorkingWithClaude and
+      the logs stay spoiler-free. The rules, design/ and the code don't have
+      to.
+    - Lighter wrap-up: described below.
+  - Roadmap:
+    - E5 is split into E5a (reading, plus attaching a new sheet) and E5b (manual
+      actions; the turn ends as soon as Life or Sanity reaches 0, once effects
+      have resolved). Both are Opus, high effort.
+    - E8 now covers only what Skills and Food need, and has the Food-interval
+      question as an open point.
+    - E12 takes the combat-scoped effects and the reaction order.
+    - E13 gets your open question: can something after a loss bring the
+      character back above 0? You lean yes, to be settled with tests and user
+      stories.
+    - The Later save item notes that a save is the state at the start of the
+      turn.
+  - Wrap-up: only the next session's model and effort are reviewed, and the log
+    no longer holds a PR link (so no second push). The log template gets a Model
+    line.
+  - Docs:
+    - the session-number predictions are removed from WorkingWithClaude;
+    - the architecture class diagrams no longer list fields and methods;
+    - the glossary points to the Injury ruling;
+    - game-flow no longer forbids Searching a Safe House.
+  - CI now also runs ruff format --check.
+  - Memory: I deleted my five memory files that repeated CLAUDE.md, after moving
+    their useful details into CLAUDE.md.
+  - Log: claude-logs/202611011109-project-review.md lists every finding and what
+    became of it.
+
+  Please export the transcript:
+
+  /export claude-logs/transcripts/202611011109-project-review.txt
+
+  Once it's done, I'll commit, push and open the PR.
+
+✻ Cooked for 5m 37s · done 11:51
+
+❯ /export claude-logs/transcripts/202611011109-project-review.txt               
+  ⎿  Conversation exported to: /Users/nathanchalot/Code/RPGs/AloneVsFEear/claude
+     -logs/transcripts/202611011109-project-review.txt
+
+❯ done                                                                          
+
+  Pushed to project-review, created PR #15 (ctrl+o to expand)
+  ⎿  PostToolUse:Bash says: Tip: Run /ultrareview before you push to catch bugs 
+     with a cloud-based multi-agent review — 3 free reviews left.
+
+⏺ I committed the review session with your transcript and pushed it. The PR is
+  open: https://github.com/NathanChalot/AloneVsFEear/pull/15
+
+  As the new wrap-up rule says, the log names the branch instead of the PR link,
+  so there was no second push.
+
+  Next session: E5a, book mode reading, on Opus with high effort. Merge PR #15
+  first, then start from an up-to-date main.
+
+✻ Cooked for 31s · done 11:56
+
+※ recap: The project review before book mode is finished: the agreed changes, log and transcript are committed and PR #15 is open. Next, merge PR #15, then start E5a (book mode, reading) on Opus with high effort. (disable recaps in /config)
+
+❯ One thing about design: We could re do some review session and rewqork on it, 
+  we should not have to but it could be a good idea to do it once mvp is done.  
+  Also I think the game is already playabkle does nit ? If so we should add a   
+  section to the readme on how to play it ?                                     
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ PR #15 is still open, so I'll add both to it. The game is playable: you choose
+  Home, walk box by box, eat every 5 boxes, and quit. I just ran it to check
+  what it shows.
+
+⏺ Update(Readme.md)
+  ⎿  Added 1 line, removed 1 line
+       8  
+       9  ## Status
+      10  
+      11 -MVP phase. Rules extraction and domain design ([`design/`](desi
+         -gn/)) are done. The rules text is being copied into YAML: the f
+         -ormat and the four exploration tables are in (R1). The engine h
+         -as started: dice (E1), the game state (E2), the town map with m
+         -oves and time (E3), and the engine/interface protocol with the 
+         -game loop (E4): a player can walk the town in the terminal (`al
+         -one-against-fear`). A project review after E4 split book mode i
+         -nto two tasks (E5a, E5b) and trimmed E8 to what its content nee
+         -ds.                                                            
+      11 +MVP phase. Rules extraction and domain design ([`design/`](desi
+         +gn/)) are done. The rules text is being copied into YAML: the f
+         +ormat and the four exploration tables are in (R1). The engine h
+         +as started: dice (E1), the game state (E2), the town map with m
+         +oves and time (E3), and the engine/interface protocol with the 
+         +game loop (E4): a player can walk the town in the terminal ([ho
+         +w to play](#how-to-play)). A project review after E4 split book
+         + mode into two tasks (E5a, E5b) and trimmed E8 to what its cont
+         +ent needs.                                                     
+      12  
+      13  **MVP goal:** play a whole campaign in the terminal, in two ste
+          ps ([MVP scope](design/mvp-scope.md)):
+      14  
+
+⏺ Update(Readme.md)
+  ⎿  Added 23 lines
+      17  
+      18  The engine follows the whole design, but only a thin slice of c
+          ontent is written. Everything else goes through **book mode**: 
+          the engine shows the entry's text and the player applies it wit
+          h manual actions.
+      19  
+      20 +## How to play                                                 
+      21 +                                                               
+      22 +What the game does today: choose Home, walk the town box by box
+         +, eat 1 Food every 5 boxes (or lose 1 Life without Food), and q
+         +uit. The boxes show nothing yet: book mode (E5a, E5b) comes nex
+         +t. The character is a placeholder (Life 8, Sanity 8, d6 Food) u
+         +ntil character creation (E6).                                  
+      23 +                                                               
+      24 +Setup, with Python 3.13 or later (`.tool-versions` pins the ver
+         +sion we use):                                                  
+      25 +                                                               
+      26 +```                                                            
+      27 +python -m venv .venv                                           
+      28 +.venv/bin/pip install -e .                                     
+      29 +```                                                            
+      30 +                                                               
+      31 +Play:                                                          
+      32 +                                                               
+      33 +```                                                            
+      34 +.venv/bin/alone-against-fear              # or: .venv/bin/pytho
+         +n -m alone_against_fear                                        
+      35 +.venv/bin/alone-against-fear --seed 7     # the dice of an earl
+         +ier game                                                       
+      36 +```                                                            
+      37 +                                                               
+      38 +- Type the number of an option and press Enter. Ctrl-D or Ctrl-
+         +C quits.                                                       
+      39 +- A status line comes before each action: box number, Life, San
+         +ity, Food, XP, Clues.                                          
+      40 +- The map: `[n]` the boxes you can choose, `@` where you stand,
+         + `H` Home, a number for the last box number written in a visite
+         +d box, `.` a box not visited yet.                              
+      41 +- Each game writes a log to `logs/` (git-ignored; `--log-dir` t
+         +o change it): the dice seed, every roll and every answer. Playi
+         +ng again with that seed and the same answers gives the same gam
+         +e.                                                             
+      42 +                                                               
+      43  ## How to use this roadmap
+      44  
+      45  The roadmap is split into milestones. Each `####` entry is size
+          d to be one session's task: title, description, rules reference
+          s, "Done when" and "Depends on". Check the box when it is done.
+           GitHub issues are kept for user stories and bugs, only when ne
+          eded. Deferred decisions are tracked here, so they are made del
+          iberately when they block work, not up front. Before deciding, 
+          ask: is it worth deciding yet, or is it a constraint we would h
+          ave to fight later?
+
+⏺ Update(Readme.md)
+  ⎿  Added 1 line
+      315  
+      316  ### Later
+      317  
+      318 +- [ ] Design review once the MVP is done: a review session rew
+          +orks `design/` against what the implementation taught. It shou
+          +ld not be needed, but the design was written before the code. 
+      319  - [ ] Save and resume the campaign. A save is the campaign as 
+           it stood at the start of the turn: a turn changes the state as
+            it goes, so quitting mid-turn leaves it half played.
+      320  - [ ] The other missions: Predator and Prey and Destroy the Co
+           ven (with hunting by Clues), Medical Supplies, We Need Weapons
+      321  - [ ] Switchable rule options (campaign modes)
+
+⏺ Update(WorkingWithClaude.md)
+  ⎿  Added 1 line, removed 1 line
+       7  1. Start from [NextSession.md](NextSession.md), the [Readme](Re
+          adme.md) and the latest log in [`claude-logs/`](claude-logs/).
+       8  2. GitHub issues only for user stories and bugs, and only when 
+          needed; the PR then says `Closes #N`. An engine task with no us
+          er story gets no issue: the Readme entry is the task.
+       9  3. Work on a dedicated branch; one PR per session. Create the b
+          ranch in the main checkout; use a worktree only when another se
+          ssion runs at the same time (see [Parallel sessions](#parallel-
+          sessions)). During the session, Claude never commits or pushes 
+          without explicit permission.
+      10 -4. End by updating the Readme (checkboxes, decisions), `NextSes
+         -sion.md` (remove the done session, adjust the plan, review the 
+         -next session's model and effort in light of this one) and, if t
+         -he code structure changed, [`docs/architecture.md`](docs/archit
+         -ecture.md).                                                    
+      10 +4. End by updating the Readme (checkboxes, decisions, How to pl
+         +ay when what a player can do changes), `NextSession.md` (remove
+         + the done session, adjust the plan, review the next session's m
+         +odel and effort in light of this one) and, if the code structur
+         +e changed, [`docs/architecture.md`](docs/architecture.md).     
+      11  5. Claude writes the session log in `claude-logs/YYYYMMDDHHmm-s
+          ession-name.md`.
+      12  6. The user exports the transcript with `/export claude-logs/tr
+          anscripts/YYYYMMDDHHmm-session-name.txt` (same name as the log)
+          .
+      13  7. Claude commits the session, pushes the branch and opens the 
+          PR (the log names the branch, which is enough to find the PR). 
+          This end-of-session commit and push is agreed once and for all,
+           so the next session starts clean.
+
+⏺ Update(claude-logs/202611011109-project-review.md)
+  ⎿  Added 2 lines
+      36  
+      37  - Files: `CLAUDE.md` (stay agile, design describes the end stat
+          e, spoiler scope, lighter wrap-up), the Readme (E5a, E5b, E8, E
+          12, E13, Later), `NextSession.md`, `WorkingWithClaude.md` (wrap
+          -up steps, sizes, model table), `claude-logs/README.md` (templa
+          te: branch and model, no PR link), `design/glossary.md`, `desig
+          n/game-flow.md`, `docs/architecture.md`, `docs/content.md`, `.g
+          ithub/workflows/ci.yml`. Memory: five files that repeated CLAUD
+          E.md deleted.
+      38  
+      39 +- After the wrap-up (the user): a How to play section in the Re
+         +adme (setup, command, seed, map legend, log), kept up to date a
+         +t wrap-up when what a player can do changes; a design review on
+         +ce the MVP is done, under Later.                               
+      40 +                                                               
+      41  ## Decisions
+      42  
+      43  - **Stay agile** (the user): settle things as we go when changi
+          ng course later is cheap; raise a question only if its answer c
+          hanges what we build now; reviews must not ask to decide early 
+          what can wait. Written in CLAUDE.md.
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ I've made both changes; they're not committed yet:
+
+  - How to play is a new Readme section, and the Status paragraph links to it.
+    It covers what the game does today, setup, the play command and --seed, the
+    controls, what the status line and map symbols mean, and the log file. I
+    checked it against an actual run. To keep it current, the wrap-up step in
+    WorkingWithClaude now says to update this section whenever what a player can
+    do changes.
+  - Design review after the MVP is a new item at the top of the Readme's Later
+    list. It's a session that reworks design/ against what the implementation
+    taught.
+
+  I also added a line about both to the session log.
+
+  PR #15 is still open, so the natural place is a second commit on the same
+  branch, pushed to that PR. Shall I commit and push?
+
+✻ Worked for 51s · done 12:05
+
+❯ yep do it, update your logs and I ll rerun the xport before you push          
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ The changes are committed locally (9e2eb24) and not pushed yet. The commit
+  includes the session log line about How to play and the design review.
+
+  Re-run the export:
+
+  /export claude-logs/transcripts/202611011109-project-review.txt
+
+  Tell me when it's done, and I'll commit the updated transcript and push both
+  commits to PR #15.
+
+✻ Sautéed for 10s · done 12:06
+
+❯ I think also that only one commit for all the changes you made is a bit       
+  "fourre tout" can t you split it ?                                            
+
+⏺ Yes, I'll split it into one commit per kind of change. The first commit is
+  already pushed, so the branch will need a force push (with
+  --force-with-lease). That only rewrites the PR branch, not main. I'll keep a
+  backup branch until it's pushed.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ The working tree matches the backup exactly, apart from the log and
+  transcript, which will go in last. Checking that each commit holds only its
+  own changes:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Each commit holds only its own changes. I'll add the split to the log, then
+  wait for your export.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(claude-logs/202611011109-project-review.md)
+  ⎿  Added 1 line
+      37  - Files: `CLAUDE.md` (stay agile, design describes the end stat
+          e, spoiler scope, lighter wrap-up), the Readme (E5a, E5b, E8, E
+          12, E13, Later), `NextSession.md`, `WorkingWithClaude.md` (wrap
+          -up steps, sizes, model table), `claude-logs/README.md` (templa
+          te: branch and model, no PR link), `design/glossary.md`, `desig
+          n/game-flow.md`, `docs/architecture.md`, `docs/content.md`, `.g
+          ithub/workflows/ci.yml`. Memory: five files that repeated CLAUD
+          E.md deleted.
+      38  
+      39  - After the wrap-up (the user): a How to play section in the Re
+          adme (setup, command, seed, map legend, log), kept up to date a
+          t wrap-up when what a player can do changes; a design review on
+          ce the MVP is done, under Later.
+      40 +- The first wrap-up commit held everything; at the user's reque
+         +st the branch was rebuilt as one commit per kind of change (CI,
+         + working rules, wrap-up, roadmap, sizes, design and architectur
+         +e fixes, how to play, design review, this log), and force-pushe
+         +d.                                                             
+      41  
+      42  ## Decisions
+      43  
+
+⏺ I've split the branch into eight commits, one per kind of change; nothing is
+  pushed yet:
+
+  1. ci: check formatting in CI
+  2. docs: working rules from the project review
+  3. docs: lighter session wrap-up
+  4. docs: roadmap after the project review
+  5. docs: session sizes without predictions
+  6. docs: design and architecture fixes
+  7. docs: how to play
+  8. docs: design review after the MVP
+
+  The final files are exactly the same as before the split. The ninth commit
+  will hold the session log, which now mentions the split, and the transcript.
+  The backup branch project-review-backup stays until the push succeeds.
+
+  Re-run the export:
+
+  /export claude-logs/transcripts/202611011109-project-review.txt
+
+  Then I'll commit the log and transcript and force-push to PR #15 with
+  --force-with-lease.
+
+✻ Sautéed for 2m 8s · done 12:09
+
+※ recap: The project review is wrapped up, and the branch is split into eight commits that aren't pushed yet. Next: you re-run /export claude-logs/transcripts/202611011109-project-review.txt, then I commit the log and transcript and force-push to PR #15. (disable recaps in /config)

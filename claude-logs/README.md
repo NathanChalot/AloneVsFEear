@@ -23,7 +23,8 @@ Write the log at the end of each session:
 
 - Date: YYYY-MM-DD
 - Session ID: <Claude Code session id>
-- Branch / PR: <branch> / <PR link or "not committed">
+- Branch: <branch> (the PR is found from it)
+- Model: <model, effort>
 - Transcript: [transcripts/YYYYMMDDHHmm-session-name.txt](transcripts/YYYYMMDDHHmm-session-name.txt)
 
 ## Goal
