@@ -10,6 +10,12 @@ copied yet points to its source and the number rolled, and asks where its text l
 table, `e` a numbered event, `d` nowhere else). A table's own rules are shown the first time it
 is rolled in this game, and again on request (`r`). Free actions have letters, so `m` always
 moves and `q` always quits; tables to choose from are numbered.
+
+Manual actions (E5b): with an entry the engine cannot read, the player applies its text first
+(`g` gain, `l` lose, `v` roll vs L, `w` write a note, `x` remove one, `h` mark a Safe House),
+typing the numbers it gives; Enter alone is no modifier. The free actions add Search (`s`) and
+apply an effect (`a`, back with `b`); attaching a sheet moved to `n`. The notes are shown under
+the status line, and above a modifier to type.
 """
 
 from __future__ import annotations
@@ -22,23 +28,31 @@ from pathlib import Path
 
 from ..content import CatalogueEvent, CatalogueTable, Table, load_content
 from ..dice import RandomDice
-from ..engine import Arrival, Game, Position, Upkeep
-from ..engine.game import Rolled
+from ..engine import Arrival, Game, Position, Stat, Upkeep
+from ..engine.game import Rolled, RolledVsL, Searched
 from ..engine.loop import play
+from ..engine.manual import Manual
 from ..engine.protocol import (
     Action,
     Book,
+    Changed,
     End,
     Ended,
     Event,
     EventPlayed,
     LeadRolled,
+    Marked,
+    NoteRemoved,
+    NoteWritten,
+    Number,
     Quit,
     Request,
     SheetAttached,
+    Text,
     Topic,
     Wandering,
 )
+from ..engine.state import Note
 from ..engine.town import SHEET_COLUMNS, SHEET_ROWS, sheet_neighbours
 
 CELL = 5
@@ -52,13 +66,36 @@ ENDINGS = {
 
 KEYS = {
     Action.MOVE: ("m", "move"),
-    Action.SHEET: ("s", "attach a new sheet"),
+    Action.SEARCH: ("s", "search"),
+    Action.APPLY: ("a", "apply an effect"),
+    Action.SHEET: ("n", "attach a new sheet"),
     Action.QUIT: ("q", "quit"),
     Book.TABLE: ("t", "a table"),
     Book.EVENT: ("e", "a numbered event"),
+    Manual.GAIN: ("g", "gain"),
+    Manual.LOSE: ("l", "lose"),
+    Manual.ROLL: ("v", "roll vs L"),
+    Manual.WRITE_NOTE: ("w", "write a note"),
+    Manual.REMOVE_NOTE: ("x", "remove a note"),
+    Manual.SAFE_HOUSE: ("h", "mark a Safe House"),
+    Manual.BACK: ("b", "back"),
     Book.DONE: ("d", "nowhere else"),
 }
 """Options with a letter of their own; tables and events to choose from are numbered."""
+
+STATS = {
+    Stat.LIFE: "Life",
+    Stat.SANITY: "Sanity",
+    Stat.FOOD: "Food",
+    Stat.XP: "XP",
+    Stat.CLUES: "Clues",
+}
+
+NUMBER_PROMPTS = {
+    Topic.AMOUNT: "How much? ",
+    Topic.LEVEL: "L? ",
+    Topic.MODIFIER: "Modifier (Enter for none): ",
+}
 RULES_KEY = "r"
 
 SIDES = {(0, -1): "above", (-1, 0): "left of", (1, 0): "right of", (0, 1): "below"}
@@ -82,16 +119,33 @@ class TerminalInterface:
     # --- The protocol --------------------------------------------------------------------
 
     def ask(self, request: Request) -> object:
+        if isinstance(request, Number):
+            if request.topic is Topic.MODIFIER and self.game.character.notes:
+                self._output(self._notes())
+            return self._number(request)
+        if isinstance(request, Text):
+            return self._text("Note: ")
         options = request.options
         match request.topic:
             case Topic.ACTION:
                 self._output("")
                 self._output(self._status())
+                if self.game.character.notes:
+                    self._output(self._notes())
                 return self._menu(options, "What do you do? ")
+            case Topic.APPLY:
+                return self._menu(options, "Which effect? ")
+            case Topic.NOTES:
+                for n, note in _numbered(options):
+                    self._output(f"{n}) {_note(note)}")
+                return self._read(_by_number(options), f"Which note? [1-{len(options)}] ")
             case Topic.CHOICE:
                 return self._menu(options, "Your choice: ")
             case Topic.BOOK:
-                return self._menu(options, "Where does the text lead? ")
+                return self._menu(options, "Apply the text, then where does it lead? ")
+            case Topic.STAT:
+                self._output("  ".join(f"{n}) {STATS[stat]}" for n, stat in _numbered(options)))
+                return self._read(_by_number(options), f"Which? [1-{len(options)}] ")
             case Topic.HOME | Topic.MOVE:
                 self._output(self._map(options))
                 what = "Home" if request.topic is Topic.HOME else "Move to"
@@ -133,6 +187,22 @@ class TerminalInterface:
                 self._output(f"Event #{played.number}, {played.name}: read it in {played.source}")
             case SheetAttached():
                 self._output("A new sheet is attached.")
+            case Changed(stat=stat, amount=amount, value=value):
+                verb = "gain" if amount > 0 else "lose"
+                self._output(f"You {verb} {abs(amount)} {STATS[stat]} ({STATS[stat]} {value}).")
+            case RolledVsL():
+                self._output(_vs_l(event))
+            case NoteWritten(note=note):
+                self._output(f"Noted: {note.text}")
+            case NoteRemoved(note=note):
+                self._output(f"Note removed: {note.text}")
+            case Marked():
+                self._output("This box is a Safe House.")
+            case Searched(face=face, modifier=modifier):
+                line = f"Search: rolled {face}"
+                if modifier:
+                    line += ": a natural 1 stays 1" if face == 1 else f", {modifier:+d}"
+                self._output(f"{line}.")
             case Ended(end=end):
                 self._output(ENDINGS[end])
 
@@ -151,6 +221,34 @@ class TerminalInterface:
                 self._show_rules(self._rules)
                 continue
             self._output(f"Choose one of {', '.join(keys) if len(keys) < 10 else _span(keys)}.")
+
+    def _number(self, request: Number) -> int:
+        """Ask until the player types a whole number within the bounds; Enter alone is 0 when
+        0 fits (no modifier)."""
+        while True:
+            try:
+                line = self._input(NUMBER_PROMPTS.get(request.topic, "Number? ")).strip()
+            except (EOFError, KeyboardInterrupt):
+                raise Quit from None
+            try:
+                number = int(line) if line else 0
+            except ValueError:
+                number = None
+            if number is not None and (line or request.topic is Topic.MODIFIER):
+                if request.fits(number):
+                    return number
+            self._output(f"Type a whole number{_bounds(request)}.")
+
+    def _text(self, prompt: str) -> str:
+        """Ask until the player types something."""
+        while True:
+            try:
+                line = self._input(prompt).strip()
+            except (EOFError, KeyboardInterrupt):
+                raise Quit from None
+            if line:
+                return line
+            self._output("Type some text.")
 
     def _menu(self, options: Sequence[object], prompt: str) -> object:
         """One line of options: numbered tables and events, then lettered actions; `r` for
@@ -234,6 +332,12 @@ class TerminalInterface:
             f"Food {c.food} · XP {c.xp} · Clues {c.clues}"
         )
 
+    def _notes(self) -> str:
+        notes = "  ".join(
+            f"({n}) {_note(note)}" for n, note in _numbered(self.game.character.notes)
+        )
+        return f"Notes: {notes}"
+
     def _map(self, options: Sequence[object] = ()) -> str:
         """The attached sheets (the first one before Home is chosen), one cell per box: an
         option's number, @ where the character stands, H for Home, the last number written in
@@ -274,6 +378,33 @@ def _numbered(options: Sequence[object]):
 
 def _by_number(options: Sequence[object]) -> dict[str, object]:
     return {str(n): option for n, option in _numbered(options)}
+
+
+def _note(note: Note) -> str:
+    return f"box {note.box}: {note.text}"
+
+
+def _bounds(request: Number) -> str:
+    match request.minimum, request.maximum:
+        case None, None:
+            return ""
+        case low, None:
+            return f", {low} or more"
+        case None, high:
+            return f", {high} or less"
+        case low, high:
+            return f" from {low} to {high}"
+
+
+def _vs_l(rolled: RolledVsL) -> str:
+    modifier = f" at {rolled.modifier:+d}" if rolled.modifier else ""
+    result = "Success." if rolled.success else "Failure."
+    if rolled.face == 1:
+        result = "A natural 1 always fails."
+    elif rolled.face == 6:
+        result = "A natural 6 always succeeds."
+    total = f", total {rolled.total}" if rolled.modifier else ""
+    return f"Roll vs L{rolled.level}{modifier}: rolled {rolled.face}{total}. {result}"
 
 
 def _span(keys: dict[str, object]) -> str:
