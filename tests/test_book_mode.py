@@ -416,7 +416,8 @@ class RandomPlayer:
 def test_a_long_random_game_reaches_only_known_content(content, seed):
     game = Game(dice=RandomDice(seed), content=content)
     game.create_character(life=99, sanity=99, food=99)  # so the walk lasts
-    player = RandomPlayer(game, seed, 400)
+    # Long enough that every seed fills a sheet (seed 0 needed more once R2 was copied).
+    player = RandomPlayer(game, seed, 500)
 
     play(game, player)
 
