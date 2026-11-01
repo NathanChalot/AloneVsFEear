@@ -83,11 +83,11 @@ The  monsters  remain  in  the  box from which you escaped. If you visit that bo
 
 ## Mental Scars and Injuries
 
-When you lose Sanity points in any event or encounter, you  may prevent that Sanity loss by rolling on the [Insanity table](tables/3_1_insanity_table.md). You may do so up to 3 times in the lifetime of your character. These Mental Scars are permanent.
+When you lose Sanity points in any event or encounter, you may prevent that Sanity loss by rolling on the [Insanity table](tables/3_1_insanity_table.md). You may do so up to 3 times in the lifetime of your character. These Mental Scars are permanent.
 
-Likewise,  you  may  do  the  same with Life points, negating all Damage  from  a  single  attack  by rolling on the [Injury table](tables/3_2_injury_table.md). You may do so up to 3 times in the lifetime of  your  character.  These  physical impairments are permanent.
+Likewise, you may do the same with Life points, negating all Damage from a single attack by rolling on the [Injury table](tables/3_2_injury_table.md). You may do so up to 3 times in the lifetime of your character. These physical impairments are permanent.
 
-When  you  roll  a  Mental  Scar  or Injury that you already have, reroll until  you  select  one  you  do  not have.
+When you roll a Mental Scar or Injury that you already have, reroll until you select one you do not have.
 
 ## Stealth rolls
 
