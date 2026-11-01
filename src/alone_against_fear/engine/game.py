@@ -11,8 +11,8 @@ import logging
 from collections.abc import Iterable
 from dataclasses import dataclass
 
-from ..content import Content
-from ..dice import Dice
+from ..content import CatalogueEvent, CatalogueTable, Content
+from ..dice import Dice, DiceCode
 from .state import (
     Box,
     Campaign,
@@ -31,6 +31,25 @@ from .town import boxes_of, neighbours, sheet_neighbours, sheet_of
 FOOD_INTERVAL = 5
 """One Food every this many box numbers (Skills that change it come with E9)."""
 
+PLACE_TABLES = frozenset(
+    {
+        "table.street",
+        "table.cemetery",
+        "table.house",
+        "table.clinic",
+        "table.place_of_worship",
+        "table.military_installation_or_lab",
+        "table.farm",
+        "table.haunted_house",
+        "table.store",
+        "table.sewers",
+        "table.railways",
+        "table.school",
+        "table.woods_or_park",
+    }
+)
+"""The tables that make a box a place: rolled in a box, the box remembers them."""
+
 log = logging.getLogger(__name__)
 
 
@@ -40,11 +59,23 @@ class GameError(Exception):
 
 @dataclass(frozen=True)
 class Arrival:
-    """What entering a box did: its new number and what the Food upkeep did, if it was due."""
+    """What entering a box did: its new number, whether it was its first visit, and what the
+    Food upkeep did, if it was due."""
 
     position: Position
     number: int
     upkeep: Upkeep | None = None
+    new: bool = False
+
+
+@dataclass(frozen=True)
+class Rolled:
+    """A table was rolled: the result on each level (a nested table adds one) and the entry
+    reached, or None for a table not copied yet (its source holds the entry)."""
+
+    table_id: str
+    results: tuple[int, ...]
+    entry_id: str | None
 
 
 class Game:
@@ -164,9 +195,10 @@ class Game:
         if the number is due. What arriving does in the box comes with the game loop (E4)."""
         if to not in self.targets(kind):
             raise GameError(f"cannot move from {tuple(self._position())} to {tuple(to)}")
+        new = to not in self.campaign.map.boxes
         self.campaign.position = to
         number = self.number_box(to)
-        return Arrival(to, number, self._upkeep(number))
+        return Arrival(to, number, self._upkeep(number), new=new)
 
     def _position(self) -> Position:
         if self.campaign.position is None:
@@ -187,6 +219,12 @@ class Game:
     def is_full(self, sheet: Position) -> bool:
         """All 30 boxes of the sheet have been visited."""
         return all(box in self.campaign.map.boxes for box in boxes_of(sheet))
+
+    def new_sheets(self) -> set[Position]:
+        """Where a new sheet may be attached: against a side of a full sheet."""
+        sheets = self.campaign.map.sheets
+        full = {sheet for sheet in sheets if self.is_full(sheet)}
+        return {new for sheet in full for new in sheet_neighbours(sheet)} - sheets
 
     def add_sheet(self, sheet: Position) -> None:
         """Attach a new sheet against the side of a full sheet. Starting one after a mission
@@ -224,6 +262,54 @@ class Game:
     def remove_mark(self, position: Position, mark: str) -> None:
         self._box(position).marks.discard(mark)
         log.info("box %s loses mark %s", tuple(position), mark)
+
+    # --- Tables and events ------------------------------------------------------------
+
+    def roll_table(self, table_id: str) -> Rolled:
+        """Roll a table, and the table nested in the entry reached if there is one. The entry
+        is recorded as played; a place table makes the character's box that place. A table not
+        copied yet is rolled all the same, with no entry: its source holds the text."""
+        table = self.content.tables.get(table_id)
+        if table is None:
+            catalogued = self.content.catalogue.get(table_id)
+            if not isinstance(catalogued, CatalogueTable):
+                raise GameError(f"no such table: {table_id}")
+            result = DiceCode.parse(catalogued.dice).roll(self.dice).total
+            rolled = Rolled(table_id, (result,), None)
+        else:
+            results = []
+            while True:
+                results.append(DiceCode.parse(table.dice).roll(self.dice).total)
+                entry = table.entry_for(results[-1])
+                if entry.table is None:
+                    break
+                table = entry.table
+            rolled = Rolled(table_id, tuple(results), entry.id)
+            self._record_everywhere(Happened.PLAYED, entry.id)
+        log.info("%s rolled %s: %s", table_id, rolled.results, rolled.entry_id or "not copied")
+        if table_id in PLACE_TABLES and self.campaign.position is not None:
+            box = self._box(self.campaign.position)
+            if table_id not in box.places:
+                self.add_place(box.position, table_id)
+        return rolled
+
+    def play_event(self, event_id: str) -> None:
+        """A numbered event is played: recorded as played. Its text is in its source until it
+        is copied (R6)."""
+        if not isinstance(self.content.catalogue.get(event_id), CatalogueEvent):
+            raise GameError(f"no such event: {event_id}")
+        self._record_everywhere(Happened.PLAYED, event_id)
+
+    def _record_everywhere(self, happened: Happened, id_: str) -> None:
+        """Record at every level there is: the campaign, the character, the mission. Limits
+        read whichever level their text names."""
+        levels = [Level.CAMPAIGN]
+        if self.campaign.character is not None:
+            levels.append(Level.CHARACTER)
+            if self.campaign.character.mission is not None:
+                levels.append(Level.MISSION)
+        for level in levels:
+            self.record(level, happened, id_)
 
     # --- History -------------------------------------------------------------------------
 

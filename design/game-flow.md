@@ -49,7 +49,7 @@ flowchart TD
     anywhere>At any time: Life or Sanity at 0] --> lose([Mission lost])
 ```
 
-The character must leave a box to play it again: no staying in place to heal twice. Home is not a Safe House.
+The character must leave a box to play it again: no staying in place to heal twice. Home is a Safe House ([rulings](rulings.md#safe-houses)).
 
 Search is allowed when the encounter was not fled or ignored ([rulings](rulings.md)) and the box was not Searched yet. A Safe House follows the same rule as any box. Libraries can be Searched again for 1 book or 1 Clue.
 

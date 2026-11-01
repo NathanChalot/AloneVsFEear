@@ -33,6 +33,7 @@ See [town map](town-map.md).
 ## Safe Houses
 
 - **Max 3 Safe Houses.** `interpretation` The Street table says "if it is the third", the other tables "if there are already 3". We follow the majority.
+- **Home is a Safe House.** `gap` `switchable` The book never says what Home is. The visited-box rule ("Roll a 1 in 6 chance of a Random Encounter", `5_how_the_game_works.md`) makes no exception for it, and Bring Home the Bacon names "your starting box (or in any Safe House)" side by side. We read Home as the place the character has barricaded: they start the game with somewhere to heal, with no random encounter there. Decided in the E5a session; the mechanics come with Safe Houses (E15), together with how much Home heals and whether it counts toward the 3 Safe Houses. Switchable: a horrific mode makes Home a plain box, with the 1 in 6 Random Encounter.
 
 ## Combat
 

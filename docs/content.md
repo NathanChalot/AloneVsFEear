@@ -8,6 +8,7 @@ How the rules text is stored for the engine: files, IDs, the shape of a table, r
 classDiagram
     Content "1" --> "*" Table : copied
     Content "1" --> "*" CatalogueTable : known, not copied yet
+    Content "1" --> "*" CatalogueEvent : known, not copied yet
     Table "1" --> "1..*" Entry : covers the dice range
     Table "1" --> "*" Note : named passages
     Entry "1" --> "0..1" Table : nested sub-table
@@ -32,6 +33,11 @@ classDiagram
         dice
         source
     }
+    class CatalogueEvent {
+        id
+        name
+        source
+    }
 ```
 
 - **YAML holds the text, Python the behaviour**, both keyed by the same ID ([D1](../Readme.md#deferred)). The YAML holds no rules logic.
@@ -41,7 +47,7 @@ classDiagram
 
 ```
 src/alone_against_fear/content/
-  catalogue.yaml          every table not copied yet
+  catalogue.yaml          every table and numbered event not copied yet
   tables/
     town_exploration.yaml one file per table
     random_encounter.yaml
@@ -56,7 +62,7 @@ src/alone_against_fear/content/
 
 ## IDs
 
-Lowercase words joined by `_`, segments joined by `.`. **The first segment is the kind**: `table`, `mission` so far; `event`, `creature`, `item`, `skill`… are added by the batch that first needs them.
+Lowercase words joined by `_`, segments joined by `.`. **The first segment is the kind**: `table`, `mission`, `event` so far; `creature`, `item`, `skill`… are added by the batch that first needs them.
 
 | What | ID | Rule |
 | --- | --- | --- |
@@ -64,10 +70,12 @@ Lowercase words joined by `_`, segments joined by `.`. **The first segment is th
 | An entry | `table.town_exploration.7` | table ID, then the roll as printed: `7`, `2-5` |
 | An entry of a nested table | `table.random_encounter.3.3-5` | parent entry ID, then the roll |
 | A named entry | `mission.bring_home_the_bacon` | an entry that is a thing of its own takes that thing's ID instead |
+| A numbered event | `event.12` | `event`, then the event's number in the book |
 
 - **IDs are stable.** The game state refers to content by ID only, so an ID is never renamed once used.
 - **Rolls in IDs keep the book's numbers.** The book's "1,2)" is written `1-2`.
-- **Named entries**: a mission is something the game keeps track of ("the mission you played last time"), so it gets a readable ID instead of `table.mission.3`. Creatures, items and events decide their IDs in their own batch (R2 to R7), with the same idea.
+- **Named entries**: a mission is something the game keeps track of ("the mission you played last time"), so it gets a readable ID instead of `table.mission.3`. Creatures and items decide their IDs in their own batch (R2 to R7), with the same idea.
+- **Numbered events** keep the book's number (`event.12`): the rules call them by it ("play event #12"). Fixed in E5a, which catalogues them so book mode can record them as played.
 
 ## A table
 
@@ -104,22 +112,23 @@ entries:
 
 - **Entries cover the dice range exactly**: every result has one entry, no gaps, no overlaps. Nested tables too.
 - **A nested table** is used only where the book prints one (Random Encounter). An entry that says "Roll d6. On a 1-5 … On a 6 …" stays one entry with its text, as printed (Town Exploration 7).
-- **`text` and `notes` differ in who reads them.** The engine applies a table's own rules (it rolls Town Exploration in new boxes, it adds the Investigator bonus), so book mode does not need to show them on every roll, only when the player asks. A note is a rule about some results, which the player must apply by hand until the engine does: book mode shows it with every entry that points to it. The Random Encounter's sentence on Unique creatures is printed under 6 / 4-6 but applies to Unique Vampires on 3 / 6 and 6 / 1-3 too, so it is a note pointed to by all three.
-- **`refs` serve book mode**: the "go to a table or event" action can offer them directly. They are not a script: what the entry does with them (choose one, roll to pick) is in its text, and later in Python (E10).
+- **`text` and `notes` differ in who reads them.** The engine applies a table's own rules (it rolls Town Exploration in new boxes, it adds the Investigator bonus), so book mode does not need to show them on every roll. How they are shown is the interface's choice: the terminal shows them the first time the table is rolled in a game, and again on request (decided in E5a). A note is a rule about some results, which the player must apply by hand until the engine does: book mode shows it with every entry that points to it. The Random Encounter's sentence on Unique creatures is printed under 6 / 4-6 but applies to Unique Vampires on 3 / 6 and 6 / 1-3 too, so it is a note pointed to by all three.
+- **`refs` name the tables and events an entry sends you to**, not how: roll the one named, choose one, roll to pick, only if a condition holds. That is behaviour, in Python by entry ID: `engine/leads.py` for the arrival tables (E5a), the result scripts of E10 later. Book mode offers the references of a copied entry whose behaviour is not written yet.
 
 ## Known but not copied yet
 
 - **`catalogue.yaml` lists every table not copied yet**, with its ID, name, dice and Markdown source. A reference to a catalogued table is valid.
+- **It lists the 42 numbered events too**, with their ID, name (as printed, the case fixed where the OCR lost it) and source, but no dice. Book mode points to the source and records the event as played. The events batch (R6) moves them out like the tables.
 - **Each batch moves its tables out** of the catalogue into their own files. When the catalogue is empty, Milestone 3 is done.
 - **Book mode uses it as the fallback**: until a table is copied, the engine can still roll its dice and point to the Markdown file and entry number ([MVP scope](../design/mvp-scope.md#where-the-text-comes-from)).
-- It lists the tables of `gameRules/tables/`, so every table ID is already fixed. Tables printed inside an event (the Fluid table) come with the events batch, R6. The optional random Skill tables come after the MVP. Events are added by the batch that first refers to one.
+- It lists the tables of `gameRules/tables/`, so every table ID is already fixed. Tables printed inside an event (the Fluid table) come with the events batch, R6. The optional random Skill tables come after the MVP.
 
 ## Checks
 
 Tests over the whole content:
 
 - every table and nested table covers its dice range exactly;
-- every reference points to an existing ID: a table, an entry, or a catalogued table;
+- every reference points to an existing ID: a table, an entry, or a catalogued table or event;
 - every note an entry points to exists in its table;
 - IDs are unique and follow the scheme;
 - every table file of `gameRules/tables/` is the source of exactly one table, copied or catalogued;
@@ -128,4 +137,3 @@ Tests over the whole content:
 ## Open
 
 - **Where plain data goes** (creature stats, item weights, Skill XP costs): next to the text in the YAML, or in Python next to the behaviour. Decided in E6 ([D1](../Readme.md#deferred)).
-- **How book mode shows a table's own rules**: on request, or the first time the table is rolled. Decided in E5a.
