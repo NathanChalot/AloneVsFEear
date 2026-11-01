@@ -5,16 +5,21 @@ leads on as its text says, until it leads nowhere. A copied entry whose lead is 
 (`leads.LEADS`) plays itself: it rolls on the table named, asks when the text gives a choice,
 rolls the die the text rolls. What the engine cannot read is book mode: the entry of a table
 not copied yet, or a numbered event, is pointed to in its source, and the player says where
-its text leads (a table, an event, or nowhere else). Everything reached is told to the
-interface and recorded. The player applies the rest with manual actions (E5b). As content is
-copied and written, fewer entries come to book mode.
+its text leads (a table, an event, or nowhere else). Before that, the player applies the text
+with manual actions (E5b): the menu comes back after each one, so the whole entry is applied
+before the player leaves it. A character at 0 Life or Sanity is offered only the manual actions
+and "nowhere else": the chain stops at the entry that kills, once its effects are applied.
+Everything reached is told to the interface and recorded. As content is copied and written,
+fewer entries come to book mode.
 """
 
 from __future__ import annotations
 
 from ..dice import DiceCode
+from . import manual
 from .game import Game, GameError, Rolled
-from .leads import LEADS, Auto, Choice, DieRoll
+from .leads import LEADS, Auto, Choice, DieRoll, Nowhere
+from .manual import Manual
 from .protocol import Book, Choose, EventPlayed, Interface, LeadRolled, Topic, ask
 
 LEAD_DIE = DiceCode.parse("d6")
@@ -25,6 +30,14 @@ def resolve(game: Game, interface: Interface, id_: str) -> None:
     next_id: str | None = id_
     while next_id is not None:
         next_id = _lead(game, interface, _reach(game, interface, next_id))
+
+
+def follow(game: Game, interface: Interface, rolled: Rolled) -> None:
+    """Tell a table already rolled (a Search), then follow its entry as `resolve` does."""
+    interface.tell(rolled)
+    next_id = _lead(game, interface, rolled)
+    if next_id is not None:
+        resolve(game, interface, next_id)
 
 
 def _reach(game: Game, interface: Interface, id_: str) -> Rolled | None:
@@ -43,7 +56,7 @@ def _reach(game: Game, interface: Interface, id_: str) -> Rolled | None:
 def _lead(game: Game, interface: Interface, rolled: Rolled | None) -> str | None:
     """Where the entry reached leads: a table or event ID, or None for nowhere."""
     if rolled is None or rolled.entry_id is None:  # an event, or a table not copied yet
-        return _book(game, interface)
+        return _book(game, interface, (Book.TABLE, Book.EVENT))
     entry = game.content.entry(rolled.entry_id)
     match LEADS.get(entry.id):
         case Auto(ref=ref):
@@ -55,21 +68,30 @@ def _lead(game: Game, interface: Interface, rolled: Rolled | None) -> str | None
             ref = die.ref_for(face)
             interface.tell(LeadRolled(entry.id, face, ref))
             return ref
-        case None if not entry.refs:
+        case Nowhere():
             return None
-        case None:  # copied, but its lead is not written: the player reads where it goes
-            answer = ask(interface, Choose(Topic.BOOK, (*entry.refs, Book.DONE)))
-            return None if answer is Book.DONE else answer
+        case None:  # copied, but not written: the player applies it and reads where it goes
+            return _book(game, interface, entry.refs)
 
 
-def _book(game: Game, interface: Interface) -> str | None:
-    """The player read the text in its source: where does it lead?"""
-    match ask(interface, Choose(Topic.BOOK, (Book.TABLE, Book.EVENT, Book.DONE))):
-        case Book.TABLE:
-            return ask(interface, Choose(Topic.TABLE, tables(game)))
-        case Book.EVENT:
-            return ask(interface, Choose(Topic.EVENT, events(game)))
-    return None
+def _book(game: Game, interface: Interface, leads: tuple[str, ...]) -> str | None:
+    """The player reads the text: applies it with manual actions, then says where it leads.
+    `leads` are the entry's own tables, or `Book.TABLE` and `Book.EVENT` when only its source
+    knows. At 0 Life or Sanity, it leads nowhere else."""
+    while True:
+        where = () if game.ended() else leads
+        answer = ask(interface, Choose(Topic.BOOK, (*where, *manual.offered(game), Book.DONE)))
+        match answer:
+            case Manual():
+                manual.apply(game, interface, answer)
+            case Book.DONE:
+                return None
+            case Book.TABLE:
+                return ask(interface, Choose(Topic.TABLE, tables(game)))
+            case Book.EVENT:
+                return ask(interface, Choose(Topic.EVENT, events(game)))
+            case _:
+                return answer
 
 
 def tables(game: Game) -> tuple[str, ...]:

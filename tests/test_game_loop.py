@@ -148,7 +148,10 @@ def test_each_turn_offers_move_and_quit(content):
 
     play(game, interface)
 
-    assert interface.asked[1] == Choose(Topic.ACTION, (Action.MOVE, Action.QUIT))
+    # and Search while the box has not been Searched, apply an effect (E5b)
+    assert interface.asked[1] == Choose(
+        Topic.ACTION, (Action.MOVE, Action.SEARCH, Action.APPLY, Action.QUIT)
+    )
 
 
 def test_moving_offers_the_boxes_the_engine_allows(content):

@@ -193,3 +193,73 @@ def test_a_catalogued_event_needs_a_number_as_its_id(root):
     write(root, "catalogue.yaml", "- {id: event.first, name: E, source: events.md}\n")
     with pytest.raises(ContentError, match="event.first"):
         load_content(root)
+
+
+# --- A list of weapons (prepared for R3) -------------------------------------
+# The weapon summary has no dice: a list of weapons, each with its ID, name and rules text.
+
+WEAPONS = """\
+name: Weapon summary table
+source: summary.md
+weapons:
+  - id: weapon.axe
+    name: Axe
+    text: Two-handed. Damage 2.
+  - id: weapon.baseball_bat_or_hammer
+    name: Baseball bat or hammer
+    text: Damage 1.
+"""
+
+
+def test_a_list_of_weapons_is_loaded_by_id(root):
+    write(root, "weapons/weapon_summary.yaml", WEAPONS)
+
+    content = load_content(root)
+
+    axe = content.weapon("weapon.axe")
+    assert (axe.name, axe.text, axe.source) == ("Axe", "Two-handed. Damage 2.", "summary.md")
+    assert list(content.weapons) == ["weapon.axe", "weapon.baseball_bat_or_hammer"]
+    assert "weapon.axe" in content
+
+
+def test_a_reference_to_a_weapon_is_valid(root):
+    write(root, "weapons/weapon_summary.yaml", WEAPONS)
+    write(
+        root, "tables/test.yaml", d6_table("  - {roll: 1-6, text: An axe., refs: [weapon.axe]}\n")
+    )
+
+    assert reference_problems(load_content(root)) == []
+
+
+def test_a_weapon_defined_twice_is_refused(root):
+    write(root, "weapons/weapon_summary.yaml", WEAPONS)
+    write(
+        root,
+        "weapons/more.yaml",
+        "name: More\nsource: more.md\nweapons:\n  - {id: weapon.axe, name: Axe, text: x}\n",
+    )
+
+    with pytest.raises(ContentError, match="weapon.axe is defined twice"):
+        load_content(root)
+
+
+def test_a_weapon_needs_the_weapon_kind(root):
+    write(
+        root,
+        "weapons/weapon_summary.yaml",
+        "name: W\nsource: w.md\nweapons:\n  - {id: item.axe, name: Axe, text: x}\n",
+    )
+
+    with pytest.raises(ContentError, match=r"item\.axe: a weapon ID starts with weapon\."):
+        load_content(root)
+
+
+def test_a_weapon_with_an_unknown_key_is_refused(root):
+    write(
+        root,
+        "weapons/weapon_summary.yaml",
+        "name: W\nsource: w.md\nweapons:\n  - {id: weapon.axe, name: Axe, text: x, damage: 2}\n",
+    )
+
+    with pytest.raises(ContentError, match=r"weapon\.axe: unknown keys \['damage'\]"):
+        load_content(root)

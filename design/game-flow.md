@@ -51,7 +51,7 @@ flowchart TD
 
 The character must leave a box to play it again: no staying in place to heal twice. Home is a Safe House ([rulings](rulings.md#safe-houses)).
 
-Search is allowed when the encounter was not fled or ignored ([rulings](rulings.md)) and the box was not Searched yet. A Safe House follows the same rule as any box. Libraries can be Searched again for 1 book or 1 Clue.
+Search is allowed when the encounter was not fled or ignored ([rulings](rulings.md)) and the box was not Searched yet. A Safe House cannot be Searched ("you may NOT Search a Safe House", `5_how_the_game_works.md`). Libraries can be Searched again for 1 book or 1 Clue.
 
 ## 3. Arriving in a box
 

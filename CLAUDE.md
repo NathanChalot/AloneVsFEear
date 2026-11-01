@@ -16,7 +16,7 @@ Digital solo play of **Alone Against Fear** (Four Against Darkness engine). Read
 ## Established facts
 
 - Python, terminal CLI first. The engine is UI-agnostic: it never reads input or prints; it asks requests, an interface answers. No genAI code in the engine.
-- **Callback protocol** (E4): the engine calls `interface.ask(request)` for a choice (the answer must be one of the options) and `interface.tell(event)` for what happened. Interfaces read the game state but change it only through their answers. Saving happens between turns.
+- **Callback protocol** (E4): the engine calls `interface.ask(request)` for a choice and `interface.tell(event)` for what happened. The answer must fit the request: one of the options, a whole number within its bounds, a text that is not empty (E5b). Interfaces read the game state but change it only through their answers. Saving happens between turns.
 - **Whole model, thin content.** The engine follows the whole design; only a slice of content is written. Anything unwritten goes through **book mode**: show the entry's text, the player applies it with manual actions (which still go through the rules).
 - **Rules text in YAML** (stable ID per table, entry, creature, item, event, Skill); **behaviour in Python**, keyed by the same ID. Plain data placement (stats, weights) is open until E6 (D1). The Markdown in `gameRules/` is the readable copy, fixed together with the YAML.
 - Game state refers to content by ID and never holds code (saving = saving the campaign).

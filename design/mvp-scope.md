@@ -37,10 +37,14 @@ flowchart TD
   - make a roll vs L ("an L4 agility Save"): the player gives the roll type and L, the engine adds the modifiers from Skills and items;
   - make a Search roll, with the bonus the text gives;
   - fight a creature;
-  - mark the box as a Safe House (step 2: as a Hell Gate).
+  - mark the box as a Safe House (step 2: as a Hell Gate);
+  - write or remove a note.
 
   Each is an engine action that already exists, opened to the player. They double as a test console.
-- **Manual actions go through the rules**, exactly as written content would: losing Life offers an Injury and kills at 0, healing stops at max, Food over the limit asks for an item slot, reactions fire. They are game operations, not edits of the numbers, so book mode can never put the game in a state the rules forbid.
+- **Where they are offered.** After an entry the engine cannot read, before the player says where its text leads; the menu comes back after each one, so the whole entry is applied before leaving it. The ones about the character (gain, lose, a roll vs L, notes) are also a free action, "apply an effect", for a turn where no entry is shown: a lasting effect noted earlier still has to be applied. Marking a Safe House is about the town, so only the entry that gives it offers it. Search is a free action of its own.
+- **Notes keep track of what the engine cannot.** A note is plain text the engine stores and shows but never reads: a lasting effect ("lose 1 Life each box, for 2 boxes") or a modifier ("cursed: -1 to Search") from an entry the engine cannot play. Each note keeps the box number it was written at, so the player can tell when an effect "for N boxes" ends. They belong to the character. With notes, the Search asks the modifier they give before rolling. Written content does not need them: its effects are tracked by the engine (E7, E8). They go away entirely only when all content is written; E8 considers manual effects the engine applies by itself, which could replace most of them.
+- **Death is checked once the entry is applied.** At 0 Life or Sanity the entry offers only the manual actions and "nowhere else": the player applies the rest of its text (a heal may bring the character back), then the chain stops and the game ends if the character is still at 0.
+- **Manual actions go through the rules**, exactly as written content would: losing Life offers an Injury and kills at 0, healing stops at max, Food over the limit asks for an item slot, reactions fire. A loss stops at 0: only what the character has can be lost. They are game operations, not edits of the numbers, so book mode can never put the game in a state the rules forbid.
 - **The engine keeps every number.** Stats, inventory, Food, ammo and the box counter stay in the engine in book mode too; only what the entry does is left to the player.
 - **Fights are always run by the engine.** "Fight a creature" takes a creature from the creature tables, or stats typed from the text ("d6+3 sewer people, L2, 1 Life, Damage 1"), and the engine runs the combat.
 - **One entry can be half written.** A creature's stats can be played by the engine while its special rule is shown as text; an item can sit in the inventory with its weight while its use is shown as text.

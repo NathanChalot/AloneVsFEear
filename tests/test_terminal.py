@@ -126,13 +126,13 @@ def test_main_writes_the_log_to_a_file_with_the_seed_and_the_answers(tmp_path):
     assert "answer action: quit" in log
 
 
-def test_the_free_actions_are_move_and_quit(content):
+def test_the_free_actions_have_letters(content):
     game = Game(dice=ScriptedDice([3]), content=content)
     interface, output = terminal(game, [HOME_TOP_LEFT, QUIT])
 
     play(game, interface)
 
-    assert "m) move  q) quit" in output
+    assert "m) move  s) search  a) apply an effect  q) quit" in output
 
 
 # --- Resolving a box -------------------------------------------------------------------------
@@ -173,7 +173,7 @@ def test_a_table_not_copied_yet_points_to_its_source_and_asks_where_it_leads(con
     text = "\n".join(output)
     assert "House table: 2" in text
     assert "read entry 2 in gameRules/tables/places/5_7_house_table.md" in text
-    assert "t) a table  e) a numbered event  d) nowhere else" in text
+    assert "t) a table  e) a numbered event  g) gain  l) lose  v) roll vs L" in text
 
 
 def test_a_table_s_rules_are_shown_the_first_time_then_on_request(content):
@@ -248,14 +248,110 @@ def test_a_player_attaches_a_sheet_once_the_first_is_full_and_walks_onto_it(cont
     game.campaign.position = Position(4, 2)
     # the sides are listed above, left, right, below; from (4, 2) the box to the right is
     # option 5 (reading order: three above, left, right, three below)
-    interface, output = terminal(game, ["s", "3", "m", "5", RESOLVE, QUIT])
+    interface, output = terminal(game, ["n", "3", "m", "5", RESOLVE, QUIT])
 
     play(game, interface)
 
     text = "\n".join(output)
-    assert "m) move  s) attach a new sheet  q) quit" in text
+    assert "m) move  s) search  a) apply an effect  n) attach a new sheet  q) quit" in text
     assert "3) right of" in text
     assert "A new sheet is attached." in text
     assert game.campaign.position == Position(5, 2)
     assert "Box 32." in text
     assert "Town Exploration table: 7" in text
+
+
+# --- Manual actions (E5b) --------------------------------------------------------------------
+
+
+def test_the_player_applies_an_entry_with_manual_actions(content):
+    # given the House's entry, not copied yet: the player loses 2 Sanity, then leaves it
+    game = Game(dice=ScriptedDice([3, *EXPLORE]), content=content)
+    interface, output = terminal(game, [HOME_TOP_LEFT, "m", "1", "l", "2", "2", RESOLVE, QUIT])
+
+    play(game, interface)
+
+    text = "\n".join(output)
+    assert "1) Life  2) Sanity  3) Food" in text
+    assert "You lose 2 Sanity (Sanity 6)." in text
+    assert game.character.sanity == 6
+
+
+def test_a_wrong_number_is_asked_again(content):
+    game = Game(dice=ScriptedDice([3, *EXPLORE]), content=content)
+    lines = [HOME_TOP_LEFT, "m", "1", "g", "5", "two", "0", "1", RESOLVE, QUIT]
+    interface, output = terminal(game, lines)
+
+    play(game, interface)
+
+    assert output.count("Type a whole number, 1 or more.") == 2
+    assert game.character.clues == 1
+
+
+def test_a_roll_vs_l_shows_the_die_and_the_result(content):
+    # the die shows 3; L4 with no modifier (Enter)
+    game = Game(dice=ScriptedDice([3, *EXPLORE, 3]), content=content)
+    interface, output = terminal(game, [HOME_TOP_LEFT, "m", "1", "v", "4", "", RESOLVE, QUIT])
+
+    play(game, interface)
+
+    assert "Roll vs L4: rolled 3. Failure." in output
+
+
+def test_marking_a_safe_house_takes_the_search_away(content):
+    game = Game(dice=ScriptedDice([3, *EXPLORE]), content=content)
+    interface, output = terminal(game, [HOME_TOP_LEFT, "m", "1", "h", RESOLVE, QUIT])
+
+    play(game, interface)
+
+    assert "This box is a Safe House." in output
+    assert output[-2].startswith("m) move  a) apply an effect  q) quit")
+
+
+def test_search_with_no_notes_rolls_at_once(content):
+    # the Search die shows 3: Nothing found
+    game = Game(dice=ScriptedDice([3, 3]), content=content)
+    interface, output = terminal(game, [HOME_TOP_LEFT, "s", QUIT])
+
+    play(game, interface)
+
+    text = "\n".join(output)
+    assert "Search: rolled 3." in text
+    assert "Search table: 3" in text
+    assert "Nothing found." in text
+    assert "Modifier (Enter for none): " not in interface._input.prompts
+
+
+def test_notes_are_shown_and_asked_for_a_modifier(content):
+    # the player writes a note, then Searches: the notes come back above the modifier
+    game = Game(dice=ScriptedDice([3, 4]), content=content)
+    lines = [HOME_TOP_LEFT, "a", "w", "cursed: -1 to Search", "b", "s", "-1", QUIT]
+    interface, output = terminal(game, lines)
+
+    play(game, interface)
+
+    assert "Noted: cursed: -1 to Search" in output
+    assert output.count("Notes: (1) box 1: cursed: -1 to Search") == 3  # menu, modifier, menu
+    assert "w) write a note" in "\n".join(output)
+    assert "Search: rolled 4, -1." in output
+
+
+def test_an_empty_note_is_asked_again(content):
+    game = Game(dice=ScriptedDice([3]), content=content)
+    interface, output = terminal(game, [HOME_TOP_LEFT, "a", "w", "  ", "cursed", "b", QUIT])
+
+    play(game, interface)
+
+    assert "Type some text." in output
+    assert [note.text for note in game.character.notes] == ["cursed"]
+
+
+def test_a_note_is_removed_by_its_number(content):
+    game = Game(dice=ScriptedDice([3]), content=content)
+    lines = [HOME_TOP_LEFT, "a", "w", "cursed", "w", "blessed", "x", "1", "b", QUIT]
+    interface, output = terminal(game, lines)
+
+    play(game, interface)
+
+    assert "Note removed: cursed" in output
+    assert [note.text for note in game.character.notes] == ["blessed"]

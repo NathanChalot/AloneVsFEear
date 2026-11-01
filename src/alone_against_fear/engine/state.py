@@ -53,6 +53,33 @@ class Stat(StrEnum):
     CLUES = "clues"
 
 
+class Mark(StrEnum):
+    """What a box can be marked as. Hell Gates, the stash and left-behind encounters come with
+    their tasks; other marks a text gives are plain strings until then."""
+
+    SAFE_HOUSE = "safe_house"
+
+
+class End(StrEnum):
+    """Why a game ended."""
+
+    DEAD = "dead"
+    """Life went to 0."""
+    INSANE = "insane"
+    """Sanity went to 0."""
+    QUIT = "quit"
+    """The player left; the campaign can go on later."""
+
+
+@dataclass(frozen=True)
+class Note:
+    """A note the player keeps (E5b), with the box number it was written at: a lasting effect
+    "for N boxes" ends N boxes later. The engine stores and shows it, never reads it."""
+
+    text: str
+    box: int
+
+
 @dataclass
 class History:
     """What happened at one level: how many times each ID was played, found or killed, and
@@ -113,6 +140,9 @@ class Character:
     clues: int = 0
     items: list[str] = field(default_factory=list)
     """Item names, until items get IDs (R3)."""
+    notes: list[Note] = field(default_factory=list)
+    """The player's notes (E5b): lasting effects and modifiers of texts the engine cannot
+    read, kept as a reminder."""
     history: History = field(default_factory=History)
     mission: Mission | None = None
 
