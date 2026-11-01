@@ -76,29 +76,27 @@ def test_the_tables_have_their_names_and_sources_and_no_text_of_their_own():
     )
 
 
-REROLL = (
-    "When you roll a Mental Scar or Injury that you already have, reroll until you select one "
-    "you do not have."
-)
-
-
-def test_the_insanity_table_carries_its_paragraph_as_printed_then_the_reroll():
+def test_the_insanity_table_carries_its_paragraph_as_printed_then_its_reroll():
+    # The reroll sentence names only this table's result (reworded with the user).
     assert INSANITY.text.split("\n\n") == [
         "When you lose Sanity points in any event or encounter, you may prevent that Sanity "
         "loss by rolling on the Insanity table. You may do so up to 3 times in the lifetime of "
         "your character. These Mental Scars are permanent.",
-        REROLL,
+        "When you roll a Mental Scar that you already have, reroll until you select one you "
+        "do not have.",
     ]
 
 
-def test_the_injury_table_carries_its_reworded_paragraph_then_the_reroll():
+def test_the_injury_table_carries_its_reworded_paragraph_then_its_reroll():
     # Reworded with the user: the printed paragraph starts "Likewise, you may do the same
-    # with Life points", which needs the Insanity paragraph before it.
+    # with Life points"; "the same" is spelt out from the Insanity paragraph.
     assert INJURY.text.split("\n\n") == [
-        "When you lose Life points in any event or encounter, you may negate all Damage from "
-        "a single attack by rolling on the Injury table. You may do so up to 3 times in the "
-        "lifetime of your character. These physical impairments are permanent.",
-        REROLL,
+        "When you lose Life points in any event or encounter, you may prevent that Life loss "
+        "by rolling on the Injury table, negating all Damage from a single attack. You may do "
+        "so up to 3 times in the lifetime of your character. These physical impairments are "
+        "permanent.",
+        "When you roll an Injury that you already have, reroll until you select one you do "
+        "not have.",
     ]
 
 
