@@ -1240,3 +1240,737 @@
   open the PR.
 
 ✻ Worked for 20m 55s · done 23:14
+
+❯ /export claude-logs/transcripts/202611012314-r2-skills-harm.txt               
+  ⎿  Conversation exported to: /Users/nathanchalot/Code/RPGs/AloneVsFEear/claude
+     -logs/transcripts/202611012314-r2-skills-harm.txt
+
+❯ done                                                                          
+
+  Ran 2 shell commands (ctrl+o to expand)
+  ⎿  1 action blocked by auto mode
+     │ Auto mode: [Out-of-Place Publication]
+
+⏺ Nothing ran. I'll commit locally first, which stays on this machine:
+
+  Made 1 scratchpad edit +12, ran 1 shell command (ctrl+o to expand)
+
+⏺ R2 is done and committed locally, but the branch isn't pushed and there's no
+  PR yet. The permission check refused the push and the PR creation as
+  publishing to an outside service, even though this end-of-session push is
+  agreed in CLAUDE.md. I haven't tried to get around it.
+
+  Before the last commit the tests ran again: 436 pass, 9 skipped. The branch
+  r2-skills-harm has four commits:
+
+  - f3e315b the loader support for the Skill lists and the new ID kinds
+  - 0b04b7a the copied content: 22 Skills, 11 Arcane Skills, the Injury and
+    Insanity tables
+  - 5d1fe65 the random-walk test raised to 500 requests
+  - da80108 the wrap-up: Readme, NextSession, WorkingWithClaude, the log and
+    your transcript
+
+  To finish, run these two commands yourself. I wrote the PR description to a
+  file so the second one stays short:
+
+  ! git push -u origin r2-skills-harm
+  ! gh pr create --base main --head r2-skills-harm --title "R2: Skills and harm 
+  tables to YAML" --body-file /private/tmp/claude-501/-Users-nathanchalot-Code-R
+  PGs-AloneVsFEear/0e66d2dc-5d93-45b2-99d8-e0ff5ba56017/scratchpad/pr-body.md
+
+  If you'd rather I do the wrap-up push in future sessions, add a permission
+  rule for git push and gh pr create; /update-config can do it.
+
+  Next session is E6 (character and creation, and the rest of D1), with Opus at
+  high effort. Merge this PR first.
+
+✻ Worked for 58s · done 23:18
+
+!  git push -u origin r2-skills-harm                                            
+  ⎿  remote:
+     remote: Create a pull request for 'r2-skills-harm' on GitHub by visiti
+     ng:
+     … +7 lines (ctrl+o to expand)
+
+⏺ The push worked: r2-skills-harm is on GitHub. The only step left is the PR,
+  which you can open with:
+
+  ! gh pr create --base main --head r2-skills-harm --title "R2: Skills and harm 
+  tables to YAML" --body-file /private/tmp/claude-501/-Users-nathanchalot-Code-R
+  PGs-AloneVsFEear/0e66d2dc-5d93-45b2-99d8-e0ff5ba56017/scratchpad/pr-body.md
+
+  Or use the link GitHub printed and paste the description from that file.
+
+✻ Worked for 6s · done 23:20
+
+!  gh pr create --base main --head r2-skills-harm --title "R2: Skills and harm  
+  tables to YAML" --body-file /private/tmp/claude-501/-Users-nathanchalot-Code- 
+  RPGs-AloneVsFEear/0e66d2dc-5d93-45b2-99d8-e0ff5ba56017/scratchpad/pr-body.md  
+  ⎿  https://github.com/NathanChalot/AloneVsFEear/pull/21
+
+  Ran 1 shell command, wrote 1 memory (ctrl+o to expand)
+
+⏺ R2 is finished: PR #21 is open on r2-skills-harm.
+
+  I saved a note for future sessions: auto mode may refuse the wrap-up push and
+  PR, so I'll commit separately first and give you the ! commands if that
+  happens.
+
+  Before the next session, merge #21 and start from an up-to-date main. The next
+  session is E6 (character and creation, and the rest of D1), with Opus at high
+  effort. The R3 literal-block follow-up is listed in NextSession as a small
+  Sonnet PR, any time.
+
+✻ Cooked for 18s · done 23:20
+❯ Reading the pragraph we used as text:                                         
+  "When you lose Sanity points in any event or encounter, you may prevent that  
+  Sanity loss by rolling on the Insanity table. You may do so up to 3 times in  
+  the lifetime of your character. These Mental Scars are permanent.             
+                                                                                
+    Likewise, you may do the same with Life points, negating all Damage from a  
+  single attack by rolling on the Injury table. You may do so up to 3 times in  
+  the lifetime of your character. These physical impairments are permanent."    
+                                                                                
+  I think we could update the PR so we split with:                              
+  for Injury: "When you lose Life points in any event or encounter, you may     
+  negate all Damage from a single attack by rolling on the Injury table. You    
+  may do so up to 3 times in the lifetime of your character. These physical     
+  impairments are permanent."                                                   
+                                                                                
+  Anf for Insanity: "When you lose Sanity points in any event or encounter, you 
+  may prevent that Sanity loss by rolling on the Insanity table. You may do so  
+  up to 3 times in the lifetime of your character. These Mental Scars are       
+  permanent."                                                                   
+                                                                                
+  Wdyt ?                                                                        
+
+⏺ I agree with the split: each table then shows only its own rule. Two things to
+  settle first.
+
+  1. The Injury text would no longer be as printed. The book says "Likewise, you
+     may do the same with Life points, negating all Damage…", and the rewrite
+     replaces "Likewise… the same" with words of ours. I think the meaning is
+     kept, because "do the same" means "when you lose them, prevent the loss by
+     rolling". Still, it breaks the "copied as printed" convention. I'd do it
+     anyway, since this text is already marked to rework at E8. But I'd say so
+     in the YAML comment ("reworded: the printed paragraph starts 'Likewise…'")
+     and in book_errors.md under "Fixed", so it can be checked again like the
+     Diabolical fix. The Insanity paragraph stays word for word as printed.
+  2. The reroll sentence: "When you roll a Mental Scar or Injury that you
+     already have, reroll until you select one you do not have." Your split
+     leaves it out. It applies to both tables, and the engine will need it at
+     E8. I'd keep it at the end of both texts.
+
+⏺ User answered Claude's questions:
+  ⎿  · Split the harm tables' text as you propose: Insanity keeps its printed 
+     paragraph, Injury gets your reworded one (marked as reworded in the YAML 
+     comment and in book_errors.md). What about the reroll sentence ('When you 
+     roll a Mental Scar or Injury that you already have, reroll until you select
+     one you do not have.')? → Split, keep reroll in both (Recommended)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Tests first:
+
+⏺ Bash(python3 - <<'EOF'
+      from pathlib import Path…)
+  ⎿  FAILED tests/test_content_r2.py::test_the_insanity_table_carries_its_p
+     aragraph_as_printed_then_the_reroll
+     FAILED tests/test_content_r2.py::test_the_injury_table_carries_its_rew
+     … +2 lines (ctrl+o to expand)
+  ⎿  Updated tests/test_content_r2.py (+24 -10)
+       76      )
+       77  
+       78  
+       79 -def test_both_tables_carry_the_mental_scars_and_injuries_secti
+          -on():                                                         
+       80 -    for table in (INSANITY, INJURY):                          
+       81 -        assert table.text.startswith("When you lose Sanity poi
+          -nts in any event or encounter")                               
+       82 -        assert "rolling on the Insanity table. You may do so u
+          -p to 3 times" in table.text                                   
+       83 -        assert "Likewise, you may do the same with Life points
+          -" in table.text                                               
+       84 -        assert table.text.endswith(                           
+       85 -            "When you roll a Mental Scar or Injury that you al
+          -ready have, reroll until you "                                
+       86 -            "select one you do not have."                     
+       87 -        )                                                     
+       88 -        assert len(table.text.split("\n\n")) == 3             
+       79 +REROLL = (                                                    
+       80 +    "When you roll a Mental Scar or Injury that you already ha
+          +ve, reroll until you select one "                             
+       81 +    "you do not have."                                        
+       82 +)                                                             
+       83 +                                                              
+       84 +                                                              
+       85 +def test_the_insanity_table_carries_its_paragraph_as_printed_t
+          +hen_the_reroll():                                             
+       86 +    assert INSANITY.text.split("\n\n") == [                   
+       87 +        "When you lose Sanity points in any event or encounter
+          +, you may prevent that Sanity "                               
+       88 +        "loss by rolling on the Insanity table. You may do so 
+          +up to 3 times in the lifetime of "                            
+       89 +        "your character. These Mental Scars are permanent.",  
+       90 +        REROLL,                                               
+       91 +    ]                                                         
+       92 +                                                              
+       93 +                                                              
+       94 +def test_the_injury_table_carries_its_reworded_paragraph_then_
+          +the_reroll():                                                 
+       95 +    # Reworded with the user: the printed paragraph starts "Li
+          +kewise, you may do the same                                   
+       96 +    # with Life points", which needs the Insanity paragraph be
+          +fore it.                                                      
+       97 +    assert INJURY.text.split("\n\n") == [                     
+       98 +        "When you lose Life points in any event or encounter, 
+          +you may negate all Damage from "                              
+       99 +        "a single attack by rolling on the Injury table. You m
+          +ay do so up to 3 times in the "                               
+      100 +        "lifetime of your character. These physical impairment
+          +s are permanent.",                                            
+      101 +        REROLL,                                               
+      102 +    ]                                                         
+      103  
+      104  
+      105  def test_the_insanity_table_has_six_named_entries_in_order():
+
+⏺ Failing as expected. Now the YAML, the record in book_errors.md, and the
+  mentions in the docs:
+
+⏺ Bash(python3 - <<'EOF'
+      from pathlib import Path…)
+  ⎿  (eval):48: no matches found: --include=*.md
+     437 passed, 9 skipped in 0.75s
+     All checks passed!
+     … +8 lines (ctrl+o to expand)
+  ⎿  Updated NextSession.md (+2 -2)
+       6  
+       7  - Merge the R2 PR (`r2-skills-harm`) before starting E6.
+       8  - **Literal blocks for R3's texts** (a small PR, Sonnet, any ti
+          me): R2 keeps a text of several paragraphs or a list as a liter
+          al block (`|-`, a blank line between paragraphs, one list item 
+          per line), which the user prefers on screen. R3's mission text 
+          and any other folded text with several paragraphs move to the s
+          ame, without changing a word.
+       9 -- The Injury and Insanity tables carry the rules' Mental Scars 
+         -and Injuries section as their text: E8 reworks it, once it rule
+         -s between that section and the Life and Sanity passages (1 or 2
+         - points, or all the Damage of an attack).                      
+      10 -- [`gameRules/book_errors.md`](gameRules/book_errors.md) now al
+         -so lists the typos a batch fixed ("Fixed as typos"), to check a
+         -gain in the review session.                                    
+       9 +- The Injury and Insanity tables carry the rules' Mental Scars 
+         +and Injuries section as their text, split between them (the Inj
+         +ury paragraph reworded with the user): E8 reworks it, once it r
+         +ules between that section and the Life and Sanity passages (1 o
+         +r 2 points, or all the Damage of an attack).                   
+      10 +- [`gameRules/book_errors.md`](gameRules/book_errors.md) now al
+         +so lists the typos a batch fixed and the text it reworded ("Fix
+         +ed or reworded"), to check again in the review session.        
+      11  - E4 dropped log replay (seed + answers played back through the
+           scripted interface): not needed for now. The seed and every an
+          swer are still logged, so it can be added when a bug needs it.
+      12  - Home is a Safe House by default ([ruling](design/rulings.md#s
+          afe-houses)), but until E15 it is a plain box: it rolls the 1 i
+          n 6 and can be Searched (a pending test waits for E15).
+      13  - Attaching a sheet by stepping onto it (the Readme's "Any time
+          " item) replaces the "attach a new sheet" action: a small PR of
+           its own, any time.
+  ⎿  Updated Readme.md (+1 -1)
+      121  #### [x] R2 — Skills and harm tables
+      122  The 22 Skills, the 11 Arcane Skills, the Injury and Insanity t
+           ables.
+      123  - Fixes: Insanity table (merged rows 2 and 3), Summon Servitor
+            (a paragraph cut by a column break).
+      124 -- Decided: Skills and Arcane Skills are lists with two ID kind
+          -s (`skill.agile`, `arcane_skill.curse`); the XP cost is a numb
+          -er; the Expert line is a field of its own; Arcane Skills have 
+          -`components` and `sacrifice` fields; Injuries and Mental Scars
+          - are named entries (`injury.limping`, `mental_scar.paranoia`);
+          - several paragraphs are kept apart (literal blocks); the harm 
+          -tables carry the Mental Scars and Injuries section as their te
+          -xt until E8 reworks it; a typo fix is recorded in [the book er
+          -rors list](gameRules/book_errors.md) so it can be checked agai
+          -n ([rules text in YAML](docs/content.md#a-list-of-skills)).   
+      124 +- Decided: Skills and Arcane Skills are lists with two ID kind
+          +s (`skill.agile`, `arcane_skill.curse`); the XP cost is a numb
+          +er; the Expert line is a field of its own; Arcane Skills have 
+          +`components` and `sacrifice` fields; Injuries and Mental Scars
+          + are named entries (`injury.limping`, `mental_scar.paranoia`);
+          + several paragraphs are kept apart (literal blocks); the harm 
+          +tables carry the Mental Scars and Injuries section as their te
+          +xt, split between them (the Injury paragraph reworded with the
+          + user), until E8 reworks it; the typo fix and the rewording ar
+          +e recorded in [the book errors list](gameRules/book_errors.md)
+          + so it can be checked again ([rules text in YAML](docs/content
+          +.md#a-list-of-skills)).                                       
+      125  - Depends on: R1.
+      126  
+      127  #### [x] R3 — Weapons and items
+  ⎿  Updated claude-logs/202611012314-r2-skills-harm.md (+2 -2)
+      28  - **Arcane Skills get `components` and `sacrifice` fields** (th
+          e user).
+      29  - **Injuries and Mental Scars are named entries with their own 
+          IDs** (`injury.limping`, `mental_scar.paranoia`, the user): the
+           character keeps them for life.
+      30  - **Literal blocks for several paragraphs or a list** (the user
+          , after asking what it changes): a blank line between paragraph
+          s on screen. R3's texts are aligned in a follow-up PR.
+      31 -- **"The Diabolic Deal" fixed to "The Diabolical Deal"** (the u
+         -ser, after the session checked the context: the Random Books ta
+         -ble names only The Diabolical Deal), and written down in a new 
+         -"Fixed as typos" section of `gameRules/book_errors.md`, in case
+         - it was wrong.                                                 
+      31 +- **"The Diabolic Deal" fixed to "The Diabolical Deal"** (the u
+         +ser, after the session checked the context: the Random Books ta
+         +ble names only The Diabolical Deal), and written down in a new 
+         +"Fixed or reworded" section of `gameRules/book_errors.md`, in c
+         +ase it was wrong.                                              
+      32  - **No link from Faith to Exorcism** (the user): duplicated tex
+          t is fine; a `refs` field for Skills is easy to add when needed
+          .
+      33 -- **The harm tables carry the Mental Scars and Injuries section
+         - as their text, to rework at E8** (the user): it is printed awa
+         -y from the tables, and another passage disagrees with it (1 or 
+         -2 points, or all the Damage of an attack). E8 rules between the
+         -m.                                                             
+      33 +- **The harm tables carry the Mental Scars and Injuries section
+         + as their text, to rework at E8** (the user): it is printed awa
+         +y from the tables, and another passage disagrees with it (1 or 
+         +2 points, or all the Damage of an attack). E8 rules between the
+         +m. After the PR was opened, the user split it between the two t
+         +ables: Insanity keeps its paragraph as printed; Injury's, which
+         + starts "Likewise, you may do the same with Life points", is re
+         +worded to stand alone ("When you lose Life points in any event 
+         +or encounter, you may negate all Damage from a single attack…")
+         + and recorded in `book_errors.md`; both end with the reroll sen
+         +tence.                                                         
+      34  - The agent's conventions (curly quotes, printed case for names
+           and Expert lines, no full stop in entry names, lower-case Mark
+          down headings, the empty catalogue heading removed) and its cor
+          rections: confirmed by the user.
+      35  
+      36  ## Open questions
+  ⎿  Updated gameRules/book_errors.md (+3 -2)
+      20  | R2 | Arcane Skills, labelled lines | "Sacrifice: 1 candle or 
+          2 Food", "Components: incense" with no final full stop; others 
+          have one | a full stop, like the others |
+      21  | R2 | Arcane Skills, books | "The Necronomicon" and "Necronomi
+          con", "The Occult Guide" and "Occult Guide" | one name for each
+           book |
+      22  
+      23 -## Fixed as typos                                              
+      23 +## Fixed or reworded                                           
+      24  
+      25 -These are printed words that a batch fixed as obvious typos. Th
+         -ey are listed so they can be checked again.                    
+      25 +Printed words that a batch fixed as obvious typos, or reworded 
+         +with the user, listed so they can be checked again.            
+      26  
+      27  | Batch | Where | Printed | Fixed | Why |
+      28  | --- | --- | --- | --- | --- |
+      29  | R2 | Pentagram, books | "The Diabolic Deal" | "The Diabolical
+           Deal" | the Random Books table names only The Diabolical Deal,
+           which teaches several rituals; Pentagram lists the same three 
+          books as the other rituals |
+      30 +| R2 | Injury table, its text (from Mental Scars and Injuries) 
+         +| "Likewise, you may do the same with Life points, negating all
+         + Damage from a single attack by rolling on the Injury table." |
+         + "When you lose Life points in any event or encounter, you may 
+         +negate all Damage from a single attack by rolling on the Injury
+         + table." | the paragraph is split between the two tables, and "
+         +Likewise… the same" needs the Insanity paragraph before it; rew
+         +orded with the user, to rework at E8 |                         
+  ⎿  Updated src/alone_against_fear/content/tables/injury.yaml (+3 -3)
+       3  dice: d6
+       4  source: gameRules/tables/3_2_injury_table.md
+       5  # From Mental Scars and Injuries in the combat chapter, not pri
+          nted with the table.
+       6 +# Reworded with the user: the printed paragraph starts "Likewis
+         +e, you may do the same                                         
+       7 +# with Life points" (see gameRules/book_errors.md); then the re
+         +roll sentence as printed.                                      
+       8  # To rework at E8, which rules between this and the Life and Sa
+          nity passages.
+       9  text: |-
+       8 -  When you lose Sanity points in any event or encounter, you ma
+         -y prevent that Sanity loss by rolling on the Insanity table. Yo
+         -u may do so up to 3 times in the lifetime of your character. Th
+         -ese Mental Scars are permanent.                                
+       9 -                                                               
+      10 -  Likewise, you may do the same with Life points, negating all 
+         -Damage from a single attack by rolling on the Injury table. You
+         - may do so up to 3 times in the lifetime of your character. The
+         -se physical impairments are permanent.                         
+      10 +  When you lose Life points in any event or encounter, you may 
+         +negate all Damage from a single attack by rolling on the Injury
+         + table. You may do so up to 3 times in the lifetime of your cha
+         +racter. These physical impairments are permanent.              
+      11  
+      12    When you roll a Mental Scar or Injury that you already have, 
+          reroll until you select one you do not have.
+      13  entries:
+  ⎿  … 1 more file changed
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Committed locally (f6e37fa). You asked to update the PR, so I'll push:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ PR #21 is updated with commit f6e37fa. 437 tests pass, 9 skipped, ruff clean.
+
+  - Insanity table: its rules text is its paragraph word for word as printed,
+    then the reroll sentence.
+  - Injury table: your reworded paragraph ("When you lose Life points in any
+    event or encounter, you may negate all Damage from a single attack…"), then
+    the same reroll sentence. Its YAML comment says it was reworded and quotes
+    the printed "Likewise, you may do the same with Life points".
+  - gameRules/book_errors.md: the rewording has a row next to the Diabolical
+    fix, so the review session can check it again. That section's heading is now
+    "Fixed or reworded" instead of "Fixed as typos".
+  - Other files: the tests check each table's text exactly. The Readme,
+    NextSession and the session log mention the split.
+
+  The combat chapter's Markdown copy is unchanged; it stays as printed.
+
+  I didn't edit the PR description. Its line about the harm tables' text is
+  still broadly true but doesn't mention the split.
+
+✻ Cooked for 1m 12s · done 23:27
+
+❯ Do you see a better way to reword the injury text ? Also I think we could     
+  rphrase "When you roll a Mental Scar or Injury that you already have, reroll  
+  until you select one you do not have." depending of the table we are in       
+
+⏺ Yes, I'd go one step closer to the printed words.
+
+  Injury. The printed text says "Likewise, you may do the same with Life points,
+  negating all Damage from a single attack…". "Do the same" stands for the
+  Insanity sentence. The most faithful rewording swaps "the same" for that
+  sentence with "Life" in place of "Sanity", and keeps "negating all Damage from
+  a single attack" where the book puts it:
+
+  ▎ When you lose Life points in any event or encounter, you may prevent that 
+  ▎ Life loss by rolling on the Injury table, negating all Damage from a single 
+  ▎ attack. You may do so up to 3 times in the lifetime of your character. These
+  ▎ physical impairments are permanent.
+
+  Compared with the current version, it keeps the parallel with the Insanity
+  text. It also adds no reading of our own. The current "you may negate all
+  Damage from a single attack" makes "single attack" the main rule. The printed
+  text gives it as a detail of how the loss is prevented. That leaves open what
+  happens with a Life loss in an event that isn't an attack, which is the
+  question E8 has to rule on anyway.
+
+  Reroll sentence. I agree. Dropping the other table's half changes nothing for
+  the table it's in:
+  - Insanity: "When you roll a Mental Scar that you already have, reroll until
+    you select one you do not have."
+  - Injury: "When you roll an Injury that you already have, reroll until you
+    select one you do not have."
+
+  Insanity's main paragraph stays as printed. Only its reroll sentence changes.
+
+⏺ User answered Claude's questions:
+  ⎿  · Which Injury paragraph? → Closest to printed (Recommended)
+     · Reroll sentence per table ('a Mental Scar' in Insanity, 'an Injury' in 
+     Injury), recorded as reworded in book_errors.md? → Per table (Recommended)
+
+⏺ Tests first:
+
+⏺ Bash(python3 - <<'EOF'
+      from pathlib import Path…)
+  ⎿  FAILED tests/test_content_r2.py::test_the_insanity_table_carries_its_p
+     aragraph_as_printed_then_its_reroll
+     FAILED tests/test_content_r2.py::test_the_injury_table_carries_its_rew
+     … +2 lines (ctrl+o to expand)
+  ⎿  Updated tests/test_content_r2.py (+12 -14)
+       76      )
+       77  
+       78  
+       79 -REROLL = (                                                    
+       80 -    "When you roll a Mental Scar or Injury that you already ha
+          -ve, reroll until you select one "                             
+       81 -    "you do not have."                                        
+       82 -)                                                             
+       83 -                                                              
+       84 -                                                              
+       85 -def test_the_insanity_table_carries_its_paragraph_as_printed_t
+          -hen_the_reroll():                                             
+       79 +def test_the_insanity_table_carries_its_paragraph_as_printed_t
+          +hen_its_reroll():                                             
+       80 +    # The reroll sentence names only this table's result (rewo
+          +rded with the user).                                          
+       81      assert INSANITY.text.split("\n\n") == [
+       82          "When you lose Sanity points in any event or encounter
+           , you may prevent that Sanity "
+       83          "loss by rolling on the Insanity table. You may do so 
+           up to 3 times in the lifetime of "
+       84          "your character. These Mental Scars are permanent.",
+       90 -        REROLL,                                               
+       85 +        "When you roll a Mental Scar that you already have, re
+          +roll until you select one you "                               
+       86 +        "do not have.",                                       
+       87      ]
+       88  
+       89  
+       94 -def test_the_injury_table_carries_its_reworded_paragraph_then_
+          -the_reroll():                                                 
+       90 +def test_the_injury_table_carries_its_reworded_paragraph_then_
+          +its_reroll():                                                 
+       91      # Reworded with the user: the printed paragraph starts "Li
+           kewise, you may do the same
+       96 -    # with Life points", which needs the Insanity paragraph be
+          -fore it.                                                      
+       92 +    # with Life points"; "the same" is spelt out from the Insa
+          +nity paragraph.                                               
+       93      assert INJURY.text.split("\n\n") == [
+       98 -        "When you lose Life points in any event or encounter, 
+          -you may negate all Damage from "                              
+       99 -        "a single attack by rolling on the Injury table. You m
+          -ay do so up to 3 times in the "                               
+      100 -        "lifetime of your character. These physical impairment
+          -s are permanent.",                                            
+      101 -        REROLL,                                               
+       94 +        "When you lose Life points in any event or encounter, 
+          +you may prevent that Life loss "                              
+       95 +        "by rolling on the Injury table, negating all Damage f
+          +rom a single attack. You may do "                             
+       96 +        "so up to 3 times in the lifetime of your character. T
+          +hese physical impairments are "                               
+       97 +        "permanent.",                                         
+       98 +        "When you roll an Injury that you already have, reroll
+          + until you select one you do "                                
+       99 +        "not have.",                                          
+      100      ]
+      101  
+     … 1 more lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      from pathlib import Path…)
+  ⎿  437 passed, 9 skipped in 0.77s
+     All checks passed!
+     129 files already formatted
+     … +7 lines (ctrl+o to expand)
+  ⎿  Updated claude-logs/202611012314-r2-skills-harm.md (+1 -1)
+      30  - **Literal blocks for several paragraphs or a list** (the user
+          , after asking what it changes): a blank line between paragraph
+          s on screen. R3's texts are aligned in a follow-up PR.
+      31  - **"The Diabolic Deal" fixed to "The Diabolical Deal"** (the u
+          ser, after the session checked the context: the Random Books ta
+          ble names only The Diabolical Deal), and written down in a new 
+          "Fixed or reworded" section of `gameRules/book_errors.md`, in c
+          ase it was wrong.
+      32  - **No link from Faith to Exorcism** (the user): duplicated tex
+          t is fine; a `refs` field for Skills is easy to add when needed
+          .
+      33 -- **The harm tables carry the Mental Scars and Injuries section
+         - as their text, to rework at E8** (the user): it is printed awa
+         -y from the tables, and another passage disagrees with it (1 or 
+         -2 points, or all the Damage of an attack). E8 rules between the
+         -m. After the PR was opened, the user split it between the two t
+         -ables: Insanity keeps its paragraph as printed; Injury's, which
+         - starts "Likewise, you may do the same with Life points", is re
+         -worded to stand alone ("When you lose Life points in any event 
+         -or encounter, you may negate all Damage from a single attack…")
+         - and recorded in `book_errors.md`; both end with the reroll sen
+         -tence.                                                         
+      33 +- **The harm tables carry the Mental Scars and Injuries section
+         + as their text, to rework at E8** (the user): it is printed awa
+         +y from the tables, and another passage disagrees with it (1 or 
+         +2 points, or all the Damage of an attack). E8 rules between the
+         +m. After the PR was opened, the user split it between the two t
+         +ables: Insanity keeps its paragraph as printed; Injury's, which
+         + starts "Likewise, you may do the same with Life points", is re
+         +worded to stand alone, "the same" spelt out from the Insanity p
+         +aragraph ("When you lose Life points in any event or encounter,
+         + you may prevent that Life loss by rolling on the Injury table,
+         + negating all Damage from a single attack"); each ends with the
+         + reroll sentence naming only its own result. Both rewordings ar
+         +e recorded in `book_errors.md`.                                
+      34  - The agent's conventions (curly quotes, printed case for names
+           and Expert lines, no full stop in entry names, lower-case Mark
+          down headings, the empty catalogue heading removed) and its cor
+          rections: confirmed by the user.
+      35  
+      36  ## Open questions
+  ⎿  Updated gameRules/book_errors.md (+2 -1)
+      27  | Batch | Where | Printed | Fixed | Why |
+      28  | --- | --- | --- | --- | --- |
+      29  | R2 | Pentagram, books | "The Diabolic Deal" | "The Diabolical
+           Deal" | the Random Books table names only The Diabolical Deal,
+           which teaches several rituals; Pentagram lists the same three 
+          books as the other rituals |
+      30 -| R2 | Injury table, its text (from Mental Scars and Injuries) 
+         -| "Likewise, you may do the same with Life points, negating all
+         - Damage from a single attack by rolling on the Injury table." |
+         - "When you lose Life points in any event or encounter, you may 
+         -negate all Damage from a single attack by rolling on the Injury
+         - table." | the paragraph is split between the two tables, and "
+         -Likewise… the same" needs the Insanity paragraph before it; rew
+         -orded with the user, to rework at E8 |                         
+      30 +| R2 | Injury table, its text (from Mental Scars and Injuries) 
+         +| "Likewise, you may do the same with Life points, negating all
+         + Damage from a single attack by rolling on the Injury table." |
+         + "When you lose Life points in any event or encounter, you may 
+         +prevent that Life loss by rolling on the Injury table, negating
+         + all Damage from a single attack." | the paragraph is split bet
+         +ween the two tables, and "Likewise… the same" needs the Insanit
+         +y paragraph before it: "the same" is spelt out from it; reworde
+         +d with the user, to rework at E8 |                             
+      31 +| R2 | Insanity and Injury tables, their text (from Mental Scar
+         +s and Injuries) | "When you roll a Mental Scar or Injury that y
+         +ou already have, reroll…" | "a Mental Scar" in the Insanity tab
+         +le, "an Injury" in the Injury table | each table names only its
+         + own result; reworded with the user |                          
+  ⎿  Updated src/alone_against_fear/content/tables/injury.yaml (+4 -3)
+       4  source: gameRules/tables/3_2_injury_table.md
+       5  # From Mental Scars and Injuries in the combat chapter, not pri
+          nted with the table.
+       6  # Reworded with the user: the printed paragraph starts "Likewis
+          e, you may do the same
+       7 -# with Life points" (see gameRules/book_errors.md); then the re
+         -roll sentence as printed.                                      
+       7 +# with Life points": "the same" is spelt out from the Insanity 
+         +paragraph; the reroll                                          
+       8 +# sentence names only Injuries (see gameRules/book_errors.md). 
+       9  # To rework at E8, which rules between this and the Life and Sa
+          nity passages.
+      10  text: |-
+      10 -  When you lose Life points in any event or encounter, you may 
+         -negate all Damage from a single attack by rolling on the Injury
+         - table. You may do so up to 3 times in the lifetime of your cha
+         -racter. These physical impairments are permanent.              
+      11 +  When you lose Life points in any event or encounter, you may 
+         +prevent that Life loss by rolling on the Injury table, negating
+         + all Damage from a single attack. You may do so up to 3 times i
+         +n the lifetime of your character. These physical impairments ar
+         +e permanent.                                                   
+      12  
+      12 -  When you roll a Mental Scar or Injury that you already have, 
+         -reroll until you select one you do not have.                   
+      13 +  When you roll an Injury that you already have, reroll until y
+         +ou select one you do not have.                                 
+      14  entries:
+      15    - roll: 1
+      16      id: injury.facial_scar
+  ⎿  Updated src/alone_against_fear/content/tables/insanity.yaml (+4 -3)
+       3  dice: d6
+       4  source: gameRules/tables/3_1_insanity_table.md
+       5  # From Mental Scars and Injuries in the combat chapter, not pri
+          nted with the table:
+       6 -# its Insanity paragraph as printed, then the reroll sentence. 
+         -To rework at E8, which                                         
+       7 -# rules between this and the Life and Sanity passages.         
+       6 +# its Insanity paragraph as printed, then the reroll sentence n
+         +aming only Mental Scars                                        
+       7 +# (reworded with the user, see gameRules/book_errors.md). To re
+         +work at E8, which rules                                        
+       8 +# between this and the Life and Sanity passages.               
+       9  text: |-
+      10    When you lose Sanity points in any event or encounter, you ma
+          y prevent that Sanity loss by rolling on the Insanity table. Yo
+          u may do so up to 3 times in the lifetime of your character. Th
+          ese Mental Scars are permanent.
+      11  
+      11 -  When you roll a Mental Scar or Injury that you already have, 
+         -reroll until you select one you do not have.                   
+      12 +  When you roll a Mental Scar that you already have, reroll unt
+         +il you select one you do not have.                             
+      13  entries:
+      14    - roll: 1
+      15      id: mental_scar.paranoia
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ I've reworded both tables' rules text as you chose and pushed it to PR #21
+  (commit 4def5e9). 437 tests pass, 9 skipped, ruff clean.
+
+  - Insanity: its paragraph as printed, then "When you roll a Mental Scar that
+    you already have, reroll until you select one you do not have."
+  - Injury: "When you lose Life points in any event or encounter, you may
+    prevent that Life loss by rolling on the Injury table, negating all Damage
+    from a single attack. You may do so up to 3 times in the lifetime of your
+    character. These physical impairments are permanent." Then "When you roll an
+    Injury that you already have, reroll until you select one you do not have."
+
+  Both rewordings are recorded in gameRules/book_errors.md under "Fixed or
+  reworded", and the YAML comments and the session log say what changed. Whether
+  a Life loss that isn't from an attack can use the Injury table is still open,
+  for E8 to rule on.
+
+✻ Sautéed for 50s · done 23:29
+
+❯ update the PR description too                                                 
+
+  Edited PR #21 (ctrl+o to expand)
+
+⏺ One sentence reads wrong: it says the printed text "spells out" the meaning,
+  when it's our rewording that does. Fixing it:
+
+  Edited PR #21 (ctrl+o to expand)
+
+⏺ I've updated the description of PR #21 to match the latest commits:
+
+  - Content line: the harm tables' text now comes from the Mental Scars and
+    Injuries section and is split between the two tables. Insanity's paragraph
+    is as printed, Injury's is reworded to stand alone, and each reroll sentence
+    names only its own table's result. E8 reworks it.
+  - book_errors.md line: the new section is now called "Fixed or reworded" and
+    lists the Diabolical Deal fix and the harm tables' rewordings.
+  - Test count: 437 pass, 9 skipped.
+
+✻ Sautéed for 27s · done 23:31
+
+❯ should we rerun the export and re do the log ?                                
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ The log already captures the split and rewordings, but I need to update the
+  test count (436→437) and note that the wrap-up push was refused. I'll also
+  re-export the transcript since it cuts off before the post-PR changes.
+⏺ Bash(python3 - <<'EOF'
+      from pathlib import Path…)
+  ⎿   claude-logs/202611012314-r2-skills-harm.md | 4 +++-
+      1 file changed, 3 insertions(+), 1 deletion(-)
+  ⎿  Updated claude-logs/202611012314-r2-skills-harm.md (+3 -1)
+      17  - The copying agent: `content/skills/skills.yaml` (22 Skills), 
+          `content/skills/arcane_skills.yaml` (11 Arcane Skills), `conten
+          t/tables/insanity.yaml` and `injury.yaml` (d6, named results); 
+          the two tables left `catalogue.yaml`. The Markdown copies fixed
+           together: spaces, quotes, page references, run-together words,
+           Insanity rows 2 and 3 split, Summon Servitor's paragraph cut b
+          y a column break restored, "Good SHOT", "Occult guide". `tests/
+          test_content_r2.py`.
+      18  - The session checked the agent's worktree (tests, files touche
+          d) and its doubtful readings against the ebook's text, then too
+          k the user through its conventions, corrections and doubts. The
+           answers went back to the agent, which applied them.
+      19  - The long random-walk test of book mode (E5b) failed on seed 0
+          : with two more tables copied, book mode offers other options a
+          nd the walk took another path, one box short of a second sheet.
+           Raised from 400 to 500 requests.
+      20 -- 436 pass, 9 skipped, ruff clean.                             
+      20 +- 437 pass, 9 skipped, ruff clean.                             
+      21 +- After the PR was opened: the harm tables' text split and rewo
+         +rded with the user (see Decisions), two more commits and the PR
+         + description updated.                                          
+      22 +- At wrap-up, the auto mode permission check refused `git push`
+         + and `gh pr create`; the user ran them with `!`. Later pushes w
+         +ent through.                                                   
+      23  - The Skill count is 22, not 21: fixed in the Readme and `desig
+          n/mvp-scope.md`.
+      24  
+      25  ## Decisions
+
+⏺ The log is updated. Please export the transcript again under the same name,
+  which replaces the old file:
+
+  /export claude-logs/transcripts/202611012314-r2-skills-harm.txt
+
+  Tell me when it's done. Then I'll commit the log and the transcript together
+  and push them to the PR.
+
+✻ Cooked for 15s · done 23:32
