@@ -2,7 +2,7 @@
 
 - Date: 2026-11-01
 - Session ID: dbea6735-186c-4aa4-a54f-b768c61cc991 (`~/.claude/projects/-Users-nathanchalot-Code-RPGs-AloneVsFEear/`)
-- Branch / PR: `e4-protocol-game-loop` / PR link added after opening
+- Branch / PR: `e4-protocol-game-loop` / [https://github.com/NathanChalot/AloneVsFEear/pull/14](https://github.com/NathanChalot/AloneVsFEear/pull/14)
 - Transcript: [transcripts/202611011026-e4-protocol-game-loop.txt](transcripts/202611011026-e4-protocol-game-loop.txt)
 - Model: Opus 5.5, high effort
 
