@@ -9,7 +9,16 @@ from typing import Any
 import yaml
 
 from ..dice import DiceCode, DiceError
-from .model import CatalogueEvent, CatalogueTable, Content, ContentError, Entry, Roll, Table
+from .model import (
+    CatalogueEvent,
+    CatalogueTable,
+    Content,
+    ContentError,
+    Entry,
+    Roll,
+    Table,
+    Weapon,
+)
 
 CONTENT_DIR = Path(__file__).parent
 CATALOGUE = "catalogue.yaml"
@@ -19,12 +28,15 @@ _NESTED_KEYS = {"dice", "entries"}
 _ENTRY_KEYS = {"roll", "id", "name", "text", "refs", "notes", "table"}
 _CATALOGUE_KEYS = {"id", "name", "dice", "source"}
 _CATALOGUE_EVENT_KEYS = {"id", "name", "source"}
+_WEAPONS_KEYS = {"name", "source", "weapons"}
+_WEAPON_KEYS = {"id", "name", "text"}
 _RANGE = re.compile(r"(\d+)-(\d+)")
 _EVENT_ID = re.compile(r"event\.(\d+)")
 
 
 def load_content(root: Path | str | None = None) -> Content:
-    """Read the catalogue and every table file under `root` (this package by default)."""
+    """Read the catalogue, every table file and every weapon list under `root` (this package
+    by default)."""
     root = Path(root) if root is not None else CONTENT_DIR
     seen: dict[str, Path] = {}
 
@@ -40,18 +52,24 @@ def load_content(root: Path | str | None = None) -> Content:
         register(item.id, catalogue_path)
         catalogue[item.id] = item
 
-    tables, entries = {}, {}
+    tables, entries, weapons = {}, {}, {}
     for path in sorted(root.rglob("*.yaml")):
         if path == catalogue_path:
             continue
-        table = _table(_read(path), path)
+        raw = _read(path)
+        if isinstance(raw, dict) and "weapons" in raw:
+            for weapon in _weapons(raw, path):
+                register(weapon.id, path)
+                weapons[weapon.id] = weapon
+            continue
+        table = _table(raw, path)
         register(table.id, path)
         tables[table.id] = table
         for entry in table.walk():
             register(entry.id, path)
             entries[entry.id] = entry
 
-    return Content(tables=tables, catalogue=catalogue, entries=entries)
+    return Content(tables=tables, catalogue=catalogue, entries=entries, weapons=weapons)
 
 
 def _read(path: Path) -> Any:
@@ -89,6 +107,19 @@ def _catalogued(raw: Any, path: Path) -> CatalogueTable | CatalogueEvent:
     return CatalogueTable(
         id=raw["id"], name=raw["name"], dice=_dice(raw, what), source=raw["source"]
     )
+
+
+def _weapons(raw: dict, path: Path) -> list[Weapon]:
+    """A list of weapons with no dice (the weapon summary): each its ID, name and text."""
+    _check_keys(raw, _WEAPONS_KEYS, _WEAPONS_KEYS, str(path))
+    weapons = []
+    for item in raw["weapons"] or []:
+        what = f"{path}: {item.get('id', '?') if isinstance(item, dict) else item}"
+        _check_keys(item, _WEAPON_KEYS, _WEAPON_KEYS, what)
+        if not str(item["id"]).startswith("weapon."):
+            raise ContentError(f"{what}: a weapon ID starts with weapon.")
+        weapons.append(Weapon(item["id"], item["name"], item["text"], raw["source"]))
+    return weapons
 
 
 def _table(raw: Any, path: Path, id_: str | None = None) -> Table:

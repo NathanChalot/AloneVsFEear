@@ -217,6 +217,7 @@ Life and Sanity with current and max values; the 21 Skills at Basic and Expert; 
 - Rules: [main rules](gameRules/1_1_main_rules.md) (Your Character, Experience), [skills](gameRules/1_2_skills.md), [weapons table](gameRules/tables/1_4_random_weapons_table.md), [random objects](gameRules/tables/2_1_random_object_tables.md), [useful stuff](gameRules/tables/2_2_useful_stuff_table.md)
 - Design: [character](design/character.md)
 - Decides: the rest of D1.
+- Open: the weapon summary entries that name two weapons ("Baseball bat or hammer", "Hockey stick/golf club", "Kitchen knife/ritual dagger", "Knife or stick", "Scythe/shovel") have one ID each, as printed (R3). Likely choice: two IDs sharing the same rule text (`weapon.baseball_bat`, `weapon.hammer`), so the player holds the exact item and a rule can tell them apart (a stake needs a hammer). Decide when creation first stores a weapon.
 - Done when: the terminal walks the player through creation, and XP can be spent.
 - Depends on: E5b, R2, R3.
 

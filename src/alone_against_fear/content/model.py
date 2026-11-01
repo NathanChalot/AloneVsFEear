@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 
 from ..dice import DiceCode
 
-KINDS = frozenset({"table", "mission", "event"})
+KINDS = frozenset({"table", "mission", "event", "weapon"})
 """First segment of every ID. A YAML batch adds the kinds it needs."""
 
 
@@ -104,11 +104,24 @@ class CatalogueEvent:
 
 
 @dataclass(frozen=True)
+class Weapon:
+    """A weapon of the weapon summary: its name and rules as printed. Its stats stay text
+    until D1 is decided (E6)."""
+
+    id: str
+    name: str
+    text: str
+    source: str
+
+
+@dataclass(frozen=True)
 class Content:
     tables: Mapping[str, Table]
     catalogue: Mapping[str, CatalogueTable | CatalogueEvent]
     """Tables and events known but not copied yet."""
     entries: Mapping[str, Entry]
+    weapons: Mapping[str, Weapon] = field(default_factory=dict)
+    """The weapon summary, in the book's order."""
 
     def table(self, id_: str) -> Table:
         return self.tables[id_]
@@ -116,13 +129,21 @@ class Content:
     def entry(self, id_: str) -> Entry:
         return self.entries[id_]
 
+    def weapon(self, id_: str) -> Weapon:
+        return self.weapons[id_]
+
     def events(self) -> list[CatalogueEvent]:
         """Every numbered event, in the book's order."""
         events = [item for item in self.catalogue.values() if isinstance(item, CatalogueEvent)]
         return sorted(events, key=lambda event: event.number)
 
     def __contains__(self, id_: str) -> bool:
-        return id_ in self.tables or id_ in self.catalogue or id_ in self.entries
+        return (
+            id_ in self.tables
+            or id_ in self.catalogue
+            or id_ in self.entries
+            or id_ in self.weapons
+        )
 
 
 def coverage_problems(table: Table) -> list[str]:
