@@ -1,0 +1,1242 @@
+ ▐▛███▛█   Claude Code v2.1.316
+▝▜██████▀  Opus 5.5 · Claude Pro
+ ▝▝   ▝▝   ~/Code/RPGs/AloneVsFEear
+
+
+❯ lets go with next session                                                     
+
+  Listed 1 directory, ran 3 shell commands (ctrl+o to expand)
+
+⏺ Bash(git switch -q main && git pull -q --ff-only && git switch -c
+      r2-skills-harm && git log --oneline -1 && wc -l gameRules/1_2_skills.md
+      gameRules/1_3_arcane_skills…)
+  ⎿  Basculement sur la nouvelle branche 'r2-skills-harm'
+     50fac37 chore: ignore Claude Code agent worktrees (#19)
+          149 gameRules/1_2_skills.md
+     … +26 lines (ctrl+o to expand)
+  ⎿  Updated .gitignore (+3 -0)
+  ⎿  Updated Readme.md (+3 -2)
+  ⎿  Created claude-logs/202611012105-r3-weapons-items.md (+38 -0)
+  ⎿  Updated design/rulings.md (+1 -0)
+  ⎿  Updated docs/content.md (+2 -0)
+  ⎿  … 11 more files changed
+  ⎿  (a git step in this command can move the working tree, so these may be
+     its changes, not edits) (ctrl+o to expand)
+
+⏺ Branch r2-skills-harm created from an up-to-date main. Now reading the Skills
+  and harm rules to propose YAML shapes.
+
+  Searched for 1 pattern, read 2 files (ctrl+o to expand)
+
+⏺ I've set up the r2-skills-harm branch on an updated main and reviewed the
+  relevant rules. Before kicking off the copying agent, I need your input on
+  five open questions, starting one at a time, and I'll proceed with my own
+  judgment on the skill count discrepancy and leaving book references as text
+  unless you object.
+
+⏺ User answered Claude's questions:
+  ⎿  · Skills and Arcane Skills: what ID kind? Both are lists without dice, like
+     the weapon summary: one file each, one entry per Skill. Hidden Skills 
+     found in events will use the same kind(s) later. → Two kinds (Recommended)
+
+⏺ User answered Claude's questions:
+  ⎿  · Where does a Skill's XP cost go? The book prints it in the heading: 
+     'Agile (8 XP)'. D1 (whether plain data like XP costs goes in the YAML or in
+     Python) is due at E6. → Number
+
+⏺ User answered Claude's questions:
+  ⎿  · Basic and Expert: split or not? Every Skill has an Expert line; 4 Arcane 
+     Skills do. In two Skills (Agile, Dodge), a note about both levels is 
+     printed after the Expert line. Note that 'Expert: Add +2 to the above' only
+     makes sense next to the Basic text. → Split (Recommended)
+
+⏺ User answered Claude's questions:
+  ⎿  · Arcane Skills: do Components and Sacrifice get their own fields? The book
+     prints them as labelled lines under the heading (7 Arcane Skills have 
+     them). The engine will check them when rituals come (E18, Step 2). → Own 
+     fields (Recommended)
+
+⏺ User answered Claude's questions:
+  ⎿  · Injury and Insanity tables (d6): what ID do their results get? Each 
+     result has a printed name ('Limping'). The character keeps them for life, 
+     at most 3 of each, and rerolls a result they already have. The rules call 
+     an Insanity result a 'Mental Scar'. → Own IDs (Recommended)
+
+⏺ Shapes settled. Next: loader support for the two Skill lists and the new
+  kinds, tests first. Then I'll launch the copying agent from it.
+
+  Searched for 1 pattern, ran 2 shell commands (ctrl+o to expand)
+
+⏺ Now the tests for the Skill lists, written first:
+
+⏺ Bash(cat >> tests/test_content_validation.py <<'EOF'…)
+  ⎿  tests/test_content_validation.py:406: AssertionError
+     =========================== short test summary info ==================
+     ==========
+     … +15 lines (ctrl+o to expand)
+  ⎿  Updated tests/test_content_validation.py (+141 -0)
+      263  
+      264      with pytest.raises(ContentError, match=r"weapon\.axe: unkn
+           own keys \['damage'\]"):
+      265          load_content(root)
+      266 +                                                              
+      267 +                                                              
+      268 +# --- Lists of Skills and Arcane Skills (prepared for R2) ----
+          +-----------------                                             
+      269 +# No dice: a list of Skills, each with its ID, name, XP cost a
+          +nd rules text; the Expert                                     
+      270 +# line apart. Arcane Skills may have components and a sacrific
+          +e.                                                            
+      271 +                                                              
+      272 +SKILLS = """\                                                 
+      273 +name: Skills                                                  
+      274 +source: skills.md                                             
+      275 +skills:                                                       
+      276 +  - id: skill.agile                                           
+      277 +    name: Agile                                               
+      278 +    xp: 8                                                     
+      279 +    text: Add +1 to your Defense rolls.                       
+      280 +    expert: Add +2 to the above.                              
+      281 +  - id: skill.bow                                             
+      282 +    name: Bow                                                 
+      283 +    xp: 3                                                     
+      284 +    text: Ignore the -1 to hit with a bow.                    
+      285 +"""                                                           
+      286 +                                                              
+      287 +ARCANE_SKILLS = """\                                          
+      288 +name: Arcane Skills                                           
+      289 +source: arcane.md                                             
+      290 +arcane_skills:                                                
+      291 +  - id: arcane_skill.curse                                    
+      292 +    name: Curse                                               
+      293 +    xp: 2                                                     
+      294 +    components: lighter or box of matches.                    
+      295 +    sacrifice: 1 candle, 1 dose of bone powder.               
+      296 +    text: You can perform this ritual to prepare a curse.     
+      297 +  - id: arcane_skill.alien_fighter                            
+      298 +    name: Alien Fighter                                       
+      299 +    xp: 3                                                     
+      300 +    text: You gain +1 to Attack and Defense rolls against Alie
+          +ns.                                                           
+      301 +    expert: the bonus becomes +2.                             
+      302 +"""                                                           
+     … 104 more lines (ctrl+o to expand)
+
+⏺ Failing as expected. Now the model and loader:
+
+⏺ Bash(python3 - <<'EOF'
+      from pathlib import Path…)
+  ⎿  ......................sssssssss.......................................
+     .. [ 89%]
+     ...........................................
+     … +4 lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/content/__init__.py (+2 -0)
+      12      ContentError,
+      13      Entry,
+      14      Roll,
+      15 +    Skill,                                                     
+      16      Table,
+      17      Weapon,
+      18      coverage_problems,
+     ...
+      29      "ContentError",
+      30      "Entry",
+      31      "Roll",
+      32 +    "Skill",                                                   
+      33      "Table",
+      34      "Weapon",
+      35      "coverage_problems",
+  ⎿  Updated src/alone_against_fear/content/loader.py (+53 -3)
+      16      ContentError,
+      17      Entry,
+      18      Roll,
+      19 +    Skill,                                                     
+      20      Table,
+      21      Weapon,
+      22  )
+     ...
+      31  _CATALOGUE_EVENT_KEYS = {"id", "name", "source"}
+      32  _WEAPONS_KEYS = {"name", "source", "weapons"}
+      33  _WEAPON_KEYS = {"id", "name", "text"}
+      34 +_SKILL_KEYS = {"id", "name", "xp", "text", "expert"}           
+      35 +_ARCANE_KEYS = _SKILL_KEYS | {"components", "sacrifice"}       
+      36 +_SKILL_LISTS = {                                               
+      37 +    # key of the list: (ID prefix, what to call it, keys of an 
+         +item)                                                          
+      38 +    "skills": ("skill.", "a Skill", _SKILL_KEYS),              
+      39 +    "arcane_skills": ("arcane_skill.", "an Arcane Skill", _ARCA
+         +NE_KEYS),                                                      
+      40 +}                                                              
+      41  _RANGE = re.compile(r"(\d+)-(\d+)")
+      42  _EVENT_ID = re.compile(r"event\.(\d+)")
+      43  
+      44  
+      45  def load_content(root: Path | str | None = None) -> Content:
+      38 -    """Read the catalogue, every table file and every weapon li
+         -st under `root` (this package                                  
+      39 -    by default)."""                                            
+      46 +    """Read the catalogue, every table file, weapon list and Sk
+         +ill list under `root` (this                                    
+      47 +    package by default)."""                                    
+      48      root = Path(root) if root is not None else CONTENT_DIR
+      49      seen: dict[str, Path] = {}
+      50  
+     ...
+      61          catalogue[item.id] = item
+      62  
+      63      tables, entries, weapons = {}, {}, {}
+      64 +    skills: dict[str, dict[str, Skill]] = {key: {} for key in _
+         +SKILL_LISTS}                                                   
+      65      for path in sorted(root.rglob("*.yaml")):
+      66          if path == catalogue_path:
+      67              continue
+     ...
+      71                  register(weapon.id, path)
+      72                  weapons[weapon.id] = weapon
+      73              continue
+      74 +        if isinstance(raw, dict) and (key := next((k for k in _
+         +SKILL_LISTS if k in raw), None)):                              
+     … 57 more lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/content/model.py (+31 -1)
+      11  
+      12  from ..dice import DiceCode
+      13  
+      14 -KINDS = frozenset({"table", "mission", "event", "weapon"})     
+      14 +KINDS = frozenset(                                             
+      15 +    {"table", "mission", "event", "weapon", "skill", "arcane_sk
+         +ill", "injury", "mental_scar"}                                 
+      16 +)                                                              
+      17  """First segment of every ID. A YAML batch adds the kinds it ne
+          eds."""
+      18  
+      19  
+     ...
+      116      source: str
+      117  
+      118  
+      119 +@dataclass(frozen=True)                                       
+      120 +class Skill:                                                  
+      121 +    """A Skill (`skill.`) or an Arcane Skill (`arcane_skill.`)
+          +: its name, XP cost and rules                                 
+      122 +    as printed, the Expert line apart."""                     
+      123 +                                                              
+      124 +    id: str                                                   
+      125 +    name: str                                                 
+      126 +    xp: int                                                   
+      127 +    text: str                                                 
+      128 +    source: str                                               
+      129 +    expert: str | None = None                                 
+      130 +    """The Expert line, without its label; None when there is 
+          +no Expert level."""                                           
+      131 +    components: str | None = None                             
+      132 +    """Arcane Skills only: the tools the ritual needs, as prin
+          +ted."""                                                       
+      133 +    sacrifice: str | None = None                              
+      134 +    """Arcane Skills only: what the ritual uses up, as printed
+          +."""                                                          
+      135 +                                                              
+      136 +                                                              
+      137  @dataclass(frozen=True)
+      138  class Content:
+      139      tables: Mapping[str, Table]
+     ...
+      142      entries: Mapping[str, Entry]
+      143      weapons: Mapping[str, Weapon] = field(default_factory=dict
+           )
+      144      """The weapon summary, in the book's order."""
+      145 +    skills: Mapping[str, Skill] = field(default_factory=dict) 
+      146 +    """The Skills, in the book's order."""                    
+      147 +    arcane_skills: Mapping[str, Skill] = field(default_factory
+          +=dict)                                                        
+     … 22 more lines (ctrl+o to expand)
+
+⏺ All green. Now the whole-content checks should cover the Skills too (ID
+  scheme, no page references), so the agent's copy is checked:
+
+⏺ Bash(python3 - <<'EOF'
+      from pathlib import Path…)
+  ⎿  .................................................................
+        [100%]
+     65 passed in 0.10s
+     … +2 lines (ctrl+o to expand)
+  ⎿  Updated tests/test_content.py (+9 -0)
+      31          yield from table.entries
+      32  
+      33  
+      34 +def all_skills():                                              
+      35 +    """Every Skill and Arcane Skill."""                        
+      36 +    yield from CONTENT.skills.values()                         
+      37 +    yield from CONTENT.arcane_skills.values()                  
+      38 +                                                               
+      39 +                                                               
+      40  # --- Checks over the whole content ---------------------------
+          ---------------
+      41  
+      42  
+     ...
+      57      segment = r"[a-z0-9]+(?:[_-][a-z0-9]+)*"
+      58      pattern = re.compile(rf"{segment}(?:\.{segment})+")
+      59      ids = list(CONTENT.tables) + list(CONTENT.catalogue) + [e.i
+          d for e in all_entries()]
+      60 +    ids += list(CONTENT.weapons) + [s.id for s in all_skills()]
+      61      for id_ in ids:
+      62          assert pattern.fullmatch(id_), id_
+      63          assert id_.split(".")[0] in KINDS, id_
+     ...
+      76      texts = [t.text for t in CONTENT.tables.values()]
+      77      texts += [note for t in CONTENT.tables.values() for note in
+           t.notes.values()]
+      78      texts += [e.text for e in all_entries()]
+      79 +    texts += [w.text for w in CONTENT.weapons.values()]        
+      80 +    texts += [t for s in all_skills() for t in (s.text, s.exper
+         +t, s.components, s.sacrifice)]                                 
+      81      assert [t for t in texts if t and page.search(t)] == []
+      82  
+      83  
+
+⏺ Now docs/content.md, so the agent copies from the written shapes:
+
+  Searched for 1 pattern, ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      from pathlib import Path…)
+  ⎿  76:| A table | `table.town_exploration` | a short name from the table'
+     s heading, without "table"; `/` becomes `_or_` (`table.woods_or_park`)
+     . The heading's number is kept ("Random book table" gives `table.rando
+     … +15 lines (ctrl+o to expand)
+  ⎿  Updated docs/architecture.md (+5 -3)
+      24      terminal.py     TerminalInterface and main(): play in the t
+          erminal
+      25    content/          the rules text: YAML files, their loader an
+          d model
+      26      loader.py       YAML files → Content
+      27 -    model.py        Content, Table, Entry, Roll, CatalogueTable
+         -, CatalogueEvent, Weapon, the checks                           
+      27 +    model.py        Content, Table, Entry, Roll, CatalogueTable
+         +, CatalogueEvent, Weapon, Skill, the checks                    
+      28      catalogue.yaml  tables and numbered events known but not co
+          pied yet
+      29      tables/         one YAML file per copied table
+      30      weapons/        the weapon summary: a list of weapons
+      31 +    skills/         the Skills and the Arcane Skills: two lists
+      32  ```
+      33  
+      34  Rules that hold for every package ([`CLAUDE.md`](../CLAUDE.md))
+          : the engine never reads input or prints, and the game state re
+          fers to content by ID only and never holds code.
+     ...
+      184  - **A nested table has the ID of the entry that holds it** (`t
+           able.random_encounter.3`), and its entries' notes point to the
+            top table's `notes`.
+      185  - **Two kinds of error.** The loader raises `ContentError` whe
+           n a file is malformed: unknown key, bad roll, unknown dice, an
+            ID defined twice. The checks return lists of problems (gaps a
+           nd overlaps in the dice, references or notes pointing to nothi
+           ng), so a test can show every problem at once.
+      186  - **A table's `dice`** is any dice code, kept in standard form
+           ; the coverage check asks `DiceCode` for its results.
+      186 -- **`KINDS`** lists the first segments an ID may have (`table`
+          -, `mission`, `event`); a YAML batch adds the kinds it needs.  
+      187 +- **`KINDS`** lists the first segments an ID may have (`table`
+          +, `mission`, `event`, `weapon`, `skill`, `arcane_skill`, `inju
+          +ry`, `mental_scar`); a YAML batch adds the kinds it needs.    
+      188  - **The catalogue holds tables and numbered events** (`Catalog
+           ueTable`, `CatalogueEvent`, told apart by the ID's kind); `con
+           tent.events()` lists the events in order.
+      189  - **A weapon list** (a file with a `weapons` key, no dice) loa
+           ds as `Weapon`s (ID, name, text, source), in `content.weapons`
+           ; `id in content` is true for a weapon, so table entries can p
+           oint to one.
+      190 +- **A Skill list** (a file with a `skills` or an `arcane_skill
+          +s` key) loads as `Skill`s (ID, name, XP cost, text, the Expert
+          + line; components and sacrifice for an Arcane Skill), in `cont
+          +ent.skills` and `content.arcane_skills`; `content.skill(id)` f
+          +inds either kind.                                             
+      191  
+      192  Used by: `Game.roll_table` and `Game.play_event` (book mode), 
+           `Game.start_mission`, which checks mission IDs, the terminal, 
+           which shows the text, and the tests.
+      193  
+     ...
+      196  | File | What it covers |
+      197  | --- | --- |
+      198  | `tests/test_content.py` | the real content: the checks over 
+           every table, then what each table says, written from the book 
+           |
+      197 -| `tests/test_content_validation.py` | each check on a small m
+          -ade-up content, so a check that never fires cannot pass unnoti
+          -ced; the weapon list loader |                                 
+      199 +| `tests/test_content_validation.py` | each check on a small m
+          +ade-up content, so a check that never fires cannot pass unnoti
+          +ced; the weapon and Skill list loaders |                      
+      200  | `tests/test_dice.py` | every dice code of the Dice Codes sec
+           tion, chances, seeded and scripted dice |
+      201  | `tests/test_game_state.py` | the game state through `Game`: 
+           levels, character, missions, boxes, history, plain data, loggi
+           ng |
+      202  | `tests/test_town_map.py` | sheets, neighbours, distance, mov
+           es, numbering, Food upkeep, new sheets |
+  ⎿  Updated docs/content.md (+54 -3)
+      57      mission.yaml
+      58    weapons/
+      59      weapon_summary.yaml   the weapon summary: a list of weapons
+           (R3)
+      60 +  skills/                                                      
+      61 +    skills.yaml           the Skills: a list (R2)              
+      62 +    arcane_skills.yaml    the Arcane Skills: a list (R2)       
+      63      (later places/, creatures/ … as the batches need)
+      64  ```
+      65  
+     ...
+      69  
+      70  ## IDs
+      71  
+      69 -Lowercase words joined by `_`, segments joined by `.`. **The fi
+         -rst segment is the kind**: `table`, `mission`, `event`, `weapon
+         -` so far; `creature`, `item`, `skill`… are added by the batch t
+         -hat first needs them.                                          
+      72 +Lowercase words joined by `_`, segments joined by `.`. **The fi
+         +rst segment is the kind**: `table`, `mission`, `event`, `weapon
+         +`, `skill`, `arcane_skill`, `injury`, `mental_scar` so far; `cr
+         +eature`, `item`… are added by the batch that first needs them. 
+      73  
+      74  | What | ID | Rule |
+      75  | --- | --- | --- |
+     ...
+      78  | An entry of a nested table | `table.random_encounter.3.3-5` |
+           parent entry ID, then the roll |
+      79  | A named entry | `mission.bring_home_the_bacon` | an entry tha
+          t is a thing of its own takes that thing's ID instead |
+      80  | A numbered event | `event.12` | `event`, then the event's num
+          ber in the book |
+      81 +| A Skill | `skill.agile` | `skill`, then its name without the 
+         +XP cost, the same way as a table (`skill.strong_grip_on_reality
+         +`) |                                                           
+      82 +| An Arcane Skill | `arcane_skill.curse` | `arcane_skill`, then
+         + its name, the same way |                                      
+      83 +| An Injury, a Mental Scar | `injury.limping`, `mental_scar.par
+         +anoia` | named entries of the Injury and Insanity tables: the k
+         +ind, then the result's printed name |                          
+      84  | A weapon | `weapon.axe` | `weapon`, then its heading in the w
+          eapon summary, the same way as a table: `/` becomes `_or_` (`we
+          apon.hockey_stick_or_golf_club`), words in brackets are kept (`
+          weapon.samurai_sword_authentic`) |
+      85  
+      86  - **IDs are stable.** The game state refers to content by ID on
+          ly, so an ID is never renamed once used.
+      87  - **Rolls in IDs keep the book's numbers.** The book's "1,2)" i
+          s written `1-2`.
+      82 -- **Named entries**: a mission is something the game keeps trac
+         -k of ("the mission you played last time"), so it gets a readabl
+         -e ID instead of `table.mission.3`. Creatures and items decide t
+         -heir IDs in their own batch (R2 to R7), with the same idea.    
+      88 +- **Named entries**: a mission is something the game keeps trac
+         +k of ("the mission you played last time"), so it gets a readabl
+         +e ID instead of `table.mission.3`. So do the results of the Inj
+         +ury and Insanity tables (decided in R2): the character keeps th
+         +em for life and rerolls one they already have. An Insanity resu
+         +lt is a Mental Scar, as the rules call it. Creatures and items 
+         +decide their IDs in their own batch (R2 to R7), with the same i
+         +dea.                                                           
+      89  - **Numbered events** keep the book's number (`event.12`): the 
+          rules call them by it ("play event #12"). Fixed in E5a, which c
+          atalogues them so book mode can record them as played.
+      90  
+      91  ## A table
+     ...
+      150  - **A heading that names two weapons keeps one ID, as printed*
+           * ("Baseball bat or hammer"). Likely to become two IDs sharing
+            the same text when a rule needs to tell them apart; see E6 in
+            the Readme.
+      151  - **Stats stay in the text** ("Damage 2") until D1 is decided 
+           (E6).
+      152  
+      153 +## A list of Skills                                           
+      154 +                                                              
+      155 +The Skills and the Arcane Skills have no dice either: one file
+          + each, a list in the book's order (decided in R2). The key of 
+          +the list gives the kind: `skills` holds `skill.` IDs, `arcane_
+          +skills` holds `arcane_skill.` IDs.                            
+      156 +                                                              
+      157 +```yaml                                                       
+     … 48 more lines (ctrl+o to expand)
+
+⏺ Loader support for Skills is complete and tested (394 passed, 9 skipped, ruff
+  clean), adding the Skill model, validation rules, new ID kinds, whole-content
+  checks, and updated docs. As with R3, the next step is for the agent to branch
+  from this commit, either as a stacked PR or on the same branch.
+
+⏺ User answered Claude's questions:
+  ⎿  · Commit the loader support now ('R2 prep: Skill lists and harm kinds' on 
+     r2-skills-harm), so the copying agent can start from it? → Commit, one 
+     branch (Recommended)
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Committed (f3e315b). Now launching the copying agent: Sonnet, medium effort,
+  in its own worktree.
+
+⏺ Agent(R2: copy Skills and harm tables) Sonnet 5.5  ⎿  Backgrounded agent (↓ to manage · ctrl+o to expand)
+
+⏺ The copying agent is running in the background. While it works, I'll prepare
+  my own extract of the PDFs so I can check its doubtful readings when it
+  reports.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ The extract is ready, so I can check the agent's doubts against the book when
+  it reports. I'll be told when the agent finishes. Then I'll check its worktree
+  (tests, files touched, doubtful readings) and take you through its
+  conventions and doubts one at a time.
+
+  So far:
+  - Your five shape decisions:
+    - Skill IDs: two kinds, skill. and arcane_skill..
+    - The XP cost is a number. This decides that part of D1 early; the rest of
+      D1 stays open until E6.
+    - The Expert line is a field of its own.
+    - Arcane Skills get their own components and sacrifice fields.
+    - Injuries and Mental Scars get their own IDs (injury.limping,
+      mental_scar.paranoia).
+  - Loader support: committed on r2-skills-harm as f3e315b, with its tests and
+    docs. 394 tests pass, 9 skipped, ruff clean.
+  - The copy: Sonnet, medium effort, in its own worktree. Its work comes back to
+    r2-skills-harm after your review, so R2 is one PR.
+
+✻ Brewed for 5m 25s · done 22:43
+
+› Message from general-purpose
+  R2 copying report
+
+  1. Copied and tested
+  - Copied: the 22 Skills, the 11 Arcane Skills, the Insanity table and the
+  Injury table, as YAML.
+  - Files touched: skills/skills.yaml and skills/arcane_skills.yaml (new, under
+  src/alone_against_fear/content/), tables/insanity.yaml and tables/injury.yaml
+  (new, same place), catalogue.yaml (the two table lines removed), the four
+  Markdown files you listed, gameRules/book_errors.md (7 rows appended),
+  tests/test_content_r2.py (new, 39 tests).
+  - catalogue.yaml: I removed the "# Harm (R2)" heading as well, because nothing
+  was left under it. I also removed one blank line.
+  - ruff check and ruff format --check pass.
+  - pytest: 434 passed, 9 skipped, 1 FAILED. It is tests/test_book_mode.py::test
+  _a_long_random_game_reaches_only_known_content[0]. It fails with "assert
+  len(game.campaign.map.sheets) > 1".
+    - It passes in the main checkout (27 passed), so my change causes it.
+    - Once the two tables are real tables, book mode offers different options,
+  so seed 0 of the random walk no longer reaches a second sheet.
+    - I am not allowed to edit that file, so I left it. The coordinator needs to
+  choose the fix: another seed, or a longer walk.
+  - The worktree was created at 50fac37, not f3e315b. I fast-forwarded it to
+  f3e315b with `git merge --ff-only`. That is not a commit.
+
+  2. Worktree: /Users/nathanchalot/Code/RPGs/AloneVsFEear/.claude/worktrees/agen
+  t-a58ef3259c42aefcf
+  - Branch: worktree-agent-a58ef3259c42aefcf, at f3e315b plus uncommitted
+  changes.
+  - Branch r2-skills-harm is checked out in the main checkout, so I could not
+  use that name.
+
+  3. Settled by convention (please confirm)
+  1. Quotes and apostrophes follow the PDF: curly “ ” and ’ (as R3's mission and
+  random objects files do). The Markdown had straight ' used as double quotes,
+  so I changed it too.
+  2. A `text` with one paragraph and no list is a folded block (`>-`) wrapped at
+  78 columns. A `text` with several paragraphs or a list is a literal block
+  (`|-`), with paragraphs separated by a blank line (the stored string has
+  "\n\n") and list lines written "- item". I chose the literal block because a
+  folded block would turn a blank line into a single "\n" and would join the
+  list lines. R3's mission.yaml folds paragraphs to "\n", so this differs from
+  R3. Applied in skills.yaml and arcane_skills.yaml.
+  3. Exorcism `components` is "1 of the following:\n- Holy water\n- Incense\n-
+  Essential oils". There is no blank line before the list.
+  4. `name` is kept exactly as printed. These are "Resistant To Hunger", "Strong
+  Grip On Reality" and "Energy of the Macrocosmos". The IDs are
+  skill.resistant_to_hunger, skill.strong_grip_on_reality and
+  arcane_skill.energy_of_the_macrocosmos.
+  5. The Skills' `expert` values keep the case as printed ("reduce it to no
+  penalty.", "add +2.", "the bonus becomes +2."). The Expert label is cut off,
+  and nothing else changes.
+  6. Table entries: `roll`, `id` (mental_scar.* or injury.*), `name`, `text`.
+  `name` is the printed word without its full stop. The tables have no `text` of
+  their own.
+  7. Both Markdown table files get a final newline. I left their headings ("##
+  insanity table (d6)") in the printed lower case.
+
+  4. Corrections to the printed text (YAML and Markdown)
+  1. All Skills and Arcane Skills: runs of 2 or more spaces became 1 space, and
+  trailing spaces were removed, in the Markdown too (this includes the intro
+  paragraphs, which are not copied into the YAML). Examples are "Your  character
+   begins  with  TWO Skills" and "You  have  +1  to Defense rolls".
+  2. The Markdown files had no final newline, so the Skills text ran into the
+  next heading. I added one.
+  3. Danger Sense: 'the ghost has a 3 in 6 chance of surprising you' became “the
+  ghost has a 3 in 6 chance of surprising you”.
+  4. Curse: 'cast', 'zombie', 'generic' and 'Firing' became “cast”, “zombie”,
+  “generic” and “Firing”. Pentagram: 'break' became “break”. Arcane intro,
+  Markdown only: 'boxes' became “boxes”.
+  5. Apostrophes: target's, spirit's, demon's, creature's and Skill's (the last
+  in the Markdown intro only) became ’.
+  6. Faith: "Exorcism Arcane Skill (see p.17)." became "Exorcism Arcane Skill."
+  The page reference is removed.
+  7. Demon Slayer: "Demonic Horrors table (p.64)." became "Demonic Horrors
+  table."
+  8. Heading "Good SHOT" became "Good Shot", and the ID is skill.good_shot.
+  9. Pentagram books: "The Diabolic Deal" became "The Diabolical Deal", as in
+  the other entries. This is a doubt (see 6.1).
+  10. Summon Servitor books: "Occult guide" became "Occult Guide".
+  11. Summon Servitor: the Markdown had the paragraph "You may attempt to summon
+  another servitor…" inside the sentence "Perform a Will roll at +1 if you have
+  Will, +2 if you … have Will (Expert) against the creature's L". I restored
+  the sentence ("…+2 if you have Will (Expert) against the creature’s L.") and
+  moved that paragraph to the end of the entry, where the PDF has it, after
+  "…between yourself and the Servitor.".
+  12. Summon Servitor: "Components:  bell" became "bell" with a single space.
+  The "Components: 1  of the following:" of Exorcism also lost its double space.
+  13. Insanity table: the Markdown merged rows 2 and 3, and its rows read
+  "Paranoia ." with a space before the full stop (also Phobic, Overconfidence
+  and Shaky, and "Absent Mindedness ."). I split row 2 (Eating Disorder) from
+  row 3 (Absent Mindedness), removed the space before each full stop, and
+  rewrote the file with one row per line.
+  14. Injury table: "You have a  permanent -1" (Eye damage) now has one space,
+  and "Facial scar ." became "Facial scar.". The same applies to the other
+  names.
+  15. PDF line-join damage: "accepttheir" in Paranoia and "orto" in Phobic are
+  written "accept their" and "or to". The same applies to "Attackrolls",
+  "rollswith" and "Magicrolls" in the Injury table.
+  16. Page numbers and the running header "Alone against fear" are not part of
+  any text. A paragraph cut by a page break (Gate, Summon Servitor, Energy) is
+  joined.
+
+  5. Book errors kept as printed (added to book_errors.md, batch R2)
+  - Will, Expert line: it lists "Fear, Magic or Psionics" and leaves out the
+  Hypnotism that the Basic line has.
+  - Gate, how to learn: "Read the Occult Guide and the Occultist Skill at Expert
+  level" is missing "have".
+  - Gate: "hell gate" in lower case.
+  - Summon Servitor: "as many times you want", missing "as".
+  - Summon Servitor: "Occultism" where the Skill is called Occultist.
+  - Arcane Skills' labelled lines: some end with a full stop and some do not
+  ("Components: incense", "Sacrifice: 1 candle or 2 Food").
+  - Book names vary: "The Necronomicon" and "Necronomicon", "The Occult Guide"
+  and "Occult Guide".
+
+  6. Doubts
+  1. Pentagram's "The Diabolic Deal": the other lists print "The Diabolical
+  Deal". It could be a typo, which I fixed in both copies as you asked me to
+  write my suggestion, or a different book. If it is a different book, revert it
+  in the YAML, the Markdown and my test.
+  2. Faith: after the page reference was dropped, "It works like the Exorcism
+  Arcane Skill." sits in the Faith text. It now has no pointer to Exorcism's own
+  entry. A future reference (skill → arcane_skill.exorcism) is possible but not
+  added.
+  3. The Insanity and Injury tables: the PDF prints no text with either table.
+  The rules for when to roll are in the "Mental Scars and Injuries" section of
+  the rules chapter. I invented no table `text`. Do you want that paragraph
+  copied as the table `text`, like Mission's? That is the user's call.
+  4. Strong Grip On Reality comes before Slippery in the book's order (not
+  alphabetical). I kept the book's order, and the tests check it.
+  5. Summon Servitor has "Sacrifices:" (plural). It is stored in `sacrifice`
+  without the label, as agreed.
+
+  7. Skill count in the PDF: 22 Skills (Agile to Zombie Hunter, all with an
+  Expert line), plus 11 Arcane Skills. The Readme's "21" is wrong. I did not
+  edit the Readme.
+
+⏺ The agent has finished. Before bringing you its list, I'll check its worktree:
+  the tests, the files it touched, and its doubtful readings against the book.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Agent "R2: copy Skills and harm tables" finished · 6m 12s
+
+  Searched for 1 pattern, ran 1 shell command (ctrl+o to expand)
+
+⏺ Seed 0 falls one box short of starting a second sheet at 400 requests, and
+  book mode's different option count sends the random walk along a different
+  path, while at 500 requests every seed fills a second sheet. I'll now compare
+  the agent's readings against my extract.
+
+  Ran 3 shell commands (ctrl+o to expand)
+
+⏺ The agent's work checks out:
+  - Tests: 434 pass, 9 skipped, ruff clean. One test fails, the long random walk
+    with seed 0, explained below.
+  - Files touched: only the ones it was allowed.
+  - Its readings against my extract of the book: the Insanity and Injury rows,
+    the restored Summon Servitor passage, the paragraph it moved to the end of
+    Summon Servitor, "Diabolic Deal", "Good SHOT" and the Will Expert line all
+    match the printed text.
+
+  Here is the short list. After it, I'll take the doubts one question at a time.
+
+  Settled by convention: please confirm, several at once is fine
+  1. Quotes and apostrophes are curly, as printed, like R3. That includes the
+     Markdown's straight '...' used as quote marks.
+  2. A text of one paragraph is a folded block. A text of several paragraphs or
+     a list is a literal block (|-), with a blank line between paragraphs and
+     list lines as - item. R3's mission text folds its paragraphs into single
+     line breaks, so this differs from R3.
+  3. Exorcism's components: "1 of the following:" then the three items as a
+     list.
+  4. Names keep their printed case: "Resistant To Hunger", "Strong Grip On
+     Reality", "Energy of the Macrocosmos". The book's optional Skill tables
+     print "Resistant to Hunger".
+  5. An expert line keeps its printed case once the label is cut ("add +2.",
+     "the bonus becomes +2.").
+  6. A table entry's name has no full stop. Neither table gets a text of its
+     own.
+  7. The Markdown table headings stay lower case, as printed ("insanity table
+     (d6)").
+  8. The "# Harm (R2)" comment is removed from catalogue.yaml, since nothing is
+     left under it.
+
+  Corrections to the printed text (YAML and Markdown together)
+  - Runs of spaces became one space, trailing spaces were removed, and the
+    Markdown files got a final newline.
+  - Straight quotes became curly: Danger Sense ("the ghost has…"); Curse
+    ("cast", "zombie", "generic", "Firing"); Pentagram ("break"); and "boxes" in
+    the Arcane Skills intro, in the Markdown only. Apostrophes became ’
+    (target's, spirit's, demon's, creature's, Skill's).
+  - Page references removed: Faith "(see p.17)" and Demon Slayer "(p.64)".
+  - "Good SHOT" became "Good Shot" (skill.good_shot), and Summon Servitor's
+    "Occult guide" became "Occult Guide".
+  - Pentagram's "The Diabolic Deal" became "The Diabolical Deal". This is doubt
+    1 below.
+  - Summon Servitor: the sentence cut by a column break is joined again, and the
+    "You may attempt to summon another servitor…" paragraph goes back to the
+    end of the entry.
+  - Insanity: rows 2 and 3 are split again, and the space before each name's
+    full stop is removed ("Paranoia ." became "Paranoia."), the same in the
+    Injury table.
+  - Words run together where lines joined were split: "accepttheir", "orto",
+    "Attackrolls", "rollswith", "Magicrolls". "a  permanent" lost its double
+    space.
+  - Paragraphs cut by a page break are joined (Gate, Summon Servitor, Energy of
+    the Macrocosmos).
+
+  Book errors kept as printed (added to book_errors.md)
+  - Will's Expert line leaves out the Hypnotism of the Basic line.
+  - Gate: "Read the Occult Guide and the Occultist Skill" is missing "have", and
+    "hell gate" is in lower case.
+  - Summon Servitor: "as many times you want", and "Occultism" where the Skill
+    is called Occultist.
+  - The labelled lines sometimes end with a full stop and sometimes don't.
+  - Book names vary: "The Necronomicon" and "Necronomicon", "The Occult Guide"
+    and "Occult Guide".
+
+  Doubts
+  1. Pentagram's "The Diabolic Deal": a typo, or a different book?
+  2. Faith: "It works like the Exorcism Arcane Skill." Should it get a link to
+     arcane_skill.exorcism?
+  3. The harm tables: should the rules' "Mental Scars and Injuries" paragraph
+     become each table's text?
+  4. The 4th and 5th doubts need no answer: the book's order is kept (Strong
+     Grip On Reality before Slippery), and "Sacrifices:" (plural) goes in
+     sacrifice.
+
+  My own observation
+  5. The failing test is the long random walk with seed 0, owned by E5b. With
+  the two tables copied, book mode lists more tables to pick from, so the random
+  walk changes path. Seed 0 now stops one box short of a second sheet at 400
+  requests. At 500 requests every seed reaches one. I suggest raising it to 500.
+
+  The Skill count is 22 in the book, so the Readme's 21 gets fixed at wrap-up.
+
+⏺ User declined to answer questions
+  ⎿  · Do you confirm the agent's conventions 1–8 (curly quotes, literal blocks 
+     for several paragraphs, Exorcism's list, printed case for names and Expert 
+     lines, no full stop in entry names and no table text, lower-case Markdown 
+     headings, the empty catalogue heading removed) and its corrections to the 
+     printed text? (Confirm all / Confirm, except…)
+
+✻ Cooked for 1h 23m 27s · done 22:53
+
+❯ no reask i made a mistake                                                     
+
+⏺ User answered Claude's questions:
+  ⎿  · Do you confirm the agent's conventions 1–8 (curly quotes, literal blocks 
+     for several paragraphs, Exorcism's list, printed case for names and Expert 
+     lines, no full stop in entry names and no table text, lower-case Markdown 
+     headings, the empty catalogue heading removed) and its corrections to the 
+     printed text? → I don t know, what does 2. changes? 3. If its ok when 
+     prsing then ok. 6. Neither table get a text of its own, whats the 
+     consequcnce ? 8. Ok i guess (I don t know). Doubts: 1. I prefer "The 
+     Diabolic Deal" vs "Diabolical Deal". , even more if this is the book rule 
+     version. 2. I don t think so, if we need to duplicate content we duplicate 
+     content. (If the link is needed later on, will it be easy to fix ?), 3. I 
+     don t know ? What is text used for ? DWhat does the text say ? 5. ok raise 
+     it
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Answers to your questions:
+
+  2. Literal or folded block: what changes? Only how the line breaks are stored,
+  and so how the terminal shows a text of several paragraphs. The terminal
+  prints a text's line breaks as they are and doesn't wrap lines itself.
+  - A folded block (>-, R3's way) joins the lines you write into one line. A
+    blank line becomes a single line break, so paragraphs show one under the
+    other with no gap. A list would also be joined into one line ("- Holy water
+    - Incense …"), unless written indented.
+  - A literal block (|-, the agent's way) keeps every line break as written.
+    Paragraphs show with a blank line between them, and each list item gets its
+    own line.
+  - The words are the same either way. The only cost is that R3's mission text
+    (paragraphs, no gap) and the Skills (paragraphs with a gap) look a little
+    different. That's cheap to change later in either direction, since it's only
+    formatting.
+
+  3. Exorcism's list: the engine never parses that text. Behaviour lives in
+  Python keyed by the ID, so it's only shown. OK.
+
+  6 and doubt 3. What a table's text is for. It's the table's own rules, printed
+  with the table, like the Mission table's "At the start of a play session,
+  roll on the Mission table… you may reroll…". The terminal shows it the first
+  time the table is rolled in a game, and again with r.
+  - Without a text, rolling the Injury table shows only the entry rolled
+    ("Limping. You have a permanent -1 on all Escape rolls."), with no reminder
+    of when the table may be used.
+  - The candidate paragraph is the rules chapter's "Mental Scars and Injuries".
+    You may roll on the Insanity table instead of losing Sanity, up to 3 times
+    in the character's life, and likewise on the Injury table instead of taking
+    an attack's Damage. A result you already have is rerolled.
+  - The book prints this away from the table, not with it.
+  - Another passage (Life and Sanity) says something different: there the roll
+    prevents 1 or 2 points, not all of an attack's Damage. Which one applies is
+    a rule interpretation for E8, when the game offers the Injury roll.
+  - If the Mission precedent is followed, one of the two passages gets copied as
+    the table's rules before that ruling is made.
+
+  8. catalogue.yaml groups the tables not copied yet under comment headings, one
+  per batch. With both lines gone, "# Harm (R2)" labels nothing. It's harmless
+  either way.
+
+  Doubt 2: no link. Adding one later is easy: a refs field for Skills (a small
+  loader change with its test), one line in the Faith entry, and no ID changes.
+
+  Doubt 5: I'll raise the walk to 500 requests.
+
+  Three things still need your answer:
+
+⏺ User answered Claude's questions:
+  ⎿  · Pentagram prints 'The Diabolic Deal'. The book prints 'The Diabolical 
+     Deal' 5 times: in Curse, Exorcism, Gate, Summon Servitor, and as the book's
+     own entry in the Random Books table. 'Diabolic' appears only in Pentagram.
+     Which do you want? → I would say to rename to diabolical but double check 
+     it s the same by interpreting the context of its quotes ? And maybe right 
+     uit down somewhere so we can remember this if we were wrong ?
+     · Texts of several paragraphs or with a list: literal block (blank line 
+     between paragraphs, one list item per line) as the agent did, or folded 
+     like R3's mission (paragraphs one under the other, lists need indenting)? →
+     I d rather have space displayed, so i would tend to follow the current 
+     agent writting and fix R3 to follow it too in a follow up
+     · Injury and Insanity tables: give them a table text (the rules shown the 
+     first time the table is rolled, and with r)? → I would say to copy and 
+     rework on this when doing E8?
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Found that "The Diabolical Deal" is the only Random Book teaching the rituals
+  in question, matching the Pentagram's list—confirming it's the same book. I'll
+  record this fix and send the answers to the agent.
+  ⎿  Resuming agent a58ef32
+
+⏺ While the agent works, I'll raise the random walk to 500 requests on
+  r2-skills-harm:
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+⏺ Update(tests/test_book_mode.py)
+  ⎿  Added 2 lines, removed 1 line
+      416  def test_a_long_random_game_reaches_only_known_content(content
+           , seed):
+      417      game = Game(dice=RandomDice(seed), content=content)
+      418      game.create_character(life=99, sanity=99, food=99)  # so t
+           he walk lasts
+      419 -    player = RandomPlayer(game, seed, 400)                    
+      419 +    # Long enough that every seed fills a sheet (seed 0 needed
+          + more once R2 was copied).                                    
+      420 +    player = RandomPlayer(game, seed, 500)                    
+      421  
+      422      play(game, player)
+      423  
+
+⏺ The test fix is in. I'll wait for the agent's report, then bring its work back
+  onto r2-skills-harm and take you through what's left: the wrap-up and the R3
+  follow-up to align its texts with literal blocks, which goes into NextSession.
+
+✻ Crunched for 1m 31s · done 23:11
+
+› Message from general-purpose
+  The user's answers are applied in the worktree. Nothing is committed. ruff
+  check and ruff format pass. pytest gives 435 passed, 9 skipped, 1 failed: the
+  known tests/test_book_mode.py random-walk test, seed 0, which you are fixing.
+  I did not touch it.
+
+  Files changed since the last report:
+  - src/alone_against_fear/content/tables/insanity.yaml and injury.yaml: each
+  now has a table `text`, a literal block (`|-`) with the YAML comment above it.
+  The comment reads "From Mental Scars and Injuries in the combat chapter, not
+  printed with the table. To rework at E8, which rules between this and the Life
+  and Sanity passages." (as two comment lines).
+    - The text has the section's three paragraphs, as printed with the usual
+  fixes.
+    - First words: "When you lose Sanity points in any event or encounter, you
+  may prevent that Sanity loss by rolling on the Insanity table..."
+    - Second paragraph: "Likewise, you may do the same with Life points..."
+    - Last paragraph: "When you roll a Mental Scar or Injury that you already
+  have, reroll until you select one you do not have."
+  - gameRules/3_combat.md: only the section "Mental Scars and Injuries" changed.
+  The corrections:
+    - Runs of 2 or more spaces in its three paragraphs became 1 space
+  ("Likewise,  you  may  do  the  same", "These  physical impairments", "When
+  you  roll  a  Mental  Scar").
+    - I checked the text against the PDF. No other difference.
+    - In the YAML I dropped the Markdown links, so the text reads "rolling on
+  the Insanity table" and "rolling on the Injury table" with no link syntax. The
+  links stay in the Markdown.
+  - gameRules/book_errors.md: added the section "## Fixed as typos", with one
+  sentence and the table | Batch | Where | Printed | Fixed | Why |. The one row
+  is R2, Pentagram, books, "The Diabolic Deal" to "The Diabolical Deal", with
+  the reason you gave.
+  - tests/test_content_r2.py: the check that the tables have no text is replaced
+  by test_both_tables_carry_the_mental_scars_and_injuries_section. For each
+  table it checks the first words, the "Likewise" paragraph, that the text ends
+  with the reroll sentence, and that there are 3 paragraphs.
+  tests/test_content_r2.py now has 40 tests, all passing.
+  - Faith is left as it was (no link to Exorcism).
+
+⏺ The agent is done. Now I'll bring its changes onto r2-skills-harm in the main
+  checkout and run everything:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Agent "R2: copy Skills and harm tables" finished · 32s
+
+  Ran 1 shell command (ctrl+o to expand)
+⏺ Tests pass (436 passed, 9 skipped) and ruff is clean, with both tables updated
+  and the Diabolic fix logged. Now I'll split the work into three commits (R2
+  content to YAML, longer random-walk test, R2 wrap-up with
+  Readme/NextSession/log updates), then ask for the transcript export, push and
+  open the PR, and clean up the agent's worktree and branch.
+
+⏺ User answered Claude's questions:
+  ⎿  · Go ahead with commits 1 and 2 as split, remove the agent's worktree and 
+     branch, then the wrap-up (Readme, NextSession, log, transcript export, 
+     push, PR)? → Go ahead (Recommended)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Now the wrap-up docs. First the Readme entries to update:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      from pathlib import Path…)
+  ⎿   Readme.md           | 13 +++++++------
+      design/mvp-scope.md |  4 ++--
+      2 files changed, 9 insertions(+), 8 deletions(-)
+  ⎿  Updated Readme.md (+7 -6)
+       8  
+       9  ## Status
+      10  
+      11 -MVP phase. Rules extraction and domain design ([`design/`](desi
+         -gn/)) are done. The rules text is being copied into YAML: the f
+         -ormat and the four exploration tables (R1), the weapons and ite
+         -ms (R3) are in. The engine has started: dice (E1), the game sta
+         -te (E2), the town map with moves and time (E3), the engine/inte
+         -rface protocol with the game loop (E4), and book mode (E5a, E5b
+         -): a player can walk the town in the terminal, every box's entr
+         -y shown as text and applied with manual actions, until death or
+         - quitting ([how to play](#how-to-play)). Step 1 (E6 on) comes n
+         -ext, with the YAML batches it needs.                           
+      11 +MVP phase. Rules extraction and domain design ([`design/`](desi
+         +gn/)) are done. The rules text is being copied into YAML: the f
+         +ormat and the four exploration tables (R1), the Skills and harm
+         + tables (R2), the weapons and items (R3) are in. The engine has
+         + started: dice (E1), the game state (E2), the town map with mov
+         +es and time (E3), the engine/interface protocol with the game l
+         +oop (E4), and book mode (E5a, E5b): a player can walk the town 
+         +in the terminal, every box's entry shown as text and applied wi
+         +th manual actions, until death or quitting ([how to play](#how-
+         +to-play)). Step 1 (E6 on) comes next, with the YAML batches it 
+         +needs.                                                         
+      12  
+      13  **MVP goal:** play a whole campaign in the terminal, in two ste
+          ps ([MVP scope](design/mvp-scope.md)):
+      14  
+     ...
+      71  ### Deferred
+      72  
+      73  #### [ ] D1 — Rules content format
+      74 -Partly decided: the text lives in YAML and behaviour in Python,
+         - both keyed by ID (see Made). Still open: where plain data goes
+         - (creature stats, item weights, Skill XP costs), in the YAML ne
+         -xt to the text or in Python next to the behaviour. Most entries
+         - mix plain stats with unique rules, so the format must handle b
+         -oth without inventing a DSL.                                   
+      74 +Partly decided: the text lives in YAML and behaviour in Python,
+         + both keyed by ID (see Made). Still open: where plain data goes
+         + (creature stats, item weights), in the YAML next to the text o
+         +r in Python next to the behaviour. Most entries mix plain stats
+         + with unique rules, so the format must handle both without inve
+         +nting a DSL. Skill XP costs are already numbers in the YAML (th
+         +e user, in R2).                                                
+      75  - Decide when: the engine writes its first content (E6).
+      76  
+      77  #### [ ] D8 — genAI integration
+     ...
+      118  - Done when: the four tables are in YAML, and tests check that
+            every table covers its dice range and every reference points 
+           to an existing ID.
+      119  - Depends on: Milestone 4.
+      120  
+      121 -#### [ ] R2 — Skills and harm tables                          
+      122 -The 21 Skills, the 11 Arcane Skills, the Injury and Insanity t
+          -ables.                                                        
+      123 -- Fixes: Insanity table (merged rows 2 and 3).                
+      121 +#### [x] R2 — Skills and harm tables                          
+      122 +The 22 Skills, the 11 Arcane Skills, the Injury and Insanity t
+          +ables.                                                        
+      123 +- Fixes: Insanity table (merged rows 2 and 3), Summon Servitor
+          + (a paragraph cut by a column break).                         
+      124 +- Decided: Skills and Arcane Skills are lists with two ID kind
+          +s (`skill.agile`, `arcane_skill.curse`); the XP cost is a numb
+          +er; the Expert line is a field of its own; Arcane Skills have 
+          +`components` and `sacrifice` fields; Injuries and Mental Scars
+          + are named entries (`injury.limping`, `mental_scar.paranoia`);
+          + several paragraphs are kept apart (literal blocks); the harm 
+          +tables carry the Mental Scars and Injuries section as their te
+          +xt until E8 reworks it; a typo fix is recorded in [the book er
+          +rors list](gameRules/book_errors.md) so it can be checked agai
+          +n ([rules text in YAML](docs/content.md#a-list-of-skills)).   
+      125  - Depends on: R1.
+      126  
+      127  #### [x] R3 — Weapons and items
+     ...
+      218  Each task writes an engine part together with the content that
+            uses it.
+      219  
+      220  #### [ ] E6 — Character and creation
+      220 -Life and Sanity with current and max values; the 21 Skills at 
+          -Basic and Expert; earning and spending XP at any time (Expert 
+          -costs the Skill's cost again). Creation: 2 Skills (no Arcane, 
+          -no Expert), 3 points on Life and Sanity or traded for 1 extra 
+          -Skill or table roll, a random weapon and a knife, 1 Random Obj
+          -ect and 1 Useful Stuff rerolling duplicates, d6 Food. Skill ef
+          -fects stay text until E7.                                     
+      221 +Life and Sanity with current and max values; the 22 Skills at 
+          +Basic and Expert; earning and spending XP at any time (Expert 
+          +costs the Skill's cost again). Creation: 2 Skills (no Arcane, 
+          +no Expert), 3 points on Life and Sanity or traded for 1 extra 
+          +Skill or table roll, a random weapon and a knife, 1 Random Obj
+          +ect and 1 Useful Stuff rerolling duplicates, d6 Food. Skill ef
+          +fects stay text until E7.                                     
+      222  - Rules: [main rules](gameRules/1_1_main_rules.md) (Your Chara
+           cter, Experience), [skills](gameRules/1_2_skills.md), [weapons
+            table](gameRules/tables/1_4_random_weapons_table.md), [random
+            objects](gameRules/tables/2_1_random_object_tables.md), [usef
+           ul stuff](gameRules/tables/2_2_useful_stuff_table.md)
+      223  - Design: [character](design/character.md)
+      224  - Decides: the rest of D1.
+  ⎿  Updated design/mvp-scope.md (+2 -2)
+      68  
+      69  - Dice, rolls vs L with tags, modifiers collected from effects 
+          ([rolls](rolls.md), [effects](effects.md)).
+      70  - Effects and moments: holders, kinds, lifetimes, reactions ([e
+          ffects](effects.md)).
+      71 -- Character: Life, Sanity, the 21 non-Arcane Skills (Basic and 
+         -Expert), **spending XP at any time**, Food, Clues, Injuries and
+         - Mental Scars, death and insanity ([character](character.md)). 
+      71 +- Character: Life, Sanity, the 22 non-Arcane Skills (Basic and 
+         +Expert), **spending XP at any time**, Food, Clues, Injuries and
+         + Mental Scars, death and insanity ([character](character.md)). 
+      72  - Inventory: hands, carry and Food limits, backpack, ammo, disc
+          arding, stash ([inventory](inventory.md)).
+      73  - Character creation: 2 Skills, 3 points, random weapon and kni
+          fe, Random Object and Useful Stuff, d6 Food.
+      74  - Town map, moves, box numbers, Food every 5 boxes ([town map](
+          town-map.md)).
+     ...
+      89  | Places | Street, Store, Farm (the mission's places) | the oth
+          er 11 place tables, Special Events |
+      90  | Creatures | the stats of every creature in the 12 creature ta
+          bles | special rules, until written |
+      91  | Creation | Random Weapon table, weapons from the weapon summa
+          ry, Random Objects, Useful Stuff | item uses that need a mechan
+          ism not in this step |
+      92 -| Skills | the 21 non-Arcane Skills | |                        
+      92 +| Skills | the 22 non-Arcane Skills | |                        
+      93  | Harm | Injury and Insanity tables | |
+      94  | Everything else | | events, side missions, rewards, books, ma
+          gic items, Children's Stuff |
+      95  
+
+⏺ Now NextSession and WorkingWithClaude:
+
+⏺ Bash(python3 - <<'EOF'
+      from pathlib import Path…)
+  ⎿  Planned work sessions with Claude, in order, each with the model and e
+     ffort to use; each wrap-up reviews the next session's. The [Readme](Re
+     adme.md) holds the roadmap and decisions; this file holds the plan for
+     … +43 lines (ctrl+o to expand)
+  ⎿  Updated NextSession.md (+7 -6)
+       4  
+       5  ## Reminders
+       6  
+       7 -- **R3 is a stacked PR** on the E5b branch (`r3-weapons-items` 
+         -on `e5b-book-mode-manual-actions`). Merge E5b first, then retar
+         -get the R3 PR to `main` if GitHub has not done it, and merge it
+         -.                                                              
+       7 +- Merge the R2 PR (`r2-skills-harm`) before starting E6.       
+       8 +- **Literal blocks for R3's texts** (a small PR, Sonnet, any ti
+         +me): R2 keeps a text of several paragraphs or a list as a liter
+         +al block (`|-`, a blank line between paragraphs, one list item 
+         +per line), which the user prefers on screen. R3's mission text 
+         +and any other folded text with several paragraphs move to the s
+         +ame, without changing a word.                                  
+       9 +- The Injury and Insanity tables carry the rules' Mental Scars 
+         +and Injuries section as their text: E8 reworks it, once it rule
+         +s between that section and the Life and Sanity passages (1 or 2
+         + points, or all the Damage of an attack).                      
+      10 +- [`gameRules/book_errors.md`](gameRules/book_errors.md) now al
+         +so lists the typos a batch fixed ("Fixed as typos"), to check a
+         +gain in the review session.                                    
+      11  - E4 dropped log replay (seed + answers played back through the
+           scripted interface): not needed for now. The seed and every an
+          swer are still logged, so it can be added when a bug needs it.
+      12  - Home is a Safe House by default ([ruling](design/rulings.md#s
+          afe-houses)), but until E15 it is a plain box: it rolls the 1 i
+          n 6 and can be Searched (a pending test waits for E15).
+      13  - Attaching a sheet by stepping onto it (the Readme's "Any time
+          " item) replaces the "attach a new sheet" action: a small PR of
+           its own, any time.
+     ...
+      18  
+      19  ## Plan
+      20  
+      18 -1. **R2** — the 21 Skills, the 11 Arcane Skills, the Injury and
+         - Insanity tables. Shapes to settle with the user first (Skills 
+         -and Arcane Skills are not plain tables: ID kind, fields), then 
+         -copying by a background agent as R3 was, or a plain session. Ev
+         -ery correction is shown to the user; book errors kept as printe
+         -d go to [`gameRules/book_errors.md`](gameRules/book_errors.md).
+      19 -   Model: **Opus, high effort** for the session that settles th
+         -e shapes and coordinates; **Sonnet, medium effort** for the cop
+         -ying agent. R3 showed the user's time goes to the decisions, so
+         - the coordinator needs Opus.                                   
+      20 -2. **E6** — character and creation, and the rest of D1 (where p
+         -lain data goes). Decides the weapon IDs that name two weapons (
+         -likely two IDs sharing the text, see the Readme).              
+      21 -   Model: **Opus, high effort**.                               
+      22 -3. **Step 1** — E7 to E17, one task per session, with the R bat
+         -ches done ahead of the task that needs them (R4 before E12, R5 
+         -before E16; R6 and R7 any time). The batches do not touch the e
+         -ngine and can run as background agents of a coordinator session
+         -.                                                              
+      21 +1. **E6** — character and creation, and the rest of D1 (where p
+         +lain data goes). Decides the weapon IDs that name two weapons (
+         +likely two IDs sharing the text, see the Readme).              
+      22 +   Model: **Opus, high effort** (kept after R2: E6 decides D1 a
+         +nd the weapon IDs, design work with the user).                 
+      23 +2. **Step 1** — E7 to E17, one task per session, with the R bat
+         +ches done ahead of the task that needs them (R4 before E12, R5 
+         +before E16; R6 and R7 any time). The batches do not touch the e
+         +ngine and can run as background agents of a coordinator session
+         +.                                                              
+      24     Model: per task, from the [model table](WorkingWithClaude.md
+          #which-model-for-which-session): Opus, high effort for E7, E8, 
+          E10 and E12; Sonnet for the others; Sonnet, medium effort for t
+          he copying agents, Opus for R6 (events).
+  ⎿  Updated WorkingWithClaude.md (+1 -1)
+      82  
+      83  The YAML batches do not touch the engine, so a batch can run in
+           its own worktree and branch while an engine session runs in an
+          other. Each still ends with its own log and PR.
+      84  
+      85 -Only the YAML batches really parallelize: the engine tasks form
+         - a chain (only E8 ∥ E9 and E15 ∥ E12–E14 could overlap), and th
+         -eir design choices are made in conversation with the user. Runn
+         -ing batches in parallel saves time, not cost, and reviewing sev
+         -eral PRs becomes the bottleneck. A first coordinator run on R2 
+         -and R3 gathered every doubt of both batches into one long list 
+         -for the user, and was stopped: the prompt below now handles one
+         - batch at a time, with a short list first, then one question at
+         - a time. R3 then ran as a single background agent inside the E5
+         -b session: the session added the loader support first (the agen
+         -t branched from it, a stacked PR), reviewed the agent's work (t
+         -ests, files touched, doubtful readings checked against the PDF)
+         - and added its own observations before taking the user through 
+         -the doubts one at a time. That went well: the agent took a few 
+         -minutes, and the user's time went to the decisions.            
+      85 +Only the YAML batches really parallelize: the engine tasks form
+         + a chain (only E8 ∥ E9 and E15 ∥ E12–E14 could overlap), and th
+         +eir design choices are made in conversation with the user. Runn
+         +ing batches in parallel saves time, not cost, and reviewing sev
+         +eral PRs becomes the bottleneck. A first coordinator run on R2 
+         +and R3 gathered every doubt of both batches into one long list 
+         +for the user, and was stopped: the prompt below now handles one
+         + batch at a time, with a short list first, then one question at
+         + a time. R3 then ran as a single background agent inside the E5
+         +b session: the session added the loader support first (the agen
+         +t branched from it, a stacked PR), reviewed the agent's work (t
+         +ests, files touched, doubtful readings checked against the PDF)
+         + and added its own observations before taking the user through 
+         +the doubts one at a time. That went well: the agent took a few 
+         +minutes, and the user's time went to the decisions. R2 repeated
+         + it in its own session: shapes first (one question each, with Y
+         +AML previews), the loader support committed on the batch branch
+         +, then one agent; its work came back to the same branch, so one
+         + PR. The Agent tool's worktree starts from `main`, not from the
+         + current branch: tell the agent the commit to fast-forward to. 
+      86  
+      87  ### Coordinator session
+      88  
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Update(Readme.md)
+  ⎿  Added 1 line
+      212  
+      213  - [ ] After R3: take and drop items as manual actions, picked 
+           from the copied table entries and weapons (an item is its tabl
+           e entry for now, see [rules text in YAML](docs/content.md)).
+      214  - [ ] Attach a sheet by stepping onto it: once a sheet is full
+           , moves also offer the boxes across its edges, and stepping on
+           to one attaches its sheet (replaces the "attach a new sheet" a
+           ction of E5a; smoother to play). A small task of its own, in i
+           ts own PR.
+      215 +- [ ] Literal blocks for R3's texts: a text of several paragra
+          +phs or a list kept as a literal block, as R2 does (a blank lin
+          +e between paragraphs on screen, the user's preference). No wor
+          +d changes. A small PR.                                        
+      216  
+      217  ### Milestone 6 — Step 1: Bring Home the Bacon
+      218  
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Write(claude-logs/202611012314-r2-skills-harm.md)
+  ⎿  Wrote 44 lines to claude-logs/202611012314-r2-skills-harm.md
+      1 # R2: Skills and harm tables
+      2 
+      3 - Date: 2026-11-01
+      4 - Session ID: 0e66d2dc-5d93-45b2-99d8-e0ff5ba56017 (`~/.claude/pr
+        ojects/-Users-nathanchalot-Code-RPGs-AloneVsFEear/`)
+      5 - Branch: `r2-skills-harm` (the PR is found from it)
+      6 - Model: Opus 5.5, high effort (the session: shapes, loader suppo
+        rt, review, the user's decisions); Sonnet, medium effort (the cop
+        ying agent, in its own worktree)
+      7 - Transcript: [transcripts/202611012314-r2-skills-harm.txt](trans
+     … +38 lines (~4 KB) (ctrl+o to expand)
+
+⏺ The Readme, NextSession, WorkingWithClaude and the log are written. Please
+  export the transcript:
+
+  /export claude-logs/transcripts/202611012314-r2-skills-harm.txt
+
+  Tell me when it's done. Then I'll commit the wrap-up, push r2-skills-harm and
+  open the PR.
+
+✻ Worked for 20m 55s · done 23:14

@@ -4,7 +4,10 @@ Planned work sessions with Claude, in order, each with the model and effort to u
 
 ## Reminders
 
-- **R3 is a stacked PR** on the E5b branch (`r3-weapons-items` on `e5b-book-mode-manual-actions`). Merge E5b first, then retarget the R3 PR to `main` if GitHub has not done it, and merge it.
+- Merge the R2 PR (`r2-skills-harm`) before starting E6.
+- **Literal blocks for R3's texts** (a small PR, Sonnet, any time): R2 keeps a text of several paragraphs or a list as a literal block (`|-`, a blank line between paragraphs, one list item per line), which the user prefers on screen. R3's mission text and any other folded text with several paragraphs move to the same, without changing a word.
+- The Injury and Insanity tables carry the rules' Mental Scars and Injuries section as their text: E8 reworks it, once it rules between that section and the Life and Sanity passages (1 or 2 points, or all the Damage of an attack).
+- [`gameRules/book_errors.md`](gameRules/book_errors.md) now also lists the typos a batch fixed ("Fixed as typos"), to check again in the review session.
 - E4 dropped log replay (seed + answers played back through the scripted interface): not needed for now. The seed and every answer are still logged, so it can be added when a bug needs it.
 - Home is a Safe House by default ([ruling](design/rulings.md#safe-houses)), but until E15 it is a plain box: it rolls the 1 in 6 and can be Searched (a pending test waits for E15).
 - Attaching a sheet by stepping onto it (the Readme's "Any time" item) replaces the "attach a new sheet" action: a small PR of its own, any time.
@@ -15,9 +18,7 @@ Planned work sessions with Claude, in order, each with the model and effort to u
 
 ## Plan
 
-1. **R2** — the 21 Skills, the 11 Arcane Skills, the Injury and Insanity tables. Shapes to settle with the user first (Skills and Arcane Skills are not plain tables: ID kind, fields), then copying by a background agent as R3 was, or a plain session. Every correction is shown to the user; book errors kept as printed go to [`gameRules/book_errors.md`](gameRules/book_errors.md).
-   Model: **Opus, high effort** for the session that settles the shapes and coordinates; **Sonnet, medium effort** for the copying agent. R3 showed the user's time goes to the decisions, so the coordinator needs Opus.
-2. **E6** — character and creation, and the rest of D1 (where plain data goes). Decides the weapon IDs that name two weapons (likely two IDs sharing the text, see the Readme).
-   Model: **Opus, high effort**.
-3. **Step 1** — E7 to E17, one task per session, with the R batches done ahead of the task that needs them (R4 before E12, R5 before E16; R6 and R7 any time). The batches do not touch the engine and can run as background agents of a coordinator session.
+1. **E6** — character and creation, and the rest of D1 (where plain data goes). Decides the weapon IDs that name two weapons (likely two IDs sharing the text, see the Readme).
+   Model: **Opus, high effort** (kept after R2: E6 decides D1 and the weapon IDs, design work with the user).
+2. **Step 1** — E7 to E17, one task per session, with the R batches done ahead of the task that needs them (R4 before E12, R5 before E16; R6 and R7 any time). The batches do not touch the engine and can run as background agents of a coordinator session.
    Model: per task, from the [model table](WorkingWithClaude.md#which-model-for-which-session): Opus, high effort for E7, E8, E10 and E12; Sonnet for the others; Sonnet, medium effort for the copying agents, Opus for R6 (events).
