@@ -36,7 +36,7 @@ The domain vocabulary. Docs, issues and code use these words with these meanings
 - **Box** — one area of town (~2 hours of walking). Counts as every place table rolled in it (a haunted clinic is a Clinic and a Haunted House).
 - **Neighbour** — a box sharing a side or a corner: diagonals included, up to 8.
 - **Distance** — the fewest moves between two boxes, a diagonal step counting as 1.
-- **Home** — the starting box. Not a Safe House: random encounters happen there too.
+- **Home** — the starting box. A Safe House ([rulings](rulings.md#safe-houses)).
 - **Box number** — the order in which boxes are entered (1, 2, 3…). It is the clock of the campaign, never reset between missions: Food, effect durations and some mission triggers count boxes.
 - **Unexplored** / **Visited** box — whether its content was already generated.
 - **Searched** — the box was Searched (once per box, except libraries).

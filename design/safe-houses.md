@@ -28,7 +28,7 @@ stateDiagram-v2
 - **Created by** the House, Cemetery and Clinic tables (Safe House result), Street (a nice place to hide), Place of Worship (optional), Woods/Park (safe area), and events (e.g. a survivor lets you in).
 - **Each source sets its own healing per visit**: House 2 Sanity and 3 Life, Cemetery and Clinic 2 Sanity and 4 Life, Place of Worship 3 Sanity and 2 Life, Woods/Park 1 Life or 1 Sanity. A Safe House is a box status plus the healing its source gave it.
 - **Some are conditional**: the survivor's Safe House holds only while you pay 1 Food on each entry.
-- **Home is not a Safe House.**
+- **Home is a Safe House** ([rulings](rulings.md#safe-houses)), from the start of the game. Switchable: a horrific mode makes it a plain box.
 
 ## Arriving in a former Safe House with a stash
 
@@ -59,3 +59,4 @@ flowchart TD
 
 - The Street table says "if it is the **third** Safe House in play, the closest one is no longer a Safe House", the other tables say "if there are **already 3**". Likely an editing slip: we follow "max 3".
 - The Street Safe House does not say how much it heals on later visits.
+- **Home**: how much it heals on each visit, and whether it counts toward the 3 Safe Houses (and can lose its status as the closest one). Decided with E15.
