@@ -7,10 +7,10 @@ How the work sessions run, and recommendations for them: how many to expect, whi
 1. Start from [NextSession.md](NextSession.md), the [Readme](Readme.md) and the latest log in [`claude-logs/`](claude-logs/).
 2. GitHub issues only for user stories and bugs, and only when needed; the PR then says `Closes #N`. An engine task with no user story gets no issue: the Readme entry is the task.
 3. Work on a dedicated branch; one PR per session. Create the branch in the main checkout; use a worktree only when another session runs at the same time (see [Parallel sessions](#parallel-sessions)). During the session, Claude never commits or pushes without explicit permission.
-4. End by updating the Readme (checkboxes, decisions), `NextSession.md` (remove the done session, adjust the plan, review the model and effort of each planned session in light of this one) and, if the code structure changed, [`docs/architecture.md`](docs/architecture.md).
+4. End by updating the Readme (checkboxes, decisions), `NextSession.md` (remove the done session, adjust the plan, review the next session's model and effort in light of this one) and, if the code structure changed, [`docs/architecture.md`](docs/architecture.md).
 5. Claude writes the session log in `claude-logs/YYYYMMDDHHmm-session-name.md`.
 6. The user exports the transcript with `/export claude-logs/transcripts/YYYYMMDDHHmm-session-name.txt` (same name as the log).
-7. Claude commits the session, pushes the branch, opens the PR, writes the PR link in the log and pushes again. This end-of-session commit and push is agreed once and for all, so the next session starts clean.
+7. Claude commits the session, pushes the branch and opens the PR (the log names the branch, which is enough to find the PR). This end-of-session commit and push is agreed once and for all, so the next session starts clean.
 
 ## How we develop
 
@@ -49,8 +49,8 @@ Rough estimates, for sessions of about 1.5 hours. Not commitments.
 
 - Any task can turn out harder than planned: switch to Opus when a Sonnet session hits a design question.
 - Fable: not used. It does not follow the same pricing rules as the other models.
-- No default effort. Model and effort are picked per session in [NextSession.md](NextSession.md) and reviewed at each wrap-up with what the session showed: a session that struggled moves similar ones up, an easy one moves them down. The table above is only the starting point.
-- The memory files (ask before ruling, no spoilers, commit rules) load the same way whatever the model.
+- No default effort. Model and effort are picked per session in [NextSession.md](NextSession.md); each wrap-up reviews the next session's with what the session showed: a session that struggled moves similar ones up, an easy one moves them down. The table above is only the starting point.
+- [`CLAUDE.md`](CLAUDE.md) (working rules: commits, rulings, spoilers) loads the same way whatever the model.
 
 ## Prompts
 

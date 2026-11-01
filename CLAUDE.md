@@ -4,7 +4,7 @@ Digital solo play of **Alone Against Fear** (Four Against Darkness engine). Read
 
 ## Working rules
 
-- Small planned sessions, one branch and one PR each. **Never commit or push without permission**, except the agreed end-of-session wrap-up (update Readme, NextSession, reviewing each planned session's model and effort, and, if the code structure changed, `docs/architecture.md`; write the log; ask for the transcript export, commit, push, PR, add the PR link to the log).
+- Small planned sessions, one branch and one PR each. **Never commit or push without permission**, except the agreed end-of-session wrap-up (update Readme, NextSession with the next session's model and effort, and, if the code structure changed, `docs/architecture.md`; write the log; ask for the transcript export; commit, push, open the PR).
 - Design before code: model in domain terms in `design/` first. Decide only what is worth deciding yet; propose, do not decide.
 - **Stay agile**: we are under development and learn as we implement. Settle things as we go when changing course later is cheap; prefer the least constraining option. Raise a question only if its answer changes what we build now; the rest goes to a "decide when implementing" list. Reviews too: no finding that asks to decide early what can wait.
 - `design/` describes the game once the MVP is done; a roadmap task can be a transitional step towards it. Where a design page and a ruling disagree, the ruling wins.
