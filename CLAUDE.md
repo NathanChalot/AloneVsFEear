@@ -14,6 +14,7 @@ Digital solo play of **Alone Against Fear** (Four Against Darkness engine). Read
 ## Established facts
 
 - Python, terminal CLI first. The engine is UI-agnostic: it never reads input or prints; it asks requests, an interface answers. No genAI code in the engine.
+- **Callback protocol** (E4): the engine calls `interface.ask(request)` for a choice (the answer must be one of the options) and `interface.tell(event)` for what happened. Interfaces read the game state but change it only through their answers. Saving happens between turns.
 - **Whole model, thin content.** The engine follows the whole design; only a slice of content is written. Anything unwritten goes through **book mode**: show the entry's text, the player applies it with manual actions (which still go through the rules).
 - **Rules text in YAML** (stable ID per table, entry, creature, item, event, Skill); **behaviour in Python**, keyed by the same ID. Plain data placement (stats, weights) is open until E6 (D1). The Markdown in `gameRules/` is the readable copy, fixed together with the YAML.
 - Game state refers to content by ID and never holds code (saving = saving the campaign).
@@ -21,8 +22,9 @@ Digital solo play of **Alone Against Fear** (Four Against Darkness engine). Read
 
 ## Layout and commands
 
-- `src/alone_against_fear/` — package; `src/alone_against_fear/content/` — rules text in YAML (layout and IDs: [`docs/content.md`](docs/content.md)); `tests/` — pytest; `design/` — domain design (Mermaid); `docs/` — code documentation: [`architecture.md`](docs/architecture.md) (packages, classes, who calls whom), [`content.md`](docs/content.md) (rules text in YAML: files, IDs, table shape); `gameRules/` — extracted rules; `claude-logs/` — session logs.
+- `src/alone_against_fear/` — package (`engine/` the rules and state, `interface/` scripted and terminal); `src/alone_against_fear/content/` — rules text in YAML (layout and IDs: [`docs/content.md`](docs/content.md)); `tests/` — pytest; `design/` — domain design (Mermaid); `docs/` — code documentation: [`architecture.md`](docs/architecture.md) (packages, classes, who calls whom), [`content.md`](docs/content.md) (rules text in YAML: files, IDs, table shape); `gameRules/` — extracted rules; `claude-logs/` — session logs.
 - Setup: `python -m venv .venv && .venv/bin/pip install -e '.[dev]'`
+- Play: `.venv/bin/alone-against-fear [--seed N]` (log in `logs/`, git-ignored)
 - Tests: `.venv/bin/pytest`  ·  Lint: `.venv/bin/ruff check .`  ·  Format: `.venv/bin/ruff format .`
 - Tests first; stop at the task's "Done when".
 
