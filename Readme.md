@@ -8,7 +8,7 @@ The rules text is from a commercial book: keep this repository private. The orig
 
 ## Status
 
-MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables are in (R1). The engine has started: dice (E1), the game state (E2), the town map with moves and time (E3), and the engine/interface protocol with the game loop (E4): a player can walk the town in the terminal (`alone-against-fear`). A project review after E4 split book mode into two tasks (E5a, E5b) and trimmed E8 to what its content needs.
+MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables are in (R1). The engine has started: dice (E1), the game state (E2), the town map with moves and time (E3), and the engine/interface protocol with the game loop (E4): a player can walk the town in the terminal ([how to play](#how-to-play)). A project review after E4 split book mode into two tasks (E5a, E5b) and trimmed E8 to what its content needs.
 
 **MVP goal:** play a whole campaign in the terminal, in two steps ([MVP scope](design/mvp-scope.md)):
 
@@ -16,6 +16,29 @@ MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. T
 2. **Close a Hell Gate** — Arcane Skills, books, and missions played one after another until 7 Hell Gates are closed. The game state is shaped as a campaign from the start: the map, the box counter, Food and Clues carry on across missions (see [game flow](design/game-flow.md)).
 
 The engine follows the whole design, but only a thin slice of content is written. Everything else goes through **book mode**: the engine shows the entry's text and the player applies it with manual actions.
+
+## How to play
+
+What the game does today: choose Home, walk the town box by box, eat 1 Food every 5 boxes (or lose 1 Life without Food), and quit. The boxes show nothing yet: book mode (E5a, E5b) comes next. The character is a placeholder (Life 8, Sanity 8, d6 Food) until character creation (E6).
+
+Setup, with Python 3.13 or later (`.tool-versions` pins the version we use):
+
+```
+python -m venv .venv
+.venv/bin/pip install -e .
+```
+
+Play:
+
+```
+.venv/bin/alone-against-fear              # or: .venv/bin/python -m alone_against_fear
+.venv/bin/alone-against-fear --seed 7     # the dice of an earlier game
+```
+
+- Type the number of an option and press Enter. Ctrl-D or Ctrl-C quits.
+- A status line comes before each action: box number, Life, Sanity, Food, XP, Clues.
+- The map: `[n]` the boxes you can choose, `@` where you stand, `H` Home, a number for the last box number written in a visited box, `.` a box not visited yet.
+- Each game writes a log to `logs/` (git-ignored; `--log-dir` to change it): the dice seed, every roll and every answer. Playing again with that seed and the same answers gives the same game.
 
 ## How to use this roadmap
 
