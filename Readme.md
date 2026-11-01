@@ -8,7 +8,7 @@ The rules text is from a commercial book: keep this repository private. The orig
 
 ## Status
 
-MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables are in (R1). The engine has started: dice (E1), the game state (E2), the town map with moves and time (E3), the engine/interface protocol with the game loop (E4), and book mode's reading half (E5a): a player can walk the town in the terminal, every box's entry shown as text ([how to play](#how-to-play)). Manual actions (E5b) come next.
+MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables are in (R1). The engine has started: dice (E1), the game state (E2), the town map with moves and time (E3), the engine/interface protocol with the game loop (E4), and book mode (E5a, E5b): a player can walk the town in the terminal, every box's entry shown as text and applied with manual actions, until death or quitting ([how to play](#how-to-play)). Step 1 (E6 on) comes next, with the YAML batches it needs.
 
 **MVP goal:** play a whole campaign in the terminal, in two steps ([MVP scope](design/mvp-scope.md)):
 
@@ -19,7 +19,7 @@ The engine follows the whole design, but only a thin slice of content is written
 
 ## How to play
 
-What the game does today: choose Home, walk the town box by box, eat 1 Food every 5 boxes (or lose 1 Life without Food), and quit. A new box rolls the Town Exploration table, a visited box a 1 in 6 chance of a Random Encounter, and the box is resolved before you do anything else: the entry reached is shown, and the game follows it to the next table (it asks when the text says "your choice", it rolls the die when the text rolls one). A table or event not copied yet points to its Markdown file and the number rolled, and you say where its text leads: another table, a numbered event, or nowhere else. You apply what the text does to you yourself, until the manual actions (E5b). Once every box of a sheet is visited, you can attach a new sheet. The character is a placeholder (Life 8, Sanity 8, d6 Food) until character creation (E6).
+What the game does today: choose Home, walk the town box by box, eat 1 Food every 5 boxes (or lose 1 Life without Food), and quit. A new box rolls the Town Exploration table, a visited box a 1 in 6 chance of a Random Encounter, and the box is resolved before you do anything else: the entry reached is shown, and the game follows it to the next table (it asks when the text says "your choice", it rolls the die when the text rolls one). A table or event not copied yet points to its Markdown file and the number rolled: you apply its text with manual actions (gain or lose Life, Sanity, Food, XP or Clues; a roll vs L; write or remove a note; mark the box as a Safe House), then say where it leads: another table, a numbered event, or nowhere else. Notes are your reminders of lasting effects and modifiers the game cannot track yet, shown with the box number they were written at. Between moves you may Search the box once (not a Safe House), or apply an effect (the manual actions about the character). The game ends at 0 Life or Sanity, once the entry that took them is applied. Items come once they are copied (R3). Once every box of a sheet is visited, you can attach a new sheet. The character is a placeholder (Life 8, Sanity 8, d6 Food) until character creation (E6).
 
 Setup, with Python 3.13 or later (`.tool-versions` pins the version we use):
 
@@ -35,8 +35,8 @@ Play:
 .venv/bin/alone-against-fear --seed 7     # the dice of an earlier game
 ```
 
-- Type the number of an option and press Enter. Actions have letters: `m` move, `s` attach a new sheet (once a sheet is full), `q` quit; where a text leads: `t` a table, `e` a numbered event, `d` nowhere else; `r` the rules of the last table rolled in the box. Tables to choose from are numbered. Ctrl-D or Ctrl-C quits.
-- A status line comes before each action: box number, Life, Sanity, Food, XP, Clues.
+- Type the number of an option and press Enter. Actions have letters: `m` move, `s` search, `a` apply an effect (`b` back), `n` attach a new sheet (once a sheet is full), `q` quit; with a text the game cannot read: `g` gain, `l` lose, `v` roll vs L, `w` write a note, `x` remove a note, `h` mark a Safe House, then where it leads: `t` a table, `e` a numbered event, `d` nowhere else; `r` the rules of the last table rolled in the box. Tables to choose from are numbered. Type the numbers a text gives (Enter alone is no modifier). Ctrl-D or Ctrl-C quits.
+- A status line comes before each action: box number, Life, Sanity, Food, XP, Clues, then your notes.
 - The map: `[n]` the boxes you can choose, `@` where you stand, `H` Home, a number for the last box number written in a visited box, `.` a box not visited yet.
 - Each game writes a log to `logs/` (git-ignored; `--log-dir` to change it): the dice seed, every roll and every answer. Playing again with that seed and the same answers gives the same game.
 
@@ -152,6 +152,7 @@ Housekeeping, any time:
 - [ ] Repair `0_table_of_content.md`
 - [ ] Remove or complete stub files (`gameRules/Readme.md`, `2_0_tables.md`), rename `7__optional_rules.md`
 - [ ] Fix merged rows in the random skill tables (optional rule, after the MVP)
+- [ ] Review the [book errors kept as printed](gameRules/book_errors.md), once the batches are done: fix, keep or rule on each (the missing words need the meaning first). Each batch adds what it kept.
 
 ### Milestone 4 — Project setup
 
@@ -198,14 +199,16 @@ Load the YAML by ID; roll a table's dice and show only the entry reached, with t
 - Done when: a player can walk the town in the terminal, every box's entry shown as text, and walk onto a new sheet once the first is full.
 - Depends on: E4, R1.
 
-#### [ ] E5b — Book mode: manual actions
+#### [x] E5b — Book mode: manual actions
 Manual actions that go through the rules: gain or lose Life, Sanity, Food, XP or Clues; add or remove an item; make a roll vs L (modifier typed by the player until E7); make a Search roll; mark a Safe House. New request shapes as these actions need them (an amount, an item name, a roll). The turn ends as soon as Life or Sanity reaches 0, once effects have resolved. Fights are applied by hand until E12.
 - Design: [MVP scope](design/mvp-scope.md#book-mode)
+- Decided: manual actions after an entry the engine cannot read, and the ones about the character as the free action "apply an effect" (no Safe House there); notes, with the box number they were written at; Search as a free action, asking a modifier only when there are notes; a loss stops at 0, no max until E6; death checked once the entry is applied. Items wait for R3.
 - Done when: a player can walk the town in the terminal, every box shown as text and applied with manual actions, until death or quitting.
 - Depends on: E5a.
 
 Any time:
 
+- [ ] After R3: take and drop items as manual actions, picked from the copied table entries and weapons (an item is its table entry for now, see [rules text in YAML](docs/content.md)).
 - [ ] Attach a sheet by stepping onto it: once a sheet is full, moves also offer the boxes across its edges, and stepping onto one attaches its sheet (replaces the "attach a new sheet" action of E5a; smoother to play). A small task of its own, in its own PR.
 
 ### Milestone 6 — Step 1: Bring Home the Bacon
@@ -231,6 +234,7 @@ Roll types and context tags; roll vs L with natural 1 and 6; effects with source
 Announce moments; reactions with their scripts; the lifetimes the Skills and Food need (permanent, for the next N boxes, until a moment). Food every 5 boxes becomes a reaction (Resistant to Hunger and Eating Disorder change it); "for the next N boxes" effects. The rest of the effects design comes with the content that needs it: timed steps with E10, combat scopes and the order of reactions on one moment with E12, "would" moments with E13.
 - Design: [effects](design/effects.md)
 - Open: the Food clock when the interval changes mid-game (the [ruling](design/rulings.md#map) eats on every multiple of 5); options at E8.
+- Consider: a manual action "add an effect" (kind, amount, roll, duration) that the engine then applies by itself, so notes are needed only for what it cannot express, or not at all (decided in E5b).
 - Done when: the Food upkeep is a reaction that Resistant to Hunger and Eating Disorder change, and "for the next N boxes" effects end on time, with tests.
 - Depends on: E7.
 

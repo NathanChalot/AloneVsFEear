@@ -73,14 +73,16 @@ YAML batch:
 ```
 Next session: R4 (creatures to YAML). Copy every entry from the original PDFs in origin_rules/,
 fixing OCR damage in the YAML and the Markdown. Never change the meaning; list every doubtful
-reading for me at the end instead of guessing.
+reading for me at the end instead of guessing. Show me every correction to the printed text
+(OCR fixes, spacing, quotes, typos), and add the book errors kept as printed to
+gameRules/book_errors.md.
 ```
 
 ## Parallel sessions
 
 The YAML batches do not touch the engine, so a batch can run in its own worktree and branch while an engine session runs in another. Each still ends with its own log and PR.
 
-Only the YAML batches really parallelize: the engine tasks form a chain (only E8 ∥ E9 and E15 ∥ E12–E14 could overlap), and their design choices are made in conversation with the user. Running batches in parallel saves time, not cost, and reviewing several PRs becomes the bottleneck. A first coordinator run on R2 and R3 gathered every doubt of both batches into one long list for the user, and was stopped: the prompt below now handles one batch at a time, with a short list first, then one question at a time.
+Only the YAML batches really parallelize: the engine tasks form a chain (only E8 ∥ E9 and E15 ∥ E12–E14 could overlap), and their design choices are made in conversation with the user. Running batches in parallel saves time, not cost, and reviewing several PRs becomes the bottleneck. A first coordinator run on R2 and R3 gathered every doubt of both batches into one long list for the user, and was stopped: the prompt below now handles one batch at a time, with a short list first, then one question at a time. R3 then ran as a single background agent inside the E5b session: the session added the loader support first (the agent branched from it, a stacked PR), reviewed the agent's work (tests, files touched, doubtful readings checked against the PDF) and added its own observations before taking the user through the doubts one at a time. That went well: the agent took a few minutes, and the user's time went to the decisions.
 
 ### Coordinator session
 
@@ -126,12 +128,17 @@ medium). Tell each agent:
   and carry on with the rest; stop and report only if the doubt blocks the batch.
 - Tests and ruff must pass. Do not commit or push.
 - No spoilers, no book page references in what you write.
+- Obvious typos (a misspelt word) are fixed; other book errors stay as printed and go to
+  gameRules/book_errors.md (docs/content.md).
 - End with a short report: what was copied, files touched, test results, what you
-  settled by convention (numbered, one line each), and the numbered doubts (the passage,
-  the possible readings, your suggestion), one or two lines each.
+  settled by convention (numbered, one line each), every correction to the printed text
+  (OCR fixes, spacing, quotes, typos: the printed words and the fix), the book errors kept
+  as printed, and the numbered doubts (the passage, the possible readings, your
+  suggestion), one or two lines each.
 
 While they run: tell me when each agent finishes. Take the agents one at a time, in the
-order they finish: check its worktree (tests, files touched), show me a short list of
+order they finish: check its worktree (tests, files touched, its doubtful readings against
+the PDF) and add your own observations, show me a short list of
 that batch's items, one line each: what it settled by convention, then its doubts. Then
 go through them one by one, one item per question (for a doubt: the readings and the
 agent's suggestion), waiting for my answer before the next. I may confirm several

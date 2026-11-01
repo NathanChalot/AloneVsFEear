@@ -17,15 +17,17 @@ src/alone_against_fear/
     protocol.py     requests, events, Interface: how the engine talks to an interface
     loop.py         play(): the game loop, arriving in a box
     book_mode.py    resolving a box: follow each entry; book mode for what the engine cannot read
-    leads.py        how the arrival tables' entries lead on (until E10)
+    manual.py       manual actions: how the player applies a text the engine cannot read
+    leads.py        how the arrival and Search tables' entries lead on (until E10)
   interface/        what answers the engine: reads input, shows the game
     scripted.py     ScriptedInterface: prepared answers, for tests
     terminal.py     TerminalInterface and main(): play in the terminal
   content/          the rules text: YAML files, their loader and model
     loader.py       YAML files → Content
-    model.py        Content, Table, Entry, Roll, CatalogueTable, CatalogueEvent, the checks
+    model.py        Content, Table, Entry, Roll, CatalogueTable, CatalogueEvent, Weapon, the checks
     catalogue.yaml  tables and numbered events known but not copied yet
     tables/         one YAML file per copied table
+    weapons/        the weapon summary: a list of weapons
 ```
 
 Rules that hold for every package ([`CLAUDE.md`](../CLAUDE.md)): the engine never reads input or prints, and the game state refers to content by ID only and never holds code.
@@ -75,7 +77,10 @@ classDiagram
 - **`Game` is the only writer.** It checks only what the state cannot hold (no character, unknown mission, negative amount, missing item) and raises `GameError`; the rules about limits come with their tasks. 
 - **The town is one grid** (`town.py`). `Position` is a `(column, row)` named tuple, for a box in the town and for a sheet in the grid of sheets. A sheet is a 5×6 block (`sheet_of`); `neighbours(position, sheets)` are the 8 boxes around that lie on an attached sheet (open edges are walls), `distance` is the larger of the column and row gaps. Nothing geometric is stored.
 - **Moves.** The engine offers `targets(kind)` and the interface picks; `move(to, kind)` refuses anything else, numbers the box, runs the Food upkeep (every 5th box number on the campaign clock: 1 Food, else 1 Life) and returns an `Arrival`. `MoveKind` has `NORMAL` and `ESCAPE` for now. `choose_home` is box 1 (first sheet, once); `add_sheet` attaches a sheet against a full one.
-- **A box remembers** its places (IDs), `searched` and `marks`.
+- **A box remembers** its places (IDs), `searched` and `marks` (`Mark.SAFE_HOUSE`; other marks are strings until their task).
+- **The character's notes** (`Note`: a text and the box number it was written at) are the player's reminders of what the engine cannot track; `add_note` and `remove_note` keep them, nothing reads them.
+- **Rolls.** `roll_vs(level, modifier)` rolls d6 vs L, a natural 1 failing and a natural 6 succeeding, and returns `RolledVsL`. `search(modifier)` rolls the Search table (a natural 1 stays 1, the result kept on the table), marks the box Searched, records the entry and returns `Searched`; `may_search()` says whether the box may be Searched (once, never a Safe House).
+- **`ended()`** says why the game is over (`End.DEAD` at 0 Life, checked first, `End.INSANE` at 0 Sanity) or None; the loop and book mode both ask it. `End` lives in `state.py`.
 - **Tables and events.** `roll_table(id)` rolls a table's dice, then the dice of the table nested in the entry reached, and returns `Rolled(table_id, results, entry_id)`; a catalogued table is rolled too, with no entry (its source holds it). `play_event(id)` plays a catalogued event. Both record what was reached as `PLAYED` at every level there is (campaign, character, mission), and a place table (`PLACE_TABLES`) rolled where the character stands becomes one of the box's places. `new_sheets()` lists where a sheet may be attached.
 - **The dice are not part of the state**: play is random, so a resumed campaign rolls fresh dice.
 
@@ -92,7 +97,7 @@ sequenceDiagram
     P->>Game: choose_home
     P->>UI: tell(Arrival)
     loop each turn, until dead, insane or quit
-        P->>UI: ask(Choose ACTION, move / sheet / quit)
+        P->>UI: ask(Choose ACTION, move / search / apply / sheet / quit)
         UI-->>P: move
         P->>Game: targets()
         P->>UI: ask(Choose MOVE, targets)
@@ -107,6 +112,9 @@ sequenceDiagram
         loop resolve the box, until an entry leads nowhere
             P->>UI: tell(Rolled)
             P->>UI: ask(Choose CHOICE) or ask(Choose BOOK), when the engine cannot decide
+            opt book mode: manual actions, until the player says where the text leads
+                P->>Game: gain / lose / roll_vs / add_note / add_mark
+            end
             P->>Game: roll_table(the next table) or play_event
         end
     end
@@ -129,18 +137,20 @@ classDiagram
 ```
 
 - **Callback protocol.** The engine holds the interface and calls it while the rules run: `ask(request)` returns the player's answer at once, `tell(event)` reports what happened, in order. A rule deep inside another (a fight inside an event inside an arrival) asks the same way. Chosen over generators (every function on the path would need `yield from`) and a state machine (every multi-step rule cut into states). The price: the game can only be saved between turns, which fits "saving = saving the campaign"; a GUI would run the engine in a thread.
-- **Requests and events are plain data.** `Choose(topic, options)` is the only request so far; the topic tells the interface how to show it (a map for `HOME` and `MOVE`, a menu for `ACTION`, `CHOICE` and `BOOK`, a list for `TABLE`, `EVENT` and `SHEET`). Other shapes (a number, an order) come with the tasks that need them. Events are `Arrival` (from `Game.move`, and for Home), `Rolled` (from `Game.roll_table`), `Wandering` (the 1 in 6 of a visited box), `LeadRolled` (a die an entry rolls to pick its table), `EventPlayed`, `SheetAttached` and `Ended`. Events carry IDs; the interface reads the text in `game.content`.
-- **The answer must be one of the options.** `protocol.ask` refuses anything else with `GameError`, logs the answer and returns the option itself. A scripted answer that is not an option fails the test; the terminal checks the input before answering.
+- **Requests and events are plain data.** Three requests: `Choose(topic, options)` picks one option, `Number(topic, minimum, maximum)` a whole number within its bounds (an amount, an L, a modifier), `Text(topic)` a text that is not empty (a note). The topic tells the interface how to show it (a map for `HOME` and `MOVE`, a menu for `ACTION`, `CHOICE`, `BOOK` and `APPLY`, a list for `TABLE`, `EVENT`, `SHEET`, `STAT` and `NOTES`, a prompt for `AMOUNT`, `LEVEL`, `MODIFIER` and `NOTE`). Events are `Arrival` (from `Game.move`, and for Home), `Rolled` (from `Game.roll_table`), `Wandering` (the 1 in 6 of a visited box), `LeadRolled` (a die an entry rolls to pick its table), `EventPlayed`, `SheetAttached`, `Changed` (a number gained or lost), `RolledVsL`, `Searched`, `Marked`, `NoteWritten`, `NoteRemoved` and `Ended`. Events carry IDs; the interface reads the text in `game.content`.
+- **The answer must fit the request**: one of the options, a number within the bounds, a text that is not empty. `protocol.ask` refuses anything else with `GameError`, logs the answer and returns it (the option itself, the text without the spaces around it). A scripted answer that does not fit fails the test; the terminal checks the input before answering.
 - **`Quit`** may be raised by an interface at any request: the game ends with `End.QUIT` (the terminal raises it on Ctrl-D or Ctrl-C).
-- **The loop** (`play(game, interface) -> End`): creates the placeholder character if there is none (Life 8, Sanity 8, Food d6, until E6), asks for Home if it is not chosen, then turns, as in the [game flow](../design/game-flow.md#2-mission): move, arrive, free actions. The free actions keep their place: `MOVE` first, `SHEET` once a sheet is full, `QUIT` last (Search and the manual actions come with E5b). Moving asks a box among `Game.targets()`, in reading order, and arrives: a new box rolls Town Exploration, a visited one (Home included, until Safe Houses) has a 1 in 6 Random Encounter, and the box is resolved before any free action. A Food upkeep that kills stops the arrival. The game ends at 0 Life (dead, checked first, [ruling](../design/rulings.md#character)), 0 Sanity (insane) or quit.
-- **Resolving a box** (`book_mode.resolve(game, interface, id)`): reaches a table or event through `Game`, tells the interface, then follows where the entry leads until it leads nowhere. A copied entry with a written lead (`leads.LEADS`, keyed by entry ID) plays itself: `Auto` rolls the one table named, `Choice` asks among the tables named ("your choice", nothing else offered), `DieRoll` rolls the die and tells `LeadRolled`. A copied entry with no tables ends the chain. **Book mode** is what the engine cannot read: after a table not copied yet, or a numbered event, it asks where the text leads (`Book.TABLE` then any table, `Book.EVENT` then any event, or `Book.DONE`); a copied entry whose lead is not written offers its own references and `DONE`. As tables are copied and written, fewer questions remain. `leads.py` covers Town Exploration and Random Encounter only, a transitional step until E10's result scripts.
+- **The loop** (`play(game, interface) -> End`): creates the placeholder character if there is none (Life 8, Sanity 8, Food d6, until E6), asks for Home if it is not chosen, then turns, as in the [game flow](../design/game-flow.md#2-mission): move, arrive, free actions. The free actions keep their place: `MOVE` first, `SEARCH` while the box may be Searched, `APPLY` ("apply an effect": `manual.apply_effects`), `SHEET` once a sheet is full, `QUIT` last. The Search asks a `MODIFIER` only when the character has notes, then follows its entry (`book_mode.follow`). Moving asks a box among `Game.targets()`, in reading order, and arrives: a new box rolls Town Exploration, a visited one (Home included, until Safe Houses) has a 1 in 6 Random Encounter, and the box is resolved before any free action. A Food upkeep that kills stops the arrival. The game ends at 0 Life (dead, checked first, [ruling](../design/rulings.md#character)), 0 Sanity (insane) or quit.
+- **Resolving a box** (`book_mode.resolve(game, interface, id)`, or `follow(game, interface, rolled)` for a table already rolled): reaches a table or event through `Game`, tells the interface, then follows where the entry leads until it leads nowhere. A copied entry with a written lead (`leads.LEADS`, keyed by entry ID) plays itself: `Auto` rolls the one table named, `Choice` asks among the tables named ("your choice", nothing else offered), `DieRoll` rolls the die and tells `LeadRolled`, `Nowhere` ends the chain. **Book mode** is what the engine cannot read: a table not copied yet, a numbered event, or a copied entry with no written lead. The `BOOK` menu offers where the text leads (`Book.TABLE` then any table, `Book.EVENT` then any event, or the entry's own references), the manual actions, and `Book.DONE`; it comes back after each manual action. At 0 Life or Sanity it offers only the manual actions and `DONE`, so the chain stops at the entry that kills, once its effects are applied. `leads.py` covers Town Exploration, Random Encounter and Search, a transitional step until E10's result scripts.
+- **Manual actions** (`manual.py`): `Manual` lists them; `offered(game)` gives the ones an entry allows now (gain; lose, only the numbers above 0; roll vs L; write a note; remove one, if any; mark a Safe House, unless the box is one), `apply(game, interface, action)` asks what it needs, changes the state through `Game` and tells the event. A loss stops at 0. `apply_effects` is the free action: the ones about the character, until `Manual.BACK`.
 - **Interfaces read the game, never change it**: the terminal reads `Game` to draw the status line and the map; only its answers move the game on.
 
 ## `interface`: scripted and terminal
 
 - **`ScriptedInterface(answers)`** gives the answers in order, remembers what was `asked` and `told`, and raises `ScriptError` when it runs out. Used by the scenario tests.
 - **`TerminalInterface(game, input_fn, output_fn)`**: a status line before each action, a map of the attached sheets with numbered options (`[1]`), `@` where the character stands, `H` for Home and the last number of visited boxes; a wrong choice is asked again. Input and output are passed in so tests type lines.
-- **Resolving a box in the terminal**: the entry reached with the notes it points to, or, for a table not copied yet, its source and the number rolled, then "Where does the text lead?" (`t`, `e`, `d`). A table's own rules are shown the first time it is rolled in a game, and again on `r`; this is the terminal's choice, not the engine's. Actions have letters (`m`, `s`, `q`) so they keep their key; tables to choose from are numbered.
+- **Resolving a box in the terminal**: the entry reached with the notes it points to, or, for a table not copied yet, its source and the number rolled, then "Apply the text, then where does it lead?" (`t`, `e`, the manual actions, `d`). A table's own rules are shown the first time it is rolled in a game, and again on `r`; this is the terminal's choice, not the engine's. Actions have letters so they keep their key (`m` move, `s` search, `a` apply an effect, `n` new sheet, `q` quit; `g` gain, `l` lose, `v` roll vs L, `w` write a note, `x` remove one, `h` Safe House, `b` back); tables, numbers to lose or gain and notes to remove are numbered.
+- **Typed answers**: a number is asked again until it fits its bounds (Enter alone is no modifier), a note until it is not empty. The character's notes are shown under the status line, and above a modifier to type.
 - **`main(argv)`** (console script `alone-against-fear`, or `python -m alone_against_fear`): `--seed`, `--log-dir` (default `logs`); sets up the log file, loads the content, plays.
 
 ## `content`: the rules text
@@ -175,6 +185,7 @@ classDiagram
 - **A table's `dice`** is any dice code, kept in standard form; the coverage check asks `DiceCode` for its results.
 - **`KINDS`** lists the first segments an ID may have (`table`, `mission`, `event`); a YAML batch adds the kinds it needs.
 - **The catalogue holds tables and numbered events** (`CatalogueTable`, `CatalogueEvent`, told apart by the ID's kind); `content.events()` lists the events in order.
+- **A weapon list** (a file with a `weapons` key, no dice) loads as `Weapon`s (ID, name, text, source), in `content.weapons`; `id in content` is true for a weapon, so table entries can point to one.
 
 Used by: `Game.roll_table` and `Game.play_event` (book mode), `Game.start_mission`, which checks mission IDs, the terminal, which shows the text, and the tests.
 
@@ -183,11 +194,12 @@ Used by: `Game.roll_table` and `Game.play_event` (book mode), `Game.start_missio
 | File | What it covers |
 | --- | --- |
 | `tests/test_content.py` | the real content: the checks over every table, then what each table says, written from the book |
-| `tests/test_content_validation.py` | each check on a small made-up content, so a check that never fires cannot pass unnoticed |
+| `tests/test_content_validation.py` | each check on a small made-up content, so a check that never fires cannot pass unnoticed; the weapon list loader |
 | `tests/test_dice.py` | every dice code of the Dice Codes section, chances, seeded and scripted dice |
 | `tests/test_game_state.py` | the game state through `Game`: levels, character, missions, boxes, history, plain data, logging |
 | `tests/test_town_map.py` | sheets, neighbours, distance, moves, numbering, Food upkeep, new sheets |
 | `tests/test_game_loop.py` | scenarios through a scripted interface: walking 10 boxes, what the engine asks, answers refused and logged, how a game ends |
+| `tests/test_manual_actions.py` | scenarios of the manual actions: in book mode, "apply an effect", notes, death once an entry is applied, the Search roll, rolls vs L, typed answers; pending tests (skipped) for the edge cases of later tasks |
 | `tests/test_book_mode.py` | scenarios of resolving a box: new and visited boxes, automatic and chosen leads, the die an entry rolls, book mode after a table not copied yet, recording, places, attaching a sheet; long random games |
 | `tests/test_terminal.py` | the terminal played with typed lines: walking 10 boxes, the map, wrong choices, end of input, the log file, the entries and rules shown, attaching a sheet |
 | `tests/test_smoke.py` | the package imports |
