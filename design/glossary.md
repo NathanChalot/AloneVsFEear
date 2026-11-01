@@ -14,7 +14,7 @@ The domain vocabulary. Docs, issues and code use these words with these meanings
 - **Character** — the single hero. Has a name, Life, Sanity, Skills, XP, Food, Clues, Inventory, Injuries and Mental Scars.
 - **Life** — physical health. At 0 the character dies. Fully restored between missions.
 - **Sanity** — mental health. At 0 the character goes insane. Fully restored between missions.
-- **Injury** / **Mental Scar** — permanent effect taken to avoid losing 1–2 Life / Sanity. Max 3 of each per character lifetime.
+- **Injury** / **Mental Scar** — permanent effect taken instead of losing Life / Sanity (how much of the loss it negates: see [rulings](rulings.md#character)). Max 3 of each per character lifetime.
 - **Skill** — a capability with a Basic and an Expert level. Most modify rolls. **Arcane Skills** have prerequisites (books, rituals).
 - **XP** — experience points, earned by winning combats and missions, spent at any time to buy Skills or upgrade them to Expert.
 - **Clue** — currency of investigation. Spent to hunt a specific creature.
