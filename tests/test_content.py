@@ -31,6 +31,12 @@ def all_entries():
         yield from table.entries
 
 
+def all_skills():
+    """Every Skill and Arcane Skill."""
+    yield from CONTENT.skills.values()
+    yield from CONTENT.arcane_skills.values()
+
+
 # --- Checks over the whole content ------------------------------------------
 
 
@@ -51,6 +57,7 @@ def test_ids_follow_the_scheme():
     segment = r"[a-z0-9]+(?:[_-][a-z0-9]+)*"
     pattern = re.compile(rf"{segment}(?:\.{segment})+")
     ids = list(CONTENT.tables) + list(CONTENT.catalogue) + [e.id for e in all_entries()]
+    ids += list(CONTENT.weapons) + [s.id for s in all_skills()]
     for id_ in ids:
         assert pattern.fullmatch(id_), id_
         assert id_.split(".")[0] in KINDS, id_
@@ -69,6 +76,8 @@ def test_no_page_reference_is_left():
     texts = [t.text for t in CONTENT.tables.values()]
     texts += [note for t in CONTENT.tables.values() for note in t.notes.values()]
     texts += [e.text for e in all_entries()]
+    texts += [w.text for w in CONTENT.weapons.values()]
+    texts += [t for s in all_skills() for t in (s.text, s.expert, s.components, s.sacrifice)]
     assert [t for t in texts if t and page.search(t)] == []
 
 

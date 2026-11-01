@@ -11,7 +11,9 @@ from dataclasses import dataclass, field
 
 from ..dice import DiceCode
 
-KINDS = frozenset({"table", "mission", "event", "weapon"})
+KINDS = frozenset(
+    {"table", "mission", "event", "weapon", "skill", "arcane_skill", "injury", "mental_scar"}
+)
 """First segment of every ID. A YAML batch adds the kinds it needs."""
 
 
@@ -115,6 +117,24 @@ class Weapon:
 
 
 @dataclass(frozen=True)
+class Skill:
+    """A Skill (`skill.`) or an Arcane Skill (`arcane_skill.`): its name, XP cost and rules
+    as printed, the Expert line apart."""
+
+    id: str
+    name: str
+    xp: int
+    text: str
+    source: str
+    expert: str | None = None
+    """The Expert line, without its label; None when there is no Expert level."""
+    components: str | None = None
+    """Arcane Skills only: the tools the ritual needs, as printed."""
+    sacrifice: str | None = None
+    """Arcane Skills only: what the ritual uses up, as printed."""
+
+
+@dataclass(frozen=True)
 class Content:
     tables: Mapping[str, Table]
     catalogue: Mapping[str, CatalogueTable | CatalogueEvent]
@@ -122,6 +142,10 @@ class Content:
     entries: Mapping[str, Entry]
     weapons: Mapping[str, Weapon] = field(default_factory=dict)
     """The weapon summary, in the book's order."""
+    skills: Mapping[str, Skill] = field(default_factory=dict)
+    """The Skills, in the book's order."""
+    arcane_skills: Mapping[str, Skill] = field(default_factory=dict)
+    """The Arcane Skills, in the book's order."""
 
     def table(self, id_: str) -> Table:
         return self.tables[id_]
@@ -131,6 +155,10 @@ class Content:
 
     def weapon(self, id_: str) -> Weapon:
         return self.weapons[id_]
+
+    def skill(self, id_: str) -> Skill:
+        """A Skill or an Arcane Skill."""
+        return self.skills[id_] if id_ in self.skills else self.arcane_skills[id_]
 
     def events(self) -> list[CatalogueEvent]:
         """Every numbered event, in the book's order."""
@@ -143,6 +171,8 @@ class Content:
             or id_ in self.catalogue
             or id_ in self.entries
             or id_ in self.weapons
+            or id_ in self.skills
+            or id_ in self.arcane_skills
         )
 
 
