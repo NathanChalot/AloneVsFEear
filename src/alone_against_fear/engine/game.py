@@ -17,11 +17,14 @@ from .state import (
     Box,
     Campaign,
     Character,
+    End,
     Happened,
     History,
     Level,
+    Mark,
     Mission,
     MoveKind,
+    Note,
     Position,
     Stat,
     Upkeep,
@@ -49,6 +52,9 @@ PLACE_TABLES = frozenset(
     }
 )
 """The tables that make a box a place: rolled in a box, the box remembers them."""
+
+SEARCH_TABLE = "table.search"
+D6 = DiceCode.parse("d6")
 
 log = logging.getLogger(__name__)
 
@@ -78,6 +84,27 @@ class Rolled:
     entry_id: str | None
 
 
+@dataclass(frozen=True)
+class RolledVsL:
+    """A roll vs L: the die, the modifier, the total and whether it made the L. A natural 1
+    always fails and a natural 6 always succeeds."""
+
+    level: int
+    modifier: int
+    face: int
+    total: int
+    success: bool
+
+
+@dataclass(frozen=True)
+class Searched:
+    """A Search roll: the die, the modifier and the Search table rolled with their result."""
+
+    face: int
+    modifier: int
+    rolled: Rolled
+
+
 class Game:
     def __init__(self, dice: Dice, content: Content, campaign: Campaign | None = None) -> None:
         self.dice = dice
@@ -97,6 +124,15 @@ class Game:
         if self.character.mission is None:
             raise GameError("the character is not on a mission")
         return self.character.mission
+
+    def ended(self) -> End | None:
+        """Why the game is over, or None: dead at 0 Life (checked first, design/rulings.md),
+        insane at 0 Sanity."""
+        if self.character.life <= 0:
+            return End.DEAD
+        if self.character.sanity <= 0:
+            return End.INSANE
+        return None
 
     def history(self, level: Level) -> History:
         match level:
@@ -137,6 +173,26 @@ class Game:
         log.info("character %s %s, now %d", change, stat, value)
         return value
 
+    # --- Rolls -----------------------------------------------------------------------------
+
+    def roll_vs(self, level: int, modifier: int = 0) -> RolledVsL:
+        """Roll d6 + modifier vs L: made on L or more; a natural 1 always fails and a natural 6
+        always succeeds (design/rulings.md, Combat). The modifier is the text's until the
+        Skills and items give theirs (E7)."""
+        face = D6.roll(self.dice).total
+        total = face + modifier
+        success = face != 1 and (face == 6 or total >= level)
+        rolled = RolledVsL(level, modifier, face, total, success)
+        log.info(
+            "roll vs L%d at %+d: %d, total %d, %s",
+            level,
+            modifier,
+            face,
+            total,
+            "success" if success else "failure",
+        )
+        return rolled
+
     def add_item(self, name: str) -> None:
         self.character.items.append(name)
         log.info("character takes %s", name)
@@ -146,6 +202,20 @@ class Game:
             raise GameError(f"the character has no {name}")
         self.character.items.remove(name)
         log.info("character drops %s", name)
+
+    def add_note(self, text: str) -> Note:
+        """A note the player keeps, written at the current box number; the engine never
+        reads it."""
+        note = Note(text, self.campaign.box_counter)
+        self.character.notes.append(note)
+        log.info("character note at box %d: %s", note.box, note.text)
+        return note
+
+    def remove_note(self, note: Note) -> None:
+        if note not in self.character.notes:
+            raise GameError(f"the character has no note {note}")
+        self.character.notes.remove(note)
+        log.info("character note removed: %s", note.text)
 
     # --- Missions --------------------------------------------------------------------
 
@@ -262,6 +332,27 @@ class Game:
     def remove_mark(self, position: Position, mark: str) -> None:
         self._box(position).marks.discard(mark)
         log.info("box %s loses mark %s", tuple(position), mark)
+
+    def may_search(self) -> bool:
+        """The box the character stands in may be Searched: only once, and never a Safe
+        House (`5_how_the_game_works.md`). Libraries and ignored encounters come with E11."""
+        box = self._box(self._position())
+        return not box.searched and Mark.SAFE_HOUSE not in box.marks
+
+    def search(self, modifier: int = 0) -> Searched:
+        """Search the box: d6 + modifier on the Search table, a natural 1 stays 1, the result
+        kept on the table. The box is Searched and the entry recorded."""
+        if not self.may_search():
+            raise GameError(f"box {tuple(self._position())} cannot be Searched")
+        table = self.content.table(SEARCH_TABLE)
+        face = D6.roll(self.dice).total
+        results = DiceCode.parse(table.dice).results()
+        result = face if face == 1 else max(results[0], min(results[-1], face + modifier))
+        entry = table.entry_for(result)
+        self.mark_searched(self._position())
+        self._record_everywhere(Happened.PLAYED, entry.id)
+        log.info("search at %+d: %d, result %d: %s", modifier, face, result, entry.id)
+        return Searched(face, modifier, Rolled(SEARCH_TABLE, (result,), entry.id))
 
     # --- Tables and events ------------------------------------------------------------
 

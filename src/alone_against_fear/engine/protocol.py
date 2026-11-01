@@ -3,7 +3,9 @@
 The engine holds an `Interface` and calls it while the rules run: `ask` when the player has a
 choice to make, `tell` when something happened. Requests, answers and events are plain data,
 so an interface can show them any way it likes and a scripted one can play them in tests.
-The answer to a `Choose` must be one of its options; the engine refuses anything else.
+The answer must fit the request: one of the options of a `Choose`, a whole number within the
+bounds of a `Number`, a text that is not empty for a `Text` (E5b). The engine refuses anything
+else.
 
 An interface raises `Quit` at any request when the player leaves the game.
 """
@@ -15,8 +17,8 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Protocol
 
-from .game import Arrival, GameError, Rolled
-from .state import Position
+from .game import Arrival, GameError, Rolled, RolledVsL, Searched
+from .state import End, Note, Position, Stat
 
 log = logging.getLogger(__name__)
 
@@ -40,14 +42,31 @@ class Topic(StrEnum):
     """Which table the text leads to: any table, copied or not."""
     EVENT = "event"
     """Which numbered event the text leads to."""
+    STAT = "stat"
+    """Which of the character's numbers a manual action changes."""
+    AMOUNT = "amount"
+    """How much is gained or lost (a `Number`)."""
+    LEVEL = "level"
+    """The L of a roll, from the text (a `Number`)."""
+    MODIFIER = "modifier"
+    """The modifier the text gives a roll or a Search, 0 if none (a `Number`)."""
+    NOTE = "note"
+    """The text of a note to write (a `Text`)."""
+    NOTES = "notes"
+    """Which note to remove."""
+    APPLY = "apply"
+    """Which effect to apply, as a free action (the manual actions about the character)."""
 
 
 class Action(StrEnum):
-    """The free actions, once the box is resolved; moving or quitting ends the turn. Search,
-    the manual actions, inventory, spending XP and aborting a mission come with their
-    tasks."""
+    """The free actions, once the box is resolved; moving or quitting ends the turn.
+    Inventory, spending XP and aborting a mission come with their tasks."""
 
     MOVE = "move"
+    SEARCH = "search"
+    """The Search roll; offered while the box may be Searched."""
+    APPLY = "apply"
+    """Apply an effect: opens the manual actions about the character."""
     SHEET = "sheet"
     """Attach a new sheet; offered once a sheet is full."""
     QUIT = "quit"
@@ -72,15 +91,27 @@ class Choose:
     options: tuple
 
 
-class End(StrEnum):
-    """Why a game ended."""
+@dataclass(frozen=True)
+class Number:
+    """Type a whole number, within the bounds given (None: no bound)."""
 
-    DEAD = "dead"
-    """Life went to 0."""
-    INSANE = "insane"
-    """Sanity went to 0."""
-    QUIT = "quit"
-    """The player left; the campaign can go on later."""
+    topic: Topic
+    minimum: int | None = None
+    maximum: int | None = None
+
+    def fits(self, answer: object) -> bool:
+        if not isinstance(answer, int) or isinstance(answer, bool):
+            return False
+        too_low = self.minimum is not None and answer < self.minimum
+        too_high = self.maximum is not None and answer > self.maximum
+        return not (too_low or too_high)
+
+
+@dataclass(frozen=True)
+class Text:
+    """Type a text that is not empty; the spaces around it are dropped."""
+
+    topic: Topic
 
 
 @dataclass(frozen=True)
@@ -117,8 +148,50 @@ class SheetAttached:
     sheet: Position
 
 
-type Request = Choose
-type Event = Arrival | Rolled | Wandering | LeadRolled | EventPlayed | SheetAttached | Ended
+@dataclass(frozen=True)
+class Changed:
+    """One of the character's numbers changed: by how much (negative for a loss) and its new
+    value."""
+
+    stat: Stat
+    amount: int
+    value: int
+
+
+@dataclass(frozen=True)
+class NoteWritten:
+    note: Note
+
+
+@dataclass(frozen=True)
+class NoteRemoved:
+    note: Note
+
+
+@dataclass(frozen=True)
+class Marked:
+    """A box was marked (a Safe House)."""
+
+    position: Position
+    mark: str
+
+
+type Request = Choose | Number | Text
+type Event = (
+    Arrival
+    | Rolled
+    | Wandering
+    | LeadRolled
+    | EventPlayed
+    | SheetAttached
+    | Changed
+    | RolledVsL
+    | Marked
+    | NoteWritten
+    | NoteRemoved
+    | Searched
+    | Ended
+)
 
 
 class Quit(Exception):
@@ -136,12 +209,22 @@ class Interface(Protocol):
 
 
 def ask(interface: Interface, request: Request) -> object:
-    """Ask the interface, refuse an answer that is not an option, and log it."""
+    """Ask the interface, refuse an answer that does not fit the request, and log it."""
     answer = interface.ask(request)
-    if answer not in request.options:
-        raise GameError(f"{answer!r} is not one of the options for {request.topic}")
+    match request:
+        case Choose(options=options):
+            if answer not in options:
+                raise GameError(f"{answer!r} is not one of the options for {request.topic}")
+            answer = options[options.index(answer)]  # the option itself, not a copy
+        case Number():
+            if not request.fits(answer):
+                raise GameError(f"{answer!r} does not fit {request}")
+        case Text():
+            if not isinstance(answer, str) or not answer.strip():
+                raise GameError(f"{answer!r} is not a text for {request.topic}")
+            answer = answer.strip()
     log.info("answer %s: %s", request.topic, _shown(answer))
-    return request.options[request.options.index(answer)]  # the option itself, not a copy
+    return answer
 
 
 def _shown(answer: object) -> str:

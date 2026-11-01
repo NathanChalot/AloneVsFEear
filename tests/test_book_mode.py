@@ -23,14 +23,17 @@ from alone_against_fear.engine import Arrival, Game, GameError, Happened, Level,
 from alone_against_fear.engine.game import Rolled
 from alone_against_fear.engine.leads import LEADS, Auto, Choice, DieRoll
 from alone_against_fear.engine.loop import play
+from alone_against_fear.engine.manual import Manual
 from alone_against_fear.engine.protocol import (
     Action,
     Book,
     Choose,
     EventPlayed,
     LeadRolled,
+    Number,
     Quit,
     SheetAttached,
+    Text,
     Topic,
     Wandering,
 )
@@ -175,7 +178,9 @@ def test_a_table_not_copied_yet_asks_where_its_text_leads(content):
 
     # then its roll is told with no entry, and the player says where the text leads
     assert rolled(interface)[-1] == Rolled("table.street", (4,), None)
-    assert asked(interface, Topic.BOOK) == [Choose(Topic.BOOK, (Book.TABLE, Book.EVENT, Book.DONE))]
+    [book] = asked(interface, Topic.BOOK)
+    assert book.options[:2] == (Book.TABLE, Book.EVENT)
+    assert book.options[-1] is Book.DONE  # the manual actions in between (E5b)
     # and the Street is a place of this box
     assert game.campaign.map.boxes[EAST].places == ["table.street"]
 
@@ -218,7 +223,7 @@ def test_free_actions_come_only_once_the_box_is_resolved(content):
     # the turn's actions: Home, then after the box east was resolved; never in between
     topics = [request.topic for request in interface.asked]
     assert topics == [Topic.HOME, Topic.ACTION, Topic.MOVE, Topic.BOOK, Topic.ACTION]
-    assert interface.asked[-1] == Choose(Topic.ACTION, (Action.MOVE, Action.QUIT))
+    assert interface.asked[-1].topic is Topic.ACTION
 
 
 # --- Scenario: a visited box has a 1 in 6 Random Encounter -----------------------------------
@@ -351,7 +356,13 @@ def test_a_player_attaches_a_sheet_and_walks_onto_it(content):
     play(game, interface)
 
     # then the sheet could go on any side, the new box was explored like any other
-    assert asked(interface, Topic.ACTION)[0].options == (Action.MOVE, Action.SHEET, Action.QUIT)
+    assert asked(interface, Topic.ACTION)[0].options == (
+        Action.MOVE,
+        Action.SEARCH,
+        Action.APPLY,
+        Action.SHEET,
+        Action.QUIT,
+    )
     [choose] = asked(interface, Topic.SHEET)
     assert choose.options == (Position(0, -1), Position(-1, 0), Position(1, 0), Position(0, 1))
     assert SheetAttached(Position(1, 0)) in interface.told
@@ -365,7 +376,8 @@ def test_a_player_attaches_a_sheet_and_walks_onto_it(content):
 class RandomPlayer:
     """Picks a random option for a number of requests, then quits. It prefers boxes not
     visited yet and attaches a sheet when it can, so sheets fill up; it says "nowhere else"
-    half the time, so boxes get resolved."""
+    half the time, so boxes get resolved, and moves most of the time. It types small numbers
+    and short notes (manual actions, Search)."""
 
     def __init__(self, game, seed, requests):
         self.game = game
@@ -377,11 +389,20 @@ class RandomPlayer:
         self.left -= 1
         if self.left <= 0:
             raise Quit
+        if isinstance(request, Number):  # an amount, an L, a modifier: small numbers
+            low = request.minimum if request.minimum is not None else -2
+            return self.random.randint(low, low + 3)
+        if isinstance(request, Text):  # a note
+            return f"note {self.random.randint(1, 9)}"
         options = [option for option in request.options if option is not Action.QUIT]
         if Action.SHEET in options:
             return Action.SHEET
         if Book.DONE in options and self.random.random() < 0.5:
             return Book.DONE
+        if Manual.BACK in options and self.random.random() < 0.5:
+            return Manual.BACK
+        if Action.MOVE in options and self.random.random() < 0.7:
+            return Action.MOVE
         if request.topic is Topic.MOVE:
             new = [box for box in options if box not in self.game.campaign.map.boxes]
             options = new or options

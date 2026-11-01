@@ -1,9 +1,11 @@
 """How the entries of the arrival tables lead on (E5a): behaviour keyed by entry ID.
 
 A copied entry names the tables it sends you to (`refs`), not how it uses them. Here is how, for
-the two tables arriving rolls, as their text says: roll on the one table named, choose between
-the tables named, or roll a die to pick one. A transitional step: the result scripts of E10
-replace this with the whole Town Exploration and Random Encounter.
+the two tables arriving rolls and the Search table (E5b), as their text says: roll on the one
+table named, choose between the tables named, roll a die to pick one, or nothing at all. A
+copied entry with no lead here is book mode: the player applies its text. A transitional step:
+the result scripts of E10 replace this with the whole Town Exploration, Random Encounter and
+Search tables.
 """
 
 from __future__ import annotations
@@ -44,10 +46,20 @@ class DieRoll:
         return tuple(ref for _, ref in self.ranges)
 
 
-type Lead = Auto | Choice | DieRoll
+@dataclass(frozen=True)
+class Nowhere:
+    """ "Nothing found.": the entry does nothing and leads nowhere."""
+
+    @property
+    def refs(self) -> tuple[str, ...]:
+        return ()
+
+
+type Lead = Auto | Choice | DieRoll | Nowhere
 
 _TE = "table.town_exploration"
 _RE = "table.random_encounter"
+_SE = "table.search"
 
 LEADS: Mapping[str, Lead] = {
     f"{_TE}.2": Auto(_RE),
@@ -74,4 +86,7 @@ LEADS: Mapping[str, Lead] = {
     f"{_RE}.5.6": Auto("table.aliens"),
     f"{_RE}.6.1-3": Auto("table.unique_vampires"),
     f"{_RE}.6.4-6": Auto("table.unique_zombies"),
+    f"{_SE}.1": Auto(_RE),
+    f"{_SE}.2-5": Nowhere(),
+    # Search 6 (a pick among 4 rolls, a library, or 1 Clue) stays in book mode until E10.
 }
