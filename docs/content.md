@@ -42,6 +42,8 @@ classDiagram
 
 - **YAML holds the text, Python the behaviour**, both keyed by the same ID ([D1](../Readme.md#deferred)). The YAML holds no rules logic.
 - **The text is copied as printed.** OCR damage is fixed against the original PDFs in `origin_rules/`, and page references become table names ("Roll on the Clinic table (p. 46)" becomes "Roll on the Clinic table"), and words that point at the page layout are dropped ("the Mission table below"). Nothing else changes. The Markdown in `gameRules/` is fixed in the same batch, so both copies say the same thing.
+- **Obvious typos are fixed; other book errors stay as printed** (decided in R3). A misspelt word is fixed ("Scythe/showel" becomes "Scythe/shovel", "visit a stick" becomes "visit a park" as the weapon rules say). A missing word, odd grammar or anything whose meaning is unsure stays as printed ("1 dose be sacrificed") and goes to the list of [book errors kept as printed](../gameRules/book_errors.md), for a review session once the batches are done.
+- **Every correction is shown to the user**: each batch reports every change to the printed text (OCR fixes, spacing and quotes included, page references, typos), with the printed words and the fix, so a misreading is caught before the batch is accepted.
 
 ## Files
 
