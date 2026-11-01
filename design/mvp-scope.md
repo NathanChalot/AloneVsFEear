@@ -68,7 +68,7 @@ From the design, as far as this step's content needs:
 
 - Dice, rolls vs L with tags, modifiers collected from effects ([rolls](rolls.md), [effects](effects.md)).
 - Effects and moments: holders, kinds, lifetimes, reactions ([effects](effects.md)).
-- Character: Life, Sanity, the 21 non-Arcane Skills (Basic and Expert), **spending XP at any time**, Food, Clues, Injuries and Mental Scars, death and insanity ([character](character.md)).
+- Character: Life, Sanity, the 22 non-Arcane Skills (Basic and Expert), **spending XP at any time**, Food, Clues, Injuries and Mental Scars, death and insanity ([character](character.md)).
 - Inventory: hands, carry and Food limits, backpack, ammo, discarding, stash ([inventory](inventory.md)).
 - Character creation: 2 Skills, 3 points, random weapon and knife, Random Object and Useful Stuff, d6 Food.
 - Town map, moves, box numbers, Food every 5 boxes ([town map](town-map.md)).
@@ -89,7 +89,7 @@ From the design, as far as this step's content needs:
 | Places | Street, Store, Farm (the mission's places) | the other 11 place tables, Special Events |
 | Creatures | the stats of every creature in the 12 creature tables | special rules, until written |
 | Creation | Random Weapon table, weapons from the weapon summary, Random Objects, Useful Stuff | item uses that need a mechanism not in this step |
-| Skills | the 21 non-Arcane Skills | |
+| Skills | the 22 non-Arcane Skills | |
 | Harm | Injury and Insanity tables | |
 | Everything else | | events, side missions, rewards, books, magic items, Children's Stuff |
 

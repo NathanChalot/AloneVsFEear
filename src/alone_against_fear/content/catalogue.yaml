@@ -5,10 +5,6 @@
 
 # Items (R3)
 
-# Harm (R2)
-- {id: table.insanity, name: Insanity table, dice: d6, source: gameRules/tables/3_1_insanity_table.md}
-- {id: table.injury, name: Injury table, dice: d6, source: gameRules/tables/3_2_injury_table.md}
-
 # Places (R5)
 - {id: table.street, name: Street table, dice: d6, source: gameRules/tables/places/5_5_street_table.md}
 - {id: table.cemetery, name: Cemetery table, dice: d6, source: gameRules/tables/places/5_6_cemetery_table.md}

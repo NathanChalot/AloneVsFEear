@@ -57,6 +57,9 @@ src/alone_against_fear/content/
     mission.yaml
   weapons/
     weapon_summary.yaml   the weapon summary: a list of weapons (R3)
+  skills/
+    skills.yaml           the Skills: a list (R2)
+    arcane_skills.yaml    the Arcane Skills: a list (R2)
     (later places/, creatures/ … as the batches need)
 ```
 
@@ -66,7 +69,7 @@ src/alone_against_fear/content/
 
 ## IDs
 
-Lowercase words joined by `_`, segments joined by `.`. **The first segment is the kind**: `table`, `mission`, `event`, `weapon` so far; `creature`, `item`, `skill`… are added by the batch that first needs them.
+Lowercase words joined by `_`, segments joined by `.`. **The first segment is the kind**: `table`, `mission`, `event`, `weapon`, `skill`, `arcane_skill`, `injury`, `mental_scar` so far; `creature`, `item`… are added by the batch that first needs them.
 
 | What | ID | Rule |
 | --- | --- | --- |
@@ -75,11 +78,14 @@ Lowercase words joined by `_`, segments joined by `.`. **The first segment is th
 | An entry of a nested table | `table.random_encounter.3.3-5` | parent entry ID, then the roll |
 | A named entry | `mission.bring_home_the_bacon` | an entry that is a thing of its own takes that thing's ID instead |
 | A numbered event | `event.12` | `event`, then the event's number in the book |
+| A Skill | `skill.agile` | `skill`, then its name without the XP cost, the same way as a table (`skill.strong_grip_on_reality`) |
+| An Arcane Skill | `arcane_skill.curse` | `arcane_skill`, then its name, the same way |
+| An Injury, a Mental Scar | `injury.limping`, `mental_scar.paranoia` | named entries of the Injury and Insanity tables: the kind, then the result's printed name |
 | A weapon | `weapon.axe` | `weapon`, then its heading in the weapon summary, the same way as a table: `/` becomes `_or_` (`weapon.hockey_stick_or_golf_club`), words in brackets are kept (`weapon.samurai_sword_authentic`) |
 
 - **IDs are stable.** The game state refers to content by ID only, so an ID is never renamed once used.
 - **Rolls in IDs keep the book's numbers.** The book's "1,2)" is written `1-2`.
-- **Named entries**: a mission is something the game keeps track of ("the mission you played last time"), so it gets a readable ID instead of `table.mission.3`. Creatures and items decide their IDs in their own batch (R2 to R7), with the same idea.
+- **Named entries**: a mission is something the game keeps track of ("the mission you played last time"), so it gets a readable ID instead of `table.mission.3`. So do the results of the Injury and Insanity tables (decided in R2): the character keeps them for life and rerolls one they already have. An Insanity result is a Mental Scar, as the rules call it. Creatures and items decide their IDs in their own batch (R2 to R7), with the same idea.
 - **Numbered events** keep the book's number (`event.12`): the rules call them by it ("play event #12"). Fixed in E5a, which catalogues them so book mode can record them as played.
 
 ## A table
@@ -144,6 +150,51 @@ weapons:
 - **A heading that names two weapons keeps one ID, as printed** ("Baseball bat or hammer"). Likely to become two IDs sharing the same text when a rule needs to tell them apart; see E6 in the Readme.
 - **Stats stay in the text** ("Damage 2") until D1 is decided (E6).
 
+## A list of Skills
+
+The Skills and the Arcane Skills have no dice either: one file each, a list in the book's order (decided in R2). The key of the list gives the kind: `skills` holds `skill.` IDs, `arcane_skills` holds `arcane_skill.` IDs.
+
+```yaml
+name: Skills
+source: gameRules/1_2_skills.md
+skills:
+  - id: skill.agile
+    name: Agile
+    xp: 8
+    text: >-
+      Add +1 to your Defense rolls and rolls performed to climb, jump, or avoid danger.
+
+      The bonus to Defense rolls does not stack with the bonus from the Dodge Skill. Use
+      one or the other.
+    expert: Add +2 to the above.
+```
+
+```yaml
+name: Arcane Skills
+source: gameRules/1_3_arcane_skills.md
+arcane_skills:
+  - id: arcane_skill.curse
+    name: Curse
+    xp: 2
+    components: lighter or box of matches.
+    sacrifice: 1 candle, 1 dose of bone powder.
+    text: >-
+      You may learn this ritual from one of the following books: …
+```
+
+| Field | Of | Meaning |
+| --- | --- | --- |
+| `name`, `source` | list | the heading and the readable Markdown copy |
+| `id`, `name` | Skill | the Skill's ID, its name as printed without the XP cost |
+| `xp` | Skill | the XP cost, a whole number |
+| `text` | Skill | the rules as printed, without the Expert line: the Basic level and any note about both levels |
+| `expert` | Skill | the Expert line, without its "Expert:" label; absent when the Skill has no Expert level |
+| `components`, `sacrifice` | Arcane Skill | the labelled lines as printed, without their label; absent when not printed |
+
+- **The XP cost is a number** (the user, in R2): the engine will need it when Skills are bought with XP. The rest of D1 stays open (E6).
+- **The Expert line is apart**, so a screen can show the level the character has, and a Skill with no `expert` has no Expert level. A note printed after the Expert line (Agile, Dodge) goes at the end of `text`: same words, the order changed.
+- **The books an Arcane Skill is learned from stay in the text**; references to them wait for the books (E18).
+
 ## Known but not copied yet
 
 - **`catalogue.yaml` lists every table not copied yet**, with its ID, name, dice and Markdown source. A reference to a catalogued table is valid.
@@ -165,4 +216,4 @@ Tests over the whole content:
 
 ## Open
 
-- **Where plain data goes** (creature stats, item weights, Skill XP costs): next to the text in the YAML, or in Python next to the behaviour. Decided in E6 ([D1](../Readme.md#deferred)).
+- **Where plain data goes** (creature stats, item weights): next to the text in the YAML, or in Python next to the behaviour. Decided in E6 ([D1](../Readme.md#deferred)). Skill XP costs are already numbers in the YAML (R2).

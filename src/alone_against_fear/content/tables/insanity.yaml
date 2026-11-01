@@ -1,0 +1,48 @@
+id: table.insanity
+name: Insanity table
+dice: d6
+source: gameRules/tables/3_1_insanity_table.md
+# From Mental Scars and Injuries in the combat chapter, not printed with the table:
+# its Insanity paragraph as printed, then the reroll sentence naming only Mental Scars
+# (reworded with the user, see gameRules/book_errors.md). To rework at E8, which rules
+# between this and the Life and Sanity passages.
+text: |-
+  When you lose Sanity points in any event or encounter, you may prevent that Sanity loss by rolling on the Insanity table. You may do so up to 3 times in the lifetime of your character. These Mental Scars are permanent.
+
+  When you roll a Mental Scar that you already have, reroll until you select one you do not have.
+entries:
+  - roll: 1
+    id: mental_scar.paranoia
+    name: Paranoia
+    text: >-
+      When you meet helpful people, you may not accept their Food or healing.
+  - roll: 2
+    id: mental_scar.eating_disorder
+    name: Eating Disorder
+    text: >-
+      You require 1 Food every 3 boxes.
+  - roll: 3
+    id: mental_scar.absent_mindedness
+    name: Absent Mindedness
+    text: >-
+      Every time you need a material component for a ritual or a tool for a
+      task, excluding weapons, roll d6. On a 1, that tool or object is
+      unavailable. If you have a Safe House in play, you left that item at the
+      Safe House. If you have no Safe House in play, the item is lost.
+  - roll: 4
+    id: mental_scar.phobic
+    name: Phobic
+    text: >-
+      You have -1 on all rolls made to avoid losing Sanity or to resist Fear
+      effects of any kind.
+  - roll: 5
+    id: mental_scar.overconfidence
+    name: Overconfidence
+    text: >-
+      You may not make an Escape roll unless you are down to just 1 or 2 Life
+      points.
+  - roll: 6
+    id: mental_scar.shaky
+    name: Shaky
+    text: >-
+      Your maximum Sanity is permanently lowered by 1.

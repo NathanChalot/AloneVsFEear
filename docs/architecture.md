@@ -24,10 +24,11 @@ src/alone_against_fear/
     terminal.py     TerminalInterface and main(): play in the terminal
   content/          the rules text: YAML files, their loader and model
     loader.py       YAML files → Content
-    model.py        Content, Table, Entry, Roll, CatalogueTable, CatalogueEvent, Weapon, the checks
+    model.py        Content, Table, Entry, Roll, CatalogueTable, CatalogueEvent, Weapon, Skill, the checks
     catalogue.yaml  tables and numbered events known but not copied yet
     tables/         one YAML file per copied table
     weapons/        the weapon summary: a list of weapons
+    skills/         the Skills and the Arcane Skills: two lists
 ```
 
 Rules that hold for every package ([`CLAUDE.md`](../CLAUDE.md)): the engine never reads input or prints, and the game state refers to content by ID only and never holds code.
@@ -183,9 +184,10 @@ classDiagram
 - **A nested table has the ID of the entry that holds it** (`table.random_encounter.3`), and its entries' notes point to the top table's `notes`.
 - **Two kinds of error.** The loader raises `ContentError` when a file is malformed: unknown key, bad roll, unknown dice, an ID defined twice. The checks return lists of problems (gaps and overlaps in the dice, references or notes pointing to nothing), so a test can show every problem at once.
 - **A table's `dice`** is any dice code, kept in standard form; the coverage check asks `DiceCode` for its results.
-- **`KINDS`** lists the first segments an ID may have (`table`, `mission`, `event`); a YAML batch adds the kinds it needs.
+- **`KINDS`** lists the first segments an ID may have (`table`, `mission`, `event`, `weapon`, `skill`, `arcane_skill`, `injury`, `mental_scar`); a YAML batch adds the kinds it needs.
 - **The catalogue holds tables and numbered events** (`CatalogueTable`, `CatalogueEvent`, told apart by the ID's kind); `content.events()` lists the events in order.
 - **A weapon list** (a file with a `weapons` key, no dice) loads as `Weapon`s (ID, name, text, source), in `content.weapons`; `id in content` is true for a weapon, so table entries can point to one.
+- **A Skill list** (a file with a `skills` or an `arcane_skills` key) loads as `Skill`s (ID, name, XP cost, text, the Expert line; components and sacrifice for an Arcane Skill), in `content.skills` and `content.arcane_skills`; `content.skill(id)` finds either kind.
 
 Used by: `Game.roll_table` and `Game.play_event` (book mode), `Game.start_mission`, which checks mission IDs, the terminal, which shows the text, and the tests.
 
@@ -194,7 +196,7 @@ Used by: `Game.roll_table` and `Game.play_event` (book mode), `Game.start_missio
 | File | What it covers |
 | --- | --- |
 | `tests/test_content.py` | the real content: the checks over every table, then what each table says, written from the book |
-| `tests/test_content_validation.py` | each check on a small made-up content, so a check that never fires cannot pass unnoticed; the weapon list loader |
+| `tests/test_content_validation.py` | each check on a small made-up content, so a check that never fires cannot pass unnoticed; the weapon and Skill list loaders |
 | `tests/test_dice.py` | every dice code of the Dice Codes section, chances, seeded and scripted dice |
 | `tests/test_game_state.py` | the game state through `Game`: levels, character, missions, boxes, history, plain data, logging |
 | `tests/test_town_map.py` | sheets, neighbours, distance, moves, numbering, Food upkeep, new sheets |

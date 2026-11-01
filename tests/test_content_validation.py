@@ -263,3 +263,144 @@ def test_a_weapon_with_an_unknown_key_is_refused(root):
 
     with pytest.raises(ContentError, match=r"weapon\.axe: unknown keys \['damage'\]"):
         load_content(root)
+
+
+# --- Lists of Skills and Arcane Skills (prepared for R2) ---------------------
+# No dice: a list of Skills, each with its ID, name, XP cost and rules text; the Expert
+# line apart. Arcane Skills may have components and a sacrifice.
+
+SKILLS = """\
+name: Skills
+source: skills.md
+skills:
+  - id: skill.agile
+    name: Agile
+    xp: 8
+    text: Add +1 to your Defense rolls.
+    expert: Add +2 to the above.
+  - id: skill.bow
+    name: Bow
+    xp: 3
+    text: Ignore the -1 to hit with a bow.
+"""
+
+ARCANE_SKILLS = """\
+name: Arcane Skills
+source: arcane.md
+arcane_skills:
+  - id: arcane_skill.curse
+    name: Curse
+    xp: 2
+    components: lighter or box of matches.
+    sacrifice: 1 candle, 1 dose of bone powder.
+    text: You can perform this ritual to prepare a curse.
+  - id: arcane_skill.alien_fighter
+    name: Alien Fighter
+    xp: 3
+    text: You gain +1 to Attack and Defense rolls against Aliens.
+    expert: the bonus becomes +2.
+"""
+
+
+def test_a_list_of_skills_is_loaded_by_id(root):
+    write(root, "skills/skills.yaml", SKILLS)
+
+    content = load_content(root)
+
+    agile = content.skill("skill.agile")
+    assert (agile.name, agile.xp, agile.source) == ("Agile", 8, "skills.md")
+    assert (agile.text, agile.expert) == ("Add +1 to your Defense rolls.", "Add +2 to the above.")
+    assert content.skill("skill.bow").expert is None
+    assert list(content.skills) == ["skill.agile", "skill.bow"]
+    assert "skill.agile" in content
+
+
+def test_a_list_of_arcane_skills_is_loaded_by_id(root):
+    write(root, "skills/arcane_skills.yaml", ARCANE_SKILLS)
+
+    content = load_content(root)
+
+    curse = content.skill("arcane_skill.curse")
+    assert curse.components == "lighter or box of matches."
+    assert curse.sacrifice == "1 candle, 1 dose of bone powder."
+    assert curse.expert is None
+    fighter = content.skill("arcane_skill.alien_fighter")
+    assert (fighter.components, fighter.sacrifice) == (None, None)
+    assert list(content.arcane_skills) == ["arcane_skill.curse", "arcane_skill.alien_fighter"]
+    assert list(content.skills) == []
+    assert "arcane_skill.curse" in content
+
+
+def test_a_reference_to_a_skill_is_valid(root):
+    write(root, "skills/skills.yaml", SKILLS)
+    write(root, "skills/arcane_skills.yaml", ARCANE_SKILLS)
+    write(
+        root,
+        "tables/test.yaml",
+        d6_table("  - {roll: 1-6, text: Learn., refs: [skill.agile, arcane_skill.curse]}\n"),
+    )
+
+    assert reference_problems(load_content(root)) == []
+
+
+def test_a_skill_defined_twice_is_refused(root):
+    write(root, "skills/skills.yaml", SKILLS)
+    write(
+        root,
+        "skills/more.yaml",
+        "name: More\nsource: m.md\nskills:\n  - {id: skill.agile, name: A, xp: 1, text: x}\n",
+    )
+
+    with pytest.raises(ContentError, match="skill.agile is defined twice"):
+        load_content(root)
+
+
+@pytest.mark.parametrize(
+    ("key", "id_", "message"),
+    [
+        ("skills", "arcane_skill.curse", r"a Skill ID starts with skill\."),
+        ("arcane_skills", "skill.curse", r"an Arcane Skill ID starts with arcane_skill\."),
+    ],
+)
+def test_a_skill_needs_the_kind_of_its_list(root, key, id_, message):
+    write(
+        root,
+        "skills/test.yaml",
+        f"name: S\nsource: s.md\n{key}:\n  - {{id: {id_}, name: C, xp: 2, text: x}}\n",
+    )
+
+    with pytest.raises(ContentError, match=message):
+        load_content(root)
+
+
+@pytest.mark.parametrize("xp", ["8 XP", "true", "0"])
+def test_a_skills_xp_cost_is_a_positive_whole_number(root, xp):
+    write(
+        root,
+        "skills/skills.yaml",
+        f"name: S\nsource: s.md\nskills:\n  - {{id: skill.agile, name: A, xp: {xp}, text: x}}\n",
+    )
+
+    with pytest.raises(ContentError, match=r"skill\.agile: the XP cost"):
+        load_content(root)
+
+
+def test_only_an_arcane_skill_has_components(root):
+    write(
+        root,
+        "skills/skills.yaml",
+        "name: S\nsource: s.md\nskills:\n"
+        "  - {id: skill.agile, name: A, xp: 8, text: x, components: incense}\n",
+    )
+
+    with pytest.raises(ContentError, match=r"skill\.agile: unknown keys \['components'\]"):
+        load_content(root)
+
+
+# --- Named entries of the harm tables (prepared for R2) ----------------------
+
+
+def test_injuries_and_mental_scars_are_kinds_of_their_own():
+    from alone_against_fear.content import KINDS
+
+    assert {"skill", "arcane_skill", "injury", "mental_scar"} <= KINDS

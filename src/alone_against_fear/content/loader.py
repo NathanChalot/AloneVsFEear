@@ -16,6 +16,7 @@ from .model import (
     ContentError,
     Entry,
     Roll,
+    Skill,
     Table,
     Weapon,
 )
@@ -30,13 +31,20 @@ _CATALOGUE_KEYS = {"id", "name", "dice", "source"}
 _CATALOGUE_EVENT_KEYS = {"id", "name", "source"}
 _WEAPONS_KEYS = {"name", "source", "weapons"}
 _WEAPON_KEYS = {"id", "name", "text"}
+_SKILL_KEYS = {"id", "name", "xp", "text", "expert"}
+_ARCANE_KEYS = _SKILL_KEYS | {"components", "sacrifice"}
+_SKILL_LISTS = {
+    # key of the list: (ID prefix, what to call it, keys of an item)
+    "skills": ("skill.", "a Skill", _SKILL_KEYS),
+    "arcane_skills": ("arcane_skill.", "an Arcane Skill", _ARCANE_KEYS),
+}
 _RANGE = re.compile(r"(\d+)-(\d+)")
 _EVENT_ID = re.compile(r"event\.(\d+)")
 
 
 def load_content(root: Path | str | None = None) -> Content:
-    """Read the catalogue, every table file and every weapon list under `root` (this package
-    by default)."""
+    """Read the catalogue, every table file, weapon list and Skill list under `root` (this
+    package by default)."""
     root = Path(root) if root is not None else CONTENT_DIR
     seen: dict[str, Path] = {}
 
@@ -53,6 +61,7 @@ def load_content(root: Path | str | None = None) -> Content:
         catalogue[item.id] = item
 
     tables, entries, weapons = {}, {}, {}
+    skills: dict[str, dict[str, Skill]] = {key: {} for key in _SKILL_LISTS}
     for path in sorted(root.rglob("*.yaml")):
         if path == catalogue_path:
             continue
@@ -62,6 +71,11 @@ def load_content(root: Path | str | None = None) -> Content:
                 register(weapon.id, path)
                 weapons[weapon.id] = weapon
             continue
+        if isinstance(raw, dict) and (key := next((k for k in _SKILL_LISTS if k in raw), None)):
+            for skill in _skills(raw, path, key):
+                register(skill.id, path)
+                skills[key][skill.id] = skill
+            continue
         table = _table(raw, path)
         register(table.id, path)
         tables[table.id] = table
@@ -69,7 +83,14 @@ def load_content(root: Path | str | None = None) -> Content:
             register(entry.id, path)
             entries[entry.id] = entry
 
-    return Content(tables=tables, catalogue=catalogue, entries=entries, weapons=weapons)
+    return Content(
+        tables=tables,
+        catalogue=catalogue,
+        entries=entries,
+        weapons=weapons,
+        skills=skills["skills"],
+        arcane_skills=skills["arcane_skills"],
+    )
 
 
 def _read(path: Path) -> Any:
@@ -120,6 +141,35 @@ def _weapons(raw: dict, path: Path) -> list[Weapon]:
             raise ContentError(f"{what}: a weapon ID starts with weapon.")
         weapons.append(Weapon(item["id"], item["name"], item["text"], raw["source"]))
     return weapons
+
+
+def _skills(raw: dict, path: Path, key: str) -> list[Skill]:
+    """A list of Skills or of Arcane Skills, with no dice: each its ID, name, XP cost and
+    text, the Expert line apart."""
+    prefix, called, allowed = _SKILL_LISTS[key]
+    _check_keys(raw, {"name", "source", key}, {"name", "source", key}, str(path))
+    skills = []
+    for item in raw[key] or []:
+        what = f"{path}: {item.get('id', '?') if isinstance(item, dict) else item}"
+        _check_keys(item, allowed, {"id", "name", "xp", "text"}, what)
+        if not str(item["id"]).startswith(prefix):
+            raise ContentError(f"{what}: {called} ID starts with {prefix}")
+        xp = item["xp"]
+        if not isinstance(xp, int) or isinstance(xp, bool) or xp < 1:
+            raise ContentError(f"{what}: the XP cost is a whole number above 0, got {xp!r}")
+        skills.append(
+            Skill(
+                id=item["id"],
+                name=item["name"],
+                xp=xp,
+                text=item["text"],
+                source=raw["source"],
+                expert=item.get("expert"),
+                components=item.get("components"),
+                sacrifice=item.get("sacrifice"),
+            )
+        )
+    return skills
 
 
 def _table(raw: Any, path: Path, id_: str | None = None) -> Table:

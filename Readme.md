@@ -8,7 +8,7 @@ The rules text is from a commercial book: keep this repository private. The orig
 
 ## Status
 
-MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables (R1), the weapons and items (R3) are in. The engine has started: dice (E1), the game state (E2), the town map with moves and time (E3), the engine/interface protocol with the game loop (E4), and book mode (E5a, E5b): a player can walk the town in the terminal, every box's entry shown as text and applied with manual actions, until death or quitting ([how to play](#how-to-play)). Step 1 (E6 on) comes next, with the YAML batches it needs.
+MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables (R1), the Skills and harm tables (R2), the weapons and items (R3) are in. The engine has started: dice (E1), the game state (E2), the town map with moves and time (E3), the engine/interface protocol with the game loop (E4), and book mode (E5a, E5b): a player can walk the town in the terminal, every box's entry shown as text and applied with manual actions, until death or quitting ([how to play](#how-to-play)). Step 1 (E6 on) comes next, with the YAML batches it needs.
 
 **MVP goal:** play a whole campaign in the terminal, in two steps ([MVP scope](design/mvp-scope.md)):
 
@@ -71,7 +71,7 @@ Former decisions that are better kept as guidelines than settled up front.
 ### Deferred
 
 #### [ ] D1 — Rules content format
-Partly decided: the text lives in YAML and behaviour in Python, both keyed by ID (see Made). Still open: where plain data goes (creature stats, item weights, Skill XP costs), in the YAML next to the text or in Python next to the behaviour. Most entries mix plain stats with unique rules, so the format must handle both without inventing a DSL.
+Partly decided: the text lives in YAML and behaviour in Python, both keyed by ID (see Made). Still open: where plain data goes (creature stats, item weights), in the YAML next to the text or in Python next to the behaviour. Most entries mix plain stats with unique rules, so the format must handle both without inventing a DSL. Skill XP costs are already numbers in the YAML (the user, in R2).
 - Decide when: the engine writes its first content (E6).
 
 #### [ ] D8 — genAI integration
@@ -118,9 +118,10 @@ Decide the file layout and the ID scheme ([rules text in YAML](docs/content.md))
 - Done when: the four tables are in YAML, and tests check that every table covers its dice range and every reference points to an existing ID.
 - Depends on: Milestone 4.
 
-#### [ ] R2 — Skills and harm tables
-The 21 Skills, the 11 Arcane Skills, the Injury and Insanity tables.
-- Fixes: Insanity table (merged rows 2 and 3).
+#### [x] R2 — Skills and harm tables
+The 22 Skills, the 11 Arcane Skills, the Injury and Insanity tables.
+- Fixes: Insanity table (merged rows 2 and 3), Summon Servitor (a paragraph cut by a column break).
+- Decided: Skills and Arcane Skills are lists with two ID kinds (`skill.agile`, `arcane_skill.curse`); the XP cost is a number; the Expert line is a field of its own; Arcane Skills have `components` and `sacrifice` fields; Injuries and Mental Scars are named entries (`injury.limping`, `mental_scar.paranoia`); several paragraphs are kept apart (literal blocks); the harm tables carry the Mental Scars and Injuries section as their text, split between them (the Injury paragraph reworded with the user), until E8 reworks it; the typo fix and the rewording are recorded in [the book errors list](gameRules/book_errors.md) so it can be checked again ([rules text in YAML](docs/content.md#a-list-of-skills)).
 - Depends on: R1.
 
 #### [x] R3 — Weapons and items
@@ -211,13 +212,14 @@ Any time:
 
 - [ ] After R3: take and drop items as manual actions, picked from the copied table entries and weapons (an item is its table entry for now, see [rules text in YAML](docs/content.md)).
 - [ ] Attach a sheet by stepping onto it: once a sheet is full, moves also offer the boxes across its edges, and stepping onto one attaches its sheet (replaces the "attach a new sheet" action of E5a; smoother to play). A small task of its own, in its own PR.
+- [ ] Literal blocks for R3's texts: a text of several paragraphs or a list kept as a literal block, as R2 does (a blank line between paragraphs on screen, the user's preference). No word changes. A small PR.
 
 ### Milestone 6 — Step 1: Bring Home the Bacon
 
 Each task writes an engine part together with the content that uses it.
 
 #### [ ] E6 — Character and creation
-Life and Sanity with current and max values; the 21 Skills at Basic and Expert; earning and spending XP at any time (Expert costs the Skill's cost again). Creation: 2 Skills (no Arcane, no Expert), 3 points on Life and Sanity or traded for 1 extra Skill or table roll, a random weapon and a knife, 1 Random Object and 1 Useful Stuff rerolling duplicates, d6 Food. Skill effects stay text until E7.
+Life and Sanity with current and max values; the 22 Skills at Basic and Expert; earning and spending XP at any time (Expert costs the Skill's cost again). Creation: 2 Skills (no Arcane, no Expert), 3 points on Life and Sanity or traded for 1 extra Skill or table roll, a random weapon and a knife, 1 Random Object and 1 Useful Stuff rerolling duplicates, d6 Food. Skill effects stay text until E7.
 - Rules: [main rules](gameRules/1_1_main_rules.md) (Your Character, Experience), [skills](gameRules/1_2_skills.md), [weapons table](gameRules/tables/1_4_random_weapons_table.md), [random objects](gameRules/tables/2_1_random_object_tables.md), [useful stuff](gameRules/tables/2_2_useful_stuff_table.md)
 - Design: [character](design/character.md)
 - Decides: the rest of D1.

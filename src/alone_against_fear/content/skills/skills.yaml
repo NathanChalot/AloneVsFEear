@@ -1,0 +1,162 @@
+name: Skills
+source: gameRules/1_2_skills.md
+skills:
+  - id: skill.agile
+    name: Agile
+    xp: 8
+    text: |-
+      Add +1 to your Defense rolls and rolls performed to climb, jump, or avoid danger.
+
+      The bonus to Defense rolls does not stack with the bonus from the Dodge Skill. Use one or the other.
+    expert: Add +2 to the above.
+  - id: skill.bow
+    name: Bow
+    xp: 3
+    text: >-
+      Ignore the -1 to hit with a bow that an unskilled character would have.
+      If you take this Skill at character creation, you also automatically
+      have a bow and d6+3 arrows in addition to other equipment.
+    expert: +1 to Attack rolls with a bow.
+  - id: skill.charisma
+    name: Charisma
+    xp: 3
+    text: >-
+      You have +1 to Charisma rolls (rolls to persuade someone).
+    expert: +2 to Charisma rolls.
+  - id: skill.danger_sense
+    name: Danger Sense
+    xp: 4
+    text: >-
+      Some monsters have a chance to take you by surprise. This is expressed
+      as a number out of 6, such as “the ghost has a 3 in 6 chance of
+      surprising you”. If you have Danger Sense, you reduce this chance by 1.
+      For example, a monster with a 3 in 6 chance will have only a 2 in 6
+      chance of surprising you. Monsters with a 1 in 6 chance of surprise have
+      no chance to surprise you if you have Danger Sense.
+    expert: reduce the chance of surprise by 2.
+  - id: skill.dodge
+    name: Dodge
+    xp: 4
+    text: |-
+      You have +1 to Defense rolls. However, if you roll a 1 on a Defense roll, you lose your balance and have -1 to your next Attack roll in the current combat.
+
+      The bonus from Dodge does not stack with the bonus from the Agile Skill. Use one or the other.
+    expert: You have +2 to Defense rolls, but you still lose your balance when you roll a 1 on a Defense roll.
+  - id: skill.faith
+    name: Faith
+    xp: 2
+    text: >-
+      You may attempt to turn vampires with a holy symbol. It works like the
+      Exorcism Arcane Skill. You automatically begin the game with a holy
+      symbol if you take this Skill at character creation. If you learn it
+      during the game, you must find a holy symbol BEFORE you can use this
+      Skill.
+    expert: Your attempt is at +1.
+  - id: skill.fighter
+    name: Fighter
+    xp: 6
+    text: >-
+      Add +1 to Attack rolls when using hand-to-hand weapons. This is in
+      addition to any bonuses the weapon itself might have. No bonus on
+      unarmed attacks (see Martial Arts for that).
+    expert: Your attacks are at +2.
+  - id: skill.good_shot
+    name: Good Shot
+    xp: 8
+    text: >-
+      Add +1 to Attack rolls with ranged weapons. This is in addition to any
+      bonuses the weapon itself might have.
+    expert: Your ranged Attacks are at +2.
+  - id: skill.investigator
+    name: Investigator
+    xp: 6
+    text: >-
+      Add +1 to your Search rolls. Reduce by 1 the Clue cost of any game
+      effect that is paid in Clues, to a minimum of 1. A result of 1 on a
+      Search roll remains a 1.
+    expert: Add +2 to your Search rolls. Reduce Clue costs by 2 to a minimum of 1. A result of 1 on a Search roll remains a 1.
+  - id: skill.martial_arts
+    name: Martial Arts
+    xp: 3
+    text: >-
+      Reduce the unarmed combat modifier to -1.
+    expert: reduce it to no penalty.
+  - id: skill.medic
+    name: Medic
+    xp: 3
+    text: >-
+      After any encounter, you may use up to 3 points from a first aid kit to
+      heal up to 3 Life points. A character with a first aid kit and no Medic
+      Skill may heal a single Life point.
+    expert: As above, but you may heal up to 4 Life.
+  - id: skill.occultist
+    name: Occultist
+    xp: 4
+    text: >-
+      You have +1 to any Magic roll.
+    expert: You have +2 to Magic rolls.
+  - id: skill.resilient
+    name: Resilient
+    xp: 3
+    text: >-
+      Add +1 to saves versus poison, infection, or disease.
+    expert: You have +2 on such saves.
+  - id: skill.resistant_to_hunger
+    name: Resistant To Hunger
+    xp: 2
+    text: >-
+      You need to consume 1 Food every 6 boxes instead of 1 Food every 5
+      boxes.
+    expert: You need to consume 1 Food every 7 boxes.
+  - id: skill.strong_grip_on_reality
+    name: Strong Grip On Reality
+    xp: 6
+    text: >-
+      Add +1 to your maximum and current Sanity total.
+    expert: Add +2 to your maximum and current Sanity total.
+  - id: skill.slippery
+    name: Slippery
+    xp: 3
+    text: >-
+      You have +1 on Escape rolls.
+    expert: +2 on Escape rolls.
+  - id: skill.stealth
+    name: Stealth
+    xp: 4
+    text: >-
+      You have +1 to Stealth rolls.
+    expert: you have +2 to Stealth rolls.
+  - id: skill.strong
+    name: Strong
+    xp: 5
+    text: >-
+      Add +1 to all Strength rolls and +3 to the number of items you can carry
+      (so you can carry 13 items, or 18 if you have a backpack).
+    expert: Add +2 to Strength rolls and +5 to the number of items you can carry.
+  - id: skill.tough
+    name: Tough
+    xp: 8
+    text: >-
+      Add +2 to your Life points total. If you gain this Skill during play,
+      both your maximum number of Life points and your current number of Life
+      points are increased.
+    expert: Add +3 to your Life points total.
+  - id: skill.vampire_hunter
+    name: Vampire Hunter
+    xp: 3
+    text: >-
+      Add +1 to your Attack rolls against vampires.
+    expert: add +2.
+  - id: skill.will
+    name: Will
+    xp: 6
+    text: >-
+      Add +1 to your Will rolls and saves vs. Fear, Magic, Hypnotism, or
+      Psionics.
+    expert: Add +2 to your Will rolls and saves vs. Fear, Magic or Psionics.
+  - id: skill.zombie_hunter
+    name: Zombie Hunter
+    xp: 2
+    text: >-
+      Add +1 to your Attack rolls against zombies.
+    expert: Add +2.

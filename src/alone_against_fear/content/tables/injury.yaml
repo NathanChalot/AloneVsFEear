@@ -1,0 +1,45 @@
+id: table.injury
+name: Injury table
+dice: d6
+source: gameRules/tables/3_2_injury_table.md
+# From Mental Scars and Injuries in the combat chapter, not printed with the table.
+# Reworded with the user: the printed paragraph starts "Likewise, you may do the same
+# with Life points": "the same" is spelt out from the Insanity paragraph; the reroll
+# sentence names only Injuries (see gameRules/book_errors.md).
+# To rework at E8, which rules between this and the Life and Sanity passages.
+text: |-
+  When you lose Life points in any event or encounter, you may prevent that Life loss by rolling on the Injury table, negating all Damage from a single attack. You may do so up to 3 times in the lifetime of your character. These physical impairments are permanent.
+
+  When you roll an Injury that you already have, reroll until you select one you do not have.
+entries:
+  - roll: 1
+    id: injury.facial_scar
+    name: Facial scar
+    text: >-
+      You have a permanent -1 to your Charisma rolls.
+  - roll: 2
+    id: injury.impaired_arm
+    name: Impaired arm
+    text: >-
+      You have a permanent -1 to your Attack rolls with hand-to-hand weapons.
+  - roll: 3
+    id: injury.eye_damage
+    name: Eye damage
+    text: >-
+      You have a permanent -1 to your ranged Attack rolls.
+  - roll: 4
+    id: injury.limping
+    name: Limping
+    text: >-
+      You have a permanent -1 on all Escape rolls.
+  - roll: 5
+    id: injury.brain_damage
+    name: Brain damage
+    text: >-
+      You have a permanent -1 to all Will and Magic rolls.
+  - roll: 6
+    id: injury.crippled_arm
+    name: Crippled arm
+    text: >-
+      You lose the use of one arm. You may no longer use weapons that require
+      two hands. You may still use rifles and shotguns with a -1 penalty.
