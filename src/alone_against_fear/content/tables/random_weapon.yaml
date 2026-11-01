@@ -1,0 +1,23 @@
+id: table.random_weapon
+name: Random Weapon table
+dice: d6
+source: gameRules/tables/1_4_random_weapons_table.md
+entries:
+  - roll: 1
+    text: Baseball bat or hammer.
+    refs: [weapon.baseball_bat_or_hammer]
+  - roll: 2
+    text: Chainsaw or authentic samurai sword (choose)
+    refs: [weapon.chainsaw, weapon.samurai_sword_authentic]
+  - roll: 3
+    text: 1 Grenade or bow with 2d6+3 arrows (choose).
+    refs: [weapon.grenade, weapon.bow]
+  - roll: 4
+    text: Shotgun with 2d6 shells.
+    refs: [weapon.shotgun]
+  - roll: 5
+    text: Pistol with 2d6 bullets.
+    refs: [weapon.pistol]
+  - roll: 6
+    text: Rifle with 2d6 bullets.
+    refs: [weapon.rifle]

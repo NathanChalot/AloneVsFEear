@@ -1,11 +1,11 @@
 ## Random Objects table (d66)
 
-- 11 Rope . May be used to climb down a height or to tie up a prisoner.
-- 12 Religious symbol. A symbol of any religion of your choice may be required for certain rituals or used to focus your will and 'turn' (repel) vampires if you have the Faith Skill. You may pick up a religious symbol every time you visit a place of worship. Negligible weight.
-- 13 First Aid Kit . Contains d6+2 first aid points. Each point may be used to heal a single Life point after each encounter in which you lost 1 or more Life. If you did not lose any Life, you may not use first aid points. If you have the Medic Skill, you may use up to 3 first aid points per encounter, or 4 if you have Medic Skill (Expert).
-- 14 Axe . See weapon summary table for rules.
-- 15 d6 Garlic heads . You may sacrifice 1 head to avoid an encounter with a vampire  on  a  roll  against  the  vampire's  L.  If  you  are  surprised  by  the vampire, you may NOT use garlic. Negligible weight.
-- 16 Salt  (6  doses) .  1  dose  be  sacrificed  to  avoid  an  attack  when  you  are escaping an encounter with a demon. May be thrown at monsters that are vulnerable to salt to inflict 2 Damage. When you find Food points, you may decide that 1 such Food point is 1 dose of salt. Negligible weight.
+- 11 Rope. May be used to climb down a height or to tie up a prisoner.
+- 12 Religious symbol. A symbol of any religion of your choice may be required for certain rituals or used to focus your will and “turn” (repel) vampires if you have the Faith Skill. You may pick up a religious symbol every time you visit a place of worship. Negligible weight.
+- 13 First Aid Kit. Contains d6+2 first aid points. Each point may be used to heal a single Life point after each encounter in which you lost 1 or more Life. If you did not lose any Life, you may not use first aid points. If you have the Medic Skill, you may use up to 3 first aid points per encounter, or 4 if you have Medic Skill (Expert).
+- 14 Axe. See weapon summary table for rules.
+- 15 d6 Garlic heads. You may sacrifice 1 head to avoid an encounter with a vampire on a roll against the vampire's L. If you are surprised by the vampire, you may NOT use garlic. Negligible weight.
+- 16 Salt (6 doses). 1 dose be sacrificed to avoid an attack when you are escaping an encounter with a demon. May be thrown at monsters that are vulnerable to salt to inflict 2 Damage. When you find Food points, you may decide that 1 such Food point is 1 dose of salt. Negligible weight.
 - 21 Baseball bat. See weapons table.
 - 22 Lighter. May be used to light a candle, a torch or a molotov cocktail. May also be useful in some rituals requiring fire. Negligible weight.
 - 23 Bundle of d6 wooden stakes. May be used to slay vampires stopping their regeneration power. You need a hammer to use a stake effectively.
@@ -15,11 +15,11 @@
 - 31 Flashlight. This is a source of light; it may be used as a ranged weapon to attack shadow creatures at +2, Damage 1. After each encounter with shadow creatures, there is a 1 in 6 chance of the batteries running out.
 - 32 Silver necklace. Negligible weight. You may turn it into d3 silver bullets if you find smelting equipment.
 - 33 d6 Food points. You may decide that 1 Food is 1 dose of salt instead.
-- 34 d3 vials of holy water .  This may be sacrificed and thrown against any demon or non-zombie Undead, automatically hitting for 2 points of Damage.
-- 35 Spray  Can .  If  you  have  a  lighter,  you  may  use  this  as  an  improvised flamethrower,  automatically  inflicting  2  points  of  Damage  against  any target or 3 points of Damage against any target that is vulnerable to fire.
-- 36 Shovel . Useful to dig graves or as a two-handed melee weapon.
-- 41 Flute . May be used to play music and perform certain rituals.
-- 42 Rubber Mask . Roll a die, on a 1-3 it is the face of a politician, on a 4-6  a classic Halloween monster. They say certain monsters may not attack you if they cannot see your face. Negligible weight.
+- 34 d3 vials of holy water. This may be sacrificed and thrown against any demon or non-zombie Undead, automatically hitting for 2 points of Damage.
+- 35 Spray Can. If you have a lighter, you may use this as an improvised flamethrower, automatically inflicting 2 points of Damage against any target or 3 points of Damage against any target that is vulnerable to fire.
+- 36 Shovel. Useful to dig graves or as a two-handed melee weapon.
+- 41 Flute. May be used to play music and perform certain rituals.
+- 42 Rubber Mask. Roll a die, on a 1-3 it is the face of a politician, on a 4-6 a classic Halloween monster. They say certain monsters may not attack you if they cannot see your face. Negligible weight.
 - 43 Train ticket. Negligible weight.
 - 44 d6+3 candles. Used for many rituals. You need a lighter or other source of fire to light them.
 - 45 Random book. Roll 2d6 on the Book Table. If you begin the game with a book, you already read it but you still cannot begin the game with any Arcane Skills (but you may learn any Arcane Skill taught by the book as soon as you have enough XP to pay its cost).
@@ -28,12 +28,11 @@
 - 52 Leather jacket with a flaming skull motif printed on the back. Negligible weight if worn, counts as 1 carried object otherwise.
 - 53 Insecticide. Useful against bug-like creatures.
 - 54 Samurai sword. Roll d6, on a 1 or 2 it is an authentic antique weapon, on a 3-6 is a cheap replica. See weapon summary table.
-- 55 d6 cans of dog food. May be used as 1 Food point each (yuck!) or sacrificed to avoid an encounter with any canine creature (not
-- werewolves).
+- 55 d6 cans of dog food. May be used as 1 Food point each (yuck!) or sacrificed to avoid an encounter with any canine creature (not werewolves).
 - 56 Creepy looking doll.
-- 61 Computer print-out. Somebody printed out a whole book. Roll on the Random Book table on p.73, rerolling any result of 2 or 12.
-- 62 Journal. Keeping  a  journal  will  help  you  focus  and  learn  from  your experience. If you have a journal, every time you accumulate 5 XP, you gain 1 extra XP.
+- 61 Computer print-out. Somebody printed out a whole book. Roll on the Random Book table, rerolling any result of 2 or 12.
+- 62 Journal. Keeping a journal will help you focus and learn from your experience. If you have a journal, every time you accumulate 5 XP, you gain 1 extra XP.
 - 63 Crescent shaped silver amulet. May be used to create 2 silver bullets if you have smelting equipment. If worn, it gives you +1 to Escape rolls against werewolves.
-- 64 Box of nails . May be useful to nail shut a coffin and also for some spells.
-- 65 Black mirror . Useful for some rituals.
-- 66 Smelting equipment .  Counts as 2 carried items. You may create silver bullets if you have any silver item.
+- 64 Box of nails. May be useful to nail shut a coffin and also for some spells.
+- 65 Black mirror. Useful for some rituals.
+- 66 Smelting equipment. Counts as 2 carried items. You may create silver bullets if you have any silver item.

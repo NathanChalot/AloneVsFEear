@@ -58,11 +58,11 @@ You may pick up a kitchen knife every time you visit a house.
 
 ### Knife or stick
 -1 to Attack rolls. 
-You may pick up a stick every time you visit a stick.
+You may pick up a stick every time you visit a park.
 
 ### Molotov cocktail
 One use. 
-Allows you to automatically destroy 1 zombie orscarecrow or perform an Attack roll at +2 against any other opponent. 
+Allows you to automatically destroy 1 zombie or scarecrow or perform an Attack roll at +2 against any other opponent. 
 You need a lighter or matches to use this. 
 No effect against flaming skeletons.
 
@@ -72,8 +72,7 @@ Damage 1.
 If you roll a 6 on a Defense roll against a foe armed with a one handed weapon, you disarm the foe (gain +2 to Defend against that foe unless he has another weapon).
 
 ### Pistol
-+1 to Attack rolls
-Damage 1. 
++1 to Attack rolls, Damage 1. 
 Comes with 2d6 bullets.
 
 ### Pitchfork
@@ -89,7 +88,7 @@ May attack twice per turn but doing so uses 3 bullets.
 May be used as a club (-1 to hit, 1 Damage). 
 Comes with 2d6 bullets.
 
-### Scythe/showel
+### Scythe/shovel
 Two handed. 
 -1 to Attack rolls because of its unwieldiness. 
 Damage 1. 
