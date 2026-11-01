@@ -20,6 +20,7 @@ See [town map](town-map.md).
 ## Character
 
 - **An Injury or Mental Scar negates the whole loss.** `interpretation` `switchable` The main rules say it prevents "the loss of 1 or 2 points" (`1_1_main_rules.md`, Sanity and Life), the combat chapter says it negates "all Damage from a single attack" (`3_combat.md`, Mental Scars and Injuries). We follow the combat chapter: it is less punitive and leaves room for spectacular moments (losing an arm to survive a massive blow). The Zombie Tiger ("if you already have 3 Injuries, lose 3 Life instead") supports this reading. Switchable: the strict reading (absorb at most 2 points) could be a harder game mode.
+- **At 0 Life and 0 Sanity at once, the character is dead.** `gap` The book ends the game at 0 Life (dead) and at 0 Sanity (insane) but never says which wins when both happen together. Either way the game is lost; only the ending differs. Death is checked first.
 - **Expert costs the Skill's XP cost again.** `gap` The book never states the upgrade cost. Learning the Basic Skill then paying the same cost again for Expert follows "skills may be added at any moment in the game, after paying their XP cost" (`1_2_skills.md`) and "some Arcane Skills may be learned twice (they have an Expert level)" (`1_3_arcane_skills.md`). Matches a community answer on BoardGameGeek.
 
 ## Inventory
