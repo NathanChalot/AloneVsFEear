@@ -2,12 +2,11 @@ id: table.insanity
 name: Insanity table
 dice: d6
 source: gameRules/tables/3_1_insanity_table.md
-# From Mental Scars and Injuries in the combat chapter, not printed with the table.
-# To rework at E8, which rules between this and the Life and Sanity passages.
+# From Mental Scars and Injuries in the combat chapter, not printed with the table:
+# its Insanity paragraph as printed, then the reroll sentence. To rework at E8, which
+# rules between this and the Life and Sanity passages.
 text: |-
   When you lose Sanity points in any event or encounter, you may prevent that Sanity loss by rolling on the Insanity table. You may do so up to 3 times in the lifetime of your character. These Mental Scars are permanent.
-
-  Likewise, you may do the same with Life points, negating all Damage from a single attack by rolling on the Injury table. You may do so up to 3 times in the lifetime of your character. These physical impairments are permanent.
 
   When you roll a Mental Scar or Injury that you already have, reroll until you select one you do not have.
 entries:

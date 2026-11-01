@@ -6,8 +6,8 @@ Planned work sessions with Claude, in order, each with the model and effort to u
 
 - Merge the R2 PR (`r2-skills-harm`) before starting E6.
 - **Literal blocks for R3's texts** (a small PR, Sonnet, any time): R2 keeps a text of several paragraphs or a list as a literal block (`|-`, a blank line between paragraphs, one list item per line), which the user prefers on screen. R3's mission text and any other folded text with several paragraphs move to the same, without changing a word.
-- The Injury and Insanity tables carry the rules' Mental Scars and Injuries section as their text: E8 reworks it, once it rules between that section and the Life and Sanity passages (1 or 2 points, or all the Damage of an attack).
-- [`gameRules/book_errors.md`](gameRules/book_errors.md) now also lists the typos a batch fixed ("Fixed as typos"), to check again in the review session.
+- The Injury and Insanity tables carry the rules' Mental Scars and Injuries section as their text, split between them (the Injury paragraph reworded with the user): E8 reworks it, once it rules between that section and the Life and Sanity passages (1 or 2 points, or all the Damage of an attack).
+- [`gameRules/book_errors.md`](gameRules/book_errors.md) now also lists the typos a batch fixed and the text it reworded ("Fixed or reworded"), to check again in the review session.
 - E4 dropped log replay (seed + answers played back through the scripted interface): not needed for now. The seed and every answer are still logged, so it can be added when a bug needs it.
 - Home is a Safe House by default ([ruling](design/rulings.md#safe-houses)), but until E15 it is a plain box: it rolls the 1 in 6 and can be Searched (a pending test waits for E15).
 - Attaching a sheet by stepping onto it (the Readme's "Any time" item) replaces the "attach a new sheet" action: a small PR of its own, any time.

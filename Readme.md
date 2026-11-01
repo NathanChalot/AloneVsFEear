@@ -121,7 +121,7 @@ Decide the file layout and the ID scheme ([rules text in YAML](docs/content.md))
 #### [x] R2 — Skills and harm tables
 The 22 Skills, the 11 Arcane Skills, the Injury and Insanity tables.
 - Fixes: Insanity table (merged rows 2 and 3), Summon Servitor (a paragraph cut by a column break).
-- Decided: Skills and Arcane Skills are lists with two ID kinds (`skill.agile`, `arcane_skill.curse`); the XP cost is a number; the Expert line is a field of its own; Arcane Skills have `components` and `sacrifice` fields; Injuries and Mental Scars are named entries (`injury.limping`, `mental_scar.paranoia`); several paragraphs are kept apart (literal blocks); the harm tables carry the Mental Scars and Injuries section as their text until E8 reworks it; a typo fix is recorded in [the book errors list](gameRules/book_errors.md) so it can be checked again ([rules text in YAML](docs/content.md#a-list-of-skills)).
+- Decided: Skills and Arcane Skills are lists with two ID kinds (`skill.agile`, `arcane_skill.curse`); the XP cost is a number; the Expert line is a field of its own; Arcane Skills have `components` and `sacrifice` fields; Injuries and Mental Scars are named entries (`injury.limping`, `mental_scar.paranoia`); several paragraphs are kept apart (literal blocks); the harm tables carry the Mental Scars and Injuries section as their text, split between them (the Injury paragraph reworded with the user), until E8 reworks it; the typo fix and the rewording are recorded in [the book errors list](gameRules/book_errors.md) so it can be checked again ([rules text in YAML](docs/content.md#a-list-of-skills)).
 - Depends on: R1.
 
 #### [x] R3 — Weapons and items

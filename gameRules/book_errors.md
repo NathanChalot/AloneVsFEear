@@ -20,10 +20,11 @@ Errors of the book's own text that the YAML batches kept as printed, because the
 | R2 | Arcane Skills, labelled lines | "Sacrifice: 1 candle or 2 Food", "Components: incense" with no final full stop; others have one | a full stop, like the others |
 | R2 | Arcane Skills, books | "The Necronomicon" and "Necronomicon", "The Occult Guide" and "Occult Guide" | one name for each book |
 
-## Fixed as typos
+## Fixed or reworded
 
-These are printed words that a batch fixed as obvious typos. They are listed so they can be checked again.
+Printed words that a batch fixed as obvious typos, or reworded with the user, listed so they can be checked again.
 
 | Batch | Where | Printed | Fixed | Why |
 | --- | --- | --- | --- | --- |
 | R2 | Pentagram, books | "The Diabolic Deal" | "The Diabolical Deal" | the Random Books table names only The Diabolical Deal, which teaches several rituals; Pentagram lists the same three books as the other rituals |
+| R2 | Injury table, its text (from Mental Scars and Injuries) | "Likewise, you may do the same with Life points, negating all Damage from a single attack by rolling on the Injury table." | "When you lose Life points in any event or encounter, you may negate all Damage from a single attack by rolling on the Injury table." | the paragraph is split between the two tables, and "Likewise… the same" needs the Insanity paragraph before it; reworded with the user, to rework at E8 |
