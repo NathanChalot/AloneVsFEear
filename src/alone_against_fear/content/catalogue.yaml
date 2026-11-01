@@ -4,9 +4,6 @@
 # catalogued event's source and records it as played.
 
 # Items (R3)
-- {id: table.random_weapon, name: Random Weapon table, dice: d6, source: gameRules/tables/1_4_random_weapons_table.md}
-- {id: table.random_objects, name: Random Objects table, dice: d66, source: gameRules/tables/2_1_random_object_tables.md}
-- {id: table.useful_stuff, name: Useful Stuff table, dice: d66, source: gameRules/tables/2_2_useful_stuff_table.md}
 
 # Harm (R2)
 - {id: table.insanity, name: Insanity table, dice: d6, source: gameRules/tables/3_1_insanity_table.md}

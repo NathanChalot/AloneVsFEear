@@ -8,7 +8,7 @@ The rules text is from a commercial book: keep this repository private. The orig
 
 ## Status
 
-MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables are in (R1). The engine has started: dice (E1), the game state (E2), the town map with moves and time (E3), the engine/interface protocol with the game loop (E4), and book mode (E5a, E5b): a player can walk the town in the terminal, every box's entry shown as text and applied with manual actions, until death or quitting ([how to play](#how-to-play)). Step 1 (E6 on) comes next, with the YAML batches it needs.
+MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables (R1), the weapons and items (R3) are in. The engine has started: dice (E1), the game state (E2), the town map with moves and time (E3), the engine/interface protocol with the game loop (E4), and book mode (E5a, E5b): a player can walk the town in the terminal, every box's entry shown as text and applied with manual actions, until death or quitting ([how to play](#how-to-play)). Step 1 (E6 on) comes next, with the YAML batches it needs.
 
 **MVP goal:** play a whole campaign in the terminal, in two steps ([MVP scope](design/mvp-scope.md)):
 
@@ -123,8 +123,9 @@ The 21 Skills, the 11 Arcane Skills, the Injury and Insanity tables.
 - Fixes: Insanity table (merged rows 2 and 3).
 - Depends on: R1.
 
-#### [ ] R3 — Weapons and items
+#### [x] R3 — Weapons and items
 Random Weapon table, weapon summary, Random Objects, Useful Stuff.
+- Decided: an item is its table entry (duplicates kept as printed); a weapon has its own ID (`weapon.axe`) and the entries that give it point to it; obvious typos are fixed, other book errors stay as printed in [a list](gameRules/book_errors.md); every correction is shown to the user; a table entry's fuller weapon rules apply ([ruling](design/rulings.md#combat)).
 - Depends on: R1.
 
 #### [ ] R4 — Creatures
