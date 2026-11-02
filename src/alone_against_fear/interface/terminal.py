@@ -16,6 +16,11 @@ Manual actions (E5b): with an entry the engine cannot read, the player applies i
 typing the numbers it gives; Enter alone is no modifier. The free actions add Search (`s`) and
 apply an effect (`a`, back with `b`); attaching a sheet moved to `n`. The notes are shown under
 the status line, and above a modifier to type.
+
+Creation and XP (E6): the 3 points have letters (`l` Life and Sanity, `k` a Skill, `w`, `o`,
+`u` an extra roll); Skills and weapons are numbered, with their text. The status line names the
+character and shows Life and Sanity against their max, with the Skills and items under it.
+Spending XP is the free action `p`.
 """
 
 from __future__ import annotations
@@ -29,17 +34,22 @@ from pathlib import Path
 from ..content import CatalogueEvent, CatalogueTable, Table, load_content
 from ..dice import RandomDice
 from ..engine import Arrival, Game, Position, Stat, Upkeep
-from ..engine.game import Rolled, RolledVsL, Searched
+from ..engine.creation import Points
+from ..engine.game import Purchase, Rolled, RolledVsL, Searched
 from ..engine.loop import play
 from ..engine.manual import Manual
 from ..engine.protocol import (
     Action,
     Book,
+    Bought,
     Changed,
+    Choose,
+    Duplicate,
     End,
     Ended,
     Event,
     EventPlayed,
+    ItemTaken,
     LeadRolled,
     Marked,
     NoteRemoved,
@@ -52,7 +62,7 @@ from ..engine.protocol import (
     Topic,
     Wandering,
 )
-from ..engine.state import Note
+from ..engine.state import Item, Note, SkillLevel
 from ..engine.town import SHEET_COLUMNS, SHEET_ROWS, sheet_neighbours
 
 CELL = 5
@@ -68,6 +78,7 @@ KEYS = {
     Action.MOVE: ("m", "move"),
     Action.SEARCH: ("s", "search"),
     Action.APPLY: ("a", "apply an effect"),
+    Action.SPEND_XP: ("p", "spend XP"),
     Action.SHEET: ("n", "attach a new sheet"),
     Action.QUIT: ("q", "quit"),
     Book.TABLE: ("t", "a table"),
@@ -91,7 +102,17 @@ STATS = {
     Stat.CLUES: "Clues",
 }
 
+POINTS = {
+    Points.STATS: ("l", "Life and Sanity"),
+    Points.SKILL: ("k", "1 more Skill"),
+    Points.WEAPON: ("w", "1 more Random Weapon roll"),
+    Points.OBJECT: ("o", "1 more Random Objects roll"),
+    Points.USEFUL: ("u", "1 more Useful Stuff roll"),
+}
+"""What the 3 creation points buy, by letter."""
+
 NUMBER_PROMPTS = {
+    Topic.LIFE_POINTS: "How many of the 3 points on Life (the rest on Sanity)? ",
     Topic.AMOUNT: "How much? ",
     Topic.LEVEL: "L? ",
     Topic.MODIFIER: "Modifier (Enter for none): ",
@@ -115,6 +136,8 @@ class TerminalInterface:
         """Tables whose own rules were shown in this game."""
         self._rules: Table | None = None
         """The last table with rules rolled in this box, to show them on request."""
+        self._skills_shown = False
+        """The Skills' text was shown once at creation."""
 
     # --- The protocol --------------------------------------------------------------------
 
@@ -124,9 +147,25 @@ class TerminalInterface:
                 self._output(self._notes())
             return self._number(request)
         if isinstance(request, Text):
-            return self._text("Note: ")
+            return self._text(
+                "Your character's name: " if request.topic is Topic.NAME else "Note: "
+            )
         options = request.options
         match request.topic:
+            case Topic.POINTS:
+                self._output("Your 3 points: on Life and Sanity (8 each), or traded.")
+                keys = {POINTS[option][0]: option for option in options}
+                self._output("  ".join(f"{key}) {POINTS[o][1]}" for key, o in keys.items()))
+                return self._read(keys, "Your choice: ")
+            case Topic.SKILL:
+                return self._skills(request)
+            case Topic.WEAPON:
+                for n, option in _numbered(options):
+                    weapon = self.game.content.weapon(option)
+                    self._output(f"{n}) {weapon.name}: {weapon.text}")
+                return self._read(_by_number(options), f"Which weapon? [1-{len(options)}] ")
+            case Topic.PURCHASE:
+                return self._menu(options, "Spend XP on? ")
             case Topic.ACTION:
                 self._output("")
                 self._output(self._status())
@@ -187,6 +226,8 @@ class TerminalInterface:
                 self._output(f"Event #{played.number}, {played.name}: read it in {played.source}")
             case SheetAttached():
                 self._output("A new sheet is attached.")
+            case Changed(stat=stat, amount=0, value=value):
+                self._output(f"You are at your max {STATS[stat]} ({value}).")
             case Changed(stat=stat, amount=amount, value=value):
                 verb = "gain" if amount > 0 else "lose"
                 self._output(f"You {verb} {abs(amount)} {STATS[stat]} ({STATS[stat]} {value}).")
@@ -203,6 +244,12 @@ class TerminalInterface:
                 if modifier:
                     line += ": a natural 1 stays 1" if face == 1 else f", {modifier:+d}"
                 self._output(f"{line}.")
+            case ItemTaken(item=item):
+                self._output(f"You take: {self._item(item)}.")
+            case Duplicate():
+                self._output("You have it already: roll again.")
+            case Bought(purchase=purchase):
+                self._output(f"{self._purchase_done(purchase)}: {purchase.cost} XP spent.")
             case Ended(end=end):
                 self._output(ENDINGS[end])
 
@@ -269,7 +316,47 @@ class TerminalInterface:
     def _label(self, option: object) -> str:
         if option in KEYS:
             return KEYS[option][1]
+        if isinstance(option, Purchase):
+            return self._purchase(option)
         return self._name(str(option))
+
+    # --- The character ----------------------------------------------------------------------
+
+    def _skills(self, request: Choose) -> object:
+        """Skills to choose from at creation: with their text the first time, by name after."""
+        content = self.game.content
+        for n, option in _numbered(request.options):
+            skill = content.skill(option)
+            if self._skills_shown:
+                self._output(f"{n:>3}) {skill.name}")
+            else:
+                self._output(_indented(skill.text, f"{n:>3}) {skill.name} ({skill.xp} XP): "))
+        self._skills_shown = True
+        return self._read(_by_number(request.options), f"Skill? [1-{len(request.options)}] ")
+
+    def _purchase(self, purchase: Purchase) -> str:
+        name = self.game.content.skill(purchase.skill_id).name
+        expert = " (Expert)" if purchase.level is SkillLevel.EXPERT else ""
+        return f"{name}{expert}: {purchase.cost} XP"
+
+    def _purchase_done(self, purchase: Purchase) -> str:
+        name = self.game.content.skill(purchase.skill_id).name
+        if purchase.level is SkillLevel.EXPERT:
+            return f"{name} becomes Expert"
+        return f"You learn {name}"
+
+    def _item(self, item: Item) -> str:
+        """An item's name, then how many or how many uses."""
+        content = self.game.content
+        if item.id in content.weapons or item.id in content.variants:
+            name = content.weapon(item.id).name
+        else:
+            name = item.id.split(".", 1)[1].replace("_", " ").capitalize()
+        if item.count is not None:
+            name += f" ({item.count})"
+        if item.uses is not None:
+            name += f" ({item.uses} uses)"
+        return name
 
     # --- Book mode --------------------------------------------------------------------------
 
@@ -303,6 +390,8 @@ class TerminalInterface:
         content = self.game.content
         if id_ in content.tables:
             return content.tables[id_].name or id_
+        if id_ in content.weapons or id_ in content.variants:
+            return content.weapon(id_).name
         match content.catalogue.get(id_):
             case CatalogueTable(name=name):
                 return name
@@ -326,11 +415,23 @@ class TerminalInterface:
     # --- Showing ----------------------------------------------------------------------------
 
     def _status(self) -> str:
-        c = self.game.character
-        return (
-            f"Box {self.game.campaign.box_counter} · Life {c.life} · Sanity {c.sanity} · "
+        """The status line, then the Skills and items, if any."""
+        game, c = self.game, self.game.character
+        name = f"{c.name} · " if c.name else ""
+        lines = [
+            f"{name}Box {game.campaign.box_counter} · "
+            f"Life {c.life}/{game.max(Stat.LIFE)} · Sanity {c.sanity}/{game.max(Stat.SANITY)} · "
             f"Food {c.food} · XP {c.xp} · Clues {c.clues}"
-        )
+        ]
+        if c.skills:
+            skills = (
+                game.content.skill(id_).name + (" (Expert)" if level is SkillLevel.EXPERT else "")
+                for id_, level in c.skills.items()
+            )
+            lines.append(f"Skills: {', '.join(skills)}")
+        if c.items:
+            lines.append(f"Items: {', '.join(self._item(item) for item in c.items)}")
+        return "\n".join(lines)
 
     def _notes(self) -> str:
         notes = "  ".join(

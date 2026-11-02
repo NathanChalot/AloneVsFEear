@@ -14,9 +14,13 @@ import pytest
 
 from alone_against_fear.content import load_content
 from alone_against_fear.dice import ScriptedDice
-from alone_against_fear.engine import Arrival, Game, GameError, Position, Upkeep
-from alone_against_fear.engine.loop import PLACEHOLDER_LIFE, PLACEHOLDER_SANITY, play
-from alone_against_fear.engine.protocol import Action, Book, Choose, End, Ended, Topic
+from alone_against_fear.engine import Arrival, Game, GameError, Position, Stat, Upkeep
+from alone_against_fear.engine.creation import Points
+from alone_against_fear.engine.game import Purchase
+from alone_against_fear.engine.loop import play
+from alone_against_fear.engine.manual import Manual
+from alone_against_fear.engine.protocol import Action, Book, Bought, Choose, End, Ended, Topic
+from alone_against_fear.engine.state import SkillLevel
 from alone_against_fear.engine.town import boxes_of
 from alone_against_fear.interface.scripted import ScriptedInterface, ScriptError
 
@@ -45,6 +49,13 @@ def new_game(content, *faces):
     return Game(dice=ScriptedDice(faces), content=content)
 
 
+def started(content, *faces, food=3):
+    """A new game whose character is created already (creation: tests/test_creation.py)."""
+    game = new_game(content, *faces)
+    game.create_character(life=8, sanity=8, food=food)
+    return game
+
+
 EXPLORE = (3, 3, 4)
 """A new box: Town Exploration 6 (3 and 3) sends to the Street table, whose d6 shows 4."""
 WALK_DICE = EXPLORE * len(WALK)
@@ -64,8 +75,8 @@ def moves(*positions):
 
 
 def test_a_scripted_player_walks_ten_boxes_and_quits(content):
-    # given a new game, whose placeholder character rolls 3 Food
-    game = new_game(content, 3, *WALK_DICE)
+    # given a new game, whose character has 3 Food
+    game = started(content, *WALK_DICE)
     interface = ScriptedInterface([HOME, *moves(*WALK), Action.QUIT])
 
     # when the player chooses Home, moves ten times and quits
@@ -83,7 +94,7 @@ def test_a_scripted_player_walks_ten_boxes_and_quits(content):
 
 def test_the_interface_is_told_every_arrival_then_the_end(content):
     # given a new game with 3 Food
-    game = new_game(content, 3, *WALK_DICE)
+    game = started(content, *WALK_DICE)
     interface = ScriptedInterface([HOME, *moves(*WALK), Action.QUIT])
 
     # when the player walks ten boxes and quits
@@ -101,18 +112,19 @@ def test_the_interface_is_told_every_arrival_then_the_end(content):
 # --- The starting character -----------------------------------------------------------------
 
 
-def test_a_new_game_starts_with_the_placeholder_character(content):
-    # given a new game whose Food die shows 4
-    game = new_game(content, 4)
+def test_a_new_game_starts_with_character_creation(content):
+    # given a new campaign: a pistol (5, then 3 and 4 bullets), a rope (1, 1), a small bell
+    # (1, 3), 4 Food
+    game = new_game(content, 5, 3, 4, 1, 1, 1, 3, 4)
+    creating = ["Ann", Points.STATS, 2, "skill.agile", "skill.tough", "weapon.knife"]
 
-    # when the player chooses Home and quits at once
-    play(game, ScriptedInterface([HOME, Action.QUIT]))
+    # when the player creates the character, then chooses Home and quits
+    play(game, ScriptedInterface([*creating, HOME, Action.QUIT]))
 
-    # then the character has the base Life and Sanity, d6 Food and no items
-    assert (game.character.life, game.character.sanity) == (8, 8)
-    assert (PLACEHOLDER_LIFE, PLACEHOLDER_SANITY) == (8, 8)
-    assert game.character.food == 4
-    assert game.character.items == []
+    # then the character is the one created
+    assert game.character.name == "Ann"
+    assert (game.character.life, game.character.sanity, game.character.food) == (10, 9, 4)
+    assert len(game.character.items) == 4
 
 
 def test_a_game_that_has_a_character_keeps_it(content):
@@ -123,7 +135,7 @@ def test_a_game_that_has_a_character_keeps_it(content):
     # when the game is played
     play(game, ScriptedInterface([HOME, Action.QUIT]))
 
-    # then no placeholder replaces it (and no Food die is rolled)
+    # then no creation replaces it (and no die is rolled)
     assert (game.character.life, game.character.food) == (11, 2)
 
 
@@ -131,7 +143,7 @@ def test_a_game_that_has_a_character_keeps_it(content):
 
 
 def test_home_is_chosen_among_the_boxes_of_the_first_sheet(content):
-    game = new_game(content, 3)
+    game = started(content)
     interface = ScriptedInterface([HOME, Action.QUIT])
 
     play(game, interface)
@@ -143,7 +155,7 @@ def test_home_is_chosen_among_the_boxes_of_the_first_sheet(content):
 
 
 def test_each_turn_offers_move_and_quit(content):
-    game = new_game(content, 3)
+    game = started(content)
     interface = ScriptedInterface([HOME, Action.QUIT])
 
     play(game, interface)
@@ -155,7 +167,7 @@ def test_each_turn_offers_move_and_quit(content):
 
 
 def test_moving_offers_the_boxes_the_engine_allows(content):
-    game = new_game(content, 3, *EXPLORE)
+    game = started(content, *EXPLORE)
     interface = ScriptedInterface([HOME, *moves(WALK[0]), Action.QUIT])
 
     play(game, interface)
@@ -189,7 +201,7 @@ def test_a_game_already_under_way_does_not_ask_for_home_again(content):
 
 
 def test_an_answer_that_is_not_an_option_is_refused(content):
-    game = new_game(content, 3)
+    game = started(content)
     far_away = Position(4, 5)
 
     with pytest.raises(GameError):
@@ -197,14 +209,14 @@ def test_an_answer_that_is_not_an_option_is_refused(content):
 
 
 def test_a_scripted_interface_out_of_answers_says_so(content):
-    game = new_game(content, 3)
+    game = started(content)
 
     with pytest.raises(ScriptError):
         play(game, ScriptedInterface([HOME]))
 
 
 def test_every_answer_is_logged(content, caplog):
-    game = new_game(content, 3, *EXPLORE)
+    game = started(content, *EXPLORE)
     caplog.set_level(logging.INFO, logger="alone_against_fear")
 
     play(game, ScriptedInterface([HOME, *moves(WALK[0]), Action.QUIT]))
@@ -262,3 +274,52 @@ def test_death_comes_before_insanity(content):
     game.choose_home(HOME)
 
     assert play(game, ScriptedInterface([])) is End.DEAD
+
+
+# --- Spending XP (E6) -------------------------------------------------------------------------
+
+
+def test_spending_xp_is_offered_only_when_it_can_buy_a_skill(content):
+    # given a character with 1 XP: the cheapest Skills cost 2
+    game = started(content)
+    game.gain(Stat.XP, 1)
+    interface = ScriptedInterface([HOME, Action.QUIT])
+
+    play(game, interface)
+
+    assert Action.SPEND_XP not in interface.asked[1].options
+
+
+def test_a_player_spends_xp_between_moves(content):
+    # given a character with 8 XP, standing Home
+    game = started(content)
+    game.gain(Stat.XP, 8)
+    agile = Purchase("skill.agile", SkillLevel.BASIC, 8)
+    interface = ScriptedInterface([HOME, Action.SPEND_XP, agile, Action.QUIT])
+
+    # when they spend it on Agile
+    play(game, interface)
+
+    # then they have Agile, the XP is spent, and the offer is gone
+    assert interface.asked[1].options == (
+        Action.MOVE,
+        Action.SEARCH,
+        Action.APPLY,
+        Action.SPEND_XP,
+        Action.QUIT,
+    )
+    assert agile in interface.asked[2].options
+    assert interface.asked[2].options[-1] is Manual.BACK
+    assert game.character.skills == {"skill.agile": SkillLevel.BASIC}
+    assert game.character.xp == 0
+    assert Bought(agile) in interface.told
+    assert Action.SPEND_XP not in interface.asked[3].options
+
+
+def test_spending_xp_can_be_left_without_buying(content):
+    game = started(content)
+    game.gain(Stat.XP, 3)
+
+    play(game, ScriptedInterface([HOME, Action.SPEND_XP, Manual.BACK, Action.QUIT]))
+
+    assert (game.character.xp, game.character.skills) == (3, {})

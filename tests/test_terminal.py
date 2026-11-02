@@ -36,6 +36,13 @@ class Typist:
         return self.lines.pop(0)
 
 
+def ready(content, *faces):
+    """A game whose character is created already: Life and Sanity 8, Food 3."""
+    game = Game(dice=ScriptedDice(faces), content=content)
+    game.create_character(life=8, sanity=8, food=3)
+    return game
+
+
 def terminal(game, lines):
     """A terminal that reads the game to show it, typing the given lines."""
     output = []
@@ -60,8 +67,8 @@ BACK_AND_FORTH = ["m", "1"]
 
 
 def test_a_player_walks_ten_boxes_in_the_terminal(content):
-    # given a new game played in the terminal: Food 3, one new box, then nine visited ones
-    game = Game(dice=ScriptedDice([3, *EXPLORE, *[NO_ENCOUNTER] * 9]), content=content)
+    # given a game played in the terminal: Food 3, one new box, then nine visited ones
+    game = ready(content, *EXPLORE, *[NO_ENCOUNTER] * 9)
     interface, output = terminal(game, [HOME_TOP_LEFT, *FIRST_MOVE, *BACK_AND_FORTH * 9, QUIT])
 
     # when the player types Home, ten moves, then quit
@@ -80,7 +87,7 @@ def test_a_player_walks_ten_boxes_in_the_terminal(content):
 
 
 def test_the_map_shows_where_the_character_stands_and_the_numbered_choices(content):
-    game = Game(dice=ScriptedDice([3, *EXPLORE]), content=content)
+    game = ready(content, *EXPLORE)
     interface, output = terminal(game, [HOME_TOP_LEFT, *FIRST_MOVE, QUIT])
 
     play(game, interface)
@@ -91,7 +98,7 @@ def test_the_map_shows_where_the_character_stands_and_the_numbered_choices(conte
 
 
 def test_a_wrong_choice_is_asked_again(content):
-    game = Game(dice=ScriptedDice([3]), content=content)
+    game = ready(content)
     typist = Typist(["x", "99", HOME_TOP_LEFT, QUIT])
     output = []
     interface = TerminalInterface(game, input_fn=typist, output_fn=output.append)
@@ -104,14 +111,15 @@ def test_a_wrong_choice_is_asked_again(content):
 
 def test_ending_the_input_quits(content):
     # Ctrl-D (end of input) is the same as choosing to quit
-    game = Game(dice=ScriptedDice([3]), content=content)
+    game = ready(content)
     interface, _ = terminal(game, [HOME_TOP_LEFT])
 
     assert play(game, interface) is End.QUIT
 
 
 def test_main_writes_the_log_to_a_file_with_the_seed_and_the_answers(tmp_path):
-    typist = Typist([HOME_TOP_LEFT, QUIT])
+    # seed 7 rolls Random Weapon 3: the grenade (1) or the bow; then the knife (1)
+    typist = Typist(["Ann", "l", "2", "1", "18", "1", "1", HOME_TOP_LEFT, QUIT])
     output = []
 
     code = main(
@@ -122,12 +130,13 @@ def test_main_writes_the_log_to_a_file_with_the_seed_and_the_answers(tmp_path):
     [log_file] = tmp_path.glob("*.log")
     log = log_file.read_text()
     assert "dice seed 7" in log
+    assert "answer name: Ann" in log
     assert "answer home: (0, 0)" in log
     assert "answer action: quit" in log
 
 
 def test_the_free_actions_have_letters(content):
-    game = Game(dice=ScriptedDice([3]), content=content)
+    game = ready(content)
     interface, output = terminal(game, [HOME_TOP_LEFT, QUIT])
 
     play(game, interface)
@@ -140,7 +149,7 @@ def test_the_free_actions_have_letters(content):
 
 def test_a_new_box_shows_its_entry_and_your_choice(content):
     # given a new box whose 2d6 show 3 and 5: Town Exploration 8; then the Street's d6 shows 4
-    game = Game(dice=ScriptedDice([3, 3, 5, 4]), content=content)
+    game = ready(content, 3, 5, 4)
     interface, output = terminal(game, [HOME_TOP_LEFT, "m", "1", "2", RESOLVE, QUIT])
 
     play(game, interface)
@@ -156,7 +165,7 @@ def test_a_new_box_shows_its_entry_and_your_choice(content):
 
 
 def test_a_die_rolled_by_an_entry_is_shown(content):
-    game = Game(dice=ScriptedDice([3, *EXPLORE]), content=content)
+    game = ready(content, *EXPLORE)
     interface, output = terminal(game, [HOME_TOP_LEFT, *FIRST_MOVE, QUIT])
 
     play(game, interface)
@@ -165,7 +174,7 @@ def test_a_die_rolled_by_an_entry_is_shown(content):
 
 
 def test_a_table_not_copied_yet_points_to_its_source_and_asks_where_it_leads(content):
-    game = Game(dice=ScriptedDice([3, *EXPLORE]), content=content)
+    game = ready(content, *EXPLORE)
     interface, output = terminal(game, [HOME_TOP_LEFT, *FIRST_MOVE, QUIT])
 
     play(game, interface)
@@ -178,7 +187,7 @@ def test_a_table_not_copied_yet_points_to_its_source_and_asks_where_it_leads(con
 
 def test_a_table_s_rules_are_shown_the_first_time_then_on_request(content):
     # given two new boxes in a row, along the top row (from the second box, option 2 is new)
-    game = Game(dice=ScriptedDice([3, *EXPLORE, *EXPLORE]), content=content)
+    game = ready(content, *EXPLORE, *EXPLORE)
     lines = [HOME_TOP_LEFT, *FIRST_MOVE, "m", "2", "r", RESOLVE, QUIT]
     interface, output = terminal(game, lines)
 
@@ -196,7 +205,7 @@ def test_a_table_s_rules_are_shown_the_first_time_then_on_request(content):
 def test_an_entry_shows_the_notes_it_points_to(content):
     # given Town Exploration 2 (1 and 1), then Random Encounter 6 then 1: the Unique Vampires,
     # whose d6 shows 3
-    game = Game(dice=ScriptedDice([3, 1, 1, 6, 1, 3]), content=content)
+    game = ready(content, 1, 1, 6, 1, 3)
     interface, output = terminal(game, [HOME_TOP_LEFT, "m", "1", RESOLVE, QUIT])
 
     play(game, interface)
@@ -210,7 +219,7 @@ def test_an_entry_shows_the_notes_it_points_to(content):
 def test_the_text_can_lead_to_any_table_and_any_event(content):
     # given Town Exploration 6 (3 and 3): the Street, whose d6 shows 4; its text sends the
     # player to the Undead table (d6: 2), then to event #12
-    game = Game(dice=ScriptedDice([3, 3, 3, 4, 2]), content=content)
+    game = ready(content, 3, 3, 4, 2)
     undead = str(table_names(content).index("Undead table") + 1)
     lines = [HOME_TOP_LEFT, "m", "1", "t", undead, "e", "12", RESOLVE, QUIT]
     interface, output = terminal(game, lines)
@@ -230,7 +239,7 @@ def table_names(content):
 
 
 def test_a_visited_box_says_whether_an_encounter_came(content):
-    game = Game(dice=ScriptedDice([3, *EXPLORE, NO_ENCOUNTER]), content=content)
+    game = ready(content, *EXPLORE, NO_ENCOUNTER)
     interface, output = terminal(game, [HOME_TOP_LEFT, *FIRST_MOVE, *BACK_AND_FORTH, QUIT])
 
     play(game, interface)
@@ -266,7 +275,7 @@ def test_a_player_attaches_a_sheet_once_the_first_is_full_and_walks_onto_it(cont
 
 def test_the_player_applies_an_entry_with_manual_actions(content):
     # given the House's entry, not copied yet: the player loses 2 Sanity, then leaves it
-    game = Game(dice=ScriptedDice([3, *EXPLORE]), content=content)
+    game = ready(content, *EXPLORE)
     interface, output = terminal(game, [HOME_TOP_LEFT, "m", "1", "l", "2", "2", RESOLVE, QUIT])
 
     play(game, interface)
@@ -278,7 +287,7 @@ def test_the_player_applies_an_entry_with_manual_actions(content):
 
 
 def test_a_wrong_number_is_asked_again(content):
-    game = Game(dice=ScriptedDice([3, *EXPLORE]), content=content)
+    game = ready(content, *EXPLORE)
     lines = [HOME_TOP_LEFT, "m", "1", "g", "5", "two", "0", "1", RESOLVE, QUIT]
     interface, output = terminal(game, lines)
 
@@ -290,7 +299,7 @@ def test_a_wrong_number_is_asked_again(content):
 
 def test_a_roll_vs_l_shows_the_die_and_the_result(content):
     # the die shows 3; L4 with no modifier (Enter)
-    game = Game(dice=ScriptedDice([3, *EXPLORE, 3]), content=content)
+    game = ready(content, *EXPLORE, 3)
     interface, output = terminal(game, [HOME_TOP_LEFT, "m", "1", "v", "4", "", RESOLVE, QUIT])
 
     play(game, interface)
@@ -299,7 +308,7 @@ def test_a_roll_vs_l_shows_the_die_and_the_result(content):
 
 
 def test_marking_a_safe_house_takes_the_search_away(content):
-    game = Game(dice=ScriptedDice([3, *EXPLORE]), content=content)
+    game = ready(content, *EXPLORE)
     interface, output = terminal(game, [HOME_TOP_LEFT, "m", "1", "h", RESOLVE, QUIT])
 
     play(game, interface)
@@ -310,7 +319,7 @@ def test_marking_a_safe_house_takes_the_search_away(content):
 
 def test_search_with_no_notes_rolls_at_once(content):
     # the Search die shows 3: Nothing found
-    game = Game(dice=ScriptedDice([3, 3]), content=content)
+    game = ready(content, 3)
     interface, output = terminal(game, [HOME_TOP_LEFT, "s", QUIT])
 
     play(game, interface)
@@ -324,7 +333,7 @@ def test_search_with_no_notes_rolls_at_once(content):
 
 def test_notes_are_shown_and_asked_for_a_modifier(content):
     # the player writes a note, then Searches: the notes come back above the modifier
-    game = Game(dice=ScriptedDice([3, 4]), content=content)
+    game = ready(content, 4)
     lines = [HOME_TOP_LEFT, "a", "w", "cursed: -1 to Search", "b", "s", "-1", QUIT]
     interface, output = terminal(game, lines)
 
@@ -337,7 +346,7 @@ def test_notes_are_shown_and_asked_for_a_modifier(content):
 
 
 def test_an_empty_note_is_asked_again(content):
-    game = Game(dice=ScriptedDice([3]), content=content)
+    game = ready(content)
     interface, output = terminal(game, [HOME_TOP_LEFT, "a", "w", "  ", "cursed", "b", QUIT])
 
     play(game, interface)
@@ -347,7 +356,7 @@ def test_an_empty_note_is_asked_again(content):
 
 
 def test_a_note_is_removed_by_its_number(content):
-    game = Game(dice=ScriptedDice([3]), content=content)
+    game = ready(content)
     lines = [HOME_TOP_LEFT, "a", "w", "cursed", "w", "blessed", "x", "1", "b", QUIT]
     interface, output = terminal(game, lines)
 
@@ -355,3 +364,54 @@ def test_a_note_is_removed_by_its_number(content):
 
     assert "Note removed: cursed" in output
     assert [note.text for note in game.character.notes] == ["blessed"]
+
+
+# --- Creation and XP (E6) ----------------------------------------------------------------------
+
+CREATION_DICE = (5, 3, 4, 1, 1, 1, 3, 4)
+"""A pistol with 7 bullets, a rope, a small bell, 4 Food."""
+CREATING = ["Ann", "l", "2", "1", "18", "1"]
+"""Ann; the points on Life and Sanity, 2 on Life; Agile (1), then Tough (19th, 18th once
+Agile is gone); the knife (1)."""
+
+
+def test_a_player_creates_a_character_in_the_terminal(content):
+    game = Game(dice=ScriptedDice(CREATION_DICE), content=content)
+    interface, output = terminal(game, [*CREATING, HOME_TOP_LEFT, QUIT])
+
+    play(game, interface)
+
+    text = "\n".join(output)
+    assert game.character.skills.keys() == {"skill.agile", "skill.tough"}
+    # the choices are shown with what they mean
+    assert "l) Life and Sanity" in text
+    assert "1) Agile (8 XP): Add +1 to your Defense rolls" in text
+    assert "1) Knife: -1 to Attack rolls." in text
+    # what was taken, and the character sheet at the first turn
+    assert "You take: Pistol (7)." in text
+    assert "Ann · Box 1 · Life 10/10 · Sanity 9/9 · Food 4 · XP 0 · Clues 0" in text
+    assert "Skills: Agile, Tough" in text
+    assert "Items: Pistol (7), Knife, Rope, Small bell" in text
+
+
+def test_a_player_spends_xp_in_the_terminal(content):
+    game = ready(content)
+    game.gain("xp", 8)
+    interface, output = terminal(game, [HOME_TOP_LEFT, "p", "1", QUIT])
+
+    play(game, interface)
+
+    text = "\n".join(output)
+    assert "p) spend XP" in text
+    assert "1) Agile: 8 XP" in text
+    assert "You learn Agile: 8 XP spent." in text
+    assert game.character.skills == {"skill.agile": "basic"}
+
+
+def test_healing_at_max_says_so(content):
+    game = ready(content, *EXPLORE)
+    interface, output = terminal(game, [HOME_TOP_LEFT, "m", "1", "g", "1", "2", RESOLVE, QUIT])
+
+    play(game, interface)
+
+    assert "You are at your max Life (8)." in output
