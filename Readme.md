@@ -56,6 +56,7 @@ Work happens in small, planned sessions with Claude. The upcoming sessions are l
 - **Interface:** terminal CLI first. Engine stays UI-agnostic so other front ends can be added.
 - **MVP scope** (was D6): two steps, Bring Home the Bacon then Close a Hell Gate with campaign play; unwritten content goes through book mode. See [MVP scope](design/mvp-scope.md).
 - **Engine/interface protocol** (E4): callbacks. The engine calls `ask(request)` when the player chooses (the answer must be one of the options) and `tell(event)` when something happens. Chosen over generators and a state machine: rules that ask deep inside other rules stay simple; the game is saved between turns. Interfaces read the game state and change it only through their answers. See [architecture](docs/architecture.md).
+- **Plain data in YAML** (D1, decided in E6): a number the engine reads is a field next to the text, added only when the engine first reads it (Skill XP costs in R2; item counts and uses, weapon variants in E6). The text stays as printed. Field shapes may change while no saved game depends on them. See [rules text in YAML](docs/content.md).
 - **Rules text in YAML** (part of D1): every table, entry, creature, item, event and Skill gets a stable ID and its text in YAML; behaviour stays in Python, keyed by the same ID. The Markdown in `gameRules/` stays as the readable copy, fixed together with the YAML. Files, IDs (`table.town_exploration.7`, `mission.bring_home_the_bacon`) and the shape of a table: [rules text in YAML](docs/content.md).
 
 ### Guidelines
@@ -69,10 +70,6 @@ Former decisions that are better kept as guidelines than settled up front.
 - **Design before code** — model the game in domain terms in [`design/`](design/) before writing engine code.
 
 ### Deferred
-
-#### [ ] D1 — Rules content format
-Partly decided: the text lives in YAML and behaviour in Python, both keyed by ID (see Made). Still open: where plain data goes (creature stats, item weights), in the YAML next to the text or in Python next to the behaviour. Most entries mix plain stats with unique rules, so the format must handle both without inventing a DSL. Skill XP costs are already numbers in the YAML (the user, in R2).
-- Decide when: the engine writes its first content (E6).
 
 #### [ ] D8 — genAI integration
 Where narration / image generation plug in, kept optional and behind interfaces. Post-MVP, but should not be blocked by MVP architecture.

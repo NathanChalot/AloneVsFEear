@@ -55,7 +55,7 @@ flowchart TD
 ### Where the text comes from
 
 - **The rules text is copied into YAML files.** Each table, entry, creature, item, event and Skill gets a stable ID, its dice and entries, and its text as written in the book. While copying, OCR damage is fixed against the original PDFs in `origin_rules/`, and page references become table names. Files, IDs and the shape of a table: [rules text in YAML](../docs/content.md).
-- **Behaviour stays in Python**, keyed by the same ID. YAML holds no rules logic, so no rules language is invented ([D1](../Readme.md#deferred)). Whether plain data (creature stats, item weight, Skill XP cost) also goes into YAML is decided when the engine writes its first content (E6 in the [roadmap](../Readme.md#milestone-6--step-1-bring-home-the-bacon)).
+- **Behaviour stays in Python**, keyed by the same ID. YAML holds no rules logic, so no rules language is invented ([D1](../Readme.md#decisions)). Plain data (creature stats, item counts, Skill XP costs) is a YAML field next to the text, added when the engine first reads it (decided in E6).
 - **The Markdown in `gameRules/` stays** as the readable copy. The YAML is the copy the engine reads. Both are fixed together.
 - **Everything is copied before step 1 is playable**: every table, event, item and Skill, in batches ordered by when the engine needs them ([Milestone 3](../Readme.md#milestone-3--rules-text-in-yaml)). This replaces the Markdown-only cleanup. Until an entry is copied, book mode shows its file and entry number instead.
 - The same text can later feed a narrator ([D8](../Readme.md#deferred)).

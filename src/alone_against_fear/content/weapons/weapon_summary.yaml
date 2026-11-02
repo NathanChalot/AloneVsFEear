@@ -17,6 +17,9 @@ weapons:
     name: Baseball bat or hammer
     text: >-
       +1 to hit zombies and flaming skeletons. Damage 1.
+    variants:
+      - {id: weapon.baseball_bat, name: Baseball bat}
+      - {id: weapon.hammer, name: Hammer}
   - id: weapon.bow
     name: Bow
     text: >-
@@ -58,16 +61,25 @@ weapons:
     name: Hockey Stick/golf club
     text: >-
       Two handed. Damage 1, but Damage 2 on a roll of 6.
+    variants:
+      - {id: weapon.hockey_stick, name: Hockey stick}
+      - {id: weapon.golf_club, name: Golf club}
   - id: weapon.kitchen_knife_or_ritual_dagger
     name: Kitchen knife/ritual dagger
     text: >-
       -1 to Attack. If the Attack roll is a 1, it breaks. You may pick
       up a kitchen knife every time you visit a house.
+    variants:
+      - {id: weapon.kitchen_knife, name: Kitchen knife}
+      - {id: weapon.ritual_dagger, name: Ritual dagger}
   - id: weapon.knife_or_stick
     name: Knife or stick
     text: >-
       -1 to Attack rolls. You may pick up a stick every time you visit a
       park.
+    variants:
+      - {id: weapon.knife, name: Knife}
+      - {id: weapon.stick, name: Stick}
   - id: weapon.molotov_cocktail
     name: Molotov cocktail
     text: >-
@@ -104,6 +116,9 @@ weapons:
       Two handed. -1 to Attack rolls because of its unwieldiness. Damage
       1. If you roll a natural 6, you decapitate the target, regardless
       of how many Life points it has.
+    variants:
+      - {id: weapon.scythe, name: Scythe}
+      - {id: weapon.shovel, name: Shovel}
   - id: weapon.shotgun
     name: Shotgun
     text: >-
