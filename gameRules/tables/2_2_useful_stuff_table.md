@@ -3,7 +3,7 @@
 - 11 d6 jars of cat food (all jars count as 1 carried item). They may be used as 1 Food each or to avoid one encounter with a cat-like monster.
 - 12 Flower bunch/present. Use once to gain a +1 on a Charisma roll.
 - 13 Small bell. Useful for some spells. Negligible weight.
-- 14 Backpack. You may carry 15 objects instead of 10.
+- 14 Backpack. You may carry 15 items instead of 10, and 15 Food points instead of 10.
 - 15 Body armor. The body armor has 4 Life points. Every time you take Damage, roll d6. On a 1-3, you take Damage normally. On a 4 or 5, you take the Damage off the body armor. On a 6, the Damage bounces off the body armor and is ignored. When the body armor loses its last Life, it is rendered useless. Wearing body armor counts as carrying 2 objects.
 - 16 Butterfly collection.
 - 21 Martial arts handbook. Reduce by 1 XP the cost for learning the Martial Arts Skill. No reduction on Martial Arts Skill (Expert).
@@ -18,7 +18,7 @@
 - 34 Helmet. This full biker's helmet has 3 Life points and can protect your head. Every time you take Damage, roll d6. On a 1-5, you take Damage normally. On a 6, the helmet takes the Damage instead. When the helmet loses its last Life, it is rendered useless. If worn, the weight of the helmet is negligible. If carried, it counts as 1 object. If the helmet and the body armor are worn in conjunction, on a 3, 4, or 5 you take Damage off the body armor; on a 6 you take Damage off the helmet.
 - 35 d3 bottles of liquor. If you drink a whole bottle before an encounter, you will fight at -1 on Attack and Defense rolls, but you may ignore the first point of Sanity lost in that encounter. While drunk, you may not perform Exorcism or any ritual, and you may not learn anything from books. The effect lasts for d6 boxes. You may shorten its duration by 1 box by drinking coffee.
 - 36 Strong coffee. Drink to reduce the effect of liquor, above. This is enough for drinking 6 times.
-- 41 2d6 candles. Useful for many spells.
+- 41 2d6 candles. Used for many spells and rituals. You need a lighter or other source of fire to light them.
 - 42 Flashlight. This is a source of light; it may be used as a ranged weapon to attack shadow creatures at +2, Damage 1. After each encounter with shadow creatures, there is a 1 in 6 chance of the batteries running out.
 - 43 Box of matches. Useful to start a fire or to use a Molotov cocktail.
 - 44 Grooming/beauty products as appropriate to your gender. When you use this, you get a +1 to your single next Charisma roll.

@@ -68,7 +68,7 @@ entries:
     item: item.exorcism_ritual_book
   - roll: 26
     text: >-
-      Backpack. Increases by 5 your limit of carried items and Food points.
+      Backpack. You may carry 15 items instead of 10, and 15 Food points instead of 10.
     item: item.backpack
   - roll: 31
     text: >-
@@ -116,8 +116,8 @@ entries:
     item: item.train_ticket
   - roll: 44
     text: >-
-      d6+3 candles. Used for many rituals. You need a lighter or other source
-      of fire to light them.
+      d6+3 candles. Used for many spells and rituals. You need a lighter or other
+      source of fire to light them.
     item: item.candles
     count: d6+3
   - roll: 45

@@ -158,10 +158,19 @@ def test_random_objects_book_entries_point_to_the_random_book_table():
     assert list(entry.refs) == ["table.random_book"]
 
 
-def test_the_backpack_is_in_both_tables_as_printed():
-    assert "Increases by 5" in OBJECTS.entry_for(26).text
-    assert STUFF.entry_for(14).text == "Backpack. You may carry 15 objects instead of 10."
+def test_the_backpack_is_in_both_tables_reworded_alike():
+    # reworded with the user in E6: one text for an item found in two tables
+    text = "Backpack. You may carry 15 items instead of 10, and 15 Food points instead of 10."
+    assert OBJECTS.entry_for(26).text == STUFF.entry_for(14).text == text
     assert OBJECTS.entry_for(26).item == STUFF.entry_for(14).item == "item.backpack"
+
+
+def test_the_candles_are_in_both_tables_reworded_alike():
+    # reworded with the user in E6; each table keeps its own count
+    text = "candles. Used for many spells and rituals. You need a lighter or other source of"
+    assert OBJECTS.entry_for(44).text == f"d6+3 {text} fire to light them."
+    assert STUFF.entry_for(41).text == f"2d6 {text} fire to light them."
+    assert (OBJECTS.entry_for(44).count, STUFF.entry_for(41).count) == ("d6+3", "2d6")
 
 
 def test_useful_stuff_rows_split_across_lines_are_whole():
@@ -182,7 +191,22 @@ def test_useful_stuff_entries_that_give_a_weapon_point_to_it():
 
 def test_the_flail_in_useful_stuff_adds_its_expert_rule():
     assert "become a Flail (Expert)" in STUFF.entry_for(22).text
-    assert "Expert" not in CONTENT.weapon("weapon.antique_flail_weapon").text
+
+
+@pytest.mark.parametrize(
+    ("weapon_id", "added"),
+    [
+        ("weapon.antique_flail_weapon", "become a Flail (Expert)"),
+        ("weapon.flashlight", "This is a source of light."),
+        ("weapon.kitchen_knife", "Damage 1."),
+        ("weapon.molotov_cocktail", "can destroy vampires permanently"),
+        ("weapon.hammer", "drive stakes through the hearts of vampires."),
+        ("weapon.shovel", "Useful to dig graves."),
+    ],
+)
+def test_the_summary_is_completed_with_what_the_entries_add(weapon_id, added):
+    # E6, with the user: one text per weapon, the summary's, completed from the entries
+    assert added in CONTENT.weapon(weapon_id).text
 
 
 # --- E6: what an entry gives -------------------------------------------------

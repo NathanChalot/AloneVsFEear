@@ -17,7 +17,7 @@ entries:
     text: Small bell. Useful for some spells. Negligible weight.
     item: item.small_bell
   - roll: 14
-    text: Backpack. You may carry 15 objects instead of 10.
+    text: Backpack. You may carry 15 items instead of 10, and 15 Food points instead of 10.
     item: item.backpack
   - roll: 15
     text: >-
@@ -107,7 +107,9 @@ entries:
     item: item.strong_coffee
     uses: 6
   - roll: 41
-    text: 2d6 candles. Useful for many spells.
+    text: >-
+      2d6 candles. Used for many spells and rituals. You need a lighter or other
+      source of fire to light them.
     item: item.candles
     count: 2d6
   - roll: 42
