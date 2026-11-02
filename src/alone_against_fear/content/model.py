@@ -12,7 +12,17 @@ from dataclasses import dataclass, field
 from ..dice import DiceCode
 
 KINDS = frozenset(
-    {"table", "mission", "event", "weapon", "skill", "arcane_skill", "injury", "mental_scar"}
+    {
+        "table",
+        "mission",
+        "event",
+        "weapon",
+        "item",
+        "skill",
+        "arcane_skill",
+        "injury",
+        "mental_scar",
+    }
 )
 """First segment of every ID. A YAML batch adds the kinds it needs."""
 
@@ -36,6 +46,10 @@ class Roll:
         return str(self.low) if self.low == self.high else f"{self.low}-{self.high}"
 
 
+type Count = str | int
+"""A dice code in standard form ("2d6+3"), or a fixed number ("Salt (6 doses)")."""
+
+
 @dataclass(frozen=True)
 class Entry:
     id: str
@@ -48,6 +62,20 @@ class Entry:
     """Keys of the top table's notes that apply to this entry."""
     table: Table | None = None
     """A nested table: roll d6, then another d6."""
+    item: str | None = None
+    """The item the entry gives (`item.`); two entries may give the same one. A weapon the
+    entry gives is in `refs`."""
+    count: Count | Mapping[str, Count] | None = None
+    """How many objects the entry gives: one count, or one per thing when it gives a
+    choice."""
+    uses: Count | None = None
+    """How many times the single item it gives can be used (a First Aid Kit's points)."""
+
+    def count_of(self, id_: str) -> Count | None:
+        """How many of `id_` the entry gives: a dice code to roll, a number, or None."""
+        if isinstance(self.count, Mapping):
+            return self.count.get(id_)
+        return self.count
 
 
 @dataclass(frozen=True)
@@ -107,13 +135,21 @@ class CatalogueEvent:
 
 @dataclass(frozen=True)
 class Weapon:
-    """A weapon of the weapon summary: its name and rules as printed. Its stats stay text
-    until D1 is decided (E6)."""
+    """A weapon of the weapon summary: its name and rules as printed. A heading that names
+    two weapons ("Baseball bat or hammer") lists them as variants: each is a weapon of its
+    own, with the heading's text, so the character holds the exact one."""
 
     id: str
     name: str
     text: str
     source: str
+    variants: tuple[str, ...] = ()
+    """The IDs of the weapons a heading names; none when it names one."""
+    heading: str | None = None
+    """For a variant: the ID of its heading."""
+    extra: str | None = None
+    """For a variant: a sentence of its own, already at the end of `text` (the hammer drives
+    stakes, the baseball bat does not)."""
 
 
 @dataclass(frozen=True)
@@ -141,7 +177,11 @@ class Content:
     """Tables and events known but not copied yet."""
     entries: Mapping[str, Entry]
     weapons: Mapping[str, Weapon] = field(default_factory=dict)
-    """The weapon summary, in the book's order."""
+    """The weapon summary, in the book's order: its headings."""
+    variants: Mapping[str, Weapon] = field(default_factory=dict)
+    """The weapons a heading names, when it names two."""
+    items: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
+    """Every item, with the IDs of the entries that give it."""
     skills: Mapping[str, Skill] = field(default_factory=dict)
     """The Skills, in the book's order."""
     arcane_skills: Mapping[str, Skill] = field(default_factory=dict)
@@ -154,7 +194,8 @@ class Content:
         return self.entries[id_]
 
     def weapon(self, id_: str) -> Weapon:
-        return self.weapons[id_]
+        """A heading of the weapon summary, or a variant."""
+        return self.weapons[id_] if id_ in self.weapons else self.variants[id_]
 
     def skill(self, id_: str) -> Skill:
         """A Skill or an Arcane Skill."""
@@ -171,6 +212,8 @@ class Content:
             or id_ in self.catalogue
             or id_ in self.entries
             or id_ in self.weapons
+            or id_ in self.variants
+            or id_ in self.items
             or id_ in self.skills
             or id_ in self.arcane_skills
         )

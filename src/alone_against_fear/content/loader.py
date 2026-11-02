@@ -14,6 +14,7 @@ from .model import (
     CatalogueTable,
     Content,
     ContentError,
+    Count,
     Entry,
     Roll,
     Skill,
@@ -26,11 +27,12 @@ CATALOGUE = "catalogue.yaml"
 
 _TABLE_KEYS = {"id", "name", "dice", "text", "source", "notes", "entries"}
 _NESTED_KEYS = {"dice", "entries"}
-_ENTRY_KEYS = {"roll", "id", "name", "text", "refs", "notes", "table"}
+_ENTRY_KEYS = {"roll", "id", "name", "text", "refs", "notes", "table", "item", "count", "uses"}
 _CATALOGUE_KEYS = {"id", "name", "dice", "source"}
 _CATALOGUE_EVENT_KEYS = {"id", "name", "source"}
 _WEAPONS_KEYS = {"name", "source", "weapons"}
-_WEAPON_KEYS = {"id", "name", "text"}
+_WEAPON_KEYS = {"id", "name", "text", "variants"}
+_VARIANT_KEYS = {"id", "name", "extra"}
 _SKILL_KEYS = {"id", "name", "xp", "text", "expert"}
 _ARCANE_KEYS = _SKILL_KEYS | {"components", "sacrifice"}
 _SKILL_LISTS = {
@@ -60,7 +62,8 @@ def load_content(root: Path | str | None = None) -> Content:
         register(item.id, catalogue_path)
         catalogue[item.id] = item
 
-    tables, entries, weapons = {}, {}, {}
+    tables, entries, weapons, variants = {}, {}, {}, {}
+    items: dict[str, list[str]] = {}
     skills: dict[str, dict[str, Skill]] = {key: {} for key in _SKILL_LISTS}
     for path in sorted(root.rglob("*.yaml")):
         if path == catalogue_path:
@@ -69,7 +72,7 @@ def load_content(root: Path | str | None = None) -> Content:
         if isinstance(raw, dict) and "weapons" in raw:
             for weapon in _weapons(raw, path):
                 register(weapon.id, path)
-                weapons[weapon.id] = weapon
+                (weapons if weapon.heading is None else variants)[weapon.id] = weapon
             continue
         if isinstance(raw, dict) and (key := next((k for k in _SKILL_LISTS if k in raw), None)):
             for skill in _skills(raw, path, key):
@@ -82,12 +85,19 @@ def load_content(root: Path | str | None = None) -> Content:
         for entry in table.walk():
             register(entry.id, path)
             entries[entry.id] = entry
+            if entry.item is not None:
+                items.setdefault(entry.item, []).append(entry.id)
+    for item in items:
+        if item in seen:
+            raise ContentError(f"{item} is an item and is defined in {seen[item]}")
 
     return Content(
         tables=tables,
         catalogue=catalogue,
         entries=entries,
         weapons=weapons,
+        variants=variants,
+        items={item: tuple(given) for item, given in items.items()},
         skills=skills["skills"],
         arcane_skills=skills["arcane_skills"],
     )
@@ -131,16 +141,41 @@ def _catalogued(raw: Any, path: Path) -> CatalogueTable | CatalogueEvent:
 
 
 def _weapons(raw: dict, path: Path) -> list[Weapon]:
-    """A list of weapons with no dice (the weapon summary): each its ID, name and text."""
+    """A list of weapons with no dice (the weapon summary): each its ID, name and text, and
+    the variants of a heading that names two weapons, each just after its heading."""
     _check_keys(raw, _WEAPONS_KEYS, _WEAPONS_KEYS, str(path))
     weapons = []
     for item in raw["weapons"] or []:
         what = f"{path}: {item.get('id', '?') if isinstance(item, dict) else item}"
-        _check_keys(item, _WEAPON_KEYS, _WEAPON_KEYS, what)
-        if not str(item["id"]).startswith("weapon."):
-            raise ContentError(f"{what}: a weapon ID starts with weapon.")
-        weapons.append(Weapon(item["id"], item["name"], item["text"], raw["source"]))
+        _check_keys(item, _WEAPON_KEYS, {"id", "name", "text"}, what)
+        _check_weapon_id(item["id"], what)
+        named = []
+        for variant in item.get("variants") or []:
+            named_what = (
+                f"{path}: {variant.get('id', '?') if isinstance(variant, dict) else variant}"
+            )
+            _check_keys(variant, _VARIANT_KEYS, {"id", "name"}, named_what)
+            _check_weapon_id(variant["id"], named_what)
+            extra = variant.get("extra")
+            text = item["text"] if extra is None else f"{item['text']} {extra}"
+            named.append(
+                Weapon(
+                    variant["id"],
+                    variant["name"],
+                    text,
+                    raw["source"],
+                    heading=item["id"],
+                    extra=extra,
+                )
+            )
+        variants = tuple(variant.id for variant in named)
+        weapons += [Weapon(item["id"], item["name"], item["text"], raw["source"], variants), *named]
     return weapons
+
+
+def _check_weapon_id(id_: Any, what: str) -> None:
+    if not str(id_).startswith("weapon."):
+        raise ContentError(f"{what}: a weapon ID starts with weapon.")
 
 
 def _skills(raw: dict, path: Path, key: str) -> list[Skill]:
@@ -197,15 +232,51 @@ def _entry(raw: Any, table_id: str, path: Path) -> Entry:
     _check_keys(raw, _ENTRY_KEYS, {"roll"}, what)
     roll = _roll(raw["roll"], what)
     id_ = raw.get("id") or f"{table_id}.{roll.label}"
+    item = raw.get("item")
+    if item is not None and not str(item).startswith("item."):
+        raise ContentError(f"{what}: an item ID starts with item., got {item!r}")
+    refs = _strings(raw.get("refs"), f"{what} refs")
     return Entry(
         id=id_,
         roll=roll,
         text=raw.get("text"),
         name=raw.get("name"),
-        refs=_strings(raw.get("refs"), f"{what} refs"),
+        refs=refs,
         notes=_strings(raw.get("notes"), f"{what} notes"),
         table=_table(raw["table"], path, id_) if "table" in raw else None,
+        item=item,
+        count=_counts(raw.get("count"), {*refs, item}, what),
+        uses=_uses(raw.get("uses"), item, what),
     )
+
+
+def _uses(raw: Any, item: str | None, what: str) -> Count | None:
+    if raw is None:
+        return None
+    if item is None:
+        raise ContentError(f"{what}: uses need an item")
+    return _count(raw, what, "uses are")
+
+
+def _counts(raw: Any, given: set[str | None], what: str) -> Count | dict[str, Count] | None:
+    """One count, or one per thing the entry gives (a ref or its item)."""
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        return _count(raw, what)
+    for id_ in raw:
+        if id_ not in given:
+            raise ContentError(f"{what}: a count for {id_}, which the entry does not give")
+    return {id_: _count(count, what) for id_, count in raw.items()}
+
+
+def _count(raw: Any, what: str, called: str = "a count is") -> Count:
+    if isinstance(raw, int) and not isinstance(raw, bool) and raw > 0:
+        return raw
+    try:
+        return str(DiceCode.parse(str(raw)))
+    except DiceError as error:
+        raise ContentError(f"{what}: {called} a dice code or a number, got {raw!r}") from error
 
 
 def _roll(raw: Any, what: str) -> Roll:
