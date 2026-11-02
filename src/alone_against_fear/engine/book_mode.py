@@ -35,6 +35,11 @@ def resolve(game: Game, interface: Interface, id_: str) -> None:
 def follow(game: Game, interface: Interface, rolled: Rolled) -> None:
     """Tell a table already rolled (a Search), then follow its entry as `resolve` does."""
     interface.tell(rolled)
+    lead_on(game, interface, rolled)
+
+
+def lead_on(game: Game, interface: Interface, rolled: Rolled) -> None:
+    """Follow the entry of a table already rolled and told (a book at creation)."""
     next_id = _lead(game, interface, rolled)
     if next_id is not None:
         resolve(game, interface, next_id)
