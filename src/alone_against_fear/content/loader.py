@@ -16,6 +16,7 @@ from .model import (
     ContentError,
     Count,
     Entry,
+    Gear,
     Roll,
     Skill,
     Table,
@@ -33,7 +34,8 @@ _CATALOGUE_EVENT_KEYS = {"id", "name", "source"}
 _WEAPONS_KEYS = {"name", "source", "weapons"}
 _WEAPON_KEYS = {"id", "name", "text", "variants"}
 _VARIANT_KEYS = {"id", "name", "extra"}
-_SKILL_KEYS = {"id", "name", "xp", "text", "expert"}
+_SKILL_KEYS = {"id", "name", "xp", "text", "expert", "starting_gear"}
+_GEAR_KEYS = {"id", "count", "uses"}
 _ARCANE_KEYS = _SKILL_KEYS | {"components", "sacrifice"}
 _SKILL_LISTS = {
     # key of the list: (ID prefix, what to call it, keys of an item)
@@ -202,9 +204,20 @@ def _skills(raw: dict, path: Path, key: str) -> list[Skill]:
                 expert=item.get("expert"),
                 components=item.get("components"),
                 sacrifice=item.get("sacrifice"),
+                starting_gear=tuple(_gear(gear, what) for gear in item.get("starting_gear") or []),
             )
         )
     return skills
+
+
+def _gear(raw: Any, what: str) -> Gear:
+    _check_keys(raw, _GEAR_KEYS, {"id"}, f"{what} starting gear")
+    count, uses = raw.get("count"), raw.get("uses")
+    return Gear(
+        id=raw["id"],
+        count=None if count is None else _count(count, what),
+        uses=None if uses is None else _count(uses, what, "uses are"),
+    )
 
 
 def _table(raw: Any, path: Path, id_: str | None = None) -> Table:

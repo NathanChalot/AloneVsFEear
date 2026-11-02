@@ -586,3 +586,34 @@ def test_uses_that_are_not_dice_are_refused(root):
 def test_uses_need_an_item(root):
     with pytest.raises(ContentError, match="uses need an item"):
         load_one(root, d6_table("  - {roll: 1-6, text: x, refs: [weapon.bow], uses: 3}\n"))
+
+
+def test_a_skill_may_give_starting_gear(root):
+    # Bow and Faith give gear when taken at creation (E6, the user)
+    write(
+        root,
+        "skills/skills.yaml",
+        SKILLS.replace(
+            "    text: Ignore the -1 to hit with a bow.\n",
+            "    text: Ignore the -1 to hit with a bow.\n"
+            "    starting_gear:\n      - {id: weapon.bow, count: d6+3}\n",
+        ),
+    )
+
+    gear = load_content(root).skill("skill.bow").starting_gear
+
+    assert [(g.id, g.count, g.uses) for g in gear] == [("weapon.bow", "d6+3", None)]
+
+
+def test_starting_gear_that_does_not_exist_is_reported(root):
+    write(
+        root,
+        "skills/skills.yaml",
+        SKILLS.replace(
+            "    text: Ignore the -1 to hit with a bow.\n",
+            "    text: Ignore the -1 to hit with a bow.\n"
+            "    starting_gear:\n      - {id: weapon.bow}\n",
+        ),
+    )
+
+    assert reference_problems(load_content(root)) == ["skill.bow: no such ID weapon.bow"]

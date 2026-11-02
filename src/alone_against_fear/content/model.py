@@ -153,6 +153,15 @@ class Weapon:
 
 
 @dataclass(frozen=True)
+class Gear:
+    """Something a Skill gives when taken at creation (the Bow's bow and arrows)."""
+
+    id: str
+    count: Count | None = None
+    uses: Count | None = None
+
+
+@dataclass(frozen=True)
 class Skill:
     """A Skill (`skill.`) or an Arcane Skill (`arcane_skill.`): its name, XP cost and rules
     as printed, the Expert line apart."""
@@ -168,6 +177,8 @@ class Skill:
     """Arcane Skills only: the tools the ritual needs, as printed."""
     sacrifice: str | None = None
     """Arcane Skills only: what the ritual uses up, as printed."""
+    starting_gear: tuple[Gear, ...] = ()
+    """What the Skill gives when taken at creation, as its text says."""
 
 
 @dataclass(frozen=True)
@@ -239,14 +250,23 @@ def coverage_problems(table: Table) -> list[str]:
 
 
 def reference_problems(content: Content) -> list[str]:
-    """Every reference points to a table, an entry, or a catalogued table or event."""
-    return [
+    """Every reference points to a table, an entry, or a catalogued table or event; every
+    Skill's starting gear exists."""
+    problems = [
         f"{entry.id}: no such ID {ref}"
         for table in content.tables.values()
         for entry in table.walk()
         for ref in entry.refs
         if ref not in content
     ]
+    skills = [*content.skills.values(), *content.arcane_skills.values()]
+    problems += [
+        f"{skill.id}: no such ID {gear.id}"
+        for skill in skills
+        for gear in skill.starting_gear
+        if gear.id not in content
+    ]
+    return problems
 
 
 def note_problems(content: Content) -> list[str]:
