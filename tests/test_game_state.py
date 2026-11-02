@@ -15,8 +15,11 @@ import pytest
 from alone_against_fear.content import load_content
 from alone_against_fear.dice import ScriptedDice
 from alone_against_fear.engine import Game, GameError, Happened, Level, Position, Stat
+from alone_against_fear.engine.state import Item
 
 BACON = "mission.bring_home_the_bacon"
+KNIFE = Item("weapon.knife")
+PISTOL = Item("weapon.pistol", "table.random_weapon.5", count=7)
 
 
 @pytest.fixture(scope="module")
@@ -32,7 +35,7 @@ def game(content):
 @pytest.fixture
 def playing(game):
     """A game with a character on a mission."""
-    game.create_character(life=7, sanity=6, food=4, items=["Knife", "Pistol"])
+    game.create_character(life=7, sanity=6, food=4, items=[KNIFE, PISTOL])
     game.start_mission(BACON)
     return game
 
@@ -62,10 +65,10 @@ def test_a_game_can_continue_a_campaign(game, content):
 
 
 def test_creating_a_character(game):
-    character = game.create_character(life=7, sanity=6, food=4, items=["Knife"])
+    character = game.create_character(life=7, sanity=6, food=4, items=[KNIFE])
     assert (character.life, character.sanity, character.food) == (7, 6, 4)
     assert (character.xp, character.clues) == (0, 0)
-    assert character.items == ["Knife"]
+    assert character.items == [KNIFE]
     assert character.mission is None
     assert game.character is character
 
@@ -80,9 +83,9 @@ def test_there_is_no_character_before_one_is_created(game):
 @pytest.mark.parametrize("stat", list(Stat))
 def test_every_number_can_be_gained_and_lost(playing, stat):
     before = getattr(playing.character, stat)
-    assert playing.gain(stat, 3) == before + 3
-    assert playing.lose(stat, 2) == before + 1
-    assert getattr(playing.character, stat) == before + 1
+    assert playing.lose(stat, 3) == before - 3
+    assert playing.gain(stat, 2) == before - 1  # below the max of Life and Sanity (E6)
+    assert getattr(playing.character, stat) == before - 1
 
 
 @pytest.mark.parametrize("change", ["gain", "lose"])
@@ -91,15 +94,15 @@ def test_a_negative_amount_is_refused(playing, change):
         getattr(playing, change)(Stat.LIFE, -1)
 
 
-def test_items_are_added_and_removed_by_name(playing):
-    playing.add_item("Knife")
-    playing.remove_item("Pistol")
-    assert playing.character.items == ["Knife", "Knife"]
+def test_items_are_added_and_removed(playing):
+    playing.add_item(KNIFE)
+    playing.remove_item(PISTOL)
+    assert playing.character.items == [KNIFE, KNIFE]
 
 
 def test_removing_an_item_the_character_does_not_have_is_refused(playing):
     with pytest.raises(GameError):
-        playing.remove_item("Shotgun")
+        playing.remove_item(Item("weapon.shotgun"))
 
 
 # --- Missions -----------------------------------------------------------------

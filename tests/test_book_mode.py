@@ -43,7 +43,7 @@ from alone_against_fear.interface.scripted import ScriptedInterface
 HOME = Position(2, 2)
 EAST = Position(3, 2)
 FOOD = 3
-"""The placeholder character's Food die."""
+"""The character's Food."""
 
 
 @pytest.fixture(scope="module")
@@ -52,7 +52,10 @@ def content():
 
 
 def new_game(content, *faces):
-    return Game(dice=ScriptedDice([FOOD, *faces]), content=content)
+    """A game whose character is created already, with 8 Life and Sanity."""
+    game = Game(dice=ScriptedDice(faces), content=content)
+    game.create_character(life=8, sanity=8, food=FOOD)
+    return game
 
 
 def game_with_character(content, *faces):

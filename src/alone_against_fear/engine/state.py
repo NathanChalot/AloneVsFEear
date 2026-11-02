@@ -44,13 +44,19 @@ class Upkeep(StrEnum):
 
 
 class Stat(StrEnum):
-    """The character's plain numbers. Max values, Skills and limits come later (E6, E9)."""
+    """The character's plain numbers. Life and Sanity have a max (E6); the Food limit comes
+    with the inventory (E9)."""
 
     LIFE = "life"
     SANITY = "sanity"
     FOOD = "food"
     XP = "xp"
     CLUES = "clues"
+
+
+class SkillLevel(StrEnum):
+    BASIC = "basic"
+    EXPERT = "expert"
 
 
 class Mark(StrEnum):
@@ -78,6 +84,19 @@ class Note:
 
     text: str
     box: int
+
+
+@dataclass(frozen=True)
+class Item:
+    """Something the character holds (E6): an item or a weapon by ID, the table entry it came
+    from (its text is shown), how many objects (`count`: garlic heads, bullets) and how many
+    uses are left (`uses`: a First Aid Kit's points). The inventory's rules come with E9."""
+
+    id: str
+    source: str | None = None
+    """The table entry it came from; None when no entry gave it (the knife or stick)."""
+    count: int | None = None
+    uses: int | None = None
 
 
 @dataclass
@@ -136,10 +155,15 @@ class Character:
     life: int
     sanity: int
     food: int
+    base_life: int
+    base_sanity: int
+    """The starting Life and Sanity; the max is calculated from them and the effects (E7)."""
+    name: str = ""
     xp: int = 0
     clues: int = 0
-    items: list[str] = field(default_factory=list)
-    """Item names, until items get IDs (R3)."""
+    skills: dict[str, SkillLevel] = field(default_factory=dict)
+    """Skill and Arcane Skill IDs, at their level."""
+    items: list[Item] = field(default_factory=list)
     notes: list[Note] = field(default_factory=list)
     """The player's notes (E5b): lasting effects and modifiers of texts the engine cannot
     read, kept as a reminder."""
