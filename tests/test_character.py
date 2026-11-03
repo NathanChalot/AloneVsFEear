@@ -1,8 +1,8 @@
 """E6: the character (design/character.md): Life and Sanity with a max, Skills at Basic or
 Expert, XP spent on Skills at any time, and the items held.
 
-Max values are calculated: the sheet keeps the base values, and the effects that raise them
-(Tough, Strong Grip on Reality) come with E7. Until then the max is the base.
+Max values are calculated: the sheet keeps the base values; the effects that raise them
+(Tough, Strong Grip on Reality) are tested with the Skills' effects (test_effects.py, E7).
 """
 
 import pytest

@@ -14,6 +14,9 @@ from typing import NamedTuple
 
 from ..content import CatalogueEvent, CatalogueTable, Content
 from ..dice import Dice, DiceCode
+from ..effect_targets import Parameter
+from . import effects
+from .effects import Held
 from .state import (
     Box,
     Campaign,
@@ -35,7 +38,17 @@ from .state import (
 from .town import boxes_of, neighbours, sheet_neighbours, sheet_of
 
 FOOD_INTERVAL = 5
-"""One Food every this many box numbers (Skills that change it come with E9)."""
+"""One Food every this many box numbers; the Food interval's base (the upkeep reads the
+parameter with E8)."""
+CARRY_LIMIT = 10
+"""Items carried, before the backpack and Strong (E9)."""
+
+PARAMETER_BASES = {Parameter.CARRY_LIMIT: CARRY_LIMIT, Parameter.FOOD_INTERVAL: FOOD_INTERVAL}
+"""The bases written in the rules; max Life and Sanity are the character's, the surprise chance
+and the Clue cost the text's."""
+PARAMETER_FLOORS = {Parameter.SURPRISE_CHANCE: 0, Parameter.CLUE_COST: 1}
+"""Danger Sense leaves a 1 in 6 creature no chance; Investigator reduces a Clue cost "to a
+minimum of 1" (`1_2_skills.md`)."""
 
 PLACE_TABLES = frozenset(
     {
@@ -166,8 +179,9 @@ class Game:
         skills: Iterable[str] = (),
     ) -> Character:
         """A new character, who continues the campaign; the last one is forgotten. Their
-        starting Life and Sanity are the base of the max; their Skills are at Basic, and none
-        is Arcane (creation, `1_1_main_rules.md`)."""
+        starting Life and Sanity are the base of the max, and they start at the max: Tough and
+        Strong Grip on Reality raise both. Their Skills are at Basic, and none is Arcane
+        (creation, `1_1_main_rules.md`)."""
         skills = list(skills)
         for skill_id in skills:
             if skill_id not in self.content.skills:
@@ -182,25 +196,49 @@ class Game:
             skills=dict.fromkeys(skills, SkillLevel.BASIC),
             items=[*items],
         )
+        character = self.campaign.character
+        character.life, character.sanity = self.max(Stat.LIFE), self.max(Stat.SANITY)
         log.info(
             "new character %r: Life %d, Sanity %d, Food %d, Skills %s",
             name,
-            life,
-            sanity,
+            character.life,
+            character.sanity,
             food,
             ", ".join(skills) or "none",
         )
         return self.campaign.character
 
     def max(self, stat: Stat) -> int | None:
-        """The max of Life or Sanity: the base until the effects that raise it (E7). None
-        for the numbers with no max (the Food limit comes with E9)."""
+        """The max of Life or Sanity: the base plus the effects held (Tough, Strong Grip on
+        Reality). None for the numbers with no max (the Food limit comes with E9)."""
         match stat:
             case Stat.LIFE:
-                return self.character.base_life
+                return self.parameter(Parameter.MAX_LIFE)
             case Stat.SANITY:
-                return self.character.base_sanity
+                return self.parameter(Parameter.MAX_SANITY)
         return None
+
+    # --- Effects ------------------------------------------------------------------------------
+
+    def effects(self) -> tuple[Held, ...]:
+        """Every effect in play, read from its source: the character's Skills (E7)."""
+        return effects.held(self.character, self.content)
+
+    def parameter(self, parameter: Parameter, base: int | None = None) -> int:
+        """A parameter's value: its base plus the effects held, never below its floor. The
+        surprise chance and the Clue cost take their base from the text or the creature."""
+        if base is None:
+            match parameter:
+                case Parameter.MAX_LIFE:
+                    base = self.character.base_life
+                case Parameter.MAX_SANITY:
+                    base = self.character.base_sanity
+                case _:
+                    base = PARAMETER_BASES.get(parameter)
+        if base is None:
+            raise GameError(f"{parameter} needs a base: the text or the creature gives it")
+        value = base + effects.parameter_change(self.effects(), parameter)
+        return max(value, PARAMETER_FLOORS.get(parameter, value))
 
     def gain(self, stat: Stat, amount: int) -> int:
         """Add to one of the character's numbers, never above its max; returns the new
@@ -259,11 +297,17 @@ class Game:
 
     def buy(self, purchase: Purchase) -> None:
         """Spend XP on a Skill, at any moment (`1_1_main_rules.md`, Experience). Its effects
-        stay text until E7."""
+        apply at once: a max it raises raises the current value by as much (Tough: "both
+        your maximum number of Life points and your current number of Life points are
+        increased"), it does not heal."""
         if purchase not in self.purchases():
             raise GameError(f"cannot buy {purchase}")
+        before = {stat: self.max(stat) for stat in (Stat.LIFE, Stat.SANITY)}
         self.character.xp -= purchase.cost
         self.character.skills[purchase.skill_id] = purchase.level
+        for stat, top in before.items():
+            if (raised := self.max(stat) - top) > 0:
+                self._set(stat, getattr(self.character, stat) + raised, f"gains {raised} max")
         log.info(
             "character buys %s at %s for %d XP, %d left",
             purchase.skill_id,

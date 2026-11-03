@@ -389,7 +389,8 @@ def test_a_player_creates_a_character_in_the_terminal(content):
     assert "1) Knife: -1 to Attack rolls." in text
     # what was taken, and the character sheet at the first turn
     assert "You take: Pistol (7)." in text
-    assert "Ann · Box 1 · Life 10/10 · Sanity 9/9 · Food 4 · XP 0 · Clues 0" in text
+    # Tough: 2 more Life (E7)
+    assert "Ann · Box 1 · Life 12/12 · Sanity 9/9 · Food 4 · XP 0 · Clues 0" in text
     assert "Skills: Agile, Tough" in text
     assert "Items: Pistol (7), Knife, Rope, Small bell" in text
 
