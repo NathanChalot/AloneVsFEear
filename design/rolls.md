@@ -42,8 +42,26 @@ A result keeps the **natural die** as well as the **total**: explosion, fumble, 
   - climb, jump, avoid danger — Agile
   - sanity loss — Phobic
 
+- A **bow** is a ranged weapon (the combat chapter lists arrows among the ranged weapons' ammo): a bow Attack carries both tags, and Good Shot counts for it.
+
+## Parameters
+
+Besides rolls, an effect can change a number the rules read: a **parameter**. Its value is a base plus the effects held, calculated whenever it is read.
+
+| Parameter | Base | Changed by |
+| --- | --- | --- |
+| Max Life | the starting Life | Tough |
+| Max Sanity | the starting Sanity | Strong Grip on Reality, Shaky |
+| Carry limit | 10 items | Strong, backpack |
+| Food interval | 5 boxes | Resistant to Hunger, Eating Disorder |
+| Surprise chance | the creature's x in 6, never below 0 | Danger Sense |
+| Clue cost | the text's, never below 1 | Investigator |
+
+## Settled
+
+- **Will** is a roll type, and some Saves carry its tags (fear, magic, hypnotism, psionics): the Will Skill counts for both ([rulings](rulings.md#character)).
+- Will (Expert) dropping Hypnotism is read as a slip ([rulings](rulings.md#character)).
+
 ## Fuzzy entries
 
-- Is **Will** a roll type, a kind of Save, or both? The Will Skill says "Will rolls and saves vs Fear, Magic…".
-- What counts as **avoid danger** for Agile? Probably any Save the text describes as dodging or falling.
-- Will (Expert) drops Hypnotism from its list. Likely a typo.
+- What counts as **avoid danger** for Agile? Probably any Save the text describes as dodging or falling. Settled when the content that rolls them is written (book mode: the player answers).
