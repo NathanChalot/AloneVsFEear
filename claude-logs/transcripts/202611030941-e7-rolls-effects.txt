@@ -1,0 +1,2787 @@
+ ▐▛███▛█   Claude Code v2.1.317
+▝▜██████▀  Opus 5.5 · Claude Pro
+ ▝▝   ▝▝   ~/Code/RPGs/AloneVsFEear
+
+
+❯ lets proceed with next session. At the end before adding the log etc, we      
+  should discuss of adding some "review steps" in our roadmap, dedicated        
+  session that ensure consistency as the propject grow                          
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ E6 is merged and main is up to date. Reading the Readme, the latest log and
+  the effects design next.
+
+  Searched for 1 pattern, read 1 file, listed 2 directories, ran 2 shell commands (ctrl+o to expand)
+
+⏺ E6 is merged and main is clean. I've read the plan and the rolls/effects
+  design. Now I'm reading the engine code (state, game, the manual roll) so I
+  can propose E7's design.
+
+  Read 2 files, listed 1 directory (ctrl+o to expand)
+
+⏺ I've reviewed the plan, character design, Skills text, and engine files. Now
+  I'll check how creation handles Tough, the noted Will book errors, and combat
+  malus rules for Bow and unarmed attacks.
+
+  Searched for 1 pattern, ran 1 shell command (ctrl+o to expand)
+
+⏺ E6 is merged and main is clean. Creating the session branch, then the design
+  proposal.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ E7: Rolls and effects
+
+  Goal: a roll has a type and context tags. A roll vs L collects matching
+  modifiers from every holder (only the character's Skills for now), with
+  stacking limits. Max values are calculated from effects. All 22 Skills are
+  written as effects, and manual rolls in book mode get their modifiers. Done 
+  when: every Skill's effect is tested.
+
+  What the 22 Skills need
+
+  Kind: Roll modifier
+  Skills: Agile, Bow, Charisma, Dodge (bonus), Fighter, Good Shot, Investigator
+  (Search), Martial Arts, Occultist, Resilient, Slippery, Stealth, Strong
+  (Strength), Vampire Hunter, Will, Zombie Hunter
+  Tested in E7 how: a roll collects them
+  ────────────────────────────────────────
+  Kind: Stat modifier
+  Skills: Tough (max Life), Strong Grip on Reality (max Sanity), Strong (carry
+  limit)
+  Tested in E7 how: max is calculated; gaining one raises the current value too,
+
+  at creation as well
+  ────────────────────────────────────────
+  Kind: Rule parameter
+  Skills: Danger Sense (surprise), Investigator (Clue cost, min 1), Resistant to
+
+  Hunger (Food interval)
+  Tested in E7 how: the engine reads the value now; the task that uses it (E8,
+  E9, E12) plugs it in
+  ────────────────────────────────────────
+  Kind: Reaction / new action
+  Skills: Dodge (balance on a natural 1), Faith (turn vampires), Medic (heal
+  after an encounter)
+  Tested in E7 how: pending tests naming their task (E12, E18, E11/E13). They
+  need moments and items that don't exist yet
+
+  Design choices (recommendations first)
+
+  1. Where Skill effects are written
+     - A (recommended): an effects field on each Skill in the YAML, built from a
+       small fixed vocabulary that the loader checks. Python keeps only
+       behaviour (reactions, actions) keyed by Skill ID. This follows D1 ("a
+       number the engine reads is a field next to the text"), and items,
+       Injuries and Scars can reuse the same field later.
+     - B: a Python table keyed by Skill ID. It's simpler today, but it puts the
+       numbers in code against D1.
+  2. Effects in the state
+     - Derived (recommended): effects aren't stored. The engine collects them on
+       demand from what the character holds (Skills now; items in E9, Injuries
+       in E13). Removing the source removes its effects for free, and the state
+       still holds only IDs.
+     - Effects that have no held source ("+1 for 3 boxes" from an event) become
+       stored records with a lifetime in E8.
+  3. The manual roll in book mode: the player picks the roll type (Attack,
+     Defense, Save…).
+     - Recommended: the engine then asks a yes/no question only for the tags its
+       held modifiers depend on, e.g. "A save vs poison, infection or disease?"
+       if the character has Resilient. The typed modifier stays for what the
+       engine can't track yet: weapon modifiers until E12, and notes.
+     - The alternative is that the player picks tags from a full list every
+       time.
+  4. Bow and Martial Arts: both are roll modifiers on tagged Attacks.
+     - Bow gives +1 / +2 to bow Attacks; Martial Arts gives +1 / +2 to unarmed
+       Attacks.
+     - The weapon's own malus (-1 for an unskilled bow, -2 unarmed) comes with
+       E12, or is typed by the player until then.
+     - The arithmetic matches the book in every case, and these two Skills don't
+       need a "skilled" switch.
+
+  Preview of option 1A for one Skill:
+
+    - id: skill.agile
+      ...
+      effects:
+        - {roll: defense, basic: 1, expert: 2, stacks_with_none_of:
+  [skill.dodge]}
+        - {roll: save, tags: [climb, jump, avoid_danger], basic: 1, expert: 2}
+    - id: skill.tough
+      effects:
+        - {value: max_life, basic: 2, expert: 3}
+
+⏺ User answered Claude's questions:
+  ⎿  · E7: where should the Skills' effects be written? → YAML field 
+     (Recommended)
+     · E7: should effects be stored in the game state, or derived from what the 
+     character holds? → Derived (Recommended)
+     · E7: in book mode, how does a manual roll get its tags? → I would say "Ask
+     only what matters" but I would like an example
+     · E7: how are Bow and Martial Arts modelled? → I m not sure I understand
+
+⏺ I've worked out two things: a manual-roll example showing how the engine only
+  asks about Skills relevant to the specific save (Resilient, Agile), and two
+  equivalent ways to model Bow/Martial Arts penalties—either as ordinary roll
+  modifiers added by the Skill, or as a rule parameter that changes the weapon's
+  base malus—both giving identical totals but differing in implementation.
+
+⏺ User answered Claude's questions:
+  ⎿  · With the example above, how should a book-mode roll get its tags? → I 
+     still don t have a good understanding yet, describe me what would happoned 
+     from a user perspective with the internal sotware steps.Like : "when X 
+     happens, the screen displays Y, then the user can do Z and then the sotware
+     will do A" 
+     · Bow and Martial Arts: a bonus that cancels the weapon's malus, or a rule 
+     that changes the malus? → Same response as you re other question
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Here's the same book-mode moment under each option, step by step. The example
+  character, Ana, has Resilient (+1 to saves vs poison, infection or disease)
+  and Agile (+1 Defense, +1 to saves to climb, jump or avoid danger). She enters
+  a box, and the engine reaches an entry it can't read yet. The entry says:
+  "Toxic fumes: save vs L4 or lose 2 Life."
+
+  Manual roll, option 1: ask only what matters
+
+  1. The engine reaches the unreadable entry. The screen shows its text and the
+     book-mode menu: Apply the text, then where does it lead? [t] table [e] 
+     event [g] gain [l] lose [v] roll vs L … [d] done.
+  2. Ana types v.
+  3. The engine asks which roll. The screen lists [1] Attack [2] Defense [3] 
+     Save [4] Escape …. Ana types 3.
+  4. The engine asks the level. The screen shows L? , and Ana types 4.
+  5. The engine looks through Ana's Skills for Save modifiers and finds two.
+     Each one depends on what the save is about, so it asks once per Skill:
+     - Is it a save vs poison, infection or disease? (Resilient +1) [y/n]: Ana
+       types y.
+     - Is it a save to climb, jump or avoid danger? (Agile +1) [y/n]: Ana types
+       n.
+  6. The engine asks for anything it can't know. The screen shows her notes,
+     then Other modifier (Enter for none): . Ana presses Enter.
+  7. The engine rolls a 3, adds Resilient's +1 for a total of 4, which makes L4.
+     The screen shows Save vs L4: rolled 3, Resilient +1, total 4. Success.
+  8. The book-mode menu comes back. She succeeded, so she loses nothing and
+     types d.
+
+  A character with no Skills that touch saves gets no question at step 5. For a
+  Defense roll, Agile applies whatever the roll is about, so it's added without 
+  asking.
+
+  Manual roll, option 2: pick from all tags
+
+  Steps 1–4 are the same. At step 5 the screen lists every tag a save can have:
+  [1] poison [2] infection [3] disease [4] fear [5] magic [6] hypnotism [7] 
+  psionics [8] climb [9] jump [10] avoid danger [d] done.
+  Ana types 1, then d. The engine then finds that Resilient matches. Every
+  player sees this list on every save, whatever Skills they have.
+
+  My recommendation is option 1: it asks fewer questions, and they're about the
+  Skills the player actually has. Book mode is temporary anyway: once an entry
+  is written (E10 onwards), the engine makes the roll itself, with its tags, and
+  asks nothing.
+
+  ---
+
+  Bow, in the same style
+
+  Ana has the Bow Skill (Basic) and shoots at a creature with her bow. Until
+  E12, fights are applied by hand.
+
+  Option "bonus":
+  1. Ana types v, then picks Attack, then the creature's L.
+  2. The screen asks Is it an Attack with a bow? (Bow +1) [y/n]. Ana types y.
+  3. The screen asks Other modifier:. Ana types -1: the bow's own malus, which
+     every archer has, as written on the bow.
+  4. The screen shows Attack vs L3: rolled 4, Bow +1, -1, total 4. The +1 and -1
+     cancel, and the total is what the book says (a skilled archer attacks
+     "without modifier").
+  5. From E12, the engine knows the bow gives -1 and nobody types anything:
+     rolled 4, bow -1, Bow +1, total 4.
+
+  Option "rule on the malus":
+  1. Same as above.
+  2. Same question.
+  3. Ana must know that her Skill removes the bow's -1, so she types 0 (or +1 at
+     Expert). The book's rule is applied in her head.
+  4. The screen shows Attack vs L3: rolled 4, total 4.
+  5. From E12, the bow's code checks "does the character have Bow?" and skips
+     its own -1.
+
+  Both give the same totals in every case. The bonus option keeps Bow a plain
+  bonus like Fighter's, with nothing to remember, and the screen shows where
+  each number comes from. Martial Arts works the same way, with unarmed at -2
+  and the Skill at +1 or +2.
+
+⏺ User answered Claude's questions:
+  ⎿  · Manual rolls in book mode: option 1 (ask a yes/no only for the Skills 
+     that depend on what the roll is about) or option 2 (pick from every tag of 
+     that roll type)? → Option 1 (Recommended)
+     · Bow and Martial Arts: the "bonus" option (Skill +1/+2, the weapon keeps 
+     its -1 / -2) or the "rule on the malus" option (the Skill removes the 
+     weapon's malus)? → Bonus (Recommended)
+
+⏺ I've logged option 1 for manual rolls and the bonus option for Bow/Martial
+  Arts. I found four ambiguous rule passages in the Skills that affect E7
+  builds, which I'll record as switchable rulings in design/rulings.md, plus one
+  convention to confirm: Expert amounts replace Basic ones rather than stacking
+  (e.g., Charisma goes to +2 at Expert, and Tough's Life bonus increases by 1
+  when upgrading from Basic to Expert).
+
+⏺ User answered Claude's questions:
+  ⎿  · Agile, Expert line: "Add +2 to the above." (Basic: "+1 to your Defense 
+     rolls and rolls performed to climb, jump, or avoid danger.") Is Agile 
+     (Expert) +2 in total, or +2 more than Basic (+3)? → +2 in total 
+     (Recommended)
+     · Agile and Dodge both say: "The bonus to Defense rolls does not stack… Use
+     one or the other." With both Skills, how is the one used picked? → 
+     highest, automatically but it should be visible to the user 
+     · Will, Basic: "Add +1 to your Will rolls and saves vs. Fear, Magic, 
+     Hypnotism, or Psionics." Which rolls get the +1? → Any Will roll + those 
+     saves (Recommended)
+     · Will, Expert: "Add +2 to your Will rolls and saves vs. Fear, Magic or 
+     Psionics." The Basic line also lists Hypnotism (already listed as a doubt 
+     in book_errors.md). Does Will (Expert) cover Hypnotism? → Yes, a slip 
+     (Recommended)
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ All four rulings are recorded as you chose them. On Agile/Dodge, the roll will
+  show the bonus that was set aside, e.g. Dodge +2 (Agile +1 does not stack).
+
+  Plan
+
+  Vocabulary — a new vocabulary.py, shared by the content and the engine like
+  dice.py:
+  - the roll types: Attack, Defense, Save, Escape, Stealth, Charisma, Strength,
+    Magic, Will, Search;
+  - only the tags the Skills need for now;
+  - the values effects can change: max Life, max Sanity, carry limit, Food
+    interval, surprise chance, Clue cost.
+
+  A bow Attack is also a ranged one: the combat chapter lists bows among the
+  ranged weapons. So a "yes" to Bow's question skips Good Shot's.
+
+  YAML: each Skill gets an effects list, made of three kinds of entry:
+  - {roll, tags, basic, expert, group}: a roll modifier. Tags are "any of
+    these"; modifiers in the same group don't stack, and the highest applies.
+  - {value, basic, expert}: added to a value. Investigator's "minimum 1" and
+    Danger Sense's "no chance" become floors on the value.
+  - Dodge's balance, Faith and Medic: nothing in the YAML. Their behaviour is
+    Python, written in their task (E12, E18, E11/E13), and E7 adds a pending
+    test for each.
+
+  Engine (engine/effects.py plus Game):
+  - Effects are collected from the Skills held. max() is calculated.
+  - adjusted(value, base) serves the parameters that later tasks read: surprise
+    chance, Clue cost, Food interval, carry limit.
+  - Gaining a Skill raises the current value by however much the max rose: at
+    creation, when buying, and when upgrading to Expert (+1 for Tough).
+  - roll_vs(level, roll, tags, modifier) and search() collect their modifiers.
+    The result lists the modifiers applied and the ones set aside.
+
+  Book mode and terminal: the manual roll follows the walkthrough you chose. For
+  the yes/no question, Choose gets an optional about field: what the question
+  is about (the Skill and its tags), so the interface can phrase it. The roll
+  display lists each modifier by name.
+
+  Not in E7:
+  - The Food upkeep keeps every 5 boxes. E8 plugs in the interval, together with
+    its open question on changing it mid-game, and Eating Disorder.
+  - The carry limit is used from E9, surprise from E12, Clue costs when a text
+    first charges Clues.
+
+  Commits, each tested:
+  1. Rulings and design (rulings.md, rolls.md, book_errors.md).
+  2. Vocabulary, loader and the Skills' YAML.
+  3. Effects in the engine: max, values, rolls, Search.
+  4. The manual roll and the terminal.
+
+⏺ User answered Claude's questions:
+  ⎿  · Go ahead with this plan and the four-commit split? → Why "vocabulary" 
+     what dos it represent ?
+
+⏺ I've clarified that "vocabulary" refers to the shared list of roll types,
+  tags, and values that the YAML loader and engine must agree on, catching typos
+  at load time. I'll place this as a top-level module (like dice.py) since both
+  the content loader and engine depend on it, and now I'll pick a name for it.
+
+⏺ User answered Claude's questions:
+  ⎿  · Name of the module holding the roll types, tags and values that the YAML 
+     and the engine share? → what about rolls_and_values? Or something with 
+     rolls_ and another term that covers food interval and max life, if they are
+     meant to stay in the file. wdyt ?
+     · With the name settled, go ahead with the plan and the four-commit split? 
+     → answer my question about the name
+
+⏺ I'll go with rolls_and_values.py as the filename, keeping rolls and values
+  together since the loader checks both against the same module. I'll name the
+  enum Value (e.g. Value.MAX_LIFE, Value.FOOD_INTERVAL) alongside RollType and
+  Tag, since it best covers both stat modifiers and rule parameters without
+  clashing with the existing Stat enum.
+
+⏺ User answered Claude's questions:
+  ⎿  · Name it rolls_and_values.py (RollType, Tag, Value) and go ahead with the 
+     plan and the four-commit split? → Are those values constants ?
+
+⏺ I confirmed the file only defines names like Value.FOOD_INTERVAL, while actual
+  numbers are computed on demand as base plus effects (e.g., max Life, carry
+  limit, food interval, surprise chance, Clue cost), with rule constants staying
+  in the engine rather than being stored.
+
+⏺ User answered Claude's questions:
+  ⎿  · rolls_and_values.py holds the names (RollType, Tag, Value); the numbers 
+     are calculated (base + effects). Go ahead with the plan and the four-commit
+     split? → If FOOD_INTERVAL and MAX_LIFE are constants, why should we set 
+     them in the same file as rolls ?
+
+⏺ I'll rename the file to effect_targets.py, since RollType, Tag, and Value all
+  share the same role: naming what an effect can target, whether that's a roll
+  (type + tags) or a value. The rule's actual numbers stay in the engine.
+⏺ User answered Claude's questions:
+  ⎿  · Which name for the module listing what an effect can change (RollType, 
+     Tag, Value)? → effect_targets.py is fine bu why keeping Value ? What does 
+     MAX_LIFE and FOOD_INTERVAL represents ? Value is a bit generic
+     · Then go ahead with the plan and the four-commit split? → Not yet I m 
+     still asking quesitons
+
+⏺ These are all derived numbers—not dice rolls—computed from a base plus
+  modifiers: MAX_LIFE/MAX_SANITY, CARRY_LIMIT, FOOD_INTERVAL, SURPRISE_CHANCE,
+  and CLUE_COST. Since the design docs split them into "stat modifiers" and
+  "rule parameters" but they work identically in code, I'll suggest a few naming
+  options to cover both under one term.
+
+⏺ User answered Claude's questions:
+  ⎿  · Name for the numbers the rules read and effects change (max Life, carry 
+     limit, Food interval, surprise chance, Clue cost)? → Parameter 
+     (Recommended)
+
+⏺ Parameter it is: effect_targets.py will hold RollType, Tag and Parameter, and
+  the YAML will read {parameter: max_life, basic: 2, expert: 3}.
+
+⏺ User answered Claude's questions:
+  ⎿  · Any other question on the plan, or shall I start (rulings and design 
+     commit first, then tests first for each step)? → Start
+
+⏺ Starting with the rulings and design.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Now the rulings (in Character, next to the Skill ones) and the book-error row.
+
+⏺ Update(design/rulings.md)
+  ⎿  Added 4 lines
+      25  - **The free weapon at creation is a knife or a stick, the play
+          er's choice.** `interpretation` `switchable` The main rules giv
+          e "1 knife" (`1_1_main_rules.md`, Your Character), the weapons 
+          chapter "a knife or club/stick in addition to the weapon rolled
+          " (`1_4_weapons.md`), and the weapon summary has one heading fo
+          r both, "Knife or stick", with one rule. We follow the weapons 
+          chapter, the more specific passage. Switchable: always a knife.
+           Decided in the E6 session.
+      26  - **Random Weapon 1, "Baseball bat or hammer", is the player's 
+          choice.** `interpretation` `switchable` Entries 2 and 3 say "(c
+          hoose)", entry 1 does not; it copies the weapon summary's headi
+          ng, one rule for both weapons, so the player picks the one they
+           hold. Switchable: roll d6, 1-3 bat, 4-6 hammer. Decided in the
+           E6 session.
+      27  - **"Reroll duplicates" compares everything given at creation.*
+          * `interpretation` `switchable` The sentence follows the Random
+           Objects and Useful Stuff rolls (`1_1_main_rules.md`, Your Char
+          acter). A duplicate is the same item or weapon as anything the 
+          character already got at creation: the random weapon, the knife
+           or stick, the other items, the extra roll the 3 points can buy
+          . Two variants of one heading (a baseball bat and a hammer) are
+           different weapons. Switchable: compare only the item rolls wit
+          h each other. Decided in the E6 session.
+      28 +- **An Expert amount replaces the Basic one.** `interpretation`
+         + Every Skill's Expert line gives the new total: Charisma "+2 to
+         + Charisma rolls", Tough "Add +3 to your Life points total" (`1_
+         +2_skills.md`). Agile's "Add +2 to the above" reads the same way
+         +: +2 to the rolls listed above, not +2 on top of the +1; its tw
+         +in Dodge gives +2 too. Raising a Skill to Expert changes a max 
+         +by the difference: Tough gives +1 max and current Life more. De
+         +cided in the E7 session.                                       
+      29 +- **Agile and Dodge together: the higher Defense bonus applies.
+         +** `interpretation` `switchable` Both say "Use one or the other
+         +" (`1_2_skills.md`). The engine applies the higher one, and the
+         + roll shows the one set aside. Whether Dodge's "lose your balan
+         +ce" on a natural 1 needs Dodge's bonus to be the one used is le
+         +ft to E12; if it does, the choice could become the player's. Sw
+         +itchable: the player picks on each Defense roll. Decided in the
+         + E7 session.                                                   
+      30 +- **Will covers every Will roll, and saves vs Fear, Magic, Hypn
+         +otism or Psionics.** `interpretation` "Add +1 to your Will roll
+         +s and saves vs. Fear, Magic, Hypnotism, or Psionics" (`1_2_skil
+         +ls.md`). The list qualifies the saves: Will rolls always get th
+         +e bonus, saves only against those four. "Magic" means saves aga
+         +inst magic, not casting (Occultist's Magic rolls). Decided in t
+         +he E7 session.                                                 
+      31 +- **Will (Expert) covers Hypnotism too.** `interpretation` The 
+         +Expert line lists "Fear, Magic or Psionics" (`1_2_skills.md`), 
+         +the Basic line also Hypnotism. Read as a slip: Expert raises th
+         +e same bonus. The text stays as printed ([book errors](../gameR
+         +ules/book_errors.md)). Switchable: Hypnotism keeps the Basic +1
+         + at Expert. Decided in the E7 session.                         
+      32  - **Faith's holy symbol at creation is the Religious symbol.** 
+          `interpretation` `switchable` Faith gives "a holy symbol" at cr
+          eation (`1_2_skills.md`). Two items could be it: the Religious 
+          symbol (Random Objects), whose text names Faith and turning vam
+          pires, and the Cheap holy symbol/beads (Useful Stuff), which br
+          eaks on a 1. We take the Religious symbol. Switchable: the chea
+          p one, a harsher start. Decided in the E6 session.
+      33  
+      34  ## Inventory
+
+⏺ Bash(python3 - <<'EOF'
+      p='gameRules/book_errors.md'…)
+  ⎿  Updated gameRules/book_errors.md (+1 -1)
+      12  | R3 | Weapon summary, Kitchen knife/ritual dagger | a colon af
+          ter the heading | a full stop, like the others |
+      13  | R3 | Weapon summary, Pitchfork | "Two handed, Damage 1." | a 
+          full stop, like the others |
+      14  | R3 | Random Weapon 2 | no final full stop | |
+      15 -| R2 | Will, Expert line | "saves vs. Fear, Magic or Psionics" 
+         -(the Basic line also lists Hypnotism) | Hypnotism left out by m
+         -istake, or on purpose |                                        
+      15 +| R2 | Will, Expert line | "saves vs. Fear, Magic or Psionics" 
+         +(the Basic line also lists Hypnotism) | Hypnotism left out by m
+         +istake: Expert covers it too ([ruling](../design/rulings.md#cha
+         +racter), E7) |                                                 
+      16  | R2 | Gate, how to learn | "Read the Occult Guide and the Occu
+          ltist Skill at Expert level" | a word is missing: "and have the
+           Occultist Skill" (as in the Summon Servitor list) |
+      17  | R2 | Gate | "the energies of the hell gate course through you
+          " | "Hell Gate", as everywhere else in the entry |
+      18  | R2 | Summon Servitor | "You can try again as many times you w
+          ant" | a word is missing: "as many times as you want" |
+
+⏺ Bash(python3 - <<'EOF'
+      p='design/rulings.md'…)
+  ⎿  9:- **Save** — avoid a danger, vs its L. Resilient, Demon Slayer, Will
+     , Agile (climb, jump, avoid danger).
+     15:- **Will** — resist mentally. Will, Brain damage.
+     … +7 lines (ctrl+o to expand)
+  ⎿  Updated design/rolls.md (+21 -3)
+      42    - climb, jump, avoid danger — Agile
+      43    - sanity loss — Phobic
+      44  
+      45 +- A **bow** is a ranged weapon (the combat chapter lists arrows
+         + among the ranged weapons' ammo): a bow Attack carries both tag
+         +s, and Good Shot counts for it.                                
+      46 +                                                               
+      47 +## Parameters                                                  
+      48 +                                                               
+      49 +Besides rolls, an effect can change a number the rules read: a 
+         +**parameter**. Its value is a base plus the effects held, calcu
+         +lated whenever it is read.                                     
+      50 +                                                               
+      51 +| Parameter | Base | Changed by |                              
+      52 +| --- | --- | --- |                                            
+      53 +| Max Life | the starting Life | Tough |                       
+      54 +| Max Sanity | the starting Sanity | Strong Grip on Reality, Sh
+         +aky |                                                          
+      55 +| Carry limit | 10 items | Strong, backpack |                  
+      56 +| Food interval | 5 boxes | Resistant to Hunger, Eating Disorde
+         +r |                                                            
+      57 +| Surprise chance | the creature's x in 6, never below 0 | Dang
+         +er Sense |                                                     
+      58 +| Clue cost | the text's, never below 1 | Investigator |       
+      59 +                                                               
+      60 +## Settled                                                     
+      61 +                                                               
+      62 +- **Will** is a roll type, and some Saves carry its tags (fear,
+         + magic, hypnotism, psionics): the Will Skill counts for both ([
+         +rulings](rulings.md#character)).                               
+      63 +- Will (Expert) dropping Hypnotism is read as a slip ([rulings]
+         +(rulings.md#character)).                                       
+      64 +                                                               
+      65  ## Fuzzy entries
+      66  
+      47 -- Is **Will** a roll type, a kind of Save, or both? The Will Sk
+         -ill says "Will rolls and saves vs Fear, Magic…".               
+      48 -- What counts as **avoid danger** for Agile? Probably any Save 
+         -the text describes as dodging or falling.                      
+      49 -- Will (Expert) drops Hypnotism from its list. Likely a typo.  
+      67 +- What counts as **avoid danger** for Agile? Probably any Save 
+         +the text describes as dodging or falling. Settled when the cont
+         +ent that rolls them is written (book mode: the player answers).
+  ⎿  Updated design/rulings.md (+1 -1)
+      28  - **An Expert amount replaces the Basic one.** `interpretation`
+           Every Skill's Expert line gives the new total: Charisma "+2 to
+           Charisma rolls", Tough "Add +3 to your Life points total" (`1_
+          2_skills.md`). Agile's "Add +2 to the above" reads the same way
+          : +2 to the rolls listed above, not +2 on top of the +1; its tw
+          in Dodge gives +2 too. Raising a Skill to Expert changes a max 
+          by the difference: Tough gives +1 max and current Life more. De
+          cided in the E7 session.
+      29  - **Agile and Dodge together: the higher Defense bonus applies.
+          ** `interpretation` `switchable` Both say "Use one or the other
+          " (`1_2_skills.md`). The engine applies the higher one, and the
+           roll shows the one set aside. Whether Dodge's "lose your balan
+          ce" on a natural 1 needs Dodge's bonus to be the one used is le
+          ft to E12; if it does, the choice could become the player's. Sw
+          itchable: the player picks on each Defense roll. Decided in the
+           E7 session.
+      30  - **Will covers every Will roll, and saves vs Fear, Magic, Hypn
+          otism or Psionics.** `interpretation` "Add +1 to your Will roll
+          s and saves vs. Fear, Magic, Hypnotism, or Psionics" (`1_2_skil
+          ls.md`). The list qualifies the saves: Will rolls always get th
+          e bonus, saves only against those four. "Magic" means saves aga
+          inst magic, not casting (Occultist's Magic rolls). Decided in t
+          he E7 session.
+      31 -- **Will (Expert) covers Hypnotism too.** `interpretation` The 
+         -Expert line lists "Fear, Magic or Psionics" (`1_2_skills.md`), 
+         -the Basic line also Hypnotism. Read as a slip: Expert raises th
+         -e same bonus. The text stays as printed ([book errors](../gameR
+         -ules/book_errors.md)). Switchable: Hypnotism keeps the Basic +1
+         - at Expert. Decided in the E7 session.                         
+      31 +- **Will (Expert) covers Hypnotism too.** `interpretation` `swi
+         +tchable` The Expert line lists "Fear, Magic or Psionics" (`1_2_
+         +skills.md`), the Basic line also Hypnotism. Read as a slip: Exp
+         +ert raises the same bonus. The text stays as printed ([book err
+         +ors](../gameRules/book_errors.md)). Switchable: Hypnotism keeps
+         + the Basic +1 at Expert. Decided in the E7 session.            
+      32  - **Faith's holy symbol at creation is the Religious symbol.** 
+          `interpretation` `switchable` Faith gives "a holy symbol" at cr
+          eation (`1_2_skills.md`). Two items could be it: the Religious 
+          symbol (Random Objects), whose text names Faith and turning vam
+          pires, and the Cheap holy symbol/beads (Useful Stuff), which br
+          eaks on a 1. We take the Religious symbol. Switchable: the chea
+          p one, a harsher start. Decided in the E6 session.
+      33  
+      34  ## Inventory
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Commit 1 done (rulings and design). Now the vocabulary, the loader and the
+  Skills' YAML: reading the loader and its tests.
+
+  Searched for 1 pattern, ran 2 shell commands (ctrl+o to expand)
+
+⏺ Writing the loader tests first.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(cat >> tests/test_content_validation.py <<'EOF'…)
+  ⎿  ERROR tests/test_content_validation.py
+     !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!
+     !!!!!!!!!!
+     1 error in 0.13s
+  ⎿  Updated tests/test_content_validation.py (+92 -0)
+      12      note_problems,
+      13      reference_problems,
+      14  )
+      15 +from alone_against_fear.effect_targets import Parameter, RollTy
+         +pe, Tag                                                        
+      16  
+      17  
+      18  def write(root, name, text):
+     ...
+      618      )
+      619  
+      620      assert reference_problems(load_content(root)) == ["skill.b
+           ow: no such ID weapon.bow"]
+      621 +                                                              
+      622 +                                                              
+      623 +# --- Skill effects (E7) -------------------------------------
+          +-------------------                                           
+      624 +                                                              
+      625 +                                                              
+      626 +def skill_with(effects, expert="Add +2 to the above."):       
+      627 +    expert_line = f"    expert: {expert}\n" if expert else "" 
+      628 +    return (                                                  
+      629 +        "name: S\nsource: s.md\nskills:\n"                    
+      630 +        "  - id: skill.agile\n    name: Agile\n    xp: 8\n    
+          +text: x\n"                                                    
+      631 +        f"{expert_line}    effects:\n{effects}"               
+      632 +    )                                                         
+      633 +                                                              
+      634 +                                                              
+      635 +def test_a_skill_effect_on_a_roll_is_loaded(root):            
+      636 +    write(                                                    
+      637 +        root,                                                 
+      638 +        "skills/skills.yaml",                                 
+      639 +        skill_with(                                           
+      640 +            "      - {roll: defense, basic: 1, expert: 2, grou
+          +p: agile_or_dodge}\n"                                         
+      641 +            "      - {roll: save, tags: [climb, jump, avoid_da
+          +nger], basic: 1, expert: 2}\n"                                
+      642 +        ),                                                    
+      643 +    )                                                         
+      644 +                                                              
+      645 +    defense, save = load_content(root).skill("skill.agile").ef
+          +fects                                                         
+      646 +                                                              
+      647 +    assert (defense.roll, defense.tags, defense.group) == (   
+      648 +        RollType.DEFENSE,                                     
+      649 +        frozenset(),                                          
+      650 +        "agile_or_dodge",                                     
+     … 61 more lines (ctrl+o to expand)
+
+⏺ Failing as expected (no module yet). Now effect_targets.py:
+
+⏺ Write(src/alone_against_fear/effect_targets.py)
+  ⎿  Wrote 75 lines to src/alone_against_fear/effect_targets.py
+      1 """What an effect can change (E7): a roll, by its type and contex
+        t tags, or a parameter.
+      2 
+      3 The names the YAML and the engine share (design/rolls.md): the lo
+        ader checks every effect of
+      4 the content against them, the engine rolls and calculates with th
+        em. Names only: a
+      5 parameter's value is calculated by the engine, its base plus the 
+        effects held. Tags are added
+      6 when the content first needs them.
+     … +69 lines (ctrl+o to expand)
+
+⏺ Now the model and the loader.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='src/alone_against_fear/content/model.py'…)
+  ⎿  .....................................................................
+        [100%]
+     69 passed in 0.21s
+  ⎿  Updated src/alone_against_fear/content/loader.py (+52 -1)
+       9  import yaml
+      10  
+      11  from ..dice import DiceCode, DiceError
+      12 +from ..effect_targets import Parameter, RollType, Tag          
+      13  from .model import (
+      14      CatalogueEvent,
+      15      CatalogueTable,
+      16      Content,
+      17      ContentError,
+      18      Count,
+      19 +    Effect,                                                    
+      20      Entry,
+      21      Gear,
+      22      Roll,
+     ...
+      36  _WEAPONS_KEYS = {"name", "source", "weapons"}
+      37  _WEAPON_KEYS = {"id", "name", "text", "variants"}
+      38  _VARIANT_KEYS = {"id", "name", "extra"}
+      37 -_SKILL_KEYS = {"id", "name", "xp", "text", "expert", "starting_
+         -gear"}                                                         
+      39 +_SKILL_KEYS = {"id", "name", "xp", "text", "expert", "starting_
+         +gear", "effects"}                                              
+      40 +_EFFECT_KEYS = {"roll", "tags", "parameter", "group", "basic", 
+         +"expert"}                                                      
+      41  _GEAR_KEYS = {"id", "count", "uses"}
+      42  _ARCANE_KEYS = _SKILL_KEYS | {"components", "sacrifice"}
+      43  _SKILL_LISTS = {
+     ...
+      208                  components=item.get("components"),
+      209                  sacrifice=item.get("sacrifice"),
+      210                  starting_gear=tuple(_gear(gear, what) for gear
+            in item.get("starting_gear") or []),
+      211 +                effects=tuple(                                
+      212 +                    _effect(effect, what, "expert" in item) fo
+          +r effect in item.get("effects") or []                         
+      213 +                ),                                            
+      214              )
+      215          )
+      216      return skills
+      217  
+      218  
+      219 +def _effect(raw: Any, what: str, has_expert: bool) -> Effect: 
+      220 +    """A Skill's effect: a roll (type, tags, group) or a param
+          +eter, and its amounts. Every                                  
+      221 +    name is checked against `effect_targets`, so a misspelt on
+          +e fails here."""                                              
+      222 +    what = f"{what} effect"                                   
+      223 +    _check_keys(raw, _EFFECT_KEYS, {"basic"}, what)           
+      224 +    if ("roll" in raw) == ("parameter" in raw):               
+     … 42 more lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/content/model.py (+23 -0)
+      10  from dataclasses import dataclass, field
+      11  
+      12  from ..dice import DiceCode
+      13 +from ..effect_targets import Parameter, RollType, Tag          
+      14  
+      15  KINDS = frozenset(
+      16      {
+     ...
+      162      uses: Count | None = None
+      163  
+      164  
+      165 +@dataclass(frozen=True)                                       
+      166 +class Effect:                                                 
+      167 +    """One rule change a Skill gives, as its YAML writes it (E
+          +7): a modifier to a roll of                                   
+      168 +    one type, or to a parameter, at Basic and at Expert. What 
+          +it does beyond a number                                       
+      169 +    (Dodge's balance, Faith, Medic) is Python, keyed by the Sk
+          +ill's ID."""                                                  
+      170 +                                                              
+      171 +    basic: int                                                
+      172 +    expert: int | None = None                                 
+      173 +    """None when the Skill has no Expert level."""            
+      174 +    roll: RollType | None = None                              
+      175 +    tags: frozenset[Tag] = frozenset()                        
+      176 +    """The roll must carry one of these; none: every roll of i
+          +ts type."""                                                   
+      177 +    parameter: Parameter | None = None                        
+      178 +    group: str | None = None                                  
+      179 +    """Roll modifiers of one group do not stack: only the high
+          +est applies (Agile, Dodge)."""                                
+      180 +                                                              
+      181 +    def amount(self, expert: bool) -> int:                    
+      182 +        return self.expert if expert and self.expert is not No
+          +ne else self.basic                                            
+      183 +                                                              
+      184 +                                                              
+      185  @dataclass(frozen=True)
+      186  class Skill:
+      187      """A Skill (`skill.`) or an Arcane Skill (`arcane_skill.`)
+           : its name, XP cost and rules
+     ...
+      200      """Arcane Skills only: what the ritual uses up, as printed
+           ."""
+      201      starting_gear: tuple[Gear, ...] = ()
+      202      """What the Skill gives when taken at creation, as its tex
+           t says."""
+      203 +    effects: tuple[Effect, ...] = ()                          
+      204 +    """What the Skill changes, as numbers (E7)."""            
+      205  
+      206  
+     … 1 more lines (ctrl+o to expand)
+  ⎿  Updated tests/test_content_validation.py (+5 -1)
+      656  
+      657  
+      658  def test_a_skill_effect_on_a_parameter_is_loaded(root):
+      659 -    write(root, "skills/skills.yaml", skill_with("      - {par
+          -ameter: max_life, basic: 2, expert: 3}\n"))                   
+      659 +    write(                                                    
+      660 +        root,                                                 
+      661 +        "skills/skills.yaml",                                 
+      662 +        skill_with("      - {parameter: max_life, basic: 2, ex
+          +pert: 3}\n"),                                                 
+      663 +    )                                                         
+      664  
+      665      (effect,) = load_content(root).skill("skill.agile").effect
+           s
+      666  
+
+⏺ Loader passes. Now the 22 Skills' effects in the YAML.
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='src/alone_against_fear/content/skills/skills.yaml'…)
+  ⎿   src/alone_against_fear/content/loader.py          | 53 ++++++++++++-
+      src/alone_against_fear/content/model.py           | 23 ++++++
+      src/alone_against_fear/content/skills/skills.yaml | 44 +++++++++++
+     … +37 lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/content/skills/skills.yaml (+44 -0)
+       9  
+      10        The bonus to Defense rolls does not stack with the bonus 
+          from the Dodge Skill. Use one or the other.
+      11      expert: Add +2 to the above.
+      12 +    effects:                                                   
+      13 +      - {roll: defense, basic: 1, expert: 2, group: agile_or_do
+         +dge}                                                           
+      14 +      - {roll: save, tags: [climb, jump, avoid_danger], basic: 
+         +1, expert: 2}                                                  
+      15    - id: skill.bow
+      16      name: Bow
+      17      xp: 3
+     ...
+      22      expert: +1 to Attack rolls with a bow.
+      23      starting_gear:
+      24        - {id: weapon.bow, count: d6+3}
+      25 +    effects:                                                   
+      26 +      - {roll: attack, tags: [bow], basic: 1, expert: 2}       
+      27    - id: skill.charisma
+      28      name: Charisma
+      29      xp: 3
+      30      text: >-
+      31        You have +1 to Charisma rolls (rolls to persuade someone)
+          .
+      32      expert: +2 to Charisma rolls.
+      33 +    effects:                                                   
+      34 +      - {roll: charisma, basic: 1, expert: 2}                  
+      35    - id: skill.danger_sense
+      36      name: Danger Sense
+      37      xp: 4
+     ...
+      43        chance of surprising you. Monsters with a 1 in 6 chance o
+          f surprise have
+      44        no chance to surprise you if you have Danger Sense.
+      45      expert: reduce the chance of surprise by 2.
+      46 +    effects:                                                   
+      47 +      - {parameter: surprise_chance, basic: -1, expert: -2}    
+      48    - id: skill.dodge
+      49      name: Dodge
+      50      xp: 4
+     ...
+      53  
+      54        The bonus from Dodge does not stack with the bonus from t
+          he Agile Skill. Use one or the other.
+      55      expert: You have +2 to Defense rolls, but you still lose yo
+          ur balance when you roll a 1 on a Defense roll.
+      56 +    effects:                                                   
+      57 +      - {roll: defense, basic: 1, expert: 2, group: agile_or_do
+         +dge}                                                           
+      58    - id: skill.faith
+      59      name: Faith
+     … 121 more lines (ctrl+o to expand)
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='docs/content.md'…)
+  ⎿  All checks passed!
+     .................................................
+        [100%]
+     689 passed, 8 skipped in 1.14s
+  ⎿  Updated docs/content.md (+26 -0)
+      219  | `expert` | Skill | the Expert line, without its "Expert:" la
+           bel; absent when the Skill has no Expert level |
+      220  | `components`, `sacrifice` | Arcane Skill | the labelled line
+           s as printed, without their label; absent when not printed |
+      221  | `starting_gear` | Skill | what the Skill gives when taken at
+            creation, as its text says: a list of `{id, count, uses}` (Bo
+           w: a bow and d6+3 arrows; Faith: the Religious symbol, see the
+            [rulings](../design/rulings.md)); decided in E6 |
+      222 +| `effects` | Skill | what the Skill changes, as numbers: a li
+          +st of effects (below); decided in E7 |                        
+      223  
+      224  - **The XP cost is a number** (the user, in R2): the engine wi
+           ll need it when Skills are bought with XP. The rest of D1 was 
+           decided in E6.
+      225  - **The Expert line is apart**, so a screen can show the level
+            the character has, and a Skill with no `expert` has no Expert
+            level. A note printed after the Expert line (Agile, Dodge) go
+           es at the end of `text`: same words, the order changed.
+      226  - **The books an Arcane Skill is learned from stay in the text
+           **; references to them wait for the books (E18).
+      227  
+      228 +### Effects                                                   
+      229 +                                                              
+      230 +A Skill's `effects` say what it changes, in the names of `effe
+          +ct_targets.py` ([rolls](../design/rolls.md)): the loader refus
+          +es a name it does not know, so a misspelt tag fails at load ti
+          +me instead of never matching.                                 
+      231 +                                                              
+      232 +```yaml                                                       
+      233 +  - id: skill.agile                                           
+      234 +    effects:                                                  
+      235 +      - {roll: defense, basic: 1, expert: 2, group: agile_or_d
+          +odge}                                                         
+      236 +      - {roll: save, tags: [climb, jump, avoid_danger], basic:
+          + 1, expert: 2}                                                
+      237 +  - id: skill.tough                                           
+      238 +    effects:                                                  
+      239 +      - {parameter: max_life, basic: 2, expert: 3}            
+      240 +```                                                           
+      241 +                                                              
+      242 +| Field | Meaning |                                           
+      243 +| --- | --- |                                                 
+      244 +| `roll` | a roll modifier: the roll type it changes (`attack`
+          +, `defense`, `save`, …) |                                     
+      245 +| `tags` | with `roll`: the roll must carry one of them; absen
+          +t, every roll of the type |                                   
+      246 +| `group` | with `roll`: modifiers of one group do not stack, 
+          +the highest applies (Agile and Dodge) |                       
+      247 +| `parameter` | instead of `roll`: the parameter it changes (`
+          +max_life`, `carry_limit`, `food_interval`, …) |               
+      248 +| `basic`, `expert` | the amount at each level, a whole number
+          + (negative lowers); `expert` replaces `basic` ([rulings](../de
+          +sign/rulings.md#character)), present exactly when the Skill ha
+          +s an Expert line |                                            
+      249 +                                                              
+      250 +- **Only numbers.** What a Skill does beyond a modifier (Dodge
+          +'s balance on a natural 1, Faith turning vampires, Medic heali
+          +ng after an encounter) is Python keyed by the Skill's ID, writ
+          +ten with the task that has its moment. Faith and Medic have no
+          + `effects`.                                                   
+      251 +- **Bow and Martial Arts are bonuses** (the user, E7): +1 / +2
+          + on bow or unarmed Attacks; the weapon keeps its own malus (-1
+          + unskilled bow, -2 unarmed), so the totals are the book's.    
+      252 +                                                              
+      253  ## Known but not copied yet
+      254  
+      255  - **`catalogue.yaml` lists every table not copied yet**, with 
+           its ID, name, dice and Markdown source. A reference to a catal
+           ogued table is valid.
+  ⎿  Updated src/alone_against_fear/content/__init__.py (+2 -0)
+      11      Content,
+      12      ContentError,
+      13      Count,
+      14 +    Effect,                                                    
+      15      Entry,
+      16      Gear,
+      17      Roll,
+     ...
+      31      "Content",
+      32      "ContentError",
+      33      "Count",
+      34 +    "Effect",                                                  
+      35      "Entry",
+      36      "Gear",
+      37      "Roll",
+  ⎿  Updated tests/test_content_r2.py (+6 -0)
+      196          assert skill.components is None and skill.sacrifice is
+            None, skill.id
+      197  
+      198  
+      199 +def test_every_skill_but_faith_and_medic_has_effects():       
+      200 +    # Faith and Medic only grant actions: Python, with E18 and
+          + E11 (E7)                                                     
+      201 +    without = [s.id for s in CONTENT.skills.values() if not s.
+          +effects]                                                      
+      202 +    assert without == ["skill.faith", "skill.medic"]          
+      203 +                                                              
+      204 +                                                              
+      205  def test_a_note_printed_after_the_expert_line_ends_the_text():
+      206      agile = CONTENT.skill("skill.agile")
+      207      assert agile.expert == "Add +2 to the above."
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Commits 1–2 are done: the rulings, and the YAML effects for all 22 Skills with
+  loader checks (689 tests pass). Now step 3, effects in the engine. I'm
+  writing the per-Skill tests first.
+
+  Searched for 1 pattern, ran 1 shell command (ctrl+o to expand)
+⏺ Write(tests/test_effects.py)
+  ⎿  Wrote 296 lines to tests/test_effects.py
+       1 """E7: rolls and effects (design/effects.md, design/rolls.md).
+       2 
+       3 A roll has a type and context tags; it collects the modifiers of
+          every effect held that
+       4 matches, with stacking limits. Max values and the other paramete
+         rs are a base plus the
+       5 effects held. Every Skill is written as effects: each one is tes
+         ted here, from the rules text
+       6 (`gameRules/1_2_skills.md`) and the rulings (design/rulings.md, 
+         Character). What a Skill does
+     … +290 lines (ctrl+o to expand)
+
+⏺ Bash(sed -i '' '/game.campaign.map.boxes\[(0, 0)\].marks.clear()/d'
+      tests/test_effects.py && .venv/bin/pytest -q tests/test_effects.py 2>&1 |
+      tail -3)
+  ⎿  ERROR tests/test_effects.py
+     !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!
+     !!!!!!!!!!
+     1 error in 0.11s
+  ⎿  Updated tests/test_effects.py (+0 -1)
+      266  def test_investigator_adds_to_the_search_roll(content):
+      267      game = character(content, "skill.investigator", faces=[4])
+      268      game.choose_home((0, 0))
+      269 -    game.campaign.map.boxes[(0, 0)].marks.clear()             
+      269      searched = game.search()
+      270      assert searched.modifiers == (Modifier("skill.investigator
+           ", 1),)
+      271      assert searched.rolled.results == (5,)
+
+⏺ Fails as expected (no engine.effects yet). Now the engine module:
+
+⏺ Write(src/alone_against_fear/engine/effects.py)
+  ⎿  Wrote 92 lines to src/alone_against_fear/engine/effects.py
+      1 """Effects in play (E7, design/effects.md): collected from what t
+        he character holds.
+      2 
+      3 Effects are not stored: they are read from their sources whenever
+         a rule needs them, so
+      4 removing a source removes its effects and a max is never out of d
+        ate. The sources are the
+      5 Skills for now; items (E9), Injuries and Mental Scars (E13) and e
+        ffects with a lifetime of
+      6 their own (E8) join them with their tasks.
+     … +86 lines (ctrl+o to expand)
+
+⏺ Now Game: parameters, max, rolls, Search, and gaining a Skill.
+
+⏺ Bash(python3 - <<'EOF'
+      p='src/alone_against_fear/engine/game.py'…)
+  ⎿  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+     _ _ _ _ _
+     … +17 lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/engine/game.py (+106 -26)
+      14  
+      15  from ..content import CatalogueEvent, CatalogueTable, Content
+      16  from ..dice import Dice, DiceCode
+      17 +from ..effect_targets import Parameter, RollType, Tag, with_imp
+         +lied                                                           
+      18 +from . import effects                                          
+      19 +from .effects import Held, Modifier, RollModifiers             
+      20  from .state import (
+      21      Box,
+      22      Campaign,
+     ...
+      38  from .town import boxes_of, neighbours, sheet_neighbours, sheet
+          _of
+      39  
+      40  FOOD_INTERVAL = 5
+      38 -"""One Food every this many box numbers (Skills that change it 
+         -come with E9)."""                                              
+      41 +"""One Food every this many box numbers; the Food interval's ba
+         +se (the upkeep reads the                                       
+      42 +parameter with E8)."""                                         
+      43 +CARRY_LIMIT = 10                                               
+      44 +"""Items carried, before the backpack and Strong (E9)."""      
+      45 +                                                               
+      46 +PARAMETER_BASES = {Parameter.CARRY_LIMIT: CARRY_LIMIT, Paramete
+         +r.FOOD_INTERVAL: FOOD_INTERVAL}                                
+      47 +"""The bases written in the rules; max Life and Sanity are the 
+         +character's, the surprise chance                               
+      48 +and the Clue cost the text's."""                               
+      49 +PARAMETER_FLOORS = {Parameter.SURPRISE_CHANCE: 0, Parameter.CLU
+         +E_COST: 1}                                                     
+      50 +"""Danger Sense leaves a 1 in 6 creature no chance; Investigato
+         +r reduces a Clue cost "to a                                    
+      51 +minimum of 1" (`1_2_skills.md`)."""                            
+      52  
+      53  PLACE_TABLES = frozenset(
+      54      {
+     ...
+      102  
+      103  @dataclass(frozen=True)
+      104  class RolledVsL:
+       92 -    """A roll vs L: the die, the modifier, the total and wheth
+          -er it made the L. A natural 1                                 
+       93 -    always fails and a natural 6 always succeeds."""          
+      105 +    """A roll vs L: its type and tags, the die, the modifiers 
+          +applied (each with its source)                                
+      106 +    and the ones set aside, the total and whether it made the 
+          +L. A natural 1 always fails and                               
+      107 +    a natural 6 always succeeds."""                           
+      108  
+      109      level: int
+       96 -    modifier: int                                             
+      110 +    roll: RollType                                            
+      111 +    tags: frozenset[Tag]                                      
+     … 184 more lines (ctrl+o to expand)
+
+⏺ Bash(sed -i '' 's/game.choose_home((0, 0))/game.choose_home(Position(0, 0))/'
+      tests/test_effects.py && sed -i '' 's/from alone_against_fear.engine.state
+      import Skill…)
+  ⎿  FAILED tests/test_creation.py::test_the_3_points_traded_for_a_third_sk
+     ill - a...
+     FAILED tests/test_creation.py::test_the_3_points_traded_for_an_extra_r
+     … +16 lines (ctrl+o to expand)
+  ⎿  Updated tests/test_effects.py (+3 -3)
+      15  from alone_against_fear.engine import Game, GameError, Stat
+      16  from alone_against_fear.engine.effects import Modifier
+      17  from alone_against_fear.engine.game import Purchase
+      18 -from alone_against_fear.engine.state import SkillLevel         
+      18 +from alone_against_fear.engine.state import Position, SkillLeve
+         +l                                                              
+      19  
+      20  
+      21  @pytest.fixture(scope="module")
+     ...
+      265  
+      266  def test_investigator_adds_to_the_search_roll(content):
+      267      game = character(content, "skill.investigator", faces=[4])
+      268 -    game.choose_home((0, 0))                                  
+      268 +    game.choose_home(Position(0, 0))                          
+      269      searched = game.search()
+      270      assert searched.modifiers == (Modifier("skill.investigator
+           ", 1),)
+      271      assert searched.rolled.results == (5,)
+     ...
+      273  
+      274  def test_a_search_roll_of_1_stays_1_with_investigator(content)
+           :
+      275      game = character(content, "skill.investigator", expert=["s
+           kill.investigator"], faces=[1])
+      276 -    game.choose_home((0, 0))                                  
+      276 +    game.choose_home(Position(0, 0))                          
+      277      assert game.search(modifier=1).rolled.results == (1,)
+      278  
+      279  
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ These failures are expected since the default creation script now raises Life
+  by 2 via Tough. I'll update the test expectations accordingly and look into
+  the remaining failures.
+
+⏺ Bash(python3 - <<'EOF'
+      p='tests/test_creation.py'…)
+  ⎿  E       assert (10, 8) == (8, 8)
+     E
+     E         At index 0 diff: 10 != 8
+     … +17 lines (ctrl+o to expand)
+  ⎿  Updated tests/test_creation.py (+5 -3)
+      85      # then the character has it all
+      86      character = game.character
+      87      assert character.name == "Ann"
+      88 -    assert (character.life, character.sanity) == (10, 9)       
+      89 -    assert (game.max(Stat.LIFE), game.max(Stat.SANITY)) == (10,
+         - 9)                                                            
+      88 +    assert (character.base_life, character.base_sanity) == (10,
+         + 9)                                                            
+      89 +    # Tough raises the max and the current Life by 2 (E7)      
+      90 +    assert (character.life, character.sanity) == (12, 9)       
+      91 +    assert (game.max(Stat.LIFE), game.max(Stat.SANITY)) == (12,
+         + 9)                                                            
+      92      assert character.skills == {"skill.agile": SkillLevel.BASIC
+          , "skill.tough": SkillLevel.BASIC}
+      93      assert character.items == [
+      94          Item("weapon.pistol", "table.random_weapon.5", count=7)
+          ,
+     ...
+      138          [*PISTOL, *ROPE, *BELL, FOOD],
+      139          [*basics(points=(Points.STATS, on_life)), "weapon.knif
+           e"],
+      140      )
+      139 -    assert (game.character.life, game.character.sanity) == (li
+          -fe, sanity)                                                   
+      141 +    assert (game.character.base_life, game.character.base_sani
+          +ty) == (life, sanity)                                         
+      142  
+      143  
+      144  def test_the_3_points_traded_for_a_third_skill(content):
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      import re…)
+  ⎿  FAILED tests/test_manual_actions.py::test_the_player_rolls_vs_the_l_th
+     e_text_gives
+     FAILED tests/test_manual_actions.py::test_search_is_a_free_action_unti
+     … +14 lines (ctrl+o to expand)
+  ⎿  Updated tests/test_creation.py (+2 -2)
+      150              "weapon.knife",
+      151          ],
+      152      )
+      153 -    assert (game.character.life, game.character.sanity) == (8,
+          - 8)                                                           
+      153 +    assert (game.character.base_life, game.character.base_sani
+          +ty) == (8, 8)                                                 
+      154      assert list(game.character.skills) == ["skill.agile", "ski
+           ll.tough", "skill.bow"]
+      155      assert asked(interface, Topic.LIFE_POINTS) == []
+      156  
+     ...
+      174  
+      175      assert extra in game.character.items
+      176      assert len(game.character.items) == 5
+      177 -    assert (game.character.life, game.character.sanity) == (8,
+          - 8)                                                           
+      177 +    assert (game.character.base_life, game.character.base_sani
+          +ty) == (8, 8)                                                 
+      178  
+      179  
+      180  # --- Skills -------------------------------------------------
+           --------------------------------
+  ⎿  Updated tests/test_game_loop.py (+2 -1)
+      123  
+      124      # then the character is the one created
+      125      assert game.character.name == "Ann"
+      126 -    assert (game.character.life, game.character.sanity, game.c
+          -haracter.food) == (10, 9, 4)                                  
+      126 +    # Tough: 2 more Life (E7)                                 
+      127 +    assert (game.character.life, game.character.sanity, game.c
+          +haracter.food) == (12, 9, 4)                                  
+      128      assert len(game.character.items) == 4
+      129  
+      130  
+  ⎿  Updated tests/test_terminal.py (+2 -1)
+      389      assert "1) Knife: -1 to Attack rolls." in text
+      390      # what was taken, and the character sheet at the first tur
+           n
+      391      assert "You take: Pistol (7)." in text
+      392 -    assert "Ann · Box 1 · Life 10/10 · Sanity 9/9 · Food 4 · X
+          -P 0 · Clues 0" in text                                        
+      392 +    # Tough: 2 more Life (E7)                                 
+      393 +    assert "Ann · Box 1 · Life 12/12 · Sanity 9/9 · Food 4 · X
+          +P 0 · Clues 0" in text                                        
+      394      assert "Skills: Agile, Tough" in text
+      395      assert "Items: Pistol (7), Knife, Rope, Small bell" in tex
+           t
+      396  
+
+⏺ The remaining failures involve the manual roll and Search events, whose shapes
+  have changed—the manual roll test needs updating since it now requires asking
+  the roll type alongside roll_vs. I'll fold the manual flow into this commit
+  and save the terminal for last, starting by reading those tests.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Now the manual roll: tests first. I'll update the old ones to the new shape
+  and add the walkthrough scenarios.
+
+⏺ Bash(python3 - <<'EOF'
+      p='tests/test_manual_actions.py'…)
+  ⎿  FAILED tests/test_manual_actions.py::test_a_roll_vs_l[1-2-5-False] - a
+     lone_ag...
+     FAILED tests/test_manual_actions.py::test_a_roll_vs_l[6-9--3-True] - a
+     … +2 lines (ctrl+o to expand)
+  ⎿  Updated tests/test_manual_actions.py (+116 -9)
+      29  
+      30  from alone_against_fear.content import load_content
+      31  from alone_against_fear.dice import ScriptedDice
+      32 +from alone_against_fear.effect_targets import RollType         
+      33  from alone_against_fear.engine import Game, GameError, Happened
+          , Level, Position, Stat
+      34 +from alone_against_fear.engine.effects import Held, Modifier   
+      35  from alone_against_fear.engine.game import Rolled, RolledVsL, S
+          earched
+      36  from alone_against_fear.engine.leads import LEADS, Auto, Nowher
+          e
+      37  from alone_against_fear.engine.loop import play
+     ...
+      50      Topic,
+      51      ask,
+      52  )
+      51 -from alone_against_fear.engine.state import Mark, Note         
+      53 +from alone_against_fear.engine.state import Mark, Note, SkillLe
+         +vel                                                            
+      54  from alone_against_fear.interface.scripted import ScriptedInter
+          face
+      55  
+      56  HOME = Position(2, 2)
+     ...
+      64  """The manual actions of an entry, for a character with no note
+          s."""
+      65  EFFECTS = (Manual.GAIN, Manual.LOSE, Manual.ROLL, Manual.WRITE_
+          NOTE, Manual.BACK)
+      66  """The "apply an effect" menu, for a character with no notes.""
+          "
+      67 +ROLLS = tuple(roll for roll in RollType if roll is not RollType
+         +.SEARCH)                                                       
+      68 +"""The rolls vs L a manual roll may be."""                     
+      69  
+      70  
+      71  @pytest.fixture(scope="module")
+     ...
+      176  def test_the_player_rolls_vs_the_l_the_text_gives(content):
+      177      # given the Street's entry asks for an L4 Save at +1; the 
+           die shows 3
+      178      game = new_game(content, *STREET, 3)
+      175 -    interface = ScriptedInterface(on_the_street(Manual.ROLL, 4
+          -, 1, Book.DONE, Action.QUIT))                                 
+      179 +    interface = ScriptedInterface(                            
+      180 +        on_the_street(Manual.ROLL, RollType.SAVE, 4, 1, Book.D
+          +ONE, Action.QUIT)                                             
+      181 +    )                                                         
+      182  
+      183      play(game, interface)
+      184  
+      185      # then 3 + 1 makes the L4
+      180 -    assert told(interface, RolledVsL) == [                    
+      181 -        RolledVsL(level=4, modifier=1, face=3, total=4, succes
+          -s=True)                                                       
+      182 -    ]                                                         
+      186 +    (rolled,) = told(interface, RolledVsL)                    
+     … 135 more lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='tests/test_manual_actions.py'…)
+  ⎿  E                   alone_against_fear.engine.game.GameError: None is
+     not one of the options for roll
+     FAILED tests/test_terminal.py::test_a_roll_vs_l_shows_the_die_and_the_
+     … +2 lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/engine/manual.py (+23 -2)
+      14  
+      15  from enum import StrEnum
+      16  
+      17 +from ..effect_targets import RollType, Tag, with_implied       
+      18  from .game import Game
+      19  from .protocol import (
+      20      Changed,
+     ...
+      37      LOSE = "lose"
+      38      """Lose one of them, down to 0: only what the character has
+           can be lost."""
+      39      ROLL = "roll"
+      39 -    """A roll vs L, the L and modifier typed from the text.""" 
+      40 +    """A roll vs L: its type, the L and the modifier typed from
+         + the text; the effects held                                    
+      41 +    add theirs (E7)."""                                        
+      42      WRITE_NOTE = "write_note"
+      43      """Write a note: a lasting effect or a modifier to remember
+          ."""
+      44      REMOVE_NOTE = "remove_note"
+     ...
+       93              amount = min(ask(interface, Number(Topic.AMOUNT, m
+           inimum=1)), _value(game, stat))
+       94              interface.tell(Changed(stat, -amount, game.lose(st
+           at, amount)))
+       95          case Manual.ROLL:
+       96 +            roll = ask(interface, Choose(Topic.ROLL, ROLLS))  
+       97              level = ask(interface, Number(Topic.LEVEL, minimum
+           =1))
+       98 +            tags = _tags(game, interface, roll)               
+       99              modifier = ask(interface, Number(Topic.MODIFIER))
+       96 -            interface.tell(game.roll_vs(level, modifier))     
+      100 +            interface.tell(game.roll_vs(level, roll, tags, mod
+          +ifier))                                                       
+      101          case Manual.WRITE_NOTE:
+      102              interface.tell(NoteWritten(game.add_note(ask(inter
+           face, Text(Topic.NOTE)))))
+      103          case Manual.REMOVE_NOTE:
+     ...
+      110              interface.tell(Marked(position, Mark.SAFE_HOUSE))
+      111  
+      112  
+      113 +ROLLS = tuple(roll for roll in RollType if roll is not RollTyp
+          +e.SEARCH)                                                     
+      114 +"""The rolls vs L; the Search is a free action of its own.""" 
+      115 +                                                              
+      116 +                                                              
+      117 +def _tags(game: Game, interface: Interface, roll: RollType) ->
+          + frozenset[Tag]:                                              
+      118 +    """What a roll made by hand is about, asked only where an 
+          +effect held depends on it: one                                
+      119 +    yes or no per effect, in the character's order, skipped wh
+          +en the tags already given match                               
+      120 +    it (a bow Attack is a ranged one: Good Shot is not asked a
+          +bout after Bow)."""                                           
+      121 +    tags: frozenset[Tag] = frozenset()                        
+     … 11 more lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/engine/protocol.py (+8 -1)
+      46      """Which of the character's numbers a manual action changes
+          ."""
+      47      AMOUNT = "amount"
+      48      """How much is gained or lost (a `Number`)."""
+      49 +    ROLL = "roll"                                              
+      50 +    """What a roll vs L made by hand is for: an `effect_targets
+         +.RollType`."""                                                 
+      51 +    TAG = "tag"                                                
+      52 +    """Whether a roll made by hand is about the tags of an effe
+         +ct held, True or False;                                        
+      53 +    `Choose.about` is the effect (an `effects.Held`)."""       
+      54      LEVEL = "level"
+      55      """The L of a roll, from the text (a `Number`)."""
+      56      MODIFIER = "modifier"
+     ...
+      104  
+      105  @dataclass(frozen=True)
+      106  class Choose:
+      102 -    """Pick one of the options."""                            
+      107 +    """Pick one of the options. `about` is what the question i
+          +s about, when the topic alone                                 
+      108 +    does not say (the effect a `TAG` question asks about).""" 
+      109  
+      110      topic: Topic
+      111      options: tuple
+      112 +    about: object = None                                      
+      113  
+      114  
+      115  @dataclass(frozen=True)
+  ⎿  Updated tests/test_manual_actions.py (+2 -2)
+      219      # when the player says it is a save vs poison, not one to 
+           climb, jump or avoid danger
+      220      play(game, interface)
+      221  
+      222 -    # then each Skill was asked about once, in the Skills' ord
+          -er, and Resilient's +1 makes it                               
+      222 +    # then each Skill was asked about once, in the character's
+          + order; Resilient's +1 makes it                               
+      223      agile, resilient = (
+      224          Held(id_, game.content.skill(id_).effects[-1], 1)
+      225          for id_ in (
+     ...
+      623      ],
+      624  )
+      625  def test_a_roll_vs_l(content, face, level, modifier, success):
+      626 -    game = Game(dice=ScriptedDice([face]), content=content)   
+      626 +    game = new_game(content, face)                            
+      627  
+      628      rolled = game.roll_vs(level, RollType.SAVE, modifier=modif
+           ier)
+      629  
+
+⏺ The engine and book-mode side pass. The terminal now has to show the roll type
+  and tag questions. Reading the terminal code:
+
+  Ran 3 shell commands (ctrl+o to expand)
+
+⏺ Terminal tests first:
+
+⏺ Bash(sed -n 333,350p tests/test_terminal.py && python3 - <<'EOF'
+      p='tests/test_terminal.py'…)
+  ⎿  def test_notes_are_shown_and_asked_for_a_modifier(content):
+         # the player writes a note, then Searches: the notes come back abo
+     ve the modifier
+     … +22 lines (ctrl+o to expand)
+  ⎿  Updated tests/test_terminal.py (+68 -3)
+      13  from alone_against_fear.engine import Game, Position, book_mode
+      14  from alone_against_fear.engine.loop import play
+      15  from alone_against_fear.engine.protocol import End
+      16 +from alone_against_fear.engine.state import SkillLevel         
+      17  from alone_against_fear.engine.town import boxes_of
+      18  from alone_against_fear.interface.terminal import TerminalInter
+          face, main
+      19  
+     ...
+      298      assert game.character.clues == 1
+      299  
+      300  
+      301 +SAVE = "3"                                                    
+      302 +"""The Save, third of the rolls vs L."""                      
+      303 +                                                              
+      304 +                                                              
+      305  def test_a_roll_vs_l_shows_the_die_and_the_result(content):
+      301 -    # the die shows 3; L4 with no modifier (Enter)            
+      306 +    # the die shows 3; a Save vs L4 with no modifier (Enter)  
+      307      game = ready(content, *EXPLORE, 3)
+      303 -    interface, output = terminal(game, [HOME_TOP_LEFT, "m", "1
+          -", "v", "4", "", RESOLVE, QUIT])                              
+      308 +    interface, output = terminal(game, [HOME_TOP_LEFT, "m", "1
+          +", "v", SAVE, "4", "", RESOLVE, QUIT])                        
+      309 +                                                              
+      310 +    play(game, interface)                                     
+      311 +                                                              
+      312 +    assert (                                                  
+      313 +        "1) Attack  2) Defense  3) Save  4) Escape  5) Stealth
+          +  6) Charisma  7) Strength  "                                 
+      314 +        "8) Magic  9) Will" in output                         
+      315 +    )                                                         
+      316 +    assert "Save vs L4: rolled 3. Failure." in output         
+      317 +                                                              
+      318 +                                                              
+      319 +def skilled(content, *skills, faces=()):                      
+      320 +    game = Game(dice=ScriptedDice([*EXPLORE, *faces]), content
+          +=content)                                                     
+      321 +    game.create_character(life=8, sanity=8, food=3, skills=ski
+          +lls)                                                          
+      322 +    return game                                               
+      323 +                                                              
+      324 +                                                              
+      325 +def test_a_roll_asks_about_the_skills_that_depend_on_it_and_na
+          +mes_each_modifier(content):                                   
+      326 +    # given Resilient; a save vs poison at -1 from a note; the
+          + die shows 4                                                  
+      327 +    game = skilled(content, "skill.resilient", faces=[4])     
+      328 +    interface, output = terminal(                             
+     … 48 more lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='tests/test_terminal.py'…)
+  ⎿  26:from __future__ import annotations
+     28:import argparse
+     29:import logging
+     … +37 lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/interface/terminal.py (+64 -13)
+      111  }
+      112  """What the 3 creation points buy, by letter."""
+      113  
+      114 +TAGS = {                                                      
+      115 +    Tag.HAND_TO_HAND: "a hand-to-hand weapon",                
+      116 +    Tag.RANGED: "a ranged weapon",                            
+      117 +    Tag.BOW: "a bow",                                         
+      118 +    Tag.UNARMED: "an unarmed attack",                         
+      119 +    Tag.VAMPIRE: "a vampire",                                 
+      120 +    Tag.ZOMBIE: "a zombie",                                   
+      121 +    Tag.POISON: "poison",                                     
+      122 +    Tag.INFECTION: "infection",                               
+      123 +    Tag.DISEASE: "disease",                                   
+      124 +    Tag.FEAR: "fear",                                         
+      125 +    Tag.MAGIC: "magic",                                       
+      126 +    Tag.HYPNOTISM: "hypnotism",                               
+      127 +    Tag.PSIONICS: "psionics",                                 
+      128 +    Tag.CLIMB: "climbing",                                    
+      129 +    Tag.JUMP: "jumping",                                      
+      130 +    Tag.AVOID_DANGER: "avoiding danger",                      
+      131 +}                                                             
+      132 +"""How a tag reads in a question: "Does this Save involve pois
+          +on?"."""                                                      
+      133 +                                                              
+      134 +YES_NO = {"y": True, "n": False}                              
+      135 +                                                              
+      136  NUMBER_PROMPTS = {
+      137      Topic.LIFE_POINTS: "How many of the 3 points on Life (the 
+           rest on Sanity)? ",
+      138      Topic.AMOUNT: "How much? ",
+     ...
+      204                  return self._menu(options, "Your choice: ")
+      205              case Topic.BOOK:
+      206                  return self._menu(options, "Apply the text, th
+           en where does it lead? ")
+      207 +            case Topic.ROLL:                                  
+      208 +                self._output("  ".join(f"{n}) {_roll(o)}" for 
+          +n, o in _numbered(options)))                                  
+      209 +                return self._read(_by_number(options), f"Which
+          + roll? [1-{len(options)}] ")                                  
+      210 +            case Topic.TAG:                                   
+      211 +                held = request.about                          
+      212 +                assert isinstance(held, Held) and held.effect.
+          +roll is not None                                              
+      213 +                tags = [TAGS[tag] for tag in TAGS if tag in he
+          +ld.effect.tags]                                               
+      214 +                about = ", ".join(tags[:-1]) + f" or {tags[-1]
+          +}" if len(tags) > 1 else tags[0]                              
+      215 +                prompt = (                                    
+     … 74 more lines (ctrl+o to expand)
+  ⎿  Updated tests/test_terminal.py (+1 -1)
+      407      assert "Noted: cursed: -1 to Search" in output
+      408      assert output.count("Notes: (1) box 1: cursed: -1 to Searc
+           h") == 3  # menu, modifier, menu
+      409      assert "w) write a note" in "\n".join(output)
+      410 -    assert "Search: rolled 4, -1." in output                  
+      410 +    assert "Search: rolled 4, modifier -1." in output         
+      411  
+      412  
+      413  def test_an_empty_note_is_asked_again(content):
+
+⏺ Bash(python3 - <<'EOF'
+      p='src/alone_against_fear/interface/terminal.py'…)
+  ⎿  """The terminal interface (E4): a minimal way to play.
+
+     It shows the character, the map and each request with numbered options
+     … +24 lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/interface/terminal.py (+3 -1)
+      33  
+      34  from ..content import CatalogueEvent, CatalogueTable, Table, lo
+          ad_content
+      35  from ..dice import RandomDice
+      36 +from ..effect_targets import RollType, Tag                     
+      37  from ..engine import Arrival, Game, Position, Stat, Upkeep
+      38  from ..engine.creation import Points
+      39 +from ..engine.effects import Held, Modifier                    
+      40  from ..engine.game import Purchase, Rolled, RolledVsL, Searched
+      41  from ..engine.loop import play
+      42  from ..engine.manual import Manual
+     ...
+      375          return "modifier" if source is None else self.game.con
+           tent.skill(source).name
+      376  
+      377      def _modifiers(self, modifiers: Sequence[Modifier], set_as
+           ide: Sequence[Modifier] = ()) -> str:
+      376 -        """", Resilient +1, modifier -1", each set aside after
+          - the one it gives way to."""                                  
+      378 +        """ ", Resilient +1, modifier -1", each set aside afte
+          +r the one it gives way to."""                                 
+      379          shown = "".join(f", {self._source(m.source)} {m.amount
+           :+d}" for m in modifiers)
+      380          for m in set_aside:
+      381              shown += f" ({self._source(m.source)} {m.amount:+d
+           } does not stack)"
+
+⏺ All 793 pass and ruff is clean. Next I'll finish the docstrings, then try the
+  real terminal.
+
+⏺ Bash(python3 - <<'EOF'
+      p='src/alone_against_fear/interface/terminal.py'…)
+  ⎿    d6 cans of dog food. May be used as 1 Food point each (yuck!) or sac
+     rificed to avoid an encounter with any canine creature (not werewolves
+     ).
+     … +22 lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/interface/terminal.py (+5 -0)
+      21  `u` an extra roll); Skills and weapons are numbered, with their
+           text. The status line names the
+      22  character and shows Life and Sanity against their max, with the
+           Skills and items under it.
+      23  Spending XP is the free action `p`.
+      24 +                                                               
+      25 +Rolls and effects (E7): a roll vs L asks which roll (numbered),
+         + the L, then a yes or no (`y`,                                 
+      26 +`n`) for each Skill whose bonus depends on what the roll is abo
+         +ut, then the text's modifier.                                  
+      27 +The result names each modifier, and a bonus that does not stack
+         + with a higher one is shown set                                
+      28 +aside: "Defense vs L5: rolled 3, Dodge +2 (Agile +1 does not st
+         +ack), total 5. Success."                                       
+      29  """
+      30  
+      31  from __future__ import annotations
+  ⎿  Updated tests/test_character.py (+2 -2)
+      1  """E6: the character (design/character.md): Life and Sanity with
+          a max, Skills at Basic or
+      2  Expert, XP spent on Skills at any time, and the items held.
+      3  
+      4 -Max values are calculated: the sheet keeps the base values, and 
+        -the effects that raise them                                     
+      5 -(Tough, Strong Grip on Reality) come with E7. Until then the max
+        - is the base.                                                   
+      4 +Max values are calculated: the sheet keeps the base values; the 
+        +effects that raise them                                         
+      5 +(Tough, Strong Grip on Reality) are tested with the Skills' effe
+        +cts (test_effects.py, E7).                                      
+      6  """
+      7  
+      8  import pytest
+
+  Ran 4 shell commands (ctrl+o to expand)
+
+⏺ Both roll types check out in the real terminal, including tag questions, named
+  modifiers, and a natural 1. Now I'll split the work into commit 3 (effects as
+  parameters and max values) and commit 4 (rolls collecting modifiers),
+  building the intermediate state from the final files.
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(git checkout -- src/alone_against_fear/engine/manual.py
+      src/alone_against_fear/engine/protocol.py
+      src/alone_against_fear/interface/terminal.py tests/test_manual…)
+  ⎿  """Effects in play (E7, design/effects.md): collected from what the ch
+     aracter holds.
+     … +77 lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/engine/effects.py (+1 -53)
+  ⎿  Updated src/alone_against_fear/engine/game.py (+18 -54)
+  ⎿  Updated src/alone_against_fear/engine/manual.py (+2 -23)
+  ⎿  Updated src/alone_against_fear/engine/protocol.py (+1 -8)
+  ⎿  Updated src/alone_against_fear/interface/terminal.py (+13 -71)
+  ⎿  … 3 more files changed
+  ⎿  (a git step in this command can move the working tree, so these may be
+     its changes, not edits) (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='tests/test_effects.py'; s=open(p).read()…)
+  ⎿  All checks passed!
+     .....................................................................
+        [100%]
+     … +8 lines (ctrl+o to expand)
+  ⎿  Updated tests/test_effects.py (+3 -3)
+      1  """E7: rolls and effects (design/effects.md, design/rolls.md).
+      2  
+      3 -Max values and the other parameters are a base plus the effects 
+        -held. Every Skill is written as effects: each one is tested here
+        -, from the rules text                                           
+      4 -(`gameRules/1_2_skills.md`) and the rulings (design/rulings.md, 
+        -Character). What a Skill does                                   
+      5 -beyond a number waits for the task that has its moment (pending 
+        -tests at the end).                                              
+      3 +Max values and the other parameters are a base plus the effects 
+        +held. Every Skill is written                                    
+      4 +as effects: each one is tested here, from the rules text (`gameR
+        +ules/1_2_skills.md`) and the                                    
+      5 +rulings (design/rulings.md, Character).                         
+      6  """
+      7  
+      8  import pytest
+
+⏺ Bash(git add -A && git commit -q -m "E7: max values and parameters calculated
+      from the Skills' effects…)
+  ⎿  All checks passed!
+     793 passed, 11 skipped in 1.22s
+      M src/alone_against_fear/engine/effects.py
+     … +7 lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/engine/effects.py (+54 -1)
+      10  
+      11  from collections.abc import Iterable
+      12  from dataclasses import dataclass
+      13 +from typing import NamedTuple                                  
+      14  
+      15  from ..content import Content, Effect
+      15 -from ..effect_targets import Parameter                         
+      16 +from ..effect_targets import Parameter, RollType, Tag          
+      17  from .state import Character, SkillLevel
+      18  
+      19  
+     ...
+      26      amount: int
+      27  
+      28  
+      29 +@dataclass(frozen=True)                                        
+      30 +class Modifier:                                                
+      31 +    """A number added to a roll, and where it comes from: a Ski
+         +ll ID, or None for the                                         
+      32 +    modifier the player typed from a text (a weapon until E12, 
+         +a note)."""                                                    
+      33 +                                                               
+      34 +    source: str | None                                         
+      35 +    amount: int                                                
+      36 +                                                               
+      37 +                                                               
+      38 +class RollModifiers(NamedTuple):                               
+      39 +    """What a roll collected: the modifiers applied, and the on
+         +es set aside because they do                                   
+      40 +    not stack with a higher one (Agile and Dodge), so the playe
+         +r sees why."""                                                 
+      41 +                                                               
+      42 +    applied: tuple[Modifier, ...]                              
+      43 +    set_aside: tuple[Modifier, ...]                            
+      44 +                                                               
+      45 +                                                               
+      46  def held(character: Character, content: Content) -> tuple[Held,
+           ...]:
+      47      """Every effect the character holds, in the order of their 
+          Skills."""
+      48      return tuple(
+     ...
+      52      )
+      53  
+      54  
+      55 +def matches(effect: Effect, roll: RollType, tags: frozenset[Tag
+         +]) -> bool:                                                    
+      56 +    """The effect changes this roll: same type, and one of its 
+         +tags if it names any."""                                       
+      57 +    return effect.roll is roll and (not effect.tags or bool(eff
+         +ect.tags & tags))                                              
+     … 35 more lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/engine/game.py (+54 -18)
+      14  
+      15  from ..content import CatalogueEvent, CatalogueTable, Content
+      16  from ..dice import Dice, DiceCode
+      17 -from ..effect_targets import Parameter                         
+      17 +from ..effect_targets import Parameter, RollType, Tag, with_imp
+         +lied                                                           
+      18  from . import effects
+      19 -from .effects import Held                                      
+      19 +from .effects import Held, Modifier, RollModifiers             
+      20  from .state import (
+      21      Box,
+      22      Campaign,
+     ...
+      102  
+      103  @dataclass(frozen=True)
+      104  class RolledVsL:
+      105 -    """A roll vs L: the die, the modifier, the total and wheth
+          -er it made the L. A natural 1                                 
+      106 -    always fails and a natural 6 always succeeds."""          
+      105 +    """A roll vs L: its type and tags, the die, the modifiers 
+          +applied (each with its source)                                
+      106 +    and the ones set aside, the total and whether it made the 
+          +L. A natural 1 always fails and                               
+      107 +    a natural 6 always succeeds."""                           
+      108  
+      109      level: int
+      109 -    modifier: int                                             
+      110 +    roll: RollType                                            
+      111 +    tags: frozenset[Tag]                                      
+      112      face: int
+      113 +    modifiers: tuple[Modifier, ...]                           
+      114 +    set_aside: tuple[Modifier, ...]                           
+      115      total: int
+      116      success: bool
+      117  
+      118 +    @property                                                 
+      119 +    def modifier(self) -> int:                                
+      120 +        return sum(m.amount for m in self.modifiers)          
+      121 +                                                              
+      122  
+      123  @dataclass(frozen=True)
+      124  class Searched:
+      117 -    """A Search roll: the die, the modifier and the Search tab
+          -le rolled with their result."""                               
+      125 +    """A Search roll: the die, the modifiers (Investigator, th
+          +e text's) and the Search table                                
+      126 +    rolled with their result."""                              
+     … 89 more lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/engine/manual.py (+23 -2)
+      14  
+      15  from enum import StrEnum
+      16  
+      17 +from ..effect_targets import RollType, Tag, with_implied       
+      18  from .game import Game
+      19  from .protocol import (
+      20      Changed,
+     ...
+      37      LOSE = "lose"
+      38      """Lose one of them, down to 0: only what the character has
+           can be lost."""
+      39      ROLL = "roll"
+      39 -    """A roll vs L, the L and modifier typed from the text.""" 
+      40 +    """A roll vs L: its type, the L and the modifier typed from
+         + the text; the effects held                                    
+      41 +    add theirs (E7)."""                                        
+      42      WRITE_NOTE = "write_note"
+      43      """Write a note: a lasting effect or a modifier to remember
+          ."""
+      44      REMOVE_NOTE = "remove_note"
+     ...
+       93              amount = min(ask(interface, Number(Topic.AMOUNT, m
+           inimum=1)), _value(game, stat))
+       94              interface.tell(Changed(stat, -amount, game.lose(st
+           at, amount)))
+       95          case Manual.ROLL:
+       96 +            roll = ask(interface, Choose(Topic.ROLL, ROLLS))  
+       97              level = ask(interface, Number(Topic.LEVEL, minimum
+           =1))
+       98 +            tags = _tags(game, interface, roll)               
+       99              modifier = ask(interface, Number(Topic.MODIFIER))
+       96 -            interface.tell(game.roll_vs(level, modifier))     
+      100 +            interface.tell(game.roll_vs(level, roll, tags, mod
+          +ifier))                                                       
+      101          case Manual.WRITE_NOTE:
+      102              interface.tell(NoteWritten(game.add_note(ask(inter
+           face, Text(Topic.NOTE)))))
+      103          case Manual.REMOVE_NOTE:
+     ...
+      110              interface.tell(Marked(position, Mark.SAFE_HOUSE))
+      111  
+      112  
+      113 +ROLLS = tuple(roll for roll in RollType if roll is not RollTyp
+          +e.SEARCH)                                                     
+      114 +"""The rolls vs L; the Search is a free action of its own.""" 
+      115 +                                                              
+      116 +                                                              
+      117 +def _tags(game: Game, interface: Interface, roll: RollType) ->
+          + frozenset[Tag]:                                              
+      118 +    """What a roll made by hand is about, asked only where an 
+          +effect held depends on it: one                                
+      119 +    yes or no per effect, in the character's order, skipped wh
+          +en the tags already given match                               
+      120 +    it (a bow Attack is a ranged one: Good Shot is not asked a
+          +bout after Bow)."""                                           
+      121 +    tags: frozenset[Tag] = frozenset()                        
+     … 11 more lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/engine/protocol.py (+8 -1)
+      46      """Which of the character's numbers a manual action changes
+          ."""
+      47      AMOUNT = "amount"
+      48      """How much is gained or lost (a `Number`)."""
+      49 +    ROLL = "roll"                                              
+      50 +    """What a roll vs L made by hand is for: an `effect_targets
+         +.RollType`."""                                                 
+      51 +    TAG = "tag"                                                
+      52 +    """Whether a roll made by hand is about the tags of an effe
+         +ct held, True or False;                                        
+      53 +    `Choose.about` is the effect (an `effects.Held`)."""       
+      54      LEVEL = "level"
+      55      """The L of a roll, from the text (a `Number`)."""
+      56      MODIFIER = "modifier"
+     ...
+      104  
+      105  @dataclass(frozen=True)
+      106  class Choose:
+      102 -    """Pick one of the options."""                            
+      107 +    """Pick one of the options. `about` is what the question i
+          +s about, when the topic alone                                 
+      108 +    does not say (the effect a `TAG` question asks about).""" 
+      109  
+      110      topic: Topic
+      111      options: tuple
+      112 +    about: object = None                                      
+      113  
+      114  
+      115  @dataclass(frozen=True)
+  ⎿  Updated src/alone_against_fear/interface/terminal.py (+71 -13)
+      21  `u` an extra roll); Skills and weapons are numbered, with their
+           text. The status line names the
+      22  character and shows Life and Sanity against their max, with the
+           Skills and items under it.
+      23  Spending XP is the free action `p`.
+      24 +                                                               
+      25 +Rolls and effects (E7): a roll vs L asks which roll (numbered),
+         + the L, then a yes or no (`y`,                                 
+      26 +`n`) for each Skill whose bonus depends on what the roll is abo
+         +ut, then the text's modifier.                                  
+      27 +The result names each modifier, and a bonus that does not stack
+         + with a higher one is shown set                                
+      28 +aside: "Defense vs L5: rolled 3, Dodge +2 (Agile +1 does not st
+         +ack), total 5. Success."                                       
+      29  """
+      30  
+      31  from __future__ import annotations
+     ...
+      38  
+      39  from ..content import CatalogueEvent, CatalogueTable, Table, lo
+          ad_content
+      40  from ..dice import RandomDice
+      41 +from ..effect_targets import RollType, Tag                     
+      42  from ..engine import Arrival, Game, Position, Stat, Upkeep
+      43  from ..engine.creation import Points
+      44 +from ..engine.effects import Held, Modifier                    
+      45  from ..engine.game import Purchase, Rolled, RolledVsL, Searched
+      46  from ..engine.loop import play
+      47  from ..engine.manual import Manual
+     ...
+      118  }
+      119  """What the 3 creation points buy, by letter."""
+      120  
+      121 +TAGS = {                                                      
+      122 +    Tag.HAND_TO_HAND: "a hand-to-hand weapon",                
+      123 +    Tag.RANGED: "a ranged weapon",                            
+      124 +    Tag.BOW: "a bow",                                         
+      125 +    Tag.UNARMED: "an unarmed attack",                         
+      126 +    Tag.VAMPIRE: "a vampire",                                 
+      127 +    Tag.ZOMBIE: "a zombie",                                   
+      128 +    Tag.POISON: "poison",                                     
+      129 +    Tag.INFECTION: "infection",                               
+      130 +    Tag.DISEASE: "disease",                                   
+      131 +    Tag.FEAR: "fear",                                         
+      132 +    Tag.MAGIC: "magic",                                       
+      133 +    Tag.HYPNOTISM: "hypnotism",                               
+      134 +    Tag.PSIONICS: "psionics",                                 
+      135 +    Tag.CLIMB: "climbing",                                    
+      136 +    Tag.JUMP: "jumping",                                      
+     … 95 more lines (ctrl+o to expand)
+  ⎿  … 3 more files changed
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ E7 is finished and committed across four commits — 793 tests passing, ruff
+  clean, and verified in the real terminal. Before wrapping up, I'll look back
+  at how the earlier project review went to ground the review-steps discussion
+  you asked about.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ I've laid out a plan for recurring consistency reviews — checking docs,
+  design/rulings/code, rules text, code health, and process files — scheduled at
+  fixed roadmap points (V1 after E9, V2 after E14, V3 after E17), run cold by
+  Opus with triaged findings and fixes.
+
+⏺ User answered Claude's questions:
+  ⎿  · When should consistency reviews happen? → I would say on fixed point but 
+     there should be a drift check for adjustment after each session wdyt ?
+     · What should a review session do with its findings? → Findings, then fix 
+     small ones (Recommended)
+     · The existing 'Design review once the MVP is done' (Later): merge it into 
+     the review after Step 2, or keep it apart? → Merge (Recommended)
+
+⏺ I'll add a lightweight "drift check" step to each wrap-up—fixing only stale
+  mentions tied to what that session touched, logging out-of-scope issues for
+  the next fixed review—while leaving the full five-area audits to the scheduled
+  reviews (V1-V4). I'll document this in WorkingWithClaude.md and the Readme
+  roadmap, then run the first drift check now.
+
+⏺ User answered Claude's questions:
+  ⎿  · Adopt this: a small drift check at each wrap-up (what the session 
+     touched; out-of-scope findings go to 'For the next review' in NextSession),
+     plus fixed reviews V1 after E9, V2 after E14, V3 after E17, V4 after Step 
+     2 (merged with the design review)? → Yes, write it in
+
+⏺ Doing the first drift check now: searching for mentions this session made
+  stale.
+
+  Searched for 2 patterns, ran 2 shell commands (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='Readme.md'; s=open(p).read()…)
+  ⎿  250:#### [ ] V1 — Consistency review
+     293:#### [ ] V2 — Consistency review
+     316:#### [ ] V3 — Consistency review
+     344:#### [ ] V4 — Consistency review
+  ⎿  Updated Readme.md (+28 -7)
+       8  
+       9  ## Status
+      10  
+      11 -MVP phase. Rules extraction and domain design ([`design/`](desi
+         -gn/)) are done. The rules text is being copied into YAML: the f
+         -ormat and the four exploration tables (R1), the Skills and harm
+         - tables (R2), the weapons and items (R3) are in. The engine has
+         - started: dice (E1), the game state (E2), the town map with mov
+         -es and time (E3), the engine/interface protocol with the game l
+         -oop (E4), book mode (E5a, E5b), and the character with its crea
+         -tion (E6): a player creates a character, then walks the town in
+         - the terminal, every box's entry shown as text and applied with
+         - manual actions, until death or quitting, and may spend XP on S
+         -kills at any time ([how to play](#how-to-play)). Step 1 goes on
+         - with E7, with the YAML batches it needs.                      
+      11 +MVP phase. Rules extraction and domain design ([`design/`](desi
+         +gn/)) are done. The rules text is being copied into YAML: the f
+         +ormat and the four exploration tables (R1), the Skills and harm
+         + tables (R2), the weapons and items (R3) are in. The engine has
+         + started: dice (E1), the game state (E2), the town map with mov
+         +es and time (E3), the engine/interface protocol with the game l
+         +oop (E4), book mode (E5a, E5b), the character with its creation
+         + (E6), and the Skills' effects on rolls and max values (E7): a 
+         +player creates a character, then walks the town in the terminal
+         +, every box's entry shown as text and applied with manual actio
+         +ns, until death or quitting, and may spend XP on Skills at any 
+         +time ([how to play](#how-to-play)). Step 1 goes on with E8, wit
+         +h the YAML batches it needs.                                   
+      12  
+      13  **MVP goal:** play a whole campaign in the terminal, in two ste
+          ps ([MVP scope](design/mvp-scope.md)):
+      14  
+     ...
+      19  
+      20  ## How to play
+      21  
+      22 -What the game does today: create a character (a name; the 3 poi
+         -nts on Life and Sanity or traded for 1 more Skill or table roll
+         -; 2 Skills; a random weapon and a knife or stick; 1 Random Obje
+         -ct and 1 Useful Stuff, duplicates rolled again; d6 Food), choos
+         -e Home, walk the town box by box, eat 1 Food every 5 boxes (or 
+         -lose 1 Life without Food), and quit. A new box rolls the Town E
+         -xploration table, a visited box a 1 in 6 chance of a Random Enc
+         -ounter, and the box is resolved before you do anything else: th
+         -e entry reached is shown, and the game follows it to the next t
+         -able (it asks when the text says "your choice", it rolls the di
+         -e when the text rolls one). A table or event not copied yet poi
+         -nts to its Markdown file and the number rolled: you apply its t
+         -ext with manual actions (gain or lose Life, Sanity, Food, XP or
+         - Clues; a roll vs L; write or remove a note; mark the box as a 
+         -Safe House), then say where it leads: another table, a numbered
+         - event, or nowhere else. Notes are your reminders of lasting ef
+         -fects and modifiers the game cannot track yet, shown with the b
+         -ox number they were written at. Between moves you may Search th
+         -e box once (not a Safe House), or apply an effect (the manual a
+         -ctions about the character). The game ends at 0 Life or Sanity,
+         - once the entry that took them is applied. Once every box of a 
+         -sheet is visited, you can attach a new sheet. XP can be spent o
+         -n Skills between moves (Expert costs the Skill's cost again); S
+         -kill effects are text until E7, apply them yourself.           
+      22 +What the game does today: create a character (a name; the 3 poi
+         +nts on Life and Sanity or traded for 1 more Skill or table roll
+         +; 2 Skills; a random weapon and a knife or stick; 1 Random Obje
+         +ct and 1 Useful Stuff, duplicates rolled again; d6 Food), choos
+         +e Home, walk the town box by box, eat 1 Food every 5 boxes (or 
+         +lose 1 Life without Food), and quit. A new box rolls the Town E
+         +xploration table, a visited box a 1 in 6 chance of a Random Enc
+         +ounter, and the box is resolved before you do anything else: th
+         +e entry reached is shown, and the game follows it to the next t
+         +able (it asks when the text says "your choice", it rolls the di
+         +e when the text rolls one). A table or event not copied yet poi
+         +nts to its Markdown file and the number rolled: you apply its t
+         +ext with manual actions (gain or lose Life, Sanity, Food, XP or
+         + Clues; a roll vs L; write or remove a note; mark the box as a 
+         +Safe House), then say where it leads: another table, a numbered
+         + event, or nowhere else. Notes are your reminders of lasting ef
+         +fects and modifiers the game cannot track yet, shown with the b
+         +ox number they were written at. Between moves you may Search th
+         +e box once (not a Safe House), or apply an effect (the manual a
+         +ctions about the character). The game ends at 0 Life or Sanity,
+         + once the entry that took them is applied. Once every box of a 
+         +sheet is visited, you can attach a new sheet. XP can be spent o
+         +n Skills between moves (Expert costs the Skill's cost again). S
+         +kills apply their bonuses themselves: a roll vs L asks which ro
+         +ll it is and, for each Skill whose bonus depends on it, whether
+         + the roll is about that (a save vs poison, for Resilient), then
+         + a modifier you type from the text, a weapon or a note; the res
+         +ult names each bonus. Tough and Strong Grip on Reality raise ma
+         +x and current Life or Sanity. Still yours to apply: what a Skil
+         +l does beyond a bonus (Dodge losing balance, Faith, Medic), the
+         + weapons' own modifiers, and the numbers read by later tasks (D
+         +anger Sense, Strong's carry limit, Resistant to … [+36 chars]  
+      23  
+      24  Setup, with Python 3.13 or later (`.tool-versions` pins the ver
+          sion we use):
+      25  
+     ...
+      42  
+      43  ## How to use this roadmap
+      44  
+      45 -The roadmap is split into milestones. Each `####` entry is size
+         -d to be one session's task: title, description, rules reference
+         -s, "Done when" and "Depends on". Check the box when it is done.
+         - GitHub issues are kept for user stories and bugs, only when ne
+         -eded. Deferred decisions are tracked here, so they are made del
+         -iberately when they block work, not up front. Before deciding, 
+         -ask: is it worth deciding yet, or is it a constraint we would h
+         -ave to fight later?                                            
+      45 +The roadmap is split into milestones. Consistency reviews (V1 t
+         +o V4) sit at fixed points between the tasks, after each group o
+         +f tasks that build on each other ([Working with Claude](Working
+         +WithClaude.md#consistency-reviews)). Each `####` entry is sized
+         + to be one session's task: title, description, rules references
+         +, "Done when" and "Depends on". Check the box when it is done. 
+         +GitHub issues are kept for user stories and bugs, only when nee
+         +ded. Deferred decisions are tracked here, so they are made deli
+         +berately when they block work, not up front. Before deciding, a
+         +sk: is it worth deciding yet, or is it a constraint we would ha
+         +ve to fight later?                                             
+      46  
+      47  ## Working with Claude
+      48  
+     ...
+      57  - **MVP scope** (was D6): two steps, Bring Home the Bacon then 
+          Close a Hell Gate with campaign play; unwritten content goes th
+          rough book mode. See [MVP scope](design/mvp-scope.md).
+      58  - **Engine/interface protocol** (E4): callbacks. The engine cal
+          ls `ask(request)` when the player chooses (the answer must be o
+          ne of the options) and `tell(event)` when something happens. Ch
+          osen over generators and a state machine: rules that ask deep i
+          nside other rules stay simple; the game is saved between turns.
+           Interfaces read the game state and change it only through thei
+          r answers. See [architecture](docs/architecture.md).
+      59  - **Plain data in YAML** (D1, decided in E6): a number the engi
+          ne reads is a field next to the text, added only when the engin
+          e first reads it (Skill XP costs in R2; item counts and uses, w
+          eapon variants in E6). The text stays as printed. Field shapes 
+          may change while no saved game depends on them. See [rules text
+           in YAML](docs/content.md).
+      60 +- **Effects** (E7): a Skill's effects are a YAML field (a roll 
+         +modifier by roll type and tags, or a change to a parameter such
+         + as max Life, at Basic and Expert), checked against the names o
+         +f `effect_targets.py`; what a Skill does beyond a number is Pyt
+         +hon keyed by its ID. Effects are not stored: they are read from
+         + what the character holds, so removing a source removes its eff
+         +ects. See [rules text in YAML](docs/content.md#effects) and [ro
+         +lls](design/rolls.md).                                         
+      61  - **Rules text in YAML** (part of D1): every table, entry, crea
+          ture, item, event and Skill gets a stable ID and its text in YA
+          ML; behaviour stays in Python, keyed by the same ID. The Markdo
+          wn in `gameRules/` stays as the readable copy, fixed together w
+          ith the YAML. Files, IDs (`table.town_exploration.7`, `mission.
+          bring_home_the_bacon`) and the shape of a table: [rules text in
+           YAML](docs/content.md).
+      62  
+      63  ### Guidelines
+     ...
+      224  - Done when: the terminal walks the player through creation, a
+           nd XP can be spent.
+      225  - Depends on: E5b, R2, R3.
+      226  
+      226 -#### [ ] E7 — Rolls and effects                               
+      227 +#### [x] E7 — Rolls and effects                               
+      228  Roll types and context tags; roll vs L with natural 1 and 6; e
+           ffects with source, holder, kind and lifetime; a roll collects
+            matching modifiers from every holder, with stacking limits; m
+           ax values calculated from effects. Every Skill written as effe
+           cts. Manual rolls in book mode now get their modifiers.
+      229  - Design: [rolls](design/rolls.md), [effects](design/effects.m
+           d), [character](design/character.md)
+      229 -- Done when: every Skill's effect is tested.                  
+      230 +- Decided: effects in the YAML, derived from what the characte
+          +r holds (see Decisions); `effect_targets.py` names roll types,
+          + tags and parameters; Bow and Martial Arts are bonuses on bow 
+          +and unarmed Attacks, the weapon keeping its own malus; a roll 
+          +made by hand asks a yes or no only for the Skills whose bonus 
+          +depends on its tags. Rulings: an Expert amount replaces the Ba
+          +sic one, Agile and Dodge give the higher bonus (the other show
+          +n set aside), Will covers every Will roll and saves vs Fear, M
+          +agic, Hypnotism and Psionics, at Expert too ([rulings](design/
+          +rulings.md#character)).                                       
+     … 79 more lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='Readme.md'; s=open(p).read()…)
+  ⎿  - Depends on: E7.
+
+     #### [ ] V1 — Consistency review
+     … +16 lines (ctrl+o to expand)
+  ⎿  Updated Readme.md (+4 -0)
+      250  #### [ ] V1 — Consistency review
+      251  A fresh session reads the project cold and checks that what is
+            built agrees with itself, after the foundations (E7 to E9: ef
+           fects, moments, inventory): docs against code, design and ruli
+           ngs against the tests, the YAML against `gameRules/`, code hea
+           lth (file sizes, duplication, names, pending tests), the proce
+           ss files. It starts from NextSession's "For the next review". 
+           Findings with a proposed fix each, triaged with the user one a
+           t a time; small fixes in the session, bigger ones become roadm
+           ap entries ([Working with Claude](WorkingWithClaude.md#consist
+           ency-reviews)).
+      252  - Done when: every finding is fixed, turned into an entry, or 
+           dropped by the user.
+      253 +- Depends on: E9.                                             
+      254  
+      255  #### [ ] E10 — Tables and result scripts
+      256  Results as scripts of steps: encounter, chain, choice, gate, g
+           ain or loss, effect, box mark, movement; forced and shifted re
+           sults; limits and fallbacks read the history; timed steps hook
+           ed to moments; an unwritten entry goes to book mode. Town Expl
+           oration, Random Encounter and Search written.
+     ...
+      294  #### [ ] V2 — Consistency review
+      295  A fresh session reads the project cold and checks that what is
+            built agrees with itself, after the combat chain (E12 to E14)
+           : docs against code, design and rulings against the tests, the
+            YAML against `gameRules/`, code health (file sizes, duplicati
+           on, names, pending tests), the process files. It starts from N
+           extSession's "For the next review". Findings with a proposed f
+           ix each, triaged with the user one at a time; small fixes in t
+           he session, bigger ones become roadmap entries ([Working with 
+           Claude](WorkingWithClaude.md#consistency-reviews)).
+      296  - Done when: every finding is fixed, turned into an entry, or 
+           dropped by the user.
+      297 +- Depends on: E14.                                            
+      298  
+      299  #### [ ] E15 — Safe Houses
+      300  Created by a result, with that result's healing; no random enc
+           ounter; healing on each visit; max 3, the closest one stops be
+           ing one (ties broken randomly); stash, stolen on a d6 of 1-3 w
+           hen its Safe House is lost. Home is a Safe House from the star
+           t ([ruling](design/rulings.md#safe-houses), switchable).
+     ...
+      318  #### [ ] V3 — Consistency review
+      319  A fresh session reads the project cold and checks that what is
+            built agrees with itself, after Step 1 (E17): docs against co
+           de, design and rulings against the tests, the YAML against `ga
+           meRules/`, code health (file sizes, duplication, names, pendin
+           g tests), the process files. It starts from NextSession's "For
+            the next review". Findings with a proposed fix each, triaged 
+           with the user one at a time; small fixes in the session, bigge
+           r ones become roadmap entries ([Working with Claude](WorkingWi
+           thClaude.md#consistency-reviews)).
+      320  - Done when: every finding is fixed, turned into an entry, or 
+           dropped by the user.
+      321 +- Depends on: E17.                                            
+      322  
+      323  ### Milestone 7 — Step 2: Close a Hell Gate
+      324  
+     ...
+      347  #### [ ] V4 — Consistency review
+      348  A fresh session reads the project cold and checks that what is
+            built agrees with itself, after Step 2 (E20): docs against co
+           de, design and rulings against the tests, the YAML against `ga
+           meRules/`, code health (file sizes, duplication, names, pendin
+           g tests), the process files. It starts from NextSession's "For
+            the next review". Findings with a proposed fix each, triaged 
+           with the user one at a time; small fixes in the session, bigge
+           r ones become roadmap entries ([Working with Claude](WorkingWi
+           thClaude.md#consistency-reviews)). Also the design review: `de
+           sign/` reworked against what the implementation taught (it sho
+           uld not be needed, but the design was written before the code)
+           .
+      349  - Done when: every finding is fixed, turned into an entry, or 
+           dropped by the user.
+      350 +- Depends on: E20.                                            
+      351  
+      352  ### Later
+      353  
+
+⏺ Wrapping up. The Readme is updated (E7 done, how to play, review entries
+  V1–V4). Next: the review process in WorkingWithClaude and CLAUDE.md, then
+  NextSession, the architecture doc and the log.
+
+⏺ Bash(python3 - <<'EOF'
+      p='WorkingWithClaude.md'; s=open(p).read()…)
+  ⎿  7:- Small planned sessions, one branch and one PR each. **Never commit
+      or push without permission**, except the agreed end-of-session wrap-u
+     p (a drift check of what the session touched; update Readme, NextSessi
+     … +3 lines (ctrl+o to expand)
+  ⎿  Updated CLAUDE.md (+1 -1)
+       4  
+       5  ## Working rules
+       6  
+       7 -- Small planned sessions, one branch and one PR each. **Never c
+         -ommit or push without permission**, except the agreed end-of-se
+         -ssion wrap-up (update Readme, NextSession with the next session
+         -'s model and effort, and, if the code structure changed, `docs/
+         -architecture.md`; write the log; ask for the transcript export;
+         - commit, push, open the PR).                                   
+       7 +- Small planned sessions, one branch and one PR each. **Never c
+         +ommit or push without permission**, except the agreed end-of-se
+         +ssion wrap-up (a drift check of what the session touched; updat
+         +e Readme, NextSession with the next session's model and effort,
+         + and, if the code structure changed, `docs/architecture.md`; wr
+         +ite the log; ask for the transcript export; commit, push, open 
+         +the PR).                                                       
+       8  - Design before code: model in domain terms in `design/` first.
+           Decide only what is worth deciding yet; propose, do not decide
+          .
+       9  - **Stay agile**: we are under development and learn as we impl
+          ement. Settle things as we go when changing course later is che
+          ap; prefer the least constraining option. Raise a question only
+           if its answer changes what we build now; the rest goes to a "d
+          ecide when implementing" list. Reviews too: no finding that ask
+          s to decide early what can wait.
+      10  - `design/` describes the game once the MVP is done; a roadmap 
+          task can be a transitional step towards it. Where a design page
+           and a ruling disagree, the ruling wins.
+  ⎿  Updated WorkingWithClaude.md (+24 -5)
+       7  1. Start from [NextSession.md](NextSession.md), the [Readme](Re
+          adme.md) and the latest log in [`claude-logs/`](claude-logs/).
+       8  2. GitHub issues only for user stories and bugs, and only when 
+          needed; the PR then says `Closes #N`. An engine task with no us
+          er story gets no issue: the Readme entry is the task.
+       9  3. Work on a dedicated branch; one PR per session. Create the b
+          ranch in the main checkout; use a worktree only when another se
+          ssion runs at the same time (see [Parallel sessions](#parallel-
+          sessions)). During the session, Claude never commits or pushes 
+          without explicit permission.
+      10 -4. End by updating the Readme (checkboxes, decisions, How to pl
+         -ay when what a player can do changes), `NextSession.md` (remove
+         - the done session, adjust the plan, review the next session's m
+         -odel and effort in light of this one) and, if the code structur
+         -e changed, [`docs/architecture.md`](docs/architecture.md).     
+      11 -5. Claude writes the session log in `claude-logs/YYYYMMDDHHmm-s
+         -ession-name.md`.                                               
+      12 -6. The user exports the transcript with `/export claude-logs/tr
+         -anscripts/YYYYMMDDHHmm-session-name.txt` (same name as the log)
+         -.                                                              
+      13 -7. Claude commits the session, pushes the branch and opens the 
+         -PR (the log names the branch, which is enough to find the PR). 
+         -This end-of-session commit and push is agreed once and for all,
+         - so the next session starts clean.                             
+      10 +4. **Drift check** (a few minutes, decided in the E7 session): 
+         +search the repository for the names, numbers and behaviours the
+         + session changed ("until E7", an old signature, "the max is the
+         + base") and fix every stale mention; write, move or drop this t
+         +ask's pending tests and "decide when implementing" items; remov
+         +e the NextSession reminders it resolved. Anything noticed outsi
+         +de the session's scope is not fixed: one line under "For the ne
+         +xt review" in NextSession.                                     
+      11 +5. End by updating the Readme (checkboxes, decisions, How to pl
+         +ay when what a player can do changes), `NextSession.md` (remove
+         + the done session, adjust the plan, review the next session's m
+         +odel and effort in light of this one) and, if the code structur
+         +e changed, [`docs/architecture.md`](docs/architecture.md).     
+      12 +6. Claude writes the session log in `claude-logs/YYYYMMDDHHmm-s
+         +ession-name.md`.                                               
+      13 +7. The user exports the transcript with `/export claude-logs/tr
+         +anscripts/YYYYMMDDHHmm-session-name.txt` (same name as the log)
+         +.                                                              
+      14 +8. Claude commits the session, pushes the branch and opens the 
+         +PR (the log names the branch, which is enough to find the PR). 
+         +This end-of-session commit and push is agreed once and for all,
+         + so the next session starts clean.                             
+      15  
+      16  ## How we develop
+      17  
+     ...
+      30  | R1 (YAML layout, IDs, first tables) | 1 |
+      31  | Engine skeleton E1–E5 | 5 (E5 in two sessions) |
+      32  | YAML batches R2–R7 | 5–6, can run in parallel |
+      32 -| Step 1, E6–E17 | 12 or more (E7, E8, E10 and E12 are the big 
+         -ones) |                                                        
+      33 +| Step 1, E6–E17 | 12 or more (E8, E10 and E12 are the big ones
+         +) |                                                            
+      34 +| Consistency reviews V1–V4 | 4 |                              
+      35  | Step 2, E18–E20 | 3–4 |
+      36  
+      37  ## Which model for which session
+     ...
+      43  | Copying rules text | R2–R7 | Sonnet, medium effort; Opus for 
+          a messy batch (events) |
+      44  | Writing user stories and their issues | When a task has a pla
+          yer-facing story (E4 on) | Sonnet, medium effort; Opus if slici
+          ng the game into stories turns into a design debate |
+      45  | Step-back review: an adversarial review of the whole project,
+           findings only | Project review (after E4) | Opus, high effort 
+          |
+      46 +| Consistency review: what is built agrees with itself, finding
+         +s then small fixes | V1–V4 | Opus, high effort |               
+      47  | Routine setup | Project setup and GitHub planning | Sonnet (i
+          t posts to GitHub, so not Haiku) |
+      48  | Small chores | renames, housekeeping | Haiku; never for rules
+           text, where a misreading costs more than it saves |
+      49  
+     ...
+      52  - No default effort. Model and effort are picked per session in
+           [NextSession.md](NextSession.md); each wrap-up reviews the nex
+          t session's with what the session showed: a session that strugg
+          led moves similar ones up, an easy one moves them down. The tab
+          le above is only the starting point.
+      53  - [`CLAUDE.md`](CLAUDE.md) (working rules: commits, rulings, sp
+          oilers) loads the same way whatever the model.
+      54  
+      55 +## Consistency reviews                                         
+      56 +                                                               
+      57 +Two levels, decided in the E7 session, so the project stays con
+         +sistent as it grows without a costly wrap-up:                  
+      58 +                                                               
+      59 +- **The drift check at each wrap-up** (step 4 above) fixes only
+         + what the session itself made stale, and lists anything else un
+         +der "For the next review" in NextSession.                      
+      60 +- **The fixed reviews** are roadmap entries at the end of each 
+         +group of tasks that build on each other: V1 after E9 (effects, 
+         +moments, inventory), V2 after E14 (combat), V3 after E17 (Step 
+         +1), V4 after E20 (Step 2, with the design review). A fresh sess
+         +ion reads the project cold and checks five areas: docs against 
+         +code (`docs/`, the Readme's How to play), design and rulings ag
+         +ainst the tests, the YAML against `gameRules/` (and the "Fixed 
+         +or reworded" list of `book_errors.md`), code health (file sizes
+         +, duplication, names, pending tests), the process files (NextSe
+         +ssion reminders, the model table). It starts from "For the next
+         + review".                                                      
+     … 13 more lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='NextSession.md'; s=open(p).read()…)
+  ⎿  ok
+  ⎿  Updated NextSession.md (+16 -6)
+       5  ## Reminders
+       6  
+       7  - E10 also moves the die ranges written in Python into the YAML
+           (D1): the leads of `leads.py` and the samurai sword of Random 
+          Objects 54 (`PICKED_BY_DIE` in `engine/creation.py`). See the R
+          eadme's E10.
+       8 -- Merge the E6 PR (`e6-character-creation`) before starting E7.
+       8 +- Merge the E7 PR (`e7-rolls-effects`) before starting E8.     
+       9 +- Since E7, Skills give their numbers through `effects` in the 
+         +YAML and `engine/effects.py`; later tasks plug in the parameter
+         +s they read (E8 the Food interval, E9 the carry limit, E12 the 
+         +surprise chance) and the pending tests in `tests/test_effects.p
+         +y` (Dodge's balance E12, Faith E18, Medic E11).                
+      10  - **Literal blocks for R3's texts** (a small PR, Sonnet, any ti
+          me): R2 keeps a text of several paragraphs or a list as a liter
+          al block (`|-`, a blank line between paragraphs, one list item 
+          per line), which the user prefers on screen. R3's mission text 
+          and any other folded text with several paragraphs move to the s
+          ame, without changing a word.
+      11  - The Injury and Insanity tables carry the rules' Mental Scars 
+          and Injuries section as their text, split between them (the Inj
+          ury paragraph reworded with the user): E8 reworks it, once it r
+          ules between that section and the Life and Sanity passages (1 o
+          r 2 points, or all the Damage of an attack).
+      12  - [`gameRules/book_errors.md`](gameRules/book_errors.md) now al
+          so lists the typos a batch fixed and the text it reworded ("Fix
+          ed or reworded"), to check again in the review session.
+     ...
+      16  - Taking and dropping items (the Readme's "Any time" item after
+           R3): a small PR, Sonnet. Since E6 an item has an `item.` ID on
+           its table entries, a weapon (or a variant) its `weapon.` ID, a
+          nd `Game.add_item` and `remove_item` exist ([rules text in YAML
+          ](docs/content.md#items)).
+      17  - Compare the pregenerated characters in [`gameRules/14_pregene
+          rated_characters.md`](gameRules/14_pregenerated_characters.md) 
+          against the original sheets in `origin_rules/`: image transcrip
+          tions are the part most likely to hold a misread.
+      18  - Reading the PDFs: this machine has no poppler (`pdftotext`, `
+          pdftoppm`). Install `pypdf` in a scratch venv to extract the eb
+          ook's text.
+      18 -- The pending tests (skipped, in `tests/test_manual_actions.py`
+         -) name the task they wait for: E8, E11, E13, E15, after R3. Wri
+         -te their bodies when that task comes.                          
+      19 +- The pending tests (skipped, in `tests/test_manual_actions.py`
+         + and `tests/test_effects.py`) name the task they wait for: E8, 
+         +E11, E12, E13, E15, E18, after R3. Write their bodies when that
+         + task comes.                                                   
+      20 +                                                               
+      21 +## For the next review                                         
+      22 +                                                               
+      23 +Drift noticed outside a session's scope, for the next consisten
+         +cy review (V1) to start from ([consistency reviews](WorkingWith
+         +Claude.md#consistency-reviews)).                               
+      24 +                                                               
+      25 +- Code health: `engine/game.py` (580 lines) and `interface/term
+         +inal.py` (609) keep growing with each task; whether to split th
+         +em, and along which lines (E7).                                
+      26 +- `Game.create_character(life, sanity)` now takes the base valu
+         +es (the current ones start at the max); the parameter names do 
+         +not say so (E7).                                               
+      27 +- Tests raise a Skill to Expert by writing `character.skills` d
+         +irectly, not through `Game` (E7).                              
+      28  
+      29  ## Plan
+      30  
+      22 -1. **E7** — rolls and effects: roll types and tags, effects wit
+         -h source, holder, kind and lifetime, max values calculated from
+         - effects, every Skill written as effects. The character's max L
+         -ife and Sanity are the base until then (`Game.max`), and the Sk
+         -ills are held as IDs with a level (E6).                        
+      23 -   Model: **Opus, high effort** (kept after E6: E7 shapes the e
+         -ffects model every later task builds on).                      
+      24 -2. **Step 1** — E8 to E17, one task per session, with the R bat
+         -ches done ahead of the task that needs them (R4 before E12, R5 
+         -before E16; R6 and R7 any time). The batches do not touch the e
+         -ngine and can run as background agents of a coordinator session
+         -.                                                              
+      25 -   Model: per task, from the [model table](WorkingWithClaude.md
+         -#which-model-for-which-session): Opus, high effort for E8, E10 
+         -and E12; Sonnet for the others; Sonnet, medium effort for the c
+         -opying agents, Opus for R6 (events).                           
+      31 +1. **E8** — moments and reactions: announce moments, reactions 
+         +with their scripts, the lifetimes the Skills and Food need; the
+         + Food upkeep as a reaction that Resistant to Hunger and Eating 
+         +Disorder change (it can read `Parameter.FOOD_INTERVAL` since E7
+         +). Open: the Food clock when the interval changes mid-game.    
+      32 +   Model: **Opus, high effort** (kept after E7: E7 went smoothl
+         +y once its design was settled with the user, and E8 shapes the 
+         +moments every later task hooks into).                          
+      33 +2. **E9** — inventory, then **V1**, the first consistency revie
+         +w (Opus, high effort).                                         
+      34 +3. **Step 1** goes on — E10 to E17 with V2 after E14 and V3 aft
+         +er E17, one task per session, with the R batches done ahead of 
+         +the task that needs them (R4 before E12, R5 before E16; R6 and 
+         +R7 any time). The batches do not touch the engine and can run a
+         +s background agents of a coordinator session.                  
+      35 +   Model: per task, from the [model table](WorkingWithClaude.md
+         +#which-model-for-which-session): Opus, high effort for E10 and 
+         +E12 and the reviews; Sonnet for the others (E9 included); Sonne
+         +t, medium effort for the copying agents, Opus for R6 (events). 
+
+⏺ Now docs/architecture.md:
+
+⏺ Bash(python3 - <<'EOF'
+      p='docs/architecture.md'; s=open(p).read()…)
+  ⎿  203:- **A Skill list** (a file with a `skills` or an `arcane_skills` k
+     ey) loads as `Skill`s, each with its `effects` (`Effect`: a roll type
+     with tags and a group, or a parameter, and its Basic and Exp
+     … +3 lines (ctrl+o to expand)
+  ⎿  Updated docs/architecture.md (+14 -5)
+      10  src/alone_against_fear/
+      11    __main__.py       python -m alone_against_fear: the terminal
+      12    dice.py           dice codes, chances, dice sources (shared b
+          y content and engine)
+      13 +  effect_targets.py what an effect can change: roll types, tags
+         +, parameters (shared too)                                      
+      14    engine/           the game: state and the engine API
+      15      state.py        Campaign, Character, Item, Mission, History
+          , TownMap, Box (plain data)
+      16      town.py         sheets, neighbours, distance (pure geometry
+          )
+      17      game.py         Game: the only way the state changes
+      18 +    effects.py      effects in play, read from what the charact
+         +er holds; roll modifiers                                       
+      19      protocol.py     requests, events, Interface: how the engine
+           talks to an interface
+      20      loop.py         play(): the game loop, arriving in a box
+      21      creation.py     create(): walking the player through charac
+          ter creation
+     ...
+      58  - **Every roll goes through a `Dice` source** that only rolls d
+          6: `RandomDice(seed)` for play and reproducible tests (with no 
+          seed it picks one and logs it, so a game's dice can be rolled a
+          gain), `ScriptedDice([...])` for rule tests that state the face
+          s shown. A result keeps every face, so rules can read the natur
+          al die.
+      59  - **Plain data.** Codes and results are frozen dataclasses; the
+           content loader stores a table's dice in standard form and its 
+          coverage check asks `DiceCode.results()`.
+      60  
+      61 +## `effect_targets`: what an effect can change                 
+      62 +                                                               
+      63 +The names the YAML and the engine share (E7, [rolls](../design/
+         +rolls.md)): `RollType` (Attack, Defense, Save, … Search), `Tag`
+         + (what a roll is about: its weapon, its opponent, the danger) a
+         +nd `Parameter` (a number the rules read: max Life and Sanity, c
+         +arry limit, Food interval, surprise chance, Clue cost). Names o
+         +nly: the loader checks every effect against them, the engine ro
+         +lls and calculates with them. `IMPLIED` says a tag carries anot
+         +her (a bow is ranged), `with_implied` adds them. At the package
+         +'s top level like `dice`, because the content must not depend o
+         +n the engine.                                                  
+      64 +                                                               
+      65  ## `engine`: the game state and the engine API
+      66  
+      67  ```mermaid
+     ...
+      86  - **The town is one grid** (`town.py`). `Position` is a `(colum
+          n, row)` named tuple, for a box in the town and for a sheet in 
+          the grid of sheets. A sheet is a 5×6 block (`sheet_of`); `neigh
+          bours(position, sheets)` are the 8 boxes around that lie on an 
+          attached sheet (open edges are walls), `distance` is the larger
+           of the column and row gaps. Nothing geometric is stored.
+      87  - **Moves.** The engine offers `targets(kind)` and the interfac
+          e picks; `move(to, kind)` refuses anything else, numbers the bo
+          x, runs the Food upkeep (every 5th box number on the campaign c
+          lock: 1 Food, else 1 Life) and returns an `Arrival`. `MoveKind`
+           has `NORMAL` and `ESCAPE` for now. `choose_home` is box 1 (fir
+          st sheet, once); `add_sheet` attaches a sheet against a full on
+          e.
+      88  - **A box remembers** its places (IDs), `searched` and `marks` 
+          (`Mark.SAFE_HOUSE`; other marks are strings until their task).
+      83 -- **The character** (E6) has a name, current Life and Sanity an
+         -d their base values, Skills (ID → `SkillLevel.BASIC` or `EXPERT
+         -`) and the items held (`Item`: an item or weapon ID, the entry 
+         -or Skill it came from, a count and uses, frozen). `create_chara
+         -cter(life, sanity, food, items, name, skills)` refuses an ID th
+         -at is not a Skill (Arcane Skills included). `max(stat)` is the 
+         -base for Life and Sanity (effects raise it with E7), None for t
+         -he others; `gain` stops at the max. `purchases()` lists the Ski
+         -lls the XP can buy now (`Purchase(skill_id, level, cost)`: a ne
+         -w Skill at Basic, or one held at Basic to Expert for its cost a
+         -gain; no Arcane Skill until E18), `buy(purchase)` refuses anyth
+         -ing else. `add_item` and `remove_item` keep the items.         
+      89 +- **Effects** (E7, `effects.py`) are not stored: `Game.effects(
+         +)` reads them from what the character holds (`held`: each Skill
+         +'s `effects` at the level held, as `Held(source, effect, amount
+         +)`), so removing a source removes its effects. `Game.parameter(
+         +parameter, base)` is the base (the character's for max Life and
+         + Sanity, `PARAMETER_BASES` for the carry limit and the Food int
+         +erval, the caller's for the surprise chance and the Clue cost) 
+         +plus the effects, never below `PARAMETER_FLOORS`. `Game.roll_mo
+         +difiers(roll, tags)` collects the matching modifiers (`Modifier
+         +(source, amount)`, source None for the one typed from a text) a
+         +s `RollModifiers(applied, set_aside)`: they stack, except withi
+         +n an effect's `group`, where the highest applies and the others
+         + are set aside. `depending_on_tags(roll)` lists the effects on 
+         +a roll type that apply only to some tags: what a roll made by h
+         +and asks about.                                                
+      90 +- **The character** (E6) has a name, current Life and Sanity an
+         +d their base values, Skills (ID → `SkillLevel.BASIC` or `EXPERT
+         +`) and the items held (`Item`: an item or weapon ID, the entry 
+         +or Skill it came from, a count and uses, frozen). `create_chara
+         +cter(life, sanity, food, items, name, skills)` refuses an ID th
+         +at is not a Skill (Arcane Skills included). `max(stat)` is the 
+         +parameter (base plus effects) for Life and Sanity, None for the
+         + others; `gain` stops at the max. The Life and Sanity given at 
+         +creation are the base: the character starts at the max (Tough r
+         +aises it). Buying a Skill that raises a max raises the current 
+         +value by as much. `purchases()` lists the Skills the XP can buy
+         + now (`Purchase(skill_id, level, cost)`: a new Skill at Basic, 
+         +or one held at Basic to Expert for its cost again; no Arcane Sk
+         +ill until E18), `buy(purchase)` refuses anything else. `add_ite
+         +m` and `remove_item` keep the items.                           
+      91  - **The character's notes** (`Note`: a text and the box number 
+          it was written at) are the player's reminders of what the engin
+          e cannot track; `add_note` and `remove_note` keep them, nothing
+           reads them.
+      85 -- **Rolls.** `roll_vs(level, modifier)` rolls d6 vs L, a natura
+         -l 1 failing and a natural 6 succeeding, and returns `RolledVsL`
+         -. `search(modifier)` rolls the Search table (a natural 1 stays 
+         -1, the result kept on the table), marks the box Searched, recor
+         -ds the entry and returns `Searched`; `may_search()` says whethe
+         -r the box may be Searched (once, never a Safe House).          
+      92 +- **Rolls.** `roll_vs(level, roll, tags, modifier)` rolls d6 vs
+         + L with the modifiers collected for its type and tags (implied 
+         +tags added) plus the text's, a natural 1 failing and a natural 
+         +6 succeeding, and returns `RolledVsL` (type, tags, face, modifi
+         +ers applied and set aside, total). `search(modifier)` adds the 
+         +Search modifiers held (Investigator) and rolls the Search table
+         + (a natural 1 stays 1, the result kept on the table), marks the
+         + box Searched, records the entry and returns `Searched`; `may_s
+         +earch()` says whether the box may be Searched (once, never a Sa
+         +fe House).                                                     
+      93  - **`ended()`** says why the game is over (`End.DEAD` at 0 Life
+          , checked first, `End.INSANE` at 0 Sanity) or None; the loop an
+          d book mode both ask it. `End` lives in `state.py`.
+      94  - **Tables and events.** `roll_table(id)` rolls a table's dice,
+           then the dice of the table nested in the entry reached, and re
+          turns `Rolled(table_id, results, entry_id)`; a catalogued table
+           is rolled too, with no entry (its source holds it). `play_even
+          t(id)` plays a catalogued event. Both record what was reached a
+          s `PLAYED` at every level there is (campaign, character, missio
+          n), and a place table (`PLACE_TABLES`) rolled where the charact
+          er stands becomes one of the box's places. `new_sheets()` lists
+           where a sheet may be attached.
+      95  - **The dice are not part of the state**: play is random, so a 
+          resumed campaign rolls fresh dice.
+     ...
+      147  ```
+      148  
+      149  - **Callback protocol.** The engine holds the interface and ca
+           lls it while the rules run: `ask(request)` returns the player'
+           s answer at once, `tell(event)` reports what happened, in orde
+           r. A rule deep inside another (a fight inside an event inside 
+           an arrival) asks the same way. Chosen over generators (every f
+           unction on the path would need `yield from`) and a state machi
+           ne (every multi-step rule cut into states). The price: the gam
+           e can only be saved between turns, which fits "saving = saving
+            the campaign"; a GUI would run the engine in a thread.
+      143 -- **Requests and events are plain data.** Three requests: `Cho
+          -ose(topic, options)` picks one option, `Number(topic, minimum,
+          - maximum)` a whole number within its bounds (an amount, an L, 
+          -a modifier), `Text(topic)` a text that is not empty (a note). 
+          -The topic tells the interface how to show it (a map for `HOME`
+          - and `MOVE`, a menu for `ACTION`, `CHOICE`, `BOOK`, `APPLY` an
+          -d `POINTS`, a list for `TABLE`, `EVENT`, `SHEET`, `STAT`, `NOT
+          -ES`, `SKILL`, `WEAPON` and `PURCHASE`, a prompt for `AMOUNT`, 
+          -`LEVEL`, `MODIFIER`, `NOTE`, `NAME` and `LIFE_POINTS`). Events
+          - are `Arrival` (from `Game.move`, and for Home), `Rolled` (fro
+          -m `Game.roll_table`), `Wandering` (the 1 in 6 of a visited box
+          -), `LeadRolled` (a die an entry rolls to pick its table or wha
+          -t it gives), `EventPlayed`, `SheetAttached`, `Changed` (a numb
+          -er gained or lost), `RolledVsL`, `Searched`, `Marked`, `NoteWr
+          -itten`, `NoteRemoved`, `ItemTaken`, `Duplicate` (a creation ro
+          -ll that gave something held already), `Bought` and `Ended`. Ev
+          -ents carry IDs; the interface reads the text in `game.content`
+          -.                                                             
+      150 +- **Requests and events are plain data.** Three requests: `Cho
+          +ose(topic, options, about)` picks one option (`about` says wha
+          +t the question is about when the topic does not: the effect a 
+          +`TAG` question asks about), `Number(topic, minimum, maximum)` 
+          +a whole number within its bounds (an amount, an L, a modifier)
+          +, `Text(topic)` a text that is not empty (a note). The topic t
+          +ells the interface how to show it (a map for `HOME` and `MOVE`
+          +, a menu for `ACTION`, `CHOICE`, `BOOK`, `APPLY` and `POINTS`,
+          + a list for `TABLE`, `EVENT`, `SHEET`, `STAT`, `NOTES`, `SKILL
+          +`, `WEAPON`, `PURCHASE` and `ROLL`, a yes or no for `TAG`, a p
+          +rompt for `AMOUNT`, `LEVEL`, `MODIFIER`, `NOTE`, `NAME` and `L
+          +IFE_POINTS`). Events are `Arrival` (from `Game.move`, and for 
+          +Home), `Rolled` (from `Game.roll_table`), `Wandering` (the 1 i
+          +n 6 of a visited box), `LeadRolled` (a die an entry rolls to p
+          +ick its table or what it gives), `EventPlayed`, `SheetAttached
+          +`, `Changed` (a number gained or lost), `RolledVsL`, `Searched
+          +`, `Marked`, `NoteWritten`, `NoteRemoved`, `ItemTaken`, `Dupli
+          +cate` (a creation roll that gave something held already), `Bou
+          +ght` and `Ended`. Events carry IDs; the interface reads the te
+          +xt in `game.content`.                                         
+      151  - **The answer must fit the request**: one of the options, a n
+           umber within the bounds, a text that is not empty. `protocol.a
+           sk` refuses anything else with `GameError`, logs the answer an
+           d returns it (the option itself, the text without the spaces a
+           round it). A scripted answer that does not fit fails the test;
+            the terminal checks the input before answering.
+     … 31 more lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='docs/architecture.md'; s=open(p).read()…)
+  ⎿  -rw-------  1 nathanchalot  staff  2757220  3 nov.  17:43:43 2026 /Use
+     rs/nathanchalot/.claude/projects/-Users-nathanchalot-Code-RPGs-AloneVs
+     FEear/0e2f8b68-e500-4eb4-8680-58a23d3dd73d.jsonl
+     mar.  3 nov. 2026 17:43:49 CET
+  ⎿  Updated docs/architecture.md (+3 -3)
+      200  - **The catalogue holds tables and numbered events** (`Catalog
+           ueTable`, `CatalogueEvent`, told apart by the ID's kind); `con
+           tent.events()` lists the events in order.
+      201  - **A weapon list** (a file with a `weapons` key, no dice) loa
+           ds as `Weapon`s (ID, name, text, source), in `content.weapons`
+           ; `id in content` is true for a weapon, so table entries can p
+           oint to one. A heading that names two weapons lists them as `v
+           ariants` (E6): each is a `Weapon` of its own in `content.varia
+           nts`, with the heading's text plus its `extra` sentence and th
+           e heading's ID in `heading`; `content.weapon(id)` finds both.
+      202  - **Items** (E6): an entry may name the `item` it gives (an `i
+           tem.` ID, defined only there and shared across tables), with i
+           ts `count` (a dice code, a number, or a mapping per item or we
+           apon, read with `entry.count_of(id)`) and `uses`. `content.ite
+           ms` maps an item ID to the entries that give it; `id in conten
+           t` is true for an item.
+      203 -- **A Skill list** (a file with a `skills` or an `arcane_skill
+          -s` key) loads as `Skill`s, each with its `effects` (`Effect`: 
+          -a roll type with tags and a group, or a parameter, and its Bas
+          -ic and Expert amounts; E7), checked against `effect_targets` (
+          -ID, name, XP cost, text, the Expert line; components and sacri
+          -fice for an Arcane Skill), in `content.skills` and `content.ar
+          -cane_skills`; `content.skill(id)` finds either kind. A Skill's
+          - `starting_gear` is a tuple of `Gear` (an item or weapon ID, c
+          -ount, uses), checked by `reference_problems`.                 
+      203 +- **A Skill list** (a file with a `skills` or an `arcane_skill
+          +s` key) loads as `Skill`s (ID, name, XP cost, text, the Expert
+          + line; components and sacrifice for an Arcane Skill), in `cont
+          +ent.skills` and `content.arcane_skills`; `content.skill(id)` f
+          +inds either kind. A Skill's `effects` are `Effect`s (a roll ty
+          +pe with tags and a group, or a parameter, and the Basic and Ex
+          +pert amounts; E7), their names checked against `effect_targets
+          +` at load time. A Skill's `starting_gear` is a tuple of `Gear`
+          + (an item or weapon ID, count, uses), checked by `reference_pr
+          +oblems`.                                                      
+      204  
+      205  Used by: `Game.roll_table` and `Game.play_event` (book mode), 
+           `Game.start_mission`, which checks mission IDs, the terminal, 
+           which shows the text, and the tests.
+      206  
+     ...
+      217  | `tests/test_creation.py` | scenarios of character creation: 
+           the points, Skills and their gear, the tables rolled, duplicat
+           es, counts, the special entries |
+      218  | `tests/test_town_map.py` | sheets, neighbours, distance, mov
+           es, numbering, Food upkeep, new sheets |
+      219  | `tests/test_game_loop.py` | scenarios through a scripted int
+           erface: walking 10 boxes, what the engine asks, answers refuse
+           d and logged, how a game ends, creation and spending XP in the
+            loop |
+      220 -| `tests/test_manual_actions.py` | scenarios of the manual act
+          -ions: in book mode, "apply an effect", notes, death once an en
+          -try is applied, the Search roll, rolls vs L, typed answers; pe
+          -nding tests (skipped) for the edge cases of later tasks |     
+      220 +| `tests/test_manual_actions.py` | scenarios of the manual act
+          +ions: in book mode, "apply an effect", notes, death once an en
+          +try is applied, the Search roll, rolls vs L and the questions 
+          +about their tags, typed answers; pending tests (skipped) for t
+          +he edge cases of later tasks |                                
+      221  | `tests/test_book_mode.py` | scenarios of resolving a box: ne
+           w and visited boxes, automatic and chosen leads, the die an en
+           try rolls, book mode after a table not copied yet, recording, 
+           places, attaching a sheet; long random games |
+      222 -| `tests/test_terminal.py` | the terminal played with typed li
+          -nes: walking 10 boxes, the map, wrong choices, end of input, t
+          -he log file, the entries and rules shown, attaching a sheet, c
+          -reation, spending XP, the character sheet |                   
+      222 +| `tests/test_terminal.py` | the terminal played with typed li
+          +nes: walking 10 boxes, the map, wrong choices, end of input, t
+          +he log file, the entries and rules shown, attaching a sheet, c
+          +reation, spending XP, the character sheet, rolls naming their 
+          +modifiers |                                                   
+      223  | `tests/test_smoke.py` | the package imports |
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Write(claude-logs/202611030941-e7-rolls-effects.md)
+  ⎿  Wrote 45 lines to claude-logs/202611030941-e7-rolls-effects.md
+      1 # E7: Rolls and effects
+      2 
+      3 - Date: 2026-11-03
+      4 - Session ID: 0e2f8b68-e500-4eb4-8680-58a23d3dd73d (`~/.claude/pr
+        ojects/-Users-nathanchalot-Code-RPGs-AloneVsFEear/`)
+      5 - Branch: `e7-rolls-effects` (the PR is found from it)
+      6 - Model: Opus 5.5, high effort
+      7 - Transcript: [transcripts/202611030941-e7-rolls-effects.txt](tra
+        nscripts/202611030941-e7-rolls-effects.txt)
+      8 
+     … +37 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ The wrap-up docs and the log are written, and all checks pass. Last step:
+  please export the transcript, then I'll commit, push and open the PR. Run:
+
+  /export claude-logs/transcripts/202611030941-e7-rolls-effects.txt
+
+  Tell me when it's done.
+✻ Worked for 18m 17s · done 17:44
+
+※ recap: E7 is finished: Skills now give their bonuses through effects, and the consistency reviews are written into the roadmap. To finish the wrap-up, please run /export claude-logs/transcripts/202611030941-e7-rolls-effects.txt, then I'll commit, push and open the PR. (disable recaps in /config)
