@@ -10,6 +10,7 @@ from collections.abc import Iterator, Mapping
 from dataclasses import dataclass, field
 
 from ..dice import DiceCode
+from ..effect_targets import Parameter, RollType, Tag
 
 KINDS = frozenset(
     {
@@ -162,6 +163,26 @@ class Gear:
 
 
 @dataclass(frozen=True)
+class Effect:
+    """One rule change a Skill gives, as its YAML writes it (E7): a modifier to a roll of
+    one type, or to a parameter, at Basic and at Expert. What it does beyond a number
+    (Dodge's balance, Faith, Medic) is Python, keyed by the Skill's ID."""
+
+    basic: int
+    expert: int | None = None
+    """None when the Skill has no Expert level."""
+    roll: RollType | None = None
+    tags: frozenset[Tag] = frozenset()
+    """The roll must carry one of these; none: every roll of its type."""
+    parameter: Parameter | None = None
+    group: str | None = None
+    """Roll modifiers of one group do not stack: only the highest applies (Agile, Dodge)."""
+
+    def amount(self, expert: bool) -> int:
+        return self.expert if expert and self.expert is not None else self.basic
+
+
+@dataclass(frozen=True)
 class Skill:
     """A Skill (`skill.`) or an Arcane Skill (`arcane_skill.`): its name, XP cost and rules
     as printed, the Expert line apart."""
@@ -179,6 +200,8 @@ class Skill:
     """Arcane Skills only: what the ritual uses up, as printed."""
     starting_gear: tuple[Gear, ...] = ()
     """What the Skill gives when taken at creation, as its text says."""
+    effects: tuple[Effect, ...] = ()
+    """What the Skill changes, as numbers (E7)."""
 
 
 @dataclass(frozen=True)

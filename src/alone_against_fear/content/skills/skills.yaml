@@ -9,6 +9,9 @@ skills:
 
       The bonus to Defense rolls does not stack with the bonus from the Dodge Skill. Use one or the other.
     expert: Add +2 to the above.
+    effects:
+      - {roll: defense, basic: 1, expert: 2, group: agile_or_dodge}
+      - {roll: save, tags: [climb, jump, avoid_danger], basic: 1, expert: 2}
   - id: skill.bow
     name: Bow
     xp: 3
@@ -19,12 +22,16 @@ skills:
     expert: +1 to Attack rolls with a bow.
     starting_gear:
       - {id: weapon.bow, count: d6+3}
+    effects:
+      - {roll: attack, tags: [bow], basic: 1, expert: 2}
   - id: skill.charisma
     name: Charisma
     xp: 3
     text: >-
       You have +1 to Charisma rolls (rolls to persuade someone).
     expert: +2 to Charisma rolls.
+    effects:
+      - {roll: charisma, basic: 1, expert: 2}
   - id: skill.danger_sense
     name: Danger Sense
     xp: 4
@@ -36,6 +43,8 @@ skills:
       chance of surprising you. Monsters with a 1 in 6 chance of surprise have
       no chance to surprise you if you have Danger Sense.
     expert: reduce the chance of surprise by 2.
+    effects:
+      - {parameter: surprise_chance, basic: -1, expert: -2}
   - id: skill.dodge
     name: Dodge
     xp: 4
@@ -44,6 +53,8 @@ skills:
 
       The bonus from Dodge does not stack with the bonus from the Agile Skill. Use one or the other.
     expert: You have +2 to Defense rolls, but you still lose your balance when you roll a 1 on a Defense roll.
+    effects:
+      - {roll: defense, basic: 1, expert: 2, group: agile_or_dodge}
   - id: skill.faith
     name: Faith
     xp: 2
@@ -64,6 +75,8 @@ skills:
       addition to any bonuses the weapon itself might have. No bonus on
       unarmed attacks (see Martial Arts for that).
     expert: Your attacks are at +2.
+    effects:
+      - {roll: attack, tags: [hand_to_hand], basic: 1, expert: 2}
   - id: skill.good_shot
     name: Good Shot
     xp: 8
@@ -71,6 +84,8 @@ skills:
       Add +1 to Attack rolls with ranged weapons. This is in addition to any
       bonuses the weapon itself might have.
     expert: Your ranged Attacks are at +2.
+    effects:
+      - {roll: attack, tags: [ranged], basic: 1, expert: 2}
   - id: skill.investigator
     name: Investigator
     xp: 6
@@ -79,12 +94,17 @@ skills:
       effect that is paid in Clues, to a minimum of 1. A result of 1 on a
       Search roll remains a 1.
     expert: Add +2 to your Search rolls. Reduce Clue costs by 2 to a minimum of 1. A result of 1 on a Search roll remains a 1.
+    effects:
+      - {roll: search, basic: 1, expert: 2}
+      - {parameter: clue_cost, basic: -1, expert: -2}
   - id: skill.martial_arts
     name: Martial Arts
     xp: 3
     text: >-
       Reduce the unarmed combat modifier to -1.
     expert: reduce it to no penalty.
+    effects:
+      - {roll: attack, tags: [unarmed], basic: 1, expert: 2}
   - id: skill.medic
     name: Medic
     xp: 3
@@ -99,12 +119,16 @@ skills:
     text: >-
       You have +1 to any Magic roll.
     expert: You have +2 to Magic rolls.
+    effects:
+      - {roll: magic, basic: 1, expert: 2}
   - id: skill.resilient
     name: Resilient
     xp: 3
     text: >-
       Add +1 to saves versus poison, infection, or disease.
     expert: You have +2 on such saves.
+    effects:
+      - {roll: save, tags: [poison, infection, disease], basic: 1, expert: 2}
   - id: skill.resistant_to_hunger
     name: Resistant To Hunger
     xp: 2
@@ -112,24 +136,32 @@ skills:
       You need to consume 1 Food every 6 boxes instead of 1 Food every 5
       boxes.
     expert: You need to consume 1 Food every 7 boxes.
+    effects:
+      - {parameter: food_interval, basic: 1, expert: 2}
   - id: skill.strong_grip_on_reality
     name: Strong Grip On Reality
     xp: 6
     text: >-
       Add +1 to your maximum and current Sanity total.
     expert: Add +2 to your maximum and current Sanity total.
+    effects:
+      - {parameter: max_sanity, basic: 1, expert: 2}
   - id: skill.slippery
     name: Slippery
     xp: 3
     text: >-
       You have +1 on Escape rolls.
     expert: +2 on Escape rolls.
+    effects:
+      - {roll: escape, basic: 1, expert: 2}
   - id: skill.stealth
     name: Stealth
     xp: 4
     text: >-
       You have +1 to Stealth rolls.
     expert: you have +2 to Stealth rolls.
+    effects:
+      - {roll: stealth, basic: 1, expert: 2}
   - id: skill.strong
     name: Strong
     xp: 5
@@ -137,6 +169,9 @@ skills:
       Add +1 to all Strength rolls and +3 to the number of items you can carry
       (so you can carry 13 items, or 18 if you have a backpack).
     expert: Add +2 to Strength rolls and +5 to the number of items you can carry.
+    effects:
+      - {roll: strength, basic: 1, expert: 2}
+      - {parameter: carry_limit, basic: 3, expert: 5}
   - id: skill.tough
     name: Tough
     xp: 8
@@ -145,12 +180,16 @@ skills:
       both your maximum number of Life points and your current number of Life
       points are increased.
     expert: Add +3 to your Life points total.
+    effects:
+      - {parameter: max_life, basic: 2, expert: 3}
   - id: skill.vampire_hunter
     name: Vampire Hunter
     xp: 3
     text: >-
       Add +1 to your Attack rolls against vampires.
     expert: add +2.
+    effects:
+      - {roll: attack, tags: [vampire], basic: 1, expert: 2}
   - id: skill.will
     name: Will
     xp: 6
@@ -158,9 +197,14 @@ skills:
       Add +1 to your Will rolls and saves vs. Fear, Magic, Hypnotism, or
       Psionics.
     expert: Add +2 to your Will rolls and saves vs. Fear, Magic or Psionics.
+    effects:
+      - {roll: will, basic: 1, expert: 2}
+      - {roll: save, tags: [fear, magic, hypnotism, psionics], basic: 1, expert: 2}
   - id: skill.zombie_hunter
     name: Zombie Hunter
     xp: 2
     text: >-
       Add +1 to your Attack rolls against zombies.
     expert: Add +2.
+    effects:
+      - {roll: attack, tags: [zombie], basic: 1, expert: 2}

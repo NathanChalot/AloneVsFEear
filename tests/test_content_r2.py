@@ -196,6 +196,12 @@ def test_every_skill_has_an_expert_line_and_no_ritual_fields():
         assert skill.components is None and skill.sacrifice is None, skill.id
 
 
+def test_every_skill_but_faith_and_medic_has_effects():
+    # Faith and Medic only grant actions: Python, with E18 and E11 (E7)
+    without = [s.id for s in CONTENT.skills.values() if not s.effects]
+    assert without == ["skill.faith", "skill.medic"]
+
+
 def test_a_note_printed_after_the_expert_line_ends_the_text():
     agile = CONTENT.skill("skill.agile")
     assert agile.expert == "Add +2 to the above."

@@ -21,6 +21,11 @@ Creation and XP (E6): the 3 points have letters (`l` Life and Sanity, `k` a Skil
 `u` an extra roll); Skills and weapons are numbered, with their text. The status line names the
 character and shows Life and Sanity against their max, with the Skills and items under it.
 Spending XP is the free action `p`.
+
+Rolls and effects (E7): a roll vs L asks which roll (numbered), the L, then a yes or no (`y`,
+`n`) for each Skill whose bonus depends on what the roll is about, then the text's modifier.
+The result names each modifier, and a bonus that does not stack with a higher one is shown set
+aside: "Defense vs L5: rolled 3, Dodge +2 (Agile +1 does not stack), total 5. Success."
 """
 
 from __future__ import annotations
@@ -33,8 +38,10 @@ from pathlib import Path
 
 from ..content import CatalogueEvent, CatalogueTable, Table, load_content
 from ..dice import RandomDice
+from ..effect_targets import RollType, Tag
 from ..engine import Arrival, Game, Position, Stat, Upkeep
 from ..engine.creation import Points
+from ..engine.effects import Held, Modifier
 from ..engine.game import Purchase, Rolled, RolledVsL, Searched
 from ..engine.loop import play
 from ..engine.manual import Manual
@@ -111,6 +118,28 @@ POINTS = {
 }
 """What the 3 creation points buy, by letter."""
 
+TAGS = {
+    Tag.HAND_TO_HAND: "a hand-to-hand weapon",
+    Tag.RANGED: "a ranged weapon",
+    Tag.BOW: "a bow",
+    Tag.UNARMED: "an unarmed attack",
+    Tag.VAMPIRE: "a vampire",
+    Tag.ZOMBIE: "a zombie",
+    Tag.POISON: "poison",
+    Tag.INFECTION: "infection",
+    Tag.DISEASE: "disease",
+    Tag.FEAR: "fear",
+    Tag.MAGIC: "magic",
+    Tag.HYPNOTISM: "hypnotism",
+    Tag.PSIONICS: "psionics",
+    Tag.CLIMB: "climbing",
+    Tag.JUMP: "jumping",
+    Tag.AVOID_DANGER: "avoiding danger",
+}
+"""How a tag reads in a question: "Does this Save involve poison?"."""
+
+YES_NO = {"y": True, "n": False}
+
 NUMBER_PROMPTS = {
     Topic.LIFE_POINTS: "How many of the 3 points on Life (the rest on Sanity)? ",
     Topic.AMOUNT: "How much? ",
@@ -182,6 +211,19 @@ class TerminalInterface:
                 return self._menu(options, "Your choice: ")
             case Topic.BOOK:
                 return self._menu(options, "Apply the text, then where does it lead? ")
+            case Topic.ROLL:
+                self._output("  ".join(f"{n}) {_roll(o)}" for n, o in _numbered(options)))
+                return self._read(_by_number(options), f"Which roll? [1-{len(options)}] ")
+            case Topic.TAG:
+                held = request.about
+                assert isinstance(held, Held) and held.effect.roll is not None
+                tags = [TAGS[tag] for tag in TAGS if tag in held.effect.tags]
+                about = ", ".join(tags[:-1]) + f" or {tags[-1]}" if len(tags) > 1 else tags[0]
+                prompt = (
+                    f"Does this {_roll(held.effect.roll)} involve {about}? "
+                    f"({self._source(held.source)} {held.amount:+d}) [y/n] "
+                )
+                return self._read(YES_NO, prompt)
             case Topic.STAT:
                 self._output("  ".join(f"{n}) {STATS[stat]}" for n, stat in _numbered(options)))
                 return self._read(_by_number(options), f"Which? [1-{len(options)}] ")
@@ -232,17 +274,17 @@ class TerminalInterface:
                 verb = "gain" if amount > 0 else "lose"
                 self._output(f"You {verb} {abs(amount)} {STATS[stat]} ({STATS[stat]} {value}).")
             case RolledVsL():
-                self._output(_vs_l(event))
+                self._output(self._vs_l(event))
             case NoteWritten(note=note):
                 self._output(f"Noted: {note.text}")
             case NoteRemoved(note=note):
                 self._output(f"Note removed: {note.text}")
             case Marked():
                 self._output("This box is a Safe House.")
-            case Searched(face=face, modifier=modifier):
+            case Searched(face=face, modifiers=modifiers):
                 line = f"Search: rolled {face}"
-                if modifier:
-                    line += ": a natural 1 stays 1" if face == 1 else f", {modifier:+d}"
+                if modifiers:
+                    line += ": a natural 1 stays 1" if face == 1 else self._modifiers(modifiers)
                 self._output(f"{line}.")
             case ItemTaken(item=item):
                 self._output(f"You take: {self._item(item)}.")
@@ -333,6 +375,29 @@ class TerminalInterface:
                 self._output(_indented(skill.text, f"{n:>3}) {skill.name} ({skill.xp} XP): "))
         self._skills_shown = True
         return self._read(_by_number(request.options), f"Skill? [1-{len(request.options)}] ")
+
+    def _source(self, source: str | None) -> str:
+        return "modifier" if source is None else self.game.content.skill(source).name
+
+    def _modifiers(self, modifiers: Sequence[Modifier], set_aside: Sequence[Modifier] = ()) -> str:
+        """ ", Resilient +1, modifier -1", each set aside after the one it gives way to."""
+        shown = "".join(f", {self._source(m.source)} {m.amount:+d}" for m in modifiers)
+        for m in set_aside:
+            shown += f" ({self._source(m.source)} {m.amount:+d} does not stack)"
+        return shown
+
+    def _vs_l(self, rolled: RolledVsL) -> str:
+        result = "Success." if rolled.success else "Failure."
+        if rolled.face == 1:
+            result = "A natural 1 always fails."
+        elif rolled.face == 6:
+            result = "A natural 6 always succeeds."
+        modifiers = self._modifiers(rolled.modifiers, rolled.set_aside)
+        total = f", total {rolled.total}" if rolled.modifiers else ""
+        return (
+            f"{_roll(rolled.roll)} vs L{rolled.level}: rolled {rolled.face}{modifiers}{total}. "
+            f"{result}"
+        )
 
     def _purchase(self, purchase: Purchase) -> str:
         name = self.game.content.skill(purchase.skill_id).name
@@ -497,15 +562,8 @@ def _bounds(request: Number) -> str:
             return f" from {low} to {high}"
 
 
-def _vs_l(rolled: RolledVsL) -> str:
-    modifier = f" at {rolled.modifier:+d}" if rolled.modifier else ""
-    result = "Success." if rolled.success else "Failure."
-    if rolled.face == 1:
-        result = "A natural 1 always fails."
-    elif rolled.face == 6:
-        result = "A natural 6 always succeeds."
-    total = f", total {rolled.total}" if rolled.modifier else ""
-    return f"Roll vs L{rolled.level}{modifier}: rolled {rolled.face}{total}. {result}"
+def _roll(roll: RollType) -> str:
+    return roll.capitalize()
 
 
 def _span(keys: dict[str, object]) -> str:

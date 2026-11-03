@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 
+from ..effect_targets import RollType, Tag, with_implied
 from .game import Game
 from .protocol import (
     Changed,
@@ -36,7 +37,8 @@ class Manual(StrEnum):
     LOSE = "lose"
     """Lose one of them, down to 0: only what the character has can be lost."""
     ROLL = "roll"
-    """A roll vs L, the L and modifier typed from the text."""
+    """A roll vs L: its type, the L and the modifier typed from the text; the effects held
+    add theirs (E7)."""
     WRITE_NOTE = "write_note"
     """Write a note: a lasting effect or a modifier to remember."""
     REMOVE_NOTE = "remove_note"
@@ -91,9 +93,11 @@ def apply(game: Game, interface: Interface, action: Manual) -> None:
             amount = min(ask(interface, Number(Topic.AMOUNT, minimum=1)), _value(game, stat))
             interface.tell(Changed(stat, -amount, game.lose(stat, amount)))
         case Manual.ROLL:
+            roll = ask(interface, Choose(Topic.ROLL, ROLLS))
             level = ask(interface, Number(Topic.LEVEL, minimum=1))
+            tags = _tags(game, interface, roll)
             modifier = ask(interface, Number(Topic.MODIFIER))
-            interface.tell(game.roll_vs(level, modifier))
+            interface.tell(game.roll_vs(level, roll, tags, modifier))
         case Manual.WRITE_NOTE:
             interface.tell(NoteWritten(game.add_note(ask(interface, Text(Topic.NOTE)))))
         case Manual.REMOVE_NOTE:
@@ -104,6 +108,23 @@ def apply(game: Game, interface: Interface, action: Manual) -> None:
             position = game.campaign.position
             game.add_mark(position, Mark.SAFE_HOUSE)
             interface.tell(Marked(position, Mark.SAFE_HOUSE))
+
+
+ROLLS = tuple(roll for roll in RollType if roll is not RollType.SEARCH)
+"""The rolls vs L; the Search is a free action of its own."""
+
+
+def _tags(game: Game, interface: Interface, roll: RollType) -> frozenset[Tag]:
+    """What a roll made by hand is about, asked only where an effect held depends on it: one
+    yes or no per effect, in the character's order, skipped when the tags already given match
+    it (a bow Attack is a ranged one: Good Shot is not asked about after Bow)."""
+    tags: frozenset[Tag] = frozenset()
+    for held in game.depending_on_tags(roll):
+        if held.effect.tags & with_implied(tags):
+            continue
+        if ask(interface, Choose(Topic.TAG, (True, False), about=held)):
+            tags |= held.effect.tags
+    return tags
 
 
 def _losable(game: Game) -> tuple[Stat, ...]:

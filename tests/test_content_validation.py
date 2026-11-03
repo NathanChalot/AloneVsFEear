@@ -12,6 +12,7 @@ from alone_against_fear.content import (
     note_problems,
     reference_problems,
 )
+from alone_against_fear.effect_targets import Parameter, RollType, Tag
 
 
 def write(root, name, text):
@@ -617,3 +618,98 @@ def test_starting_gear_that_does_not_exist_is_reported(root):
     )
 
     assert reference_problems(load_content(root)) == ["skill.bow: no such ID weapon.bow"]
+
+
+# --- Skill effects (E7) --------------------------------------------------------
+
+
+def skill_with(effects, expert="Add +2 to the above."):
+    expert_line = f"    expert: {expert}\n" if expert else ""
+    return (
+        "name: S\nsource: s.md\nskills:\n"
+        "  - id: skill.agile\n    name: Agile\n    xp: 8\n    text: x\n"
+        f"{expert_line}    effects:\n{effects}"
+    )
+
+
+def test_a_skill_effect_on_a_roll_is_loaded(root):
+    write(
+        root,
+        "skills/skills.yaml",
+        skill_with(
+            "      - {roll: defense, basic: 1, expert: 2, group: agile_or_dodge}\n"
+            "      - {roll: save, tags: [climb, jump, avoid_danger], basic: 1, expert: 2}\n"
+        ),
+    )
+
+    defense, save = load_content(root).skill("skill.agile").effects
+
+    assert (defense.roll, defense.tags, defense.group) == (
+        RollType.DEFENSE,
+        frozenset(),
+        "agile_or_dodge",
+    )
+    assert (defense.amount(expert=False), defense.amount(expert=True)) == (1, 2)
+    assert save.roll is RollType.SAVE
+    assert save.tags == {Tag.CLIMB, Tag.JUMP, Tag.AVOID_DANGER}
+    assert (save.parameter, save.group) == (None, None)
+
+
+def test_a_skill_effect_on_a_parameter_is_loaded(root):
+    write(
+        root,
+        "skills/skills.yaml",
+        skill_with("      - {parameter: max_life, basic: 2, expert: 3}\n"),
+    )
+
+    (effect,) = load_content(root).skill("skill.agile").effects
+
+    assert (effect.parameter, effect.roll, effect.basic, effect.expert) == (
+        Parameter.MAX_LIFE,
+        None,
+        2,
+        3,
+    )
+
+
+def test_a_skill_without_effects_has_none(root):
+    write(root, "skills/skills.yaml", SKILLS)
+
+    assert load_content(root).skill("skill.agile").effects == ()
+
+
+@pytest.mark.parametrize(
+    ("effect", "message"),
+    [
+        ("{roll: dance, basic: 1, expert: 2}", "unknown roll type 'dance'"),
+        ("{roll: save, tags: [posion], basic: 1, expert: 2}", "unknown tag 'posion'"),
+        ("{parameter: max_luck, basic: 1, expert: 2}", "unknown parameter 'max_luck'"),
+        ("{basic: 1, expert: 2}", "an effect changes a roll or a parameter"),
+        (
+            "{roll: save, parameter: max_life, basic: 1, expert: 2}",
+            "an effect changes a roll or a parameter",
+        ),
+        ("{parameter: max_life, tags: [fear], basic: 1, expert: 2}", "tags need a roll"),
+        ("{parameter: max_life, group: x, basic: 1, expert: 2}", "a group needs a roll"),
+        ("{roll: save, basic: one, expert: 2}", "an amount is a whole number"),
+        ("{roll: save, expert: 2}", r"missing keys \['basic'\]"),
+        ("{roll: save, basic: 1}", "the Skill has an Expert line: its effects need an expert"),
+        ("{roll: save, basic: 1, expert: 2, when: always}", r"unknown keys \['when'\]"),
+    ],
+)
+def test_a_malformed_skill_effect_is_refused(root, effect, message):
+    write(root, "skills/skills.yaml", skill_with(f"      - {effect}\n"))
+
+    with pytest.raises(ContentError, match=message):
+        load_content(root)
+
+
+def test_an_effect_of_a_skill_without_expert_line_has_no_expert_amount(root):
+    write(
+        root,
+        "skills/skills.yaml",
+        skill_with("      - {roll: save, basic: 1, expert: 2}\n", expert=None),
+    )
+
+    with pytest.raises(ContentError, match="no Expert line: its effects have no expert"):
+        load_content(root)

@@ -85,8 +85,10 @@ def test_a_character_is_created_from_the_rules(content):
     # then the character has it all
     character = game.character
     assert character.name == "Ann"
-    assert (character.life, character.sanity) == (10, 9)
-    assert (game.max(Stat.LIFE), game.max(Stat.SANITY)) == (10, 9)
+    assert (character.base_life, character.base_sanity) == (10, 9)
+    # Tough raises the max and the current Life by 2 (E7)
+    assert (character.life, character.sanity) == (12, 9)
+    assert (game.max(Stat.LIFE), game.max(Stat.SANITY)) == (12, 9)
     assert character.skills == {"skill.agile": SkillLevel.BASIC, "skill.tough": SkillLevel.BASIC}
     assert character.items == [
         Item("weapon.pistol", "table.random_weapon.5", count=7),
@@ -136,7 +138,7 @@ def test_the_3_points_go_to_life_and_sanity(content, on_life, life, sanity):
         [*PISTOL, *ROPE, *BELL, FOOD],
         [*basics(points=(Points.STATS, on_life)), "weapon.knife"],
     )
-    assert (game.character.life, game.character.sanity) == (life, sanity)
+    assert (game.character.base_life, game.character.base_sanity) == (life, sanity)
 
 
 def test_the_3_points_traded_for_a_third_skill(content):
@@ -148,7 +150,7 @@ def test_the_3_points_traded_for_a_third_skill(content):
             "weapon.knife",
         ],
     )
-    assert (game.character.life, game.character.sanity) == (8, 8)
+    assert (game.character.base_life, game.character.base_sanity) == (8, 8)
     assert list(game.character.skills) == ["skill.agile", "skill.tough", "skill.bow"]
     assert asked(interface, Topic.LIFE_POINTS) == []
 
@@ -172,7 +174,7 @@ def test_the_3_points_traded_for_an_extra_roll(content, points, dice, extra):
 
     assert extra in game.character.items
     assert len(game.character.items) == 5
-    assert (game.character.life, game.character.sanity) == (8, 8)
+    assert (game.character.base_life, game.character.base_sanity) == (8, 8)
 
 
 # --- Skills ---------------------------------------------------------------------------------

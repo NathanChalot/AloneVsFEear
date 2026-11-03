@@ -46,6 +46,11 @@ class Topic(StrEnum):
     """Which of the character's numbers a manual action changes."""
     AMOUNT = "amount"
     """How much is gained or lost (a `Number`)."""
+    ROLL = "roll"
+    """What a roll vs L made by hand is for: an `effect_targets.RollType`."""
+    TAG = "tag"
+    """Whether a roll made by hand is about the tags of an effect held, True or False;
+    `Choose.about` is the effect (an `effects.Held`)."""
     LEVEL = "level"
     """The L of a roll, from the text (a `Number`)."""
     MODIFIER = "modifier"
@@ -99,10 +104,12 @@ class Book(StrEnum):
 
 @dataclass(frozen=True)
 class Choose:
-    """Pick one of the options."""
+    """Pick one of the options. `about` is what the question is about, when the topic alone
+    does not say (the effect a `TAG` question asks about)."""
 
     topic: Topic
     options: tuple
+    about: object = None
 
 
 @dataclass(frozen=True)

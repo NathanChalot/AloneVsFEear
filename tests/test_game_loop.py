@@ -123,7 +123,8 @@ def test_a_new_game_starts_with_character_creation(content):
 
     # then the character is the one created
     assert game.character.name == "Ann"
-    assert (game.character.life, game.character.sanity, game.character.food) == (10, 9, 4)
+    # Tough: 2 more Life (E7)
+    assert (game.character.life, game.character.sanity, game.character.food) == (12, 9, 4)
     assert len(game.character.items) == 4
 
 
