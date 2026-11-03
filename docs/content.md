@@ -220,7 +220,7 @@ arcane_skills:
 | `components`, `sacrifice` | Arcane Skill | the labelled lines as printed, without their label; absent when not printed |
 | `starting_gear` | Skill | what the Skill gives when taken at creation, as its text says: a list of `{id, count, uses}` (Bow: a bow and d6+3 arrows; Faith: the Religious symbol, see the [rulings](../design/rulings.md)); decided in E6 |
 
-- **The XP cost is a number** (the user, in R2): the engine will need it when Skills are bought with XP. The rest of D1 stays open (E6).
+- **The XP cost is a number** (the user, in R2): the engine will need it when Skills are bought with XP. The rest of D1 was decided in E6.
 - **The Expert line is apart**, so a screen can show the level the character has, and a Skill with no `expert` has no Expert level. A note printed after the Expert line (Agile, Dodge) goes at the end of `text`: same words, the order changed.
 - **The books an Arcane Skill is learned from stay in the text**; references to them wait for the books (E18).
 

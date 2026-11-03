@@ -8,7 +8,7 @@ The rules text is from a commercial book: keep this repository private. The orig
 
 ## Status
 
-MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables (R1), the Skills and harm tables (R2), the weapons and items (R3) are in. The engine has started: dice (E1), the game state (E2), the town map with moves and time (E3), the engine/interface protocol with the game loop (E4), and book mode (E5a, E5b): a player can walk the town in the terminal, every box's entry shown as text and applied with manual actions, until death or quitting ([how to play](#how-to-play)). Step 1 (E6 on) comes next, with the YAML batches it needs.
+MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables (R1), the Skills and harm tables (R2), the weapons and items (R3) are in. The engine has started: dice (E1), the game state (E2), the town map with moves and time (E3), the engine/interface protocol with the game loop (E4), book mode (E5a, E5b), and the character with its creation (E6): a player creates a character, then walks the town in the terminal, every box's entry shown as text and applied with manual actions, until death or quitting, and may spend XP on Skills at any time ([how to play](#how-to-play)). Step 1 goes on with E7, with the YAML batches it needs.
 
 **MVP goal:** play a whole campaign in the terminal, in two steps ([MVP scope](design/mvp-scope.md)):
 
@@ -19,7 +19,7 @@ The engine follows the whole design, but only a thin slice of content is written
 
 ## How to play
 
-What the game does today: choose Home, walk the town box by box, eat 1 Food every 5 boxes (or lose 1 Life without Food), and quit. A new box rolls the Town Exploration table, a visited box a 1 in 6 chance of a Random Encounter, and the box is resolved before you do anything else: the entry reached is shown, and the game follows it to the next table (it asks when the text says "your choice", it rolls the die when the text rolls one). A table or event not copied yet points to its Markdown file and the number rolled: you apply its text with manual actions (gain or lose Life, Sanity, Food, XP or Clues; a roll vs L; write or remove a note; mark the box as a Safe House), then say where it leads: another table, a numbered event, or nowhere else. Notes are your reminders of lasting effects and modifiers the game cannot track yet, shown with the box number they were written at. Between moves you may Search the box once (not a Safe House), or apply an effect (the manual actions about the character). The game ends at 0 Life or Sanity, once the entry that took them is applied. Items come once they are copied (R3). Once every box of a sheet is visited, you can attach a new sheet. The character is a placeholder (Life 8, Sanity 8, d6 Food) until character creation (E6).
+What the game does today: create a character (a name; the 3 points on Life and Sanity or traded for 1 more Skill or table roll; 2 Skills; a random weapon and a knife or stick; 1 Random Object and 1 Useful Stuff, duplicates rolled again; d6 Food), choose Home, walk the town box by box, eat 1 Food every 5 boxes (or lose 1 Life without Food), and quit. A new box rolls the Town Exploration table, a visited box a 1 in 6 chance of a Random Encounter, and the box is resolved before you do anything else: the entry reached is shown, and the game follows it to the next table (it asks when the text says "your choice", it rolls the die when the text rolls one). A table or event not copied yet points to its Markdown file and the number rolled: you apply its text with manual actions (gain or lose Life, Sanity, Food, XP or Clues; a roll vs L; write or remove a note; mark the box as a Safe House), then say where it leads: another table, a numbered event, or nowhere else. Notes are your reminders of lasting effects and modifiers the game cannot track yet, shown with the box number they were written at. Between moves you may Search the box once (not a Safe House), or apply an effect (the manual actions about the character). The game ends at 0 Life or Sanity, once the entry that took them is applied. Once every box of a sheet is visited, you can attach a new sheet. XP can be spent on Skills between moves (Expert costs the Skill's cost again); Skill effects are text until E7, apply them yourself.
 
 Setup, with Python 3.13 or later (`.tool-versions` pins the version we use):
 
@@ -35,8 +35,8 @@ Play:
 .venv/bin/alone-against-fear --seed 7     # the dice of an earlier game
 ```
 
-- Type the number of an option and press Enter. Actions have letters: `m` move, `s` search, `a` apply an effect (`b` back), `n` attach a new sheet (once a sheet is full), `q` quit; with a text the game cannot read: `g` gain, `l` lose, `v` roll vs L, `w` write a note, `x` remove a note, `h` mark a Safe House, then where it leads: `t` a table, `e` a numbered event, `d` nowhere else; `r` the rules of the last table rolled in the box. Tables to choose from are numbered. Type the numbers a text gives (Enter alone is no modifier). Ctrl-D or Ctrl-C quits.
-- A status line comes before each action: box number, Life, Sanity, Food, XP, Clues, then your notes.
+- Type the number of an option and press Enter. At creation, the points have letters: `l` Life and Sanity, `k` 1 more Skill, `w`, `o`, `u` 1 more Random Weapon, Random Objects or Useful Stuff roll. Actions have letters: `m` move, `s` search, `a` apply an effect (`b` back), `p` spend XP (when you can afford a Skill), `n` attach a new sheet (once a sheet is full), `q` quit; with a text the game cannot read: `g` gain, `l` lose, `v` roll vs L, `w` write a note, `x` remove a note, `h` mark a Safe House, then where it leads: `t` a table, `e` a numbered event, `d` nowhere else; `r` the rules of the last table rolled in the box. Tables to choose from are numbered. Type the numbers a text gives (Enter alone is no modifier). Ctrl-D or Ctrl-C quits.
+- A status line comes before each action: your name, box number, Life and Sanity (current/max), Food, XP, Clues, then your Skills, your items and your notes.
 - The map: `[n]` the boxes you can choose, `@` where you stand, `H` Home, a number for the last box number written in a visited box, `.` a box not visited yet.
 - Each game writes a log to `logs/` (git-ignored; `--log-dir` to change it): the dice seed, every roll and every answer. Playing again with that seed and the same answers gives the same game.
 
@@ -207,7 +207,7 @@ Manual actions that go through the rules: gain or lose Life, Sanity, Food, XP or
 
 Any time:
 
-- [ ] After R3: take and drop items as manual actions, picked from the copied table entries and weapons (an item is its table entry for now, see [rules text in YAML](docs/content.md)).
+- [ ] After R3: take and drop items as manual actions, picked from the copied items and weapons (`Game.add_item` and `remove_item` exist since E6; an item has an `item.` ID on its table entries, see [rules text in YAML](docs/content.md#items)).
 - [ ] Attach a sheet by stepping onto it: once a sheet is full, moves also offer the boxes across its edges, and stepping onto one attaches its sheet (replaces the "attach a new sheet" action of E5a; smoother to play). A small task of its own, in its own PR.
 - [ ] Literal blocks for R3's texts: a text of several paragraphs or a list kept as a literal block, as R2 does (a blank line between paragraphs on screen, the user's preference). No word changes. A small PR.
 
@@ -215,12 +215,11 @@ Any time:
 
 Each task writes an engine part together with the content that uses it.
 
-#### [ ] E6 — Character and creation
+#### [x] E6 — Character and creation
 Life and Sanity with current and max values; the 22 Skills at Basic and Expert; earning and spending XP at any time (Expert costs the Skill's cost again). Creation: 2 Skills (no Arcane, no Expert), 3 points on Life and Sanity or traded for 1 extra Skill or table roll, a random weapon and a knife, 1 Random Object and 1 Useful Stuff rerolling duplicates, d6 Food. Skill effects stay text until E7.
 - Rules: [main rules](gameRules/1_1_main_rules.md) (Your Character, Experience), [skills](gameRules/1_2_skills.md), [weapons table](gameRules/tables/1_4_random_weapons_table.md), [random objects](gameRules/tables/2_1_random_object_tables.md), [useful stuff](gameRules/tables/2_2_useful_stuff_table.md)
 - Design: [character](design/character.md)
-- Decides: the rest of D1.
-- Open: the weapon summary entries that name two weapons ("Baseball bat or hammer", "Hockey stick/golf club", "Kitchen knife/ritual dagger", "Knife or stick", "Scythe/shovel") have one ID each, as printed (R3). Likely choice: two IDs sharing the same rule text (`weapon.baseball_bat`, `weapon.hammer`), so the player holds the exact item and a rule can tell them apart (a stake needs a hammer). Decide when creation first stores a weapon.
+- Decided: the rest of D1 (plain data in YAML, see Decisions); a weapon heading that names two weapons keeps its ID and text, each weapon a variant with its own ID (`weapon.baseball_bat`, `weapon.hammer`) and an optional extra sentence; entries name the item they give (`item`, shared across tables), with `count` and `uses` (armor durability waits for E13); one text per item and per weapon, the clearest kept (recorded in [book errors](gameRules/book_errors.md)); Skills give their starting gear (`starting_gear`: Bow's arrows, Faith's Religious symbol). Rulings: the knife or stick and Random Weapon 1's bat or hammer are the player's choice, a duplicate is anything already given at creation ([rulings](design/rulings.md#character)).
 - Done when: the terminal walks the player through creation, and XP can be spent.
 - Depends on: E5b, R2, R3.
 
@@ -247,6 +246,7 @@ Two hands; carry limit 10, +5 with a backpack, +3 / +5 with Strong, max 20; Food
 
 #### [ ] E10 — Tables and result scripts
 Results as scripts of steps: encounter, chain, choice, gate, gain or loss, effect, box mark, movement; forced and shifted results; limits and fallbacks read the history; timed steps hooked to moments; an unwritten entry goes to book mode. Town Exploration, Random Encounter and Search written.
+- Also: move the die ranges written in Python into the YAML (D1): the leads of `leads.py` (for example Town Exploration's "on a 1-5 … on a 6") and the samurai sword of Random Objects 54, authentic or replica (`PICKED_BY_DIE` in `engine/creation.py`). Left from E6, so a "roll a die to pick a result" field is shaped once, for every table.
 - Rules: [town exploration](gameRules/tables/5_4_town_exploration_table.md), [random encounters](gameRules/tables/5_2_random_encounters_table.md), [search table](gameRules/tables/5_1_search_rolls_table.md)
 - Design: [encounters](design/encounters.md)
 - Done when: arriving in a new box plays itself until it reaches an unwritten entry.
