@@ -13,6 +13,7 @@ from alone_against_fear.dice import ScriptedDice
 from alone_against_fear.engine import Game, Position, book_mode
 from alone_against_fear.engine.loop import play
 from alone_against_fear.engine.protocol import End
+from alone_against_fear.engine.state import SkillLevel
 from alone_against_fear.engine.town import boxes_of
 from alone_against_fear.interface.terminal import TerminalInterface, main
 
@@ -297,14 +298,78 @@ def test_a_wrong_number_is_asked_again(content):
     assert game.character.clues == 1
 
 
+SAVE = "3"
+"""The Save, third of the rolls vs L."""
+
+
 def test_a_roll_vs_l_shows_the_die_and_the_result(content):
-    # the die shows 3; L4 with no modifier (Enter)
+    # the die shows 3; a Save vs L4 with no modifier (Enter)
     game = ready(content, *EXPLORE, 3)
-    interface, output = terminal(game, [HOME_TOP_LEFT, "m", "1", "v", "4", "", RESOLVE, QUIT])
+    interface, output = terminal(game, [HOME_TOP_LEFT, "m", "1", "v", SAVE, "4", "", RESOLVE, QUIT])
 
     play(game, interface)
 
-    assert "Roll vs L4: rolled 3. Failure." in output
+    assert (
+        "1) Attack  2) Defense  3) Save  4) Escape  5) Stealth  6) Charisma  7) Strength  "
+        "8) Magic  9) Will" in output
+    )
+    assert "Save vs L4: rolled 3. Failure." in output
+
+
+def skilled(content, *skills, faces=()):
+    game = Game(dice=ScriptedDice([*EXPLORE, *faces]), content=content)
+    game.create_character(life=8, sanity=8, food=3, skills=skills)
+    return game
+
+
+def test_a_roll_asks_about_the_skills_that_depend_on_it_and_names_each_modifier(content):
+    # given Resilient; a save vs poison at -1 from a note; the die shows 4
+    game = skilled(content, "skill.resilient", faces=[4])
+    interface, output = terminal(
+        game, [HOME_TOP_LEFT, "m", "1", "v", SAVE, "4", "y", "-1", RESOLVE, QUIT]
+    )
+
+    play(game, interface)
+
+    assert interface._input.prompts[6] == (
+        "Does this Save involve poison, infection or disease? (Resilient +1) [y/n] "
+    )
+    assert "Save vs L4: rolled 4, Resilient +1, modifier -1, total 4. Success." in output
+
+
+def test_a_bonus_set_aside_is_shown(content):
+    # Agile and Dodge do not stack: the higher applies, the other is shown set aside
+    game = skilled(content, "skill.dodge", "skill.agile", faces=[3])
+    game.character.skills["skill.dodge"] = SkillLevel.EXPERT
+    interface, output = terminal(game, [HOME_TOP_LEFT, "m", "1", "v", "2", "5", "", RESOLVE, QUIT])
+
+    play(game, interface)
+
+    assert (
+        "Defense vs L5: rolled 3, Dodge +2 (Agile +1 does not stack), total 5. Success." in output
+    )
+
+
+def test_a_wrong_answer_to_a_yes_or_no_is_asked_again(content):
+    game = skilled(content, "skill.fighter", faces=[3])
+    interface, output = terminal(
+        game, [HOME_TOP_LEFT, "m", "1", "v", "1", "3", "maybe", "n", "", RESOLVE, QUIT]
+    )
+
+    play(game, interface)
+
+    assert "Choose one of y, n." in output
+    assert "Attack vs L3: rolled 3. Success." in output
+
+
+def test_investigator_is_named_on_the_search(content):
+    game = skilled(content, "skill.investigator", faces=[])
+    game.dice = ScriptedDice([4])
+    interface, output = terminal(game, [HOME_TOP_LEFT, "s", QUIT])
+
+    play(game, interface)
+
+    assert "Search: rolled 4, Investigator +1." in output
 
 
 def test_marking_a_safe_house_takes_the_search_away(content):
@@ -342,7 +407,7 @@ def test_notes_are_shown_and_asked_for_a_modifier(content):
     assert "Noted: cursed: -1 to Search" in output
     assert output.count("Notes: (1) box 1: cursed: -1 to Search") == 3  # menu, modifier, menu
     assert "w) write a note" in "\n".join(output)
-    assert "Search: rolled 4, -1." in output
+    assert "Search: rolled 4, modifier -1." in output
 
 
 def test_an_empty_note_is_asked_again(content):

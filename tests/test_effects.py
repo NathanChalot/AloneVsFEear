@@ -1,18 +1,21 @@
 """E7: rolls and effects (design/effects.md, design/rolls.md).
 
-Max values and the other parameters are a base plus the effects held. Every Skill is written
-as effects: each one is tested here, from the rules text (`gameRules/1_2_skills.md`) and the
-rulings (design/rulings.md, Character).
+A roll has a type and context tags; it collects the modifiers of every effect held that
+matches, with stacking limits. Max values and the other parameters are a base plus the
+effects held. Every Skill is written as effects: each one is tested here, from the rules text
+(`gameRules/1_2_skills.md`) and the rulings (design/rulings.md, Character). What a Skill does
+beyond a number waits for the task that has its moment (pending tests at the end).
 """
 
 import pytest
 
 from alone_against_fear.content import load_content
 from alone_against_fear.dice import ScriptedDice
-from alone_against_fear.effect_targets import Parameter
+from alone_against_fear.effect_targets import Parameter, RollType, Tag
 from alone_against_fear.engine import Game, GameError, Stat
+from alone_against_fear.engine.effects import Modifier
 from alone_against_fear.engine.game import Purchase
-from alone_against_fear.engine.state import SkillLevel
+from alone_against_fear.engine.state import Position, SkillLevel
 
 
 @pytest.fixture(scope="module")
@@ -20,13 +23,128 @@ def content():
     return load_content()
 
 
-def character(content, *skills, expert=(), life=10, sanity=9):
+def character(content, *skills, expert=(), faces=(), life=10, sanity=9):
     """A character holding these Skills at Basic, the ones in `expert` at Expert."""
-    game = Game(dice=ScriptedDice([]), content=content)
+    game = Game(dice=ScriptedDice(list(faces)), content=content)
     game.create_character(life=life, sanity=sanity, food=3, skills=skills)
     for skill in expert:
         game.character.skills[skill] = SkillLevel.EXPERT
     return game
+
+
+def total(game, roll, *tags):
+    return sum(m.amount for m in game.roll_modifiers(roll, frozenset(tags)).applied)
+
+
+# --- Every Skill's roll modifiers ----------------------------------------------------------
+
+
+ROLL_MODIFIERS = [
+    # Skill, the roll it changes, its tags, Basic, Expert
+    ("skill.agile", RollType.DEFENSE, (), 1, 2),
+    ("skill.agile", RollType.SAVE, (Tag.CLIMB,), 1, 2),
+    ("skill.agile", RollType.SAVE, (Tag.JUMP,), 1, 2),
+    ("skill.agile", RollType.SAVE, (Tag.AVOID_DANGER,), 1, 2),
+    ("skill.bow", RollType.ATTACK, (Tag.BOW,), 1, 2),
+    ("skill.charisma", RollType.CHARISMA, (), 1, 2),
+    ("skill.dodge", RollType.DEFENSE, (), 1, 2),
+    ("skill.fighter", RollType.ATTACK, (Tag.HAND_TO_HAND,), 1, 2),
+    ("skill.good_shot", RollType.ATTACK, (Tag.RANGED,), 1, 2),
+    ("skill.good_shot", RollType.ATTACK, (Tag.BOW,), 1, 2),
+    ("skill.investigator", RollType.SEARCH, (), 1, 2),
+    ("skill.martial_arts", RollType.ATTACK, (Tag.UNARMED,), 1, 2),
+    ("skill.occultist", RollType.MAGIC, (), 1, 2),
+    ("skill.resilient", RollType.SAVE, (Tag.POISON,), 1, 2),
+    ("skill.resilient", RollType.SAVE, (Tag.INFECTION,), 1, 2),
+    ("skill.resilient", RollType.SAVE, (Tag.DISEASE,), 1, 2),
+    ("skill.slippery", RollType.ESCAPE, (), 1, 2),
+    ("skill.stealth", RollType.STEALTH, (), 1, 2),
+    ("skill.strong", RollType.STRENGTH, (), 1, 2),
+    ("skill.vampire_hunter", RollType.ATTACK, (Tag.VAMPIRE,), 1, 2),
+    ("skill.will", RollType.WILL, (), 1, 2),
+    ("skill.will", RollType.SAVE, (Tag.FEAR,), 1, 2),
+    ("skill.will", RollType.SAVE, (Tag.MAGIC,), 1, 2),
+    ("skill.will", RollType.SAVE, (Tag.HYPNOTISM,), 1, 2),  # at Expert too (ruling)
+    ("skill.will", RollType.SAVE, (Tag.PSIONICS,), 1, 2),
+    ("skill.zombie_hunter", RollType.ATTACK, (Tag.ZOMBIE,), 1, 2),
+]
+
+
+@pytest.mark.parametrize(("skill", "roll", "tags", "basic", "expert"), ROLL_MODIFIERS)
+def test_a_skill_modifies_its_rolls_at_basic_and_expert(content, skill, roll, tags, basic, expert):
+    # given a character with the Skill; when a matching roll is made; then its bonus applies
+    assert total(character(content, skill), roll, *tags) == basic
+    assert total(character(content, skill, expert=[skill]), roll, *tags) == expert
+
+
+@pytest.mark.parametrize(("skill", "roll", "tags", "basic", "expert"), ROLL_MODIFIERS)
+def test_a_skill_names_itself_as_the_source(content, skill, roll, tags, basic, expert):
+    applied = character(content, skill).roll_modifiers(roll, frozenset(tags)).applied
+    assert applied == (Modifier(skill, basic),)
+
+
+@pytest.mark.parametrize(
+    ("skill", "roll", "tags"),
+    [
+        ("skill.fighter", RollType.ATTACK, (Tag.RANGED,)),
+        ("skill.fighter", RollType.ATTACK, (Tag.UNARMED,)),  # "No bonus on unarmed attacks"
+        ("skill.fighter", RollType.DEFENSE, ()),
+        ("skill.good_shot", RollType.ATTACK, (Tag.HAND_TO_HAND,)),
+        ("skill.bow", RollType.ATTACK, (Tag.RANGED,)),  # a gun is no bow
+        ("skill.resilient", RollType.SAVE, (Tag.FEAR,)),
+        ("skill.resilient", RollType.SAVE, ()),
+        ("skill.agile", RollType.SAVE, (Tag.POISON,)),
+        ("skill.will", RollType.SAVE, (Tag.POISON,)),
+        ("skill.will", RollType.MAGIC, ()),  # casting is Occultist's, not a save vs magic
+        ("skill.vampire_hunter", RollType.ATTACK, (Tag.ZOMBIE,)),
+        ("skill.charisma", RollType.STEALTH, ()),
+    ],
+)
+def test_a_skill_leaves_other_rolls_alone(content, skill, roll, tags):
+    assert total(character(content, skill), roll, *tags) == 0
+
+
+def test_a_character_without_skills_has_no_modifier(content):
+    game = character(content)
+    assert game.roll_modifiers(RollType.DEFENSE, frozenset()) == ((), ())
+
+
+# --- Stacking --------------------------------------------------------------------------------
+
+
+def test_modifiers_of_different_skills_stack(content):
+    # Good Shot and Bow both count on a bow Attack (rulings: modifiers stack)
+    game = character(content, "skill.good_shot", "skill.bow")
+    assert total(game, RollType.ATTACK, Tag.BOW) == 2
+
+
+def test_several_tags_can_match_one_roll(content):
+    # a hand-to-hand Attack against a vampire: Fighter and Vampire Hunter
+    game = character(content, "skill.fighter", "skill.vampire_hunter", expert=["skill.fighter"])
+    assert total(game, RollType.ATTACK, Tag.HAND_TO_HAND, Tag.VAMPIRE) == 3
+
+
+def test_agile_and_dodge_do_not_stack_the_higher_applies(content):
+    # given Agile at Basic and Dodge at Expert ("Use one or the other", ruling: the higher)
+    game = character(content, "skill.agile", "skill.dodge", expert=["skill.dodge"])
+    # when a Defense roll collects its modifiers
+    modifiers = game.roll_modifiers(RollType.DEFENSE, frozenset())
+    # then Dodge's +2 applies and Agile's +1 is set aside, for the player to see
+    assert modifiers.applied == (Modifier("skill.dodge", 2),)
+    assert modifiers.set_aside == (Modifier("skill.agile", 1),)
+
+
+def test_agile_and_dodge_at_the_same_level_give_one_bonus(content):
+    game = character(content, "skill.agile", "skill.dodge")
+    modifiers = game.roll_modifiers(RollType.DEFENSE, frozenset())
+    assert [m.amount for m in modifiers.applied] == [1]
+    assert len(modifiers.set_aside) == 1
+
+
+def test_agile_still_counts_on_saves_with_dodge(content):
+    # the group is only the Defense bonus
+    game = character(content, "skill.agile", "skill.dodge")
+    assert total(game, RollType.SAVE, Tag.CLIMB) == 1
 
 
 # --- Every Skill's parameters ------------------------------------------------------------
@@ -112,3 +230,66 @@ def test_healing_stops_at_the_raised_max(content):
     game = character(content, "skill.tough")
     game.lose(Stat.LIFE, 5)
     assert game.gain(Stat.LIFE, 9) == 12
+
+
+# --- Rolls collect their modifiers -------------------------------------------------------
+
+
+def test_a_roll_vs_l_adds_the_skills_and_the_texts_modifier(content):
+    # given Resilient; when a save vs poison is rolled at -1 from a note
+    game = character(content, "skill.resilient", faces=[4])
+    rolled = game.roll_vs(5, RollType.SAVE, frozenset({Tag.POISON}), modifier=-1)
+    # then the total is 4 + 1 - 1, and each modifier says where it comes from
+    assert rolled.modifiers == (Modifier("skill.resilient", 1), Modifier(None, -1))
+    assert (rolled.face, rolled.modifier, rolled.total, rolled.success) == (4, 0, 4, False)
+
+
+def test_a_roll_vs_l_keeps_its_type_tags_and_what_was_set_aside(content):
+    game = character(content, "skill.agile", "skill.dodge", faces=[3])
+    rolled = game.roll_vs(4, RollType.DEFENSE)
+    assert (rolled.roll, rolled.tags) == (RollType.DEFENSE, frozenset())
+    assert rolled.set_aside == (Modifier("skill.dodge", 1),)
+    assert rolled.success
+
+
+def test_a_bow_attack_carries_the_ranged_tag(content):
+    rolled = character(content, faces=[3]).roll_vs(3, RollType.ATTACK, frozenset({Tag.BOW}))
+    assert rolled.tags == {Tag.BOW, Tag.RANGED}
+
+
+def test_a_natural_1_fails_whatever_the_skills(content):
+    game = character(content, "skill.charisma", expert=["skill.charisma"], faces=[1])
+    rolled = game.roll_vs(2, RollType.CHARISMA)
+    assert (rolled.total, rolled.success) == (3, False)
+
+
+def test_investigator_adds_to_the_search_roll(content):
+    game = character(content, "skill.investigator", faces=[4])
+    game.choose_home(Position(0, 0))
+    searched = game.search()
+    assert searched.modifiers == (Modifier("skill.investigator", 1),)
+    assert searched.rolled.results == (5,)
+
+
+def test_a_search_roll_of_1_stays_1_with_investigator(content):
+    game = character(content, "skill.investigator", expert=["skill.investigator"], faces=[1])
+    game.choose_home(Position(0, 0))
+    assert game.search(modifier=1).rolled.results == (1,)
+
+
+# --- What waits for later tasks ---------------------------------------------------------
+
+
+@pytest.mark.skip(reason="E12: Dodge, a natural 1 on Defense gives -1 to the next Attack")
+def test_dodge_loses_balance_on_a_natural_1():
+    pass
+
+
+@pytest.mark.skip(reason="E18: Faith turns vampires like Exorcism, at +1 at Expert")
+def test_faith_turns_vampires_with_a_holy_symbol():
+    pass
+
+
+@pytest.mark.skip(reason="E11: Medic heals up to 3 (Expert 4) Life from a first aid kit")
+def test_medic_heals_after_an_encounter():
+    pass

@@ -14,9 +14,9 @@ from typing import NamedTuple
 
 from ..content import CatalogueEvent, CatalogueTable, Content
 from ..dice import Dice, DiceCode
-from ..effect_targets import Parameter
+from ..effect_targets import Parameter, RollType, Tag, with_implied
 from . import effects
-from .effects import Held
+from .effects import Held, Modifier, RollModifiers
 from .state import (
     Box,
     Campaign,
@@ -102,23 +102,36 @@ class Rolled:
 
 @dataclass(frozen=True)
 class RolledVsL:
-    """A roll vs L: the die, the modifier, the total and whether it made the L. A natural 1
-    always fails and a natural 6 always succeeds."""
+    """A roll vs L: its type and tags, the die, the modifiers applied (each with its source)
+    and the ones set aside, the total and whether it made the L. A natural 1 always fails and
+    a natural 6 always succeeds."""
 
     level: int
-    modifier: int
+    roll: RollType
+    tags: frozenset[Tag]
     face: int
+    modifiers: tuple[Modifier, ...]
+    set_aside: tuple[Modifier, ...]
     total: int
     success: bool
+
+    @property
+    def modifier(self) -> int:
+        return sum(m.amount for m in self.modifiers)
 
 
 @dataclass(frozen=True)
 class Searched:
-    """A Search roll: the die, the modifier and the Search table rolled with their result."""
+    """A Search roll: the die, the modifiers (Investigator, the text's) and the Search table
+    rolled with their result."""
 
     face: int
-    modifier: int
+    modifiers: tuple[Modifier, ...]
     rolled: Rolled
+
+    @property
+    def modifier(self) -> int:
+        return sum(m.amount for m in self.modifiers)
 
 
 class Purchase(NamedTuple):
@@ -240,6 +253,14 @@ class Game:
         value = base + effects.parameter_change(self.effects(), parameter)
         return max(value, PARAMETER_FLOORS.get(parameter, value))
 
+    def roll_modifiers(self, roll: RollType, tags: frozenset[Tag] = frozenset()) -> RollModifiers:
+        """The modifiers a roll of this type and tags collects from the effects held."""
+        return effects.roll_modifiers(self.effects(), roll, with_implied(tags))
+
+    def depending_on_tags(self, roll: RollType) -> tuple[Held, ...]:
+        """The effects held on this roll type that apply only to some tags."""
+        return effects.depending_on_tags(self.effects(), roll)
+
     def gain(self, stat: Stat, amount: int) -> int:
         """Add to one of the character's numbers, never above its max; returns the new
         value."""
@@ -262,18 +283,29 @@ class Game:
 
     # --- Rolls -----------------------------------------------------------------------------
 
-    def roll_vs(self, level: int, modifier: int = 0) -> RolledVsL:
-        """Roll d6 + modifier vs L: made on L or more; a natural 1 always fails and a natural 6
-        always succeeds (design/rulings.md, Combat). The modifier is the text's until the
-        Skills and items give theirs (E7)."""
+    def roll_vs(
+        self,
+        level: int,
+        roll: RollType,
+        tags: frozenset[Tag] = frozenset(),
+        modifier: int = 0,
+    ) -> RolledVsL:
+        """Roll d6 vs L with the modifiers of the effects held that match the roll's type and
+        tags, plus the text's `modifier`: made on L or more; a natural 1 always fails and a
+        natural 6 always succeeds (design/rulings.md, Combat)."""
+        tags = with_implied(tags)
+        collected = self.roll_modifiers(roll, tags)
+        modifiers = collected.applied + ((Modifier(None, modifier),) if modifier else ())
         face = D6.roll(self.dice).total
-        total = face + modifier
+        total = face + sum(m.amount for m in modifiers)
         success = face != 1 and (face == 6 or total >= level)
-        rolled = RolledVsL(level, modifier, face, total, success)
+        rolled = RolledVsL(level, roll, tags, face, modifiers, collected.set_aside, total, success)
         log.info(
-            "roll vs L%d at %+d: %d, total %d, %s",
+            "%s vs L%d%s at %+d: %d, total %d, %s",
+            roll,
             level,
-            modifier,
+            f" ({', '.join(sorted(tags))})" if tags else "",
+            rolled.modifier,
             face,
             total,
             "success" if success else "failure",
@@ -465,11 +497,15 @@ class Game:
         return not box.searched and Mark.SAFE_HOUSE not in box.marks
 
     def search(self, modifier: int = 0) -> Searched:
-        """Search the box: d6 + modifier on the Search table, a natural 1 stays 1, the result
-        kept on the table. The box is Searched and the entry recorded."""
+        """Search the box: d6 plus the Search modifiers held (Investigator) and the text's
+        `modifier` on the Search table, a natural 1 stays 1, the result kept on the table. The
+        box is Searched and the entry recorded."""
         if not self.may_search():
             raise GameError(f"box {tuple(self._position())} cannot be Searched")
         table = self.content.table(SEARCH_TABLE)
+        modifiers = self.roll_modifiers(RollType.SEARCH).applied
+        modifiers += (Modifier(None, modifier),) if modifier else ()
+        modifier = sum(m.amount for m in modifiers)
         face = D6.roll(self.dice).total
         results = DiceCode.parse(table.dice).results()
         result = face if face == 1 else max(results[0], min(results[-1], face + modifier))
@@ -477,7 +513,7 @@ class Game:
         self.mark_searched(self._position())
         self._record_everywhere(Happened.PLAYED, entry.id)
         log.info("search at %+d: %d, result %d: %s", modifier, face, result, entry.id)
-        return Searched(face, modifier, Rolled(SEARCH_TABLE, (result,), entry.id))
+        return Searched(face, modifiers, Rolled(SEARCH_TABLE, (result,), entry.id))
 
     # --- Tables and events ------------------------------------------------------------
 
