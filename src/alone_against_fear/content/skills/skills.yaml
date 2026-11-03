@@ -17,6 +17,8 @@ skills:
       If you take this Skill at character creation, you also automatically
       have a bow and d6+3 arrows in addition to other equipment.
     expert: +1 to Attack rolls with a bow.
+    starting_gear:
+      - {id: weapon.bow, count: d6+3}
   - id: skill.charisma
     name: Charisma
     xp: 3
@@ -52,6 +54,8 @@ skills:
       during the game, you must find a holy symbol BEFORE you can use this
       Skill.
     expert: Your attempt is at +1.
+    starting_gear:
+      - {id: item.religious_symbol}
   - id: skill.fighter
     name: Fighter
     xp: 6

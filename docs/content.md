@@ -40,7 +40,7 @@ classDiagram
     }
 ```
 
-- **YAML holds the text, Python the behaviour**, both keyed by the same ID ([D1](../Readme.md#deferred)). The YAML holds no rules logic.
+- **YAML holds the text, Python the behaviour**, both keyed by the same ID ([D1](../Readme.md#decisions)). The YAML holds no rules logic.
 - **The text is copied as printed.** OCR damage is fixed against the original PDFs in `origin_rules/`, and page references become table names ("Roll on the Clinic table (p. 46)" becomes "Roll on the Clinic table"), and words that point at the page layout are dropped ("the Mission table below"). Nothing else changes. The Markdown in `gameRules/` is fixed in the same batch, so both copies say the same thing.
 - **Obvious typos are fixed; other book errors stay as printed** (decided in R3). A misspelt word is fixed ("Scythe/showel" becomes "Scythe/shovel", "visit a stick" becomes "visit a park" as the weapon rules say). A missing word, odd grammar or anything whose meaning is unsure stays as printed ("1 dose be sacrificed") and goes to the list of [book errors kept as printed](../gameRules/book_errors.md), for a review session once the batches are done.
 - **Every correction is shown to the user**: each batch reports every change to the printed text (OCR fixes, spacing and quotes included, page references, typos), with the printed words and the fix, so a misreading is caught before the batch is accepted.
@@ -69,7 +69,7 @@ src/alone_against_fear/content/
 
 ## IDs
 
-Lowercase words joined by `_`, segments joined by `.`. **The first segment is the kind**: `table`, `mission`, `event`, `weapon`, `skill`, `arcane_skill`, `injury`, `mental_scar` so far; `creature`, `item`… are added by the batch that first needs them.
+Lowercase words joined by `_`, segments joined by `.`. **The first segment is the kind**: `table`, `mission`, `event`, `weapon`, `item`, `skill`, `arcane_skill`, `injury`, `mental_scar` so far; `creature`, `item`… are added by the batch that first needs them.
 
 | What | ID | Rule |
 | --- | --- | --- |
@@ -81,11 +81,12 @@ Lowercase words joined by `_`, segments joined by `.`. **The first segment is th
 | A Skill | `skill.agile` | `skill`, then its name without the XP cost, the same way as a table (`skill.strong_grip_on_reality`) |
 | An Arcane Skill | `arcane_skill.curse` | `arcane_skill`, then its name, the same way |
 | An Injury, a Mental Scar | `injury.limping`, `mental_scar.paranoia` | named entries of the Injury and Insanity tables: the kind, then the result's printed name |
+| An item | `item.backpack` | `item`, then its printed name without the count, the same way as a table |
 | A weapon | `weapon.axe` | `weapon`, then its heading in the weapon summary, the same way as a table: `/` becomes `_or_` (`weapon.hockey_stick_or_golf_club`), words in brackets are kept (`weapon.samurai_sword_authentic`) |
 
 - **IDs are stable.** The game state refers to content by ID only, so an ID is never renamed once used.
 - **Rolls in IDs keep the book's numbers.** The book's "1,2)" is written `1-2`.
-- **Named entries**: a mission is something the game keeps track of ("the mission you played last time"), so it gets a readable ID instead of `table.mission.3`. So do the results of the Injury and Insanity tables (decided in R2): the character keeps them for life and rerolls one they already have. An Insanity result is a Mental Scar, as the rules call it. Creatures and items decide their IDs in their own batch (R2 to R7), with the same idea.
+- **Named entries**: a mission is something the game keeps track of ("the mission you played last time"), so it gets a readable ID instead of `table.mission.3`. So do the results of the Injury and Insanity tables (decided in R2): the character keeps them for life and rerolls one they already have. An Insanity result is a Mental Scar, as the rules call it. Items got theirs in E6 ([items](#items)); creatures decide theirs in their own batch, with the same idea.
 - **Numbered events** keep the book's number (`event.12`): the rules call them by it ("play event #12"). Fixed in E5a, which catalogues them so book mode can record them as played.
 
 ## A table
@@ -120,10 +121,14 @@ entries:
 | `refs` | entry | the tables and events the entry tells you to roll on or play |
 | `notes` | entry | the table's notes that apply to this entry |
 | `table` | entry | a nested table, for "roll d6, then another d6" |
+| `item` | entry | the item the entry gives (`item.backpack`); two entries may give the same one |
+| `count` | entry | how many objects it gives: a dice code (`2d6`) or a number; or one per thing, `{weapon.bow: 2d6+3}`, when the entry gives a choice |
+| `uses` | entry | how many times the single item it gives can be used: a dice code or a number |
 
 - **Entries cover the dice range exactly**: every result has one entry, no gaps, no overlaps. Nested tables too.
 - **A nested table** is used only where the book prints one (Random Encounter). An entry that says "Roll d6. On a 1-5 … On a 6 …" stays one entry with its text, as printed (Town Exploration 7).
 - **`text` and `notes` differ in who reads them.** The engine applies a table's own rules (it rolls Town Exploration in new boxes, it adds the Investigator bonus), so book mode does not need to show them on every roll. How they are shown is the interface's choice: the terminal shows them the first time the table is rolled in a game, and again on request (decided in E5a). A note is a rule about some results, which the player must apply by hand until the engine does: book mode shows it with every entry that points to it. The Random Encounter's sentence on Unique creatures is printed under 6 / 4-6 but applies to Unique Vampires on 3 / 6 and 6 / 1-3 too, so it is a note pointed to by all three.
+- **Plain data is a field next to the text, added when the engine reads it** ([D1](../Readme.md#decisions), decided in E6): the text stays as printed, so the number is written twice ("d6 Garlic heads" and `count: d6`). Field shapes may change freely while no saved game depends on them.
 - **`refs` name the tables and events an entry sends you to**, not how: roll the one named, choose one, roll to pick, only if a condition holds. That is behaviour, in Python by entry ID: `engine/leads.py` for the arrival tables (E5a), the result scripts of E10 later. Book mode offers the references of a copied entry whose behaviour is not written yet.
 
 ## A list of weapons
@@ -145,10 +150,33 @@ weapons:
 | `name`, `source` | list | the heading and the readable Markdown copy |
 | `id`, `name`, `text` | weapon | the weapon's ID, its heading as printed, its rules as printed |
 
-- **An item is its table entry, for now** (decided in the E5b session). The Random Objects and Useful Stuff entries are copied as printed, duplicates included (the Backpack is in both). Items get no ID of their own until a rule needs one (E6, E9).
 - **A weapon has its own ID**, so the tables that give one point to it: Random Weapon 2, "Chainsaw or authentic samurai sword (choose)", has `refs: [weapon.chainsaw, weapon.samurai_sword_authentic]`, and the player picks one.
-- **A heading that names two weapons keeps one ID, as printed** ("Baseball bat or hammer"). Likely to become two IDs sharing the same text when a rule needs to tell them apart; see E6 in the Readme.
-- **Stats stay in the text** ("Damage 2") until D1 is decided (E6).
+- **A heading that names two weapons lists them as variants** (decided in E6): "Baseball bat or hammer" keeps its ID and text, and `weapon.baseball_bat` and `weapon.hammer` are weapons of their own with that text, so the character holds the exact one. A variant may add a sentence of its own (`extra`: the hammer drives stakes, the bat does not). Tables point to the variant they give; a heading with variants is never held.
+- **One text per weapon, the summary's, completed from the tables** (the user, in E6): where a table entry says more about a weapon than the summary (the flashlight is a source of light), the summary takes it in. The table entries stay as printed. Each addition is in the [book errors](../gameRules/book_errors.md) ("Fixed or reworded").
+- **Stats stay in the text** ("Damage 2") until the engine reads them (D1).
+
+```yaml
+  - id: weapon.baseball_bat_or_hammer
+    name: Baseball bat or hammer
+    text: >-
+      +1 to hit zombies and flaming skeletons. Damage 1.
+    variants:
+      - {id: weapon.baseball_bat, name: Baseball bat}
+      - id: weapon.hammer
+        name: Hammer
+        extra: >-
+          Used to nail down doors and windows and to drive stakes through
+          the hearts of vampires.
+```
+
+## Items
+
+The Random Objects and Useful Stuff entries give the character something (decided in E6):
+
+- **An item**: `item: item.rope`. The ID is the printed name without its count, the same way as a table (`item.garlic_heads` for "d6 Garlic heads", `item.flower_bunch_or_present`, `item.exorcism_ritual_book`); a long name is shortened to the thing (`item.leather_jacket`). Two tables may give the same item (`item.backpack`, `item.candles`): one item, one text, so their entries say the same words, each keeping its own count (reworded with the user, in the book errors).
+- **A weapon**: its `refs`, as above.
+- **Neither**: Random Objects 33 (d6 Food points: Food, a number on the sheet) and 45 and 61 (a random book: book mode until the books, E18). Python handles them by entry ID.
+- **Three numbers, three meanings**: `count` is how many objects (d6 garlic heads, ammo, candles); `uses` is how many times one object serves (a First Aid Kit's d6+2 points, Salt's 6 doses, Strong coffee's 6 drinks); durability (Body armor's 4 Life points, the Helmet's 3) stays in the text until E13 (harm).
 
 ## A list of Skills
 
@@ -190,8 +218,9 @@ arcane_skills:
 | `text` | Skill | the rules as printed, without the Expert line: the Basic level and any note about both levels |
 | `expert` | Skill | the Expert line, without its "Expert:" label; absent when the Skill has no Expert level |
 | `components`, `sacrifice` | Arcane Skill | the labelled lines as printed, without their label; absent when not printed |
+| `starting_gear` | Skill | what the Skill gives when taken at creation, as its text says: a list of `{id, count, uses}` (Bow: a bow and d6+3 arrows; Faith: the Religious symbol, see the [rulings](../design/rulings.md)); decided in E6 |
 
-- **The XP cost is a number** (the user, in R2): the engine will need it when Skills are bought with XP. The rest of D1 stays open (E6).
+- **The XP cost is a number** (the user, in R2): the engine will need it when Skills are bought with XP. The rest of D1 was decided in E6.
 - **The Expert line is apart**, so a screen can show the level the character has, and a Skill with no `expert` has no Expert level. A note printed after the Expert line (Agile, Dodge) goes at the end of `text`: same words, the order changed.
 - **The books an Arcane Skill is learned from stay in the text**; references to them wait for the books (E18).
 
@@ -216,4 +245,4 @@ Tests over the whole content:
 
 ## Open
 
-- **Where plain data goes** (creature stats, item weights): next to the text in the YAML, or in Python next to the behaviour. Decided in E6 ([D1](../Readme.md#deferred)). Skill XP costs are already numbers in the YAML (R2).
+- Nothing for now. D1 is decided (E6): plain data is a YAML field next to the text, added when the engine reads it.

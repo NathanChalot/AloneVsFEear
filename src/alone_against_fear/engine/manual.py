@@ -32,7 +32,7 @@ from .state import Mark, Stat
 
 class Manual(StrEnum):
     GAIN = "gain"
-    """Gain Life, Sanity, Food, XP or Clues. No max until E6."""
+    """Gain Life, Sanity, Food, XP or Clues; Life and Sanity stop at their max."""
     LOSE = "lose"
     """Lose one of them, down to 0: only what the character has can be lost."""
     ROLL = "roll"
@@ -83,7 +83,9 @@ def apply(game: Game, interface: Interface, action: Manual) -> None:
         case Manual.GAIN:
             stat = ask(interface, Choose(Topic.STAT, tuple(Stat)))
             amount = ask(interface, Number(Topic.AMOUNT, minimum=1))
-            interface.tell(Changed(stat, amount, game.gain(stat, amount)))
+            before = _value(game, stat)
+            value = game.gain(stat, amount)
+            interface.tell(Changed(stat, value - before, value))
         case Manual.LOSE:
             stat = ask(interface, Choose(Topic.STAT, _losable(game)))
             amount = min(ask(interface, Number(Topic.AMOUNT, minimum=1)), _value(game, stat))

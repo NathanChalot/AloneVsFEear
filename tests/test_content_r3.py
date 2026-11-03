@@ -115,7 +115,7 @@ def test_the_molotov_text_is_repaired_from_the_ocr():
 @pytest.mark.parametrize(
     ("result", "text", "refs"),
     [
-        (1, "Baseball bat or hammer.", ["weapon.baseball_bat_or_hammer"]),
+        (1, "Baseball bat or hammer.", ["weapon.baseball_bat", "weapon.hammer"]),
         (
             2,
             "Chainsaw or authentic samurai sword (choose)",
@@ -140,10 +140,6 @@ def test_random_objects_spot_checks():
     assert OBJECTS.entry_for(11).text.startswith("Rope. May be used to climb down")
     assert list(OBJECTS.entry_for(14).refs) == ["weapon.axe"]
     assert OBJECTS.entry_for(14).text == "Axe. See weapon summary table for rules."
-    assert (
-        OBJECTS.entry_for(26).text
-        == "Backpack. Increases by 5 your limit of carried items and Food points."
-    )
     assert list(OBJECTS.entry_for(54).refs) == [
         "weapon.samurai_sword_authentic",
         "weapon.samurai_sword_cheap_replica",
@@ -162,9 +158,19 @@ def test_random_objects_book_entries_point_to_the_random_book_table():
     assert list(entry.refs) == ["table.random_book"]
 
 
-def test_the_backpack_is_in_both_tables_as_printed():
-    assert "Increases by 5" in OBJECTS.entry_for(26).text
-    assert STUFF.entry_for(14).text == "Backpack. You may carry 15 objects instead of 10."
+def test_the_backpack_is_in_both_tables_reworded_alike():
+    # reworded with the user in E6: one text for an item found in two tables
+    text = "Backpack. You may carry 15 items instead of 10, and 15 Food points instead of 10."
+    assert OBJECTS.entry_for(26).text == STUFF.entry_for(14).text == text
+    assert OBJECTS.entry_for(26).item == STUFF.entry_for(14).item == "item.backpack"
+
+
+def test_the_candles_are_in_both_tables_reworded_alike():
+    # reworded with the user in E6; each table keeps its own count
+    text = "candles. Used for many spells and rituals. You need a lighter or other source of"
+    assert OBJECTS.entry_for(44).text == f"d6+3 {text} fire to light them."
+    assert STUFF.entry_for(41).text == f"2d6 {text} fire to light them."
+    assert (OBJECTS.entry_for(44).count, STUFF.entry_for(41).count) == ("d6+3", "2d6")
 
 
 def test_useful_stuff_rows_split_across_lines_are_whole():
@@ -178,11 +184,101 @@ def test_useful_stuff_rows_split_across_lines_are_whole():
 
 def test_useful_stuff_entries_that_give_a_weapon_point_to_it():
     assert list(STUFF.entry_for(22).refs) == ["weapon.antique_flail_weapon"]
-    assert list(STUFF.entry_for(53).refs) == ["weapon.kitchen_knife_or_ritual_dagger"]
-    assert list(STUFF.entry_for(63).refs) == ["weapon.hockey_stick_or_golf_club"]
+    assert list(STUFF.entry_for(53).refs) == ["weapon.kitchen_knife"]
+    assert list(STUFF.entry_for(63).refs) == ["weapon.hockey_stick", "weapon.golf_club"]
     assert list(STUFF.entry_for(64).refs) == ["weapon.molotov_cocktail"]
 
 
 def test_the_flail_in_useful_stuff_adds_its_expert_rule():
     assert "become a Flail (Expert)" in STUFF.entry_for(22).text
-    assert "Expert" not in CONTENT.weapon("weapon.antique_flail_weapon").text
+
+
+@pytest.mark.parametrize(
+    ("weapon_id", "added"),
+    [
+        ("weapon.antique_flail_weapon", "become a Flail (Expert)"),
+        ("weapon.flashlight", "This is a source of light."),
+        ("weapon.kitchen_knife", "Damage 1."),
+        ("weapon.molotov_cocktail", "can destroy vampires permanently"),
+        ("weapon.hammer", "drive stakes through the hearts of vampires."),
+        ("weapon.shovel", "Useful to dig graves."),
+    ],
+)
+def test_the_summary_is_completed_with_what_the_entries_add(weapon_id, added):
+    # E6, with the user: one text per weapon, the summary's, completed from the entries
+    assert added in CONTENT.weapon(weapon_id).text
+
+
+# --- E6: what an entry gives -------------------------------------------------
+# Creation holds what an entry gives: an item (`item`), a weapon (`refs`), or something the
+# engine handles by entry ID (Food, a book). Weapons held are never a heading of two.
+
+NOT_AN_ITEM = {
+    "table.random_objects.33": "d6 Food points",
+    "table.random_objects.45": "a random book",
+    "table.random_objects.61": "a random book",
+}
+
+
+@pytest.mark.parametrize("entry", [*OBJECTS.entries, *STUFF.entries], ids=lambda e: e.id)
+def test_every_item_entry_gives_an_item_or_a_weapon(entry):
+    weapons = [ref for ref in entry.refs if ref.startswith("weapon.")]
+    if entry.id in NOT_AN_ITEM:
+        assert entry.item is None and not weapons
+    else:
+        assert (entry.item is None) != (not weapons), entry.id
+
+
+@pytest.mark.parametrize("entry", [*WEAPON.entries, *OBJECTS.entries, *STUFF.entries])
+def test_a_weapon_given_is_one_that_can_be_held(entry):
+    for ref in entry.refs:
+        if ref.startswith("weapon."):
+            assert CONTENT.weapon(ref).variants == (), (entry.id, ref)
+
+
+def test_the_headings_that_name_two_weapons_have_variants():
+    variants = {
+        heading.id: [CONTENT.weapon(v).name for v in heading.variants]
+        for heading in CONTENT.weapons.values()
+        if heading.variants
+    }
+    assert variants == {
+        "weapon.baseball_bat_or_hammer": ["Baseball bat", "Hammer"],
+        "weapon.hockey_stick_or_golf_club": ["Hockey stick", "Golf club"],
+        "weapon.kitchen_knife_or_ritual_dagger": ["Kitchen knife", "Ritual dagger"],
+        "weapon.knife_or_stick": ["Knife", "Stick"],
+        "weapon.scythe_or_shovel": ["Scythe", "Shovel"],
+    }
+    assert (
+        CONTENT.weapon("weapon.baseball_bat").text
+        == CONTENT.weapon("weapon.baseball_bat_or_hammer").text
+    )
+
+
+@pytest.mark.parametrize(
+    ("entry_id", "thing", "count"),
+    [
+        ("table.random_weapon.3", "weapon.bow", "2d6+3"),
+        ("table.random_weapon.3", "weapon.grenade", 1),
+        ("table.random_weapon.5", "weapon.pistol", "2d6"),
+        ("table.random_objects.13", "item.first_aid_kit", None),
+        ("table.random_objects.33", "", "d6"),
+        ("table.useful_stuff.35", "item.liquor", "d3"),
+        ("table.useful_stuff.15", "item.body_armor", None),
+    ],
+)
+def test_counts_spot_checks(entry_id, thing, count):
+    assert CONTENT.entry(entry_id).count_of(thing) == count
+
+
+@pytest.mark.parametrize(
+    ("entry_id", "uses"),
+    [
+        ("table.random_objects.13", "d6+2"),  # First Aid Kit: first aid points
+        ("table.random_objects.16", 6),  # Salt (6 doses)
+        ("table.useful_stuff.36", 6),  # Strong coffee: enough for drinking 6 times
+        ("table.useful_stuff.15", None),  # Body armor: its Life points wait for E13
+    ],
+)
+def test_uses_spot_checks(entry_id, uses):
+    assert CONTENT.entry(entry_id).uses == uses

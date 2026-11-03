@@ -1,13 +1,14 @@
 """The game loop (E4): a mission played turn by turn (design/game-flow.md, Mission).
 
-The first game asks for Home. Then each turn: free actions, until the player moves to a
+A new campaign, or one whose character is gone, creates a character (E6). The first game asks
+for Home. Then each turn: free actions, until the player moves to a
 box (numbered, Food upkeep) and arrives, or quits. Arriving rolls Town Exploration in a new box
 and a 1 in 6 chance of a Random Encounter in a visited one; what is reached goes through book
 mode (E5a), whose actions follow the entry to other tables and events; the player applies what
 the engine cannot read with manual actions (E5b). Home is box 1 and rolls nothing. The free
 actions: move, Search while the box may be Searched, apply an effect (the manual actions about
-the character), attach a sheet once one is full, quit. With notes, the Search first asks the
-modifier they give.
+the character), spend XP while it can buy a Skill, attach a sheet once one is full, quit. With
+notes, the Search first asks the modifier they give.
 The loop ends at death (Life 0), insanity (Sanity 0) or when the player quits.
 """
 
@@ -15,11 +16,13 @@ from __future__ import annotations
 
 import logging
 
-from ..dice import Chance, DiceCode
-from . import book_mode, manual
+from ..dice import Chance
+from . import book_mode, creation, manual
 from .game import Arrival, Game
+from .manual import Manual
 from .protocol import (
     Action,
+    Bought,
     Choose,
     End,
     Ended,
@@ -33,10 +36,6 @@ from .protocol import (
 )
 from .state import Position
 from .town import boxes_of
-
-PLACEHOLDER_LIFE = 8
-PLACEHOLDER_SANITY = 8
-"""Until character creation (E6): the base Life and Sanity, d6 Food, no items."""
 
 FIRST_SHEET = Position(0, 0)
 TOWN_EXPLORATION = "table.town_exploration"
@@ -61,8 +60,7 @@ def play(game: Game, interface: Interface) -> End:
 
 def _turns(game: Game, interface: Interface) -> End:
     if game.campaign.character is None:
-        food = DiceCode.parse("d6").roll(game.dice).total
-        game.create_character(life=PLACEHOLDER_LIFE, sanity=PLACEHOLDER_SANITY, food=food)
+        creation.create(game, interface)
     if game.campaign.home is None:
         home = ask(interface, Choose(Topic.HOME, tuple(boxes_of(FIRST_SHEET))))
         number = game.choose_home(home)
@@ -77,6 +75,8 @@ def _turns(game: Game, interface: Interface) -> End:
                 _arrive(game, interface, game.move(to))
             case Action.APPLY:
                 manual.apply_effects(game, interface)
+            case Action.SPEND_XP:
+                _spend_xp(game, interface)
             case Action.SEARCH:
                 modifier = ask(interface, Number(Topic.MODIFIER)) if game.character.notes else 0
                 searched = game.search(modifier)
@@ -92,8 +92,18 @@ def _turns(game: Game, interface: Interface) -> End:
 def _actions(game: Game) -> tuple[Action, ...]:
     """The free actions: move first and quit last, so they keep their place."""
     search = (Action.SEARCH,) if game.may_search() else ()
+    spend = (Action.SPEND_XP,) if game.purchases() else ()
     sheet = (Action.SHEET,) if game.new_sheets() else ()
-    return (Action.MOVE, *search, Action.APPLY, *sheet, Action.QUIT)
+    return (Action.MOVE, *search, Action.APPLY, *spend, *sheet, Action.QUIT)
+
+
+def _spend_xp(game: Game, interface: Interface) -> None:
+    """Buy one Skill or raise one to Expert, or go back. XP may be spent at any moment
+    (`1_1_main_rules.md`, Experience); between moves is enough until a rule needs more."""
+    purchase = ask(interface, Choose(Topic.PURCHASE, (*game.purchases(), Manual.BACK)))
+    if purchase is not Manual.BACK:
+        game.buy(purchase)
+        interface.tell(Bought(purchase))
 
 
 def _arrive(game: Game, interface: Interface, arrival: Arrival) -> None:

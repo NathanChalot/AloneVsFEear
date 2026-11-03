@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Iterable
 from dataclasses import dataclass
+from typing import NamedTuple
 
 from ..content import CatalogueEvent, CatalogueTable, Content
 from ..dice import Dice, DiceCode
@@ -20,12 +21,14 @@ from .state import (
     End,
     Happened,
     History,
+    Item,
     Level,
     Mark,
     Mission,
     MoveKind,
     Note,
     Position,
+    SkillLevel,
     Stat,
     Upkeep,
 )
@@ -105,6 +108,14 @@ class Searched:
     rolled: Rolled
 
 
+class Purchase(NamedTuple):
+    """A Skill that XP can buy: at Basic, or an owned one at Expert (its cost again)."""
+
+    skill_id: str
+    level: SkillLevel
+    cost: int
+
+
 class Game:
     def __init__(self, dice: Dice, content: Content, campaign: Campaign | None = None) -> None:
         self.dice = dice
@@ -150,17 +161,55 @@ class Game:
         life: int,
         sanity: int,
         food: int,
-        items: Iterable[str] = (),
+        items: Iterable[Item] = (),
+        name: str = "",
+        skills: Iterable[str] = (),
     ) -> Character:
-        """A new character, who continues the campaign; the last one is forgotten."""
-        self.campaign.character = Character(life=life, sanity=sanity, food=food, items=[*items])
-        log.info("new character: Life %d, Sanity %d, Food %d", life, sanity, food)
+        """A new character, who continues the campaign; the last one is forgotten. Their
+        starting Life and Sanity are the base of the max; their Skills are at Basic, and none
+        is Arcane (creation, `1_1_main_rules.md`)."""
+        skills = list(skills)
+        for skill_id in skills:
+            if skill_id not in self.content.skills:
+                raise GameError(f"a character cannot start with {skill_id}")
+        self.campaign.character = Character(
+            life=life,
+            sanity=sanity,
+            food=food,
+            base_life=life,
+            base_sanity=sanity,
+            name=name,
+            skills=dict.fromkeys(skills, SkillLevel.BASIC),
+            items=[*items],
+        )
+        log.info(
+            "new character %r: Life %d, Sanity %d, Food %d, Skills %s",
+            name,
+            life,
+            sanity,
+            food,
+            ", ".join(skills) or "none",
+        )
         return self.campaign.character
 
+    def max(self, stat: Stat) -> int | None:
+        """The max of Life or Sanity: the base until the effects that raise it (E7). None
+        for the numbers with no max (the Food limit comes with E9)."""
+        match stat:
+            case Stat.LIFE:
+                return self.character.base_life
+            case Stat.SANITY:
+                return self.character.base_sanity
+        return None
+
     def gain(self, stat: Stat, amount: int) -> int:
-        """Add to one of the character's numbers; returns the new value."""
+        """Add to one of the character's numbers, never above its max; returns the new
+        value."""
         _check_amount(stat, amount)
-        return self._set(stat, getattr(self.character, stat) + amount, f"gains {amount}")
+        value = getattr(self.character, stat) + amount
+        if (top := self.max(stat)) is not None:
+            value = min(value, max(top, getattr(self.character, stat)))
+        return self._set(stat, value, f"gains {amount}")
 
     def lose(self, stat: Stat, amount: int) -> int:
         """Take from one of the character's numbers; returns the new value. Not clamped:
@@ -193,15 +242,47 @@ class Game:
         )
         return rolled
 
-    def add_item(self, name: str) -> None:
-        self.character.items.append(name)
-        log.info("character takes %s", name)
+    # --- Skills and XP ----------------------------------------------------------------------
 
-    def remove_item(self, name: str) -> None:
-        if name not in self.character.items:
-            raise GameError(f"the character has no {name}")
-        self.character.items.remove(name)
-        log.info("character drops %s", name)
+    def purchases(self) -> tuple[Purchase, ...]:
+        """What the character's XP can buy now, in the book's order: a Skill not owned at
+        Basic, or an owned one at Expert for its cost again (design/rulings.md). Arcane Skills
+        need their prerequisite and come with E18."""
+        offers = []
+        for skill in self.content.skills.values():
+            match self.character.skills.get(skill.id):
+                case None:
+                    offers.append(Purchase(skill.id, SkillLevel.BASIC, skill.xp))
+                case SkillLevel.BASIC if skill.expert is not None:
+                    offers.append(Purchase(skill.id, SkillLevel.EXPERT, skill.xp))
+        return tuple(offer for offer in offers if offer.cost <= self.character.xp)
+
+    def buy(self, purchase: Purchase) -> None:
+        """Spend XP on a Skill, at any moment (`1_1_main_rules.md`, Experience). Its effects
+        stay text until E7."""
+        if purchase not in self.purchases():
+            raise GameError(f"cannot buy {purchase}")
+        self.character.xp -= purchase.cost
+        self.character.skills[purchase.skill_id] = purchase.level
+        log.info(
+            "character buys %s at %s for %d XP, %d left",
+            purchase.skill_id,
+            purchase.level,
+            purchase.cost,
+            self.character.xp,
+        )
+
+    # --- Items ------------------------------------------------------------------------------
+
+    def add_item(self, item: Item) -> None:
+        self.character.items.append(item)
+        log.info("character takes %s", item)
+
+    def remove_item(self, item: Item) -> None:
+        if item not in self.character.items:
+            raise GameError(f"the character has no {item}")
+        self.character.items.remove(item)
+        log.info("character drops %s", item)
 
     def add_note(self, text: str) -> Note:
         """A note the player keeps, written at the current box number; the engine never

@@ -57,7 +57,8 @@ def test_ids_follow_the_scheme():
     segment = r"[a-z0-9]+(?:[_-][a-z0-9]+)*"
     pattern = re.compile(rf"{segment}(?:\.{segment})+")
     ids = list(CONTENT.tables) + list(CONTENT.catalogue) + [e.id for e in all_entries()]
-    ids += list(CONTENT.weapons) + [s.id for s in all_skills()]
+    ids += list(CONTENT.weapons) + list(CONTENT.variants) + list(CONTENT.items)
+    ids += [s.id for s in all_skills()]
     for id_ in ids:
         assert pattern.fullmatch(id_), id_
         assert id_.split(".")[0] in KINDS, id_

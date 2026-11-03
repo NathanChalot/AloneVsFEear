@@ -404,3 +404,216 @@ def test_injuries_and_mental_scars_are_kinds_of_their_own():
     from alone_against_fear.content import KINDS
 
     assert {"skill", "arcane_skill", "injury", "mental_scar"} <= KINDS
+
+
+# --- Weapon variants (E6) -------------------------------------------------------
+# A summary heading that names two weapons keeps its text once; each weapon it names is a
+# variant with its own ID and name, so the character holds the exact one.
+
+VARIANTS = """\
+name: Weapon summary table
+source: summary.md
+weapons:
+  - id: weapon.baseball_bat_or_hammer
+    name: Baseball bat or hammer
+    text: Damage 1.
+    variants:
+      - {id: weapon.baseball_bat, name: Baseball bat}
+      - {id: weapon.hammer, name: Hammer}
+"""
+
+
+def test_a_variant_is_a_weapon_with_the_headings_text(root):
+    write(root, "weapons/weapon_summary.yaml", VARIANTS)
+
+    content = load_content(root)
+
+    hammer = content.weapon("weapon.hammer")
+    assert (hammer.name, hammer.text, hammer.source) == ("Hammer", "Damage 1.", "summary.md")
+    assert hammer.heading == "weapon.baseball_bat_or_hammer"
+    heading = content.weapon("weapon.baseball_bat_or_hammer")
+    assert heading.variants == ("weapon.baseball_bat", "weapon.hammer")
+    assert list(content.weapons) == ["weapon.baseball_bat_or_hammer"]  # the summary as printed
+    assert "weapon.hammer" in content
+
+
+def test_a_reference_to_a_variant_is_valid(root):
+    write(root, "weapons/weapon_summary.yaml", VARIANTS)
+    write(root, "tables/test.yaml", d6_table("  - {roll: 1-6, text: x, refs: [weapon.hammer]}\n"))
+
+    assert reference_problems(load_content(root)) == []
+
+
+def test_a_variant_needs_the_weapon_kind(root):
+    write(root, "weapons/weapon_summary.yaml", VARIANTS.replace("weapon.hammer", "item.hammer"))
+
+    with pytest.raises(ContentError, match=r"item\.hammer: a weapon ID starts with weapon\."):
+        load_content(root)
+
+
+def test_a_variant_defined_twice_is_refused(root):
+    write(
+        root,
+        "weapons/weapon_summary.yaml",
+        VARIANTS + "  - {id: weapon.hammer, name: Hammer, text: x}\n",
+    )
+
+    with pytest.raises(ContentError, match="weapon.hammer is defined twice"):
+        load_content(root)
+
+
+def test_a_variant_with_an_unknown_key_is_refused(root):
+    write(
+        root,
+        "weapons/weapon_summary.yaml",
+        VARIANTS.replace("name: Hammer}", "name: Hammer, damage: 2}"),
+    )
+
+    with pytest.raises(ContentError, match=r"weapon\.hammer: unknown keys \['damage'\]"):
+        load_content(root)
+
+
+def test_a_variant_may_add_a_sentence_of_its_own(root):
+    # the hammer's uses, which the baseball bat does not share (E6, with the user)
+    write(
+        root,
+        "weapons/weapon_summary.yaml",
+        VARIANTS.replace("name: Hammer}", "name: Hammer, extra: Drives stakes.}"),
+    )
+
+    content = load_content(root)
+
+    assert content.weapon("weapon.hammer").text == "Damage 1. Drives stakes."
+    assert content.weapon("weapon.hammer").extra == "Drives stakes."
+    assert content.weapon("weapon.baseball_bat").text == "Damage 1."
+
+
+# --- Items and counts (E6) ------------------------------------------------------
+# An entry that gives a thing names it: `item` for an item (two tables may give the same
+# one), `refs` for a weapon. `count` is how many the entry gives: a dice code or a number,
+# or one per ID when the entry gives a choice of things.
+
+
+def test_two_entries_may_give_the_same_item(root):
+    content = load_one(
+        root,
+        d6_table(
+            "  - {roll: 1-3, text: Backpack., item: item.backpack}\n"
+            "  - {roll: 4-6, text: A backpack., item: item.backpack}\n"
+        ),
+    )
+
+    assert content.entry("table.test.1-3").item == "item.backpack"
+    assert content.items["item.backpack"] == ("table.test.1-3", "table.test.4-6")
+    assert "item.backpack" in content
+
+
+def test_an_item_needs_the_item_kind(root):
+    with pytest.raises(ContentError, match=r"an item ID starts with item\."):
+        load_one(root, d6_table("  - {roll: 1-6, text: x, item: weapon.backpack}\n"))
+
+
+def test_a_count_is_a_dice_code_or_a_number(root):
+    content = load_one(
+        root,
+        d6_table(
+            "  - {roll: 1-2, text: d6 garlic., item: item.garlic, count: d6}\n"
+            "  - {roll: 3-4, text: Salt (6 doses)., item: item.salt, count: 6}\n"
+            "  - {roll: 5-6, text: 2d6 candles., item: item.candles, count: 2D6}\n"
+        ),
+    )
+
+    assert content.entry("table.test.1-2").count_of("item.garlic") == "d6"
+    assert content.entry("table.test.3-4").count_of("item.salt") == 6
+    assert content.entry("table.test.5-6").count_of("item.candles") == "2d6"  # standard form
+
+
+def test_a_count_may_be_given_per_thing(root):
+    content = load_one(
+        root,
+        d6_table(
+            "  - roll: 1-6\n"
+            "    text: 1 Grenade or bow with 2d6+3 arrows (choose).\n"
+            "    refs: [weapon.grenade, weapon.bow]\n"
+            "    count: {weapon.bow: 2d6+3}\n"
+        ),
+    )
+
+    entry = content.entry("table.test.1-6")
+    assert entry.count_of("weapon.bow") == "2d6+3"
+    assert entry.count_of("weapon.grenade") is None
+
+
+def test_a_count_that_is_not_dice_is_refused(root):
+    with pytest.raises(ContentError, match="a few"):
+        load_one(root, d6_table("  - {roll: 1-6, text: x, item: item.x, count: a few}\n"))
+
+
+def test_a_count_for_a_thing_the_entry_does_not_give_is_refused(root):
+    with pytest.raises(ContentError, match=r"count for weapon\.axe"):
+        load_one(
+            root,
+            d6_table("  - {roll: 1-6, text: x, refs: [weapon.bow], count: {weapon.axe: d6}}\n"),
+        )
+
+
+def test_items_are_a_kind_of_their_own():
+    from alone_against_fear.content import KINDS
+
+    assert "item" in KINDS
+
+
+def test_uses_are_how_many_times_one_item_can_be_used(root):
+    # count: how many objects; uses: how many times a single object serves (E6, the user)
+    content = load_one(
+        root,
+        d6_table(
+            "  - {roll: 1-3, text: First Aid Kit., item: item.first_aid_kit, uses: d6+2}\n"
+            "  - {roll: 4-6, text: Strong coffee., item: item.strong_coffee, uses: 6}\n"
+        ),
+    )
+
+    kit = content.entry("table.test.1-3")
+    assert (kit.uses, kit.count_of("item.first_aid_kit")) == ("d6+2", None)
+    assert content.entry("table.test.4-6").uses == 6
+
+
+def test_uses_that_are_not_dice_are_refused(root):
+    with pytest.raises(ContentError, match="uses are a dice code or a number"):
+        load_one(root, d6_table("  - {roll: 1-6, text: x, item: item.x, uses: often}\n"))
+
+
+def test_uses_need_an_item(root):
+    with pytest.raises(ContentError, match="uses need an item"):
+        load_one(root, d6_table("  - {roll: 1-6, text: x, refs: [weapon.bow], uses: 3}\n"))
+
+
+def test_a_skill_may_give_starting_gear(root):
+    # Bow and Faith give gear when taken at creation (E6, the user)
+    write(
+        root,
+        "skills/skills.yaml",
+        SKILLS.replace(
+            "    text: Ignore the -1 to hit with a bow.\n",
+            "    text: Ignore the -1 to hit with a bow.\n"
+            "    starting_gear:\n      - {id: weapon.bow, count: d6+3}\n",
+        ),
+    )
+
+    gear = load_content(root).skill("skill.bow").starting_gear
+
+    assert [(g.id, g.count, g.uses) for g in gear] == [("weapon.bow", "d6+3", None)]
+
+
+def test_starting_gear_that_does_not_exist_is_reported(root):
+    write(
+        root,
+        "skills/skills.yaml",
+        SKILLS.replace(
+            "    text: Ignore the -1 to hit with a bow.\n",
+            "    text: Ignore the -1 to hit with a bow.\n"
+            "    starting_gear:\n      - {id: weapon.bow}\n",
+        ),
+    )
+
+    assert reference_problems(load_content(root)) == ["skill.bow: no such ID weapon.bow"]

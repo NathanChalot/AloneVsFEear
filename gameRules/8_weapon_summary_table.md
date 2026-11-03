@@ -4,6 +4,7 @@
 If you roll a 6, it inflicts Damage 2 instead of 1. 
 If you roll a 1 when attacking, however, you hit yourself for 1 Damage.
 You may spend 2 XP to train with the flail and remove the chance of hitting yourself.
+You may spend an additional 2 XP to become a Flail (Expert) and inflict 2 Damage on an Attack roll of 5 or 6.
 
 ### Axe
 Two-handed. 
@@ -13,6 +14,7 @@ If you are Strong (Expert),  you may use it one-handed.
 ### Baseball bat or hammer
 +1 to hit zombies and flaming skeletons. 
 Damage 1.
+Hammer: used to nail down doors and windows and to drive stakes through the hearts of vampires.
 
 ### Bow
 Requires two hands to use. 
@@ -40,7 +42,7 @@ Damage 1.
 Comes with 2d6 bolts.
 
 ### Flashlight
-It may be used as a ranged weapon to attack shadow creatures at +2, Damage 1. After each encounter with shadow creatures, there is a 1 in 6 chance of the batteries running out.
+This is a source of light. It may be used as a ranged weapon to attack shadow creatures at +2, Damage 1. After each encounter with shadow creatures, there is a 1 in 6 chance of the batteries running out.
 
 ### Grenade
 One use. 
@@ -53,6 +55,7 @@ Damage 1, but Damage 2 on a roll of 6.
 
 ### Kitchen knife/ritual dagger
 -1 to Attack. 
+Damage 1.
 If the Attack roll is a 1, it breaks. 
 You may pick up a kitchen knife every time you visit a house.
 
@@ -64,6 +67,7 @@ You may pick up a stick every time you visit a park.
 One use. 
 Allows you to automatically destroy 1 zombie or scarecrow or perform an Attack roll at +2 against any other opponent. 
 You need a lighter or matches to use this. 
+This is fire Damage, so it can destroy vampires permanently.
 No effect against flaming skeletons.
 
 ### Nunchaku
@@ -93,6 +97,7 @@ Two handed.
 -1 to Attack rolls because of its unwieldiness. 
 Damage 1. 
 If you roll a natural 6, you decapitate the target, regardless of how many Life points it has.
+Shovel: useful to dig graves.
 
 ### Shotgun
 +2 to Attack rolls. 

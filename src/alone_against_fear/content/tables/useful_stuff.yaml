@@ -7,13 +7,18 @@ entries:
     text: >-
       d6 jars of cat food (all jars count as 1 carried item). They may be used
       as 1 Food each or to avoid one encounter with a cat-like monster.
+    item: item.cat_food
+    count: d6
   - roll: 12
     text: >-
       Flower bunch/present. Use once to gain a +1 on a Charisma roll.
+    item: item.flower_bunch_or_present
   - roll: 13
     text: Small bell. Useful for some spells. Negligible weight.
+    item: item.small_bell
   - roll: 14
-    text: Backpack. You may carry 15 objects instead of 10.
+    text: Backpack. You may carry 15 items instead of 10, and 15 Food points instead of 10.
+    item: item.backpack
   - roll: 15
     text: >-
       Body armor. The body armor has 4 Life points. Every time you take
@@ -21,12 +26,15 @@ entries:
       take the Damage off the body armor. On a 6, the Damage bounces off the
       body armor and is ignored. When the body armor loses its last Life, it
       is rendered useless. Wearing body armor counts as carrying 2 objects.
+    item: item.body_armor
   - roll: 16
     text: Butterfly collection.
+    item: item.butterfly_collection
   - roll: 21
     text: >-
       Martial arts handbook. Reduce by 1 XP the cost for learning the Martial
       Arts Skill. No reduction on Martial Arts Skill (Expert).
+    item: item.martial_arts_handbook
   - roll: 22
     text: >-
       Antique flail weapon. If you roll a 6, it inflicts 2 Damage instead of
@@ -40,31 +48,38 @@ entries:
       Cheap holy symbol/beads. You may use it against creatures that are
       susceptible to holy symbols, but if you roll a 1 it breaks and must be
       discarded. Negligible weight.
+    item: item.cheap_holy_symbol_or_beads
   - roll: 24
     text: >-
       Toy. You may sacrifice it to gain a +1 on an Escape roll or Charisma
       roll with any encounter described as a “child” or “kid”.
+    item: item.toy
   - roll: 25
     text: Box of essential oils. Useful for some rituals.
+    item: item.box_of_essential_oils
   - roll: 26
     text: >-
       Book of Inspirational Quotes. If you spend 1 XP and read this, you gain
       +1 to your next 3 rolls to avoid Sanity loss. After you have used this
       bonus 3 times, even if the rolls fail, the bonus is lost and you do not gain any other benefits from reading
       this book.
+    item: item.book_of_inspirational_quotes
   - roll: 31
     text: >-
       Egyptian scarab. You gain +1 to Defense rolls against mummies. After an
       encounter with a mummy, the scarab loses its powers and the bonus is
       lost. Negligible weight.
+    item: item.egyptian_scarab
   - roll: 32
     text: >-
       Dog toy. You may sacrifice it to gain a +1 on an Escape roll to flee
       from an encounter with any dog or hound creature.
+    item: item.dog_toy
   - roll: 33
     text: >-
       Stuffed bird. If you meet a bird-shaped demon, its first attack will be
       directed at the Stuffed bird, which will be destroyed.
+    item: item.stuffed_bird
   - roll: 34
     text: >-
       Helmet. This full biker's helmet has 3 Life points and can protect your
@@ -74,6 +89,7 @@ entries:
       helmet is negligible. If carried, it counts as 1 object. If the helmet
       and the body armor are worn in conjunction, on a 3, 4, or 5 you take
       Damage off the body armor; on a 6 you take Damage off the helmet.
+    item: item.helmet
   - roll: 35
     text: >-
       d3 bottles of liquor. If you drink a whole bottle before an encounter,
@@ -82,12 +98,20 @@ entries:
       perform Exorcism or any ritual, and you may not learn anything from
       books. The effect lasts for d6 boxes. You may shorten its duration by 1
       box by drinking coffee.
+    item: item.liquor
+    count: d3
   - roll: 36
     text: >-
       Strong coffee. Drink to reduce the effect of liquor, above. This is
       enough for drinking 6 times.
+    item: item.strong_coffee
+    uses: 6
   - roll: 41
-    text: 2d6 candles. Useful for many spells.
+    text: >-
+      2d6 candles. Used for many spells and rituals. You need a lighter or other
+      source of fire to light them.
+    item: item.candles
+    count: 2d6
   - roll: 42
     text: >-
       Flashlight. This is a source of light; it may be used as a ranged weapon
@@ -97,35 +121,43 @@ entries:
   - roll: 43
     text: >-
       Box of matches. Useful to start a fire or to use a Molotov cocktail.
+    item: item.box_of_matches
   - roll: 44
     text: >-
       Grooming/beauty products as appropriate to your gender. When you use
       this, you get a +1 to your single next Charisma roll.
+    item: item.grooming_or_beauty_products
   - roll: 45
     text: >-
       Bag of marbles. You may sacrifice them to gain a +1 to an Escape roll
       against any creature that walks. Does not work with slithering,
       crawling, flying or immaterial creatures (ghosts, giant bugs, tentacled
       horrors, giant slugs, swarms).
+    item: item.bag_of_marbles
   - roll: 46
     text: >-
       Bandages, plasters, disinfectant. Sacrifice them to heal 1 Life.
+    item: item.bandages_plasters_disinfectant
   - roll: 51
     text: Protein bars. This count as 1 Food point, negligible weight.
+    item: item.protein_bars
   - roll: 52
     text: >-
       d6 Energy drinks. These count as 1 Food point each. However, they should
       be alternated with regular Food points. If you use them twice in a row,
       you get a -1 on Magic rolls until the end of the mission.
+    item: item.energy_drinks
+    count: d6
   - roll: 53
     text: >-
       Kitchen knife. Damage 1, -1 on Attack rolls. It breaks if you roll a 1
       on the Attack roll.
-    refs: [weapon.kitchen_knife_or_ritual_dagger]
+    refs: [weapon.kitchen_knife]
   - roll: 54
     text: >-
       Cell phone. There is no reception or electricity to recharge it.
       Negligible weight.
+    item: item.cell_phone
   - roll: 55
     text: >-
       d6 painkillers. For each painkiller taken, roll d6. If you roll any 1,
@@ -135,29 +167,34 @@ entries:
       not only you get the -1, you also lose 2 Life. You are considered under
       the effect of painkillers as long as you have a -1 to die rolls because
       of painkillers.
+    item: item.painkillers
+    count: d6
   - roll: 56
     text: >-
       Dark clothes. Once per game, you can claim a +1 bonus to a Stealth roll
       if you wear these clothes. You may wear only one set of clothes at a
       time. Worn clothes have negligible weight. Carried clothes count as 1
       carried object.
+    item: item.dark_clothes
   - roll: 61
     text: >-
       Stylish clothes. Once per game, you can claim a +1 bonus to a Charisma
       roll if you wear these clothes. You may wear only one set of clothes at
       a time. Worn clothes have negligible weight. Carried clothes count as 1
       carried object.
+    item: item.stylish_clothes
   - roll: 62
     text: >-
       Sport clothes. Once per game, you may claim a +1 bonus to an Escape roll
       if you wear these clothes. You may wear only one set of clothes at a
       time. Worn clothes have negligible weight. Carried clothes count as 1
       carried object.
+    item: item.sport_clothes
   - roll: 63
     text: >-
       Hockey stick/ golf club. This may be used as a two-handed weapon. Damage
       1, or Damage 2 on an explosive die roll (6 on the Attack roll).
-    refs: [weapon.hockey_stick_or_golf_club]
+    refs: [weapon.hockey_stick, weapon.golf_club]
   - roll: 64
     text: >-
       Molotov cocktail. This can be thrown as a one-use weapon. It allows you
@@ -171,8 +208,10 @@ entries:
       Silver ring. May be turned into a single silver bullet for a pistol or
       rifle if you have smelting equipment or just used in a shotgun shell.
       Negligible weight.
+    item: item.silver_ring
   - roll: 66
     text: >-
       Gas Mask. If you wear it, it does not count as a carried item, and you
       are immune to the effect of any gas or respiratory agent. If you carry
       it, it counts as a carried object and it can be worn in 1 Action.
+    item: item.gas_mask

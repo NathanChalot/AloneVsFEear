@@ -54,7 +54,7 @@ from alone_against_fear.interface.scripted import ScriptedInterface
 HOME = Position(2, 2)
 EAST = Position(3, 2)
 FOOD = 3
-"""The placeholder character's Food die."""
+"""The character's Food."""
 STREET = (3, 3, 4)
 """A new box: Town Exploration 6 (3 and 3) rolls the Street, whose d6 shows 4. The Street is
 not copied yet: its entry is book mode."""
@@ -70,7 +70,10 @@ def content():
 
 
 def new_game(content, *faces):
-    return Game(dice=ScriptedDice([FOOD, *faces]), content=content)
+    """A game whose character is created already, with 8 Life and Sanity."""
+    game = Game(dice=ScriptedDice(faces), content=content)
+    game.create_character(life=8, sanity=8, food=FOOD)
+    return game
 
 
 def noted_game(content, *faces, note="+1 to Search"):
@@ -139,14 +142,17 @@ def test_a_player_gains_what_the_text_gives(content):
     assert asked(interface, Topic.STAT)[0] == Choose(Topic.STAT, tuple(Stat))
 
 
-def test_life_has_no_max_until_character_creation(content):
-    # E6 gives Life and Sanity a max; healing stops there (see the pending tests)
+def test_healing_stops_at_max(content):
+    # given a character at max Life (8)
     game = new_game(content, *STREET)
     interface = ScriptedInterface(on_the_street(Manual.GAIN, Stat.LIFE, 3, Book.DONE, Action.QUIT))
 
+    # when a book-mode entry gives 3 Life
     play(game, interface)
 
-    assert game.character.life == 11
+    # then Life stays at max, and the interface is told nothing was gained
+    assert game.character.life == 8
+    assert told(interface, Changed) == [Changed(Stat.LIFE, 0, 8)]
 
 
 def test_only_what_the_character_has_can_be_lost(content):
@@ -552,14 +558,6 @@ def test_an_empty_text_is_refused(answer):
 # --- Pending: edge cases of death and manual actions, for the tasks that bring them ----------
 # Skipped until their task: pytest lists them on every run as a reminder. Written as
 # given/when/then; the task that brings the rule writes the test body.
-
-
-@pytest.mark.skip(reason="E6: Life and Sanity get a max")
-def test_pending_healing_stops_at_max():
-    # given a character at max Life
-    # when a book-mode entry gives Life
-    # then Life stays at max
-    ...
 
 
 @pytest.mark.skip(reason="E13: losses go through armor, Luck and the Injury offer")

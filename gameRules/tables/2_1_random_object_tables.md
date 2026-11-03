@@ -11,7 +11,7 @@
 - 23 Bundle of d6 wooden stakes. May be used to slay vampires stopping their regeneration power. You need a hammer to use a stake effectively.
 - 24 Hammer. Used to nail down doors and windows and to drive stakes through the hearts of vampires. It may also be used as a weapon.
 - 25 Exorcism ritual (book). Allows you to learn the Exorcism Arcane Skill if you have the Faith Skill.
-- 26 Backpack. Increases by 5 your limit of carried items and Food points.
+- 26 Backpack. You may carry 15 items instead of 10, and 15 Food points instead of 10.
 - 31 Flashlight. This is a source of light; it may be used as a ranged weapon to attack shadow creatures at +2, Damage 1. After each encounter with shadow creatures, there is a 1 in 6 chance of the batteries running out.
 - 32 Silver necklace. Negligible weight. You may turn it into d3 silver bullets if you find smelting equipment.
 - 33 d6 Food points. You may decide that 1 Food is 1 dose of salt instead.
@@ -21,7 +21,7 @@
 - 41 Flute. May be used to play music and perform certain rituals.
 - 42 Rubber Mask. Roll a die, on a 1-3 it is the face of a politician, on a 4-6 a classic Halloween monster. They say certain monsters may not attack you if they cannot see your face. Negligible weight.
 - 43 Train ticket. Negligible weight.
-- 44 d6+3 candles. Used for many rituals. You need a lighter or other source of fire to light them.
+- 44 d6+3 candles. Used for many spells and rituals. You need a lighter or other source of fire to light them.
 - 45 Random book. Roll 2d6 on the Book Table. If you begin the game with a book, you already read it but you still cannot begin the game with any Arcane Skills (but you may learn any Arcane Skill taught by the book as soon as you have enough XP to pay its cost).
 - 46 d6 shotgun shells. Ammo for a shotgun. You may turn one into a silver shell if you load it with a silver ring or silver necklace.
 - 51 Rat poison. Useful if you venture in the sewers.

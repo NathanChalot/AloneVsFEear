@@ -17,8 +17,8 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Protocol
 
-from .game import Arrival, GameError, Rolled, RolledVsL, Searched
-from .state import End, Note, Position, Stat
+from .game import Arrival, GameError, Purchase, Rolled, RolledVsL, Searched
+from .state import End, Item, Note, Position, Stat
 
 log = logging.getLogger(__name__)
 
@@ -56,17 +56,31 @@ class Topic(StrEnum):
     """Which note to remove."""
     APPLY = "apply"
     """Which effect to apply, as a free action (the manual actions about the character)."""
+    NAME = "name"
+    """The character's name, at creation (a `Text`)."""
+    POINTS = "points"
+    """What the 3 creation points buy (see `creation.Points`)."""
+    LIFE_POINTS = "life_points"
+    """How many of the 3 points go to Life, the rest to Sanity (a `Number`)."""
+    SKILL = "skill"
+    """Which Skill the character starts with, by ID."""
+    WEAPON = "weapon"
+    """Which weapon the character takes, when the text gives a choice."""
+    PURCHASE = "purchase"
+    """What to spend XP on (a `game.Purchase`), or back."""
 
 
 class Action(StrEnum):
     """The free actions, once the box is resolved; moving or quitting ends the turn.
-    Inventory, spending XP and aborting a mission come with their tasks."""
+    Inventory and aborting a mission come with their tasks."""
 
     MOVE = "move"
     SEARCH = "search"
     """The Search roll; offered while the box may be Searched."""
     APPLY = "apply"
     """Apply an effect: opens the manual actions about the character."""
+    SPEND_XP = "spend_xp"
+    """Buy a Skill or raise one to Expert; offered while the XP can buy one (E6)."""
     SHEET = "sheet"
     """Attach a new sheet; offered once a sheet is full."""
     QUIT = "quit"
@@ -129,7 +143,8 @@ class Wandering:
 
 @dataclass(frozen=True)
 class LeadRolled:
-    """An entry rolled a die to pick the table it leads to ("Roll d6. On a 1-5…")."""
+    """An entry rolled a die to pick the table it leads to ("Roll d6. On a 1-5…"), or the
+    thing it gives (a samurai sword, authentic or a replica)."""
 
     entry_id: str
     face: int
@@ -169,6 +184,27 @@ class NoteRemoved:
 
 
 @dataclass(frozen=True)
+class ItemTaken:
+    """The character took an item or a weapon."""
+
+    item: Item
+
+
+@dataclass(frozen=True)
+class Duplicate:
+    """At creation, the entry rolled gives nothing new: the table is rolled again."""
+
+    entry_id: str
+
+
+@dataclass(frozen=True)
+class Bought:
+    """XP was spent on a Skill."""
+
+    purchase: Purchase
+
+
+@dataclass(frozen=True)
 class Marked:
     """A box was marked (a Safe House)."""
 
@@ -190,6 +226,9 @@ type Event = (
     | NoteWritten
     | NoteRemoved
     | Searched
+    | ItemTaken
+    | Duplicate
+    | Bought
     | Ended
 )
 
