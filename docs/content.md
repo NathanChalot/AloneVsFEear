@@ -219,10 +219,36 @@ arcane_skills:
 | `expert` | Skill | the Expert line, without its "Expert:" label; absent when the Skill has no Expert level |
 | `components`, `sacrifice` | Arcane Skill | the labelled lines as printed, without their label; absent when not printed |
 | `starting_gear` | Skill | what the Skill gives when taken at creation, as its text says: a list of `{id, count, uses}` (Bow: a bow and d6+3 arrows; Faith: the Religious symbol, see the [rulings](../design/rulings.md)); decided in E6 |
+| `effects` | Skill | what the Skill changes, as numbers: a list of effects (below); decided in E7 |
 
 - **The XP cost is a number** (the user, in R2): the engine will need it when Skills are bought with XP. The rest of D1 was decided in E6.
 - **The Expert line is apart**, so a screen can show the level the character has, and a Skill with no `expert` has no Expert level. A note printed after the Expert line (Agile, Dodge) goes at the end of `text`: same words, the order changed.
 - **The books an Arcane Skill is learned from stay in the text**; references to them wait for the books (E18).
+
+### Effects
+
+A Skill's `effects` say what it changes, in the names of `effect_targets.py` ([rolls](../design/rolls.md)): the loader refuses a name it does not know, so a misspelt tag fails at load time instead of never matching.
+
+```yaml
+  - id: skill.agile
+    effects:
+      - {roll: defense, basic: 1, expert: 2, group: agile_or_dodge}
+      - {roll: save, tags: [climb, jump, avoid_danger], basic: 1, expert: 2}
+  - id: skill.tough
+    effects:
+      - {parameter: max_life, basic: 2, expert: 3}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `roll` | a roll modifier: the roll type it changes (`attack`, `defense`, `save`, …) |
+| `tags` | with `roll`: the roll must carry one of them; absent, every roll of the type |
+| `group` | with `roll`: modifiers of one group do not stack, the highest applies (Agile and Dodge) |
+| `parameter` | instead of `roll`: the parameter it changes (`max_life`, `carry_limit`, `food_interval`, …) |
+| `basic`, `expert` | the amount at each level, a whole number (negative lowers); `expert` replaces `basic` ([rulings](../design/rulings.md#character)), present exactly when the Skill has an Expert line |
+
+- **Only numbers.** What a Skill does beyond a modifier (Dodge's balance on a natural 1, Faith turning vampires, Medic healing after an encounter) is Python keyed by the Skill's ID, written with the task that has its moment. Faith and Medic have no `effects`.
+- **Bow and Martial Arts are bonuses** (the user, E7): +1 / +2 on bow or unarmed Attacks; the weapon keeps its own malus (-1 unskilled bow, -2 unarmed), so the totals are the book's.
 
 ## Known but not copied yet
 

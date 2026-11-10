@@ -8,7 +8,7 @@ The rules text is from a commercial book: keep this repository private. The orig
 
 ## Status
 
-MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables (R1), the Skills and harm tables (R2), the weapons and items (R3) are in. The engine has started: dice (E1), the game state (E2), the town map with moves and time (E3), the engine/interface protocol with the game loop (E4), book mode (E5a, E5b), and the character with its creation (E6): a player creates a character, then walks the town in the terminal, every box's entry shown as text and applied with manual actions, until death or quitting, and may spend XP on Skills at any time ([how to play](#how-to-play)). Step 1 goes on with E7, with the YAML batches it needs.
+MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables (R1), the Skills and harm tables (R2), the weapons and items (R3) are in. The engine has started: dice (E1), the game state (E2), the town map with moves and time (E3), the engine/interface protocol with the game loop (E4), book mode (E5a, E5b), the character with its creation (E6), and the Skills' effects on rolls and max values (E7): a player creates a character, then walks the town in the terminal, every box's entry shown as text and applied with manual actions, until death or quitting, and may spend XP on Skills at any time ([how to play](#how-to-play)). Step 1 goes on with E8, with the YAML batches it needs.
 
 **MVP goal:** play a whole campaign in the terminal, in two steps ([MVP scope](design/mvp-scope.md)):
 
@@ -19,7 +19,7 @@ The engine follows the whole design, but only a thin slice of content is written
 
 ## How to play
 
-What the game does today: create a character (a name; the 3 points on Life and Sanity or traded for 1 more Skill or table roll; 2 Skills; a random weapon and a knife or stick; 1 Random Object and 1 Useful Stuff, duplicates rolled again; d6 Food), choose Home, walk the town box by box, eat 1 Food every 5 boxes (or lose 1 Life without Food), and quit. A new box rolls the Town Exploration table, a visited box a 1 in 6 chance of a Random Encounter, and the box is resolved before you do anything else: the entry reached is shown, and the game follows it to the next table (it asks when the text says "your choice", it rolls the die when the text rolls one). A table or event not copied yet points to its Markdown file and the number rolled: you apply its text with manual actions (gain or lose Life, Sanity, Food, XP or Clues; a roll vs L; write or remove a note; mark the box as a Safe House), then say where it leads: another table, a numbered event, or nowhere else. Notes are your reminders of lasting effects and modifiers the game cannot track yet, shown with the box number they were written at. Between moves you may Search the box once (not a Safe House), or apply an effect (the manual actions about the character). The game ends at 0 Life or Sanity, once the entry that took them is applied. Once every box of a sheet is visited, you can attach a new sheet. XP can be spent on Skills between moves (Expert costs the Skill's cost again); Skill effects are text until E7, apply them yourself.
+What the game does today: create a character (a name; the 3 points on Life and Sanity or traded for 1 more Skill or table roll; 2 Skills; a random weapon and a knife or stick; 1 Random Object and 1 Useful Stuff, duplicates rolled again; d6 Food), choose Home, walk the town box by box, eat 1 Food every 5 boxes (or lose 1 Life without Food), and quit. A new box rolls the Town Exploration table, a visited box a 1 in 6 chance of a Random Encounter, and the box is resolved before you do anything else: the entry reached is shown, and the game follows it to the next table (it asks when the text says "your choice", it rolls the die when the text rolls one). A table or event not copied yet points to its Markdown file and the number rolled: you apply its text with manual actions (gain or lose Life, Sanity, Food, XP or Clues; a roll vs L; write or remove a note; mark the box as a Safe House), then say where it leads: another table, a numbered event, or nowhere else. Notes are your reminders of lasting effects and modifiers the game cannot track yet, shown with the box number they were written at. Between moves you may Search the box once (not a Safe House), or apply an effect (the manual actions about the character). The game ends at 0 Life or Sanity, once the entry that took them is applied. Once every box of a sheet is visited, you can attach a new sheet. XP can be spent on Skills between moves (Expert costs the Skill's cost again). Skills apply their bonuses themselves: a roll vs L asks which roll it is and, for each Skill whose bonus depends on it, whether the roll is about that (a save vs poison, for Resilient), then a modifier you type from the text, a weapon or a note; the result names each bonus. Tough and Strong Grip on Reality raise max and current Life or Sanity. Still yours to apply: what a Skill does beyond a bonus (Dodge losing balance, Faith, Medic), the weapons' own modifiers, and the numbers read by later tasks (Danger Sense, Strong's carry limit, Resistant to Hunger, Investigator's Clue costs).
 
 Setup, with Python 3.13 or later (`.tool-versions` pins the version we use):
 
@@ -42,7 +42,7 @@ Play:
 
 ## How to use this roadmap
 
-The roadmap is split into milestones. Each `####` entry is sized to be one session's task: title, description, rules references, "Done when" and "Depends on". Check the box when it is done. GitHub issues are kept for user stories and bugs, only when needed. Deferred decisions are tracked here, so they are made deliberately when they block work, not up front. Before deciding, ask: is it worth deciding yet, or is it a constraint we would have to fight later?
+The roadmap is split into milestones. Consistency reviews (V1 to V4) sit at fixed points between the tasks, after each group of tasks that build on each other ([Working with Claude](WorkingWithClaude.md#consistency-reviews)). Each `####` entry is sized to be one session's task: title, description, rules references, "Done when" and "Depends on". Check the box when it is done. GitHub issues are kept for user stories and bugs, only when needed. Deferred decisions are tracked here, so they are made deliberately when they block work, not up front. Before deciding, ask: is it worth deciding yet, or is it a constraint we would have to fight later?
 
 ## Working with Claude
 
@@ -57,6 +57,7 @@ Work happens in small, planned sessions with Claude. The upcoming sessions are l
 - **MVP scope** (was D6): two steps, Bring Home the Bacon then Close a Hell Gate with campaign play; unwritten content goes through book mode. See [MVP scope](design/mvp-scope.md).
 - **Engine/interface protocol** (E4): callbacks. The engine calls `ask(request)` when the player chooses (the answer must be one of the options) and `tell(event)` when something happens. Chosen over generators and a state machine: rules that ask deep inside other rules stay simple; the game is saved between turns. Interfaces read the game state and change it only through their answers. See [architecture](docs/architecture.md).
 - **Plain data in YAML** (D1, decided in E6): a number the engine reads is a field next to the text, added only when the engine first reads it (Skill XP costs in R2; item counts and uses, weapon variants in E6). The text stays as printed. Field shapes may change while no saved game depends on them. See [rules text in YAML](docs/content.md).
+- **Effects** (E7): a Skill's effects are a YAML field (a roll modifier by roll type and tags, or a change to a parameter such as max Life, at Basic and Expert), checked against the names of `effect_targets.py`; what a Skill does beyond a number is Python keyed by its ID. Effects are not stored: they are read from what the character holds, so removing a source removes its effects. See [rules text in YAML](docs/content.md#effects) and [rolls](design/rolls.md).
 - **Rules text in YAML** (part of D1): every table, entry, creature, item, event and Skill gets a stable ID and its text in YAML; behaviour stays in Python, keyed by the same ID. The Markdown in `gameRules/` stays as the readable copy, fixed together with the YAML. Files, IDs (`table.town_exploration.7`, `mission.bring_home_the_bacon`) and the shape of a table: [rules text in YAML](docs/content.md).
 
 ### Guidelines
@@ -223,16 +224,17 @@ Life and Sanity with current and max values; the 22 Skills at Basic and Expert; 
 - Done when: the terminal walks the player through creation, and XP can be spent.
 - Depends on: E5b, R2, R3.
 
-#### [ ] E7 — Rolls and effects
+#### [x] E7 — Rolls and effects
 Roll types and context tags; roll vs L with natural 1 and 6; effects with source, holder, kind and lifetime; a roll collects matching modifiers from every holder, with stacking limits; max values calculated from effects. Every Skill written as effects. Manual rolls in book mode now get their modifiers.
 - Design: [rolls](design/rolls.md), [effects](design/effects.md), [character](design/character.md)
-- Done when: every Skill's effect is tested.
+- Decided: effects in the YAML, derived from what the character holds (see Decisions); `effect_targets.py` names roll types, tags and parameters; Bow and Martial Arts are bonuses on bow and unarmed Attacks, the weapon keeping its own malus; a roll made by hand asks a yes or no only for the Skills whose bonus depends on its tags. Rulings: an Expert amount replaces the Basic one, Agile and Dodge give the higher bonus (the other shown set aside), Will covers every Will roll and saves vs Fear, Magic, Hypnotism and Psionics, at Expert too ([rulings](design/rulings.md#character)).
+- Done when: every Skill's effect is tested. Met: the numbers of 20 Skills; Dodge's balance, Faith and Medic are pending tests for E12, E18 and E11.
 - Depends on: E6.
 
 #### [ ] E8 — Moments and reactions
 Announce moments; reactions with their scripts; the lifetimes the Skills and Food need (permanent, for the next N boxes, until a moment). Food every 5 boxes becomes a reaction (Resistant to Hunger and Eating Disorder change it); "for the next N boxes" effects. The rest of the effects design comes with the content that needs it: timed steps with E10, combat scopes and the order of reactions on one moment with E12, "would" moments with E13.
 - Design: [effects](design/effects.md)
-- Open: the Food clock when the interval changes mid-game (the [ruling](design/rulings.md#map) eats on every multiple of 5); options at E8.
+- Open: the Food clock when the interval changes mid-game (the [ruling](design/rulings.md#map) eats on every multiple of 5); options at E8. Since E7 the upkeep can read `Parameter.FOOD_INTERVAL` (Resistant to Hunger adds 1 or 2); Eating Disorder's "every 3 boxes" (E13) sets it instead, so how the two combine is part of the question.
 - Consider: a manual action "add an effect" (kind, amount, roll, duration) that the engine then applies by itself, so notes are needed only for what it cannot express, or not at all (decided in E5b).
 - Done when: the Food upkeep is a reaction that Resistant to Hunger and Eating Disorder change, and "for the next N boxes" effects end on time, with tests.
 - Depends on: E7.
@@ -241,8 +243,14 @@ Announce moments; reactions with their scripts; the lifetimes the Skills and Foo
 Two hands; carry limit 10, +5 with a backpack, +3 / +5 with Strong, max 20; Food limit 10, 15 with a backpack, extra Food takes item slots; light items; ammo per weapon type; discarding (items left behind may vanish); stash; losing the backpack; items as effect holders. The item uses that need these (backpack, Food items, ammo).
 - Rules: [encumbrance summary](gameRules/11_encumbrance_summary.md), [main rules](gameRules/1_1_main_rules.md) (Equipment), [combat](gameRules/3_combat.md) (Keep Track of Ammo)
 - Design: [inventory](design/inventory.md)
+- Since E7: `Parameter.CARRY_LIMIT` (10, Strong +3 / +5); the backpack and the items as effect holders join `engine/effects.py`.
 - Done when: picking up, holding, discarding and stashing respect every limit, with tests.
 - Depends on: E7.
+
+#### [ ] V1 — Consistency review
+A fresh session reads the project cold and checks that what is built agrees with itself, after the foundations (E7 to E9: effects, moments, inventory): docs against code, design and rulings against the tests, the YAML against `gameRules/`, code health (file sizes, duplication, names, pending tests), the process files. It starts from NextSession's "For the next review". Findings with a proposed fix each, triaged with the user one at a time; small fixes in the session, bigger ones become roadmap entries ([Working with Claude](WorkingWithClaude.md#consistency-reviews)).
+- Done when: every finding is fixed, turned into an entry, or dropped by the user.
+- Depends on: E9.
 
 #### [ ] E10 — Tables and result scripts
 Results as scripts of steps: encounter, chain, choice, gate, gain or loss, effect, box mark, movement; forced and shifted results; limits and fallbacks read the history; timed steps hooked to moments; an unwritten entry goes to book mode. Town Exploration, Random Encounter and Search written.
@@ -256,6 +264,7 @@ Results as scripts of steps: encounter, chain, choice, gate, gain or loss, effec
 The full arrival flow: new box, visited box, left-behind encounters. An encounter is met, then resolved or left behind; hazards and people are encounters too. Search only after dealing with the box, once per box (libraries again for 1 book or 1 Clue), natural 1 stays 1, Investigator bonus; Clues.
 - Rules: [how the game works](gameRules/5_how_the_game_works.md) (Search Rolls)
 - Design: [game flow](design/game-flow.md#3-arriving-in-a-box), [encounters](design/encounters.md#an-encounters-life)
+- Also: Medic heals after an encounter (pending test since E7).
 - Done when: the arrival flow is tested for new, visited and left-behind boxes.
 - Depends on: E10.
 
@@ -263,6 +272,7 @@ The full arrival flow: new box, visited box, left-behind encounters. An encounte
 Creature profiles, groups and members; surprise; rounds; Attack with exploding sixes and hits = total ÷ L; Defense with fumbles; weapon modifiers, Damage and specials on the natural die; ammo; automatic Damage (vulnerabilities, grenade); XP and loot; end-of-combat reactions. Effects scoped to one attack, round or combat; several reactions on one moment (helpful first, then the player picks). The stats of every creature and every weapon written; special rules stay text, with manual actions open during the fight (creature Life up or down). The "fight a creature" manual action.
 - Rules: [combat](gameRules/3_combat.md), [monster rules](gameRules/4_monster_rules.md), [weapons](gameRules/1_4_weapons.md), [weapon summary](gameRules/8_weapon_summary_table.md), [creatures](gameRules/tables/creatures/)
 - Design: [combat](design/combat.md)
+- Since E7: the surprise chance is `Parameter.SURPRISE_CHANCE` (Danger Sense); weapons bring their own modifiers (-1 unskilled bow, -2 unarmed: Bow and Martial Arts are bonuses on top); Dodge's balance on a natural 1 is a pending test. Open: does Dodge's balance need Dodge's bonus to be the one used? If so, the Agile or Dodge choice could become the player's ([ruling](design/rulings.md#character)).
 - Done when: a fight against any creature can be played, with a test on the book's worked example.
 - Depends on: E11, R4.
 
@@ -280,6 +290,11 @@ Escape vs L (free from Slow creatures, none from Flying ones, Damage on a failur
 - Design: [combat](design/combat.md#escape), [rulings](design/rulings.md#combat)
 - Done when: escaping and sneaking past several groups follow the rulings, with tests.
 - Depends on: E13.
+
+#### [ ] V2 — Consistency review
+A fresh session reads the project cold and checks that what is built agrees with itself, after the combat chain (E12 to E14): docs against code, design and rulings against the tests, the YAML against `gameRules/`, code health (file sizes, duplication, names, pending tests), the process files. It starts from NextSession's "For the next review". Findings with a proposed fix each, triaged with the user one at a time; small fixes in the session, bigger ones become roadmap entries ([Working with Claude](WorkingWithClaude.md#consistency-reviews)).
+- Done when: every finding is fixed, turned into an entry, or dropped by the user.
+- Depends on: E14.
 
 #### [ ] E15 — Safe Houses
 Created by a result, with that result's healing; no random encounter; healing on each visit; max 3, the closest one stops being one (ties broken randomly); stash, stolen on a d6 of 1-3 when its Safe House is lost. Home is a Safe House from the start ([ruling](design/rulings.md#safe-houses), switchable).
@@ -300,12 +315,18 @@ A mission as a holder of effects, with a goal and rewards; rolled among the writ
 - Done when: Bring Home the Bacon can be played from creation to the end screen. **Step 1 done.**
 - Depends on: E16.
 
+#### [ ] V3 — Consistency review
+A fresh session reads the project cold and checks that what is built agrees with itself, after Step 1 (E17): docs against code, design and rulings against the tests, the YAML against `gameRules/`, code health (file sizes, duplication, names, pending tests), the process files. It starts from NextSession's "For the next review". Findings with a proposed fix each, triaged with the user one at a time; small fixes in the session, bigger ones become roadmap entries ([Working with Claude](WorkingWithClaude.md#consistency-reviews)).
+- Done when: every finding is fixed, turned into an entry, or dropped by the user.
+- Depends on: E17.
+
 ### Milestone 7 — Step 2: Close a Hell Gate
 
 #### [ ] E18 — Arcane Skills and books
 Learning Arcane Skills works for all 11 (prerequisites: a book read, a Skill, Clues spent in a Hell Gate box; XP cost); Gate written, the other effects in book mode. The Random Books table; reading takes d3 boxes of time, which advances the clock without entering a box; each book once per game.
 - Rules: [arcane skills](gameRules/1_3_arcane_skills.md), [random books](gameRules/tables/5_32_random_books_table.md)
 - Design: [character](design/character.md#xp-and-skills), [rulings](design/rulings.md#effects)
+- Also: Faith turns vampires like Exorcism (pending test since E7).
 - Done when: Gate can be learned through each of its prerequisites, with tests.
 - Depends on: E17, R7.
 
@@ -323,9 +344,13 @@ Missions one after another: rewards, Life and Sanity back to max, reroll the sam
 - Done when: a whole campaign can be played in the terminal. **MVP done.**
 - Depends on: E19.
 
+#### [ ] V4 — Consistency review
+A fresh session reads the project cold and checks that what is built agrees with itself, after Step 2 (E20): docs against code, design and rulings against the tests, the YAML against `gameRules/`, code health (file sizes, duplication, names, pending tests), the process files. It starts from NextSession's "For the next review". Findings with a proposed fix each, triaged with the user one at a time; small fixes in the session, bigger ones become roadmap entries ([Working with Claude](WorkingWithClaude.md#consistency-reviews)). Also the design review: `design/` reworked against what the implementation taught (it should not be needed, but the design was written before the code).
+- Done when: every finding is fixed, turned into an entry, or dropped by the user.
+- Depends on: E20.
+
 ### Later
 
-- [ ] Design review once the MVP is done: a review session reworks `design/` against what the implementation taught. It should not be needed, but the design was written before the code.
 - [ ] Save and resume the campaign. A save is the campaign as it stood at the start of the turn: a turn changes the state as it goes, so quitting mid-turn leaves it half played.
 - [ ] The other missions: Predator and Prey and Destroy the Coven (with hunting by Clues), Medical Supplies, We Need Weapons
 - [ ] Switchable rule options (campaign modes)

@@ -7,10 +7,11 @@ How the work sessions run, and recommendations for them: how many to expect, whi
 1. Start from [NextSession.md](NextSession.md), the [Readme](Readme.md) and the latest log in [`claude-logs/`](claude-logs/).
 2. GitHub issues only for user stories and bugs, and only when needed; the PR then says `Closes #N`. An engine task with no user story gets no issue: the Readme entry is the task.
 3. Work on a dedicated branch; one PR per session. Create the branch in the main checkout; use a worktree only when another session runs at the same time (see [Parallel sessions](#parallel-sessions)). During the session, Claude never commits or pushes without explicit permission.
-4. End by updating the Readme (checkboxes, decisions, How to play when what a player can do changes), `NextSession.md` (remove the done session, adjust the plan, review the next session's model and effort in light of this one) and, if the code structure changed, [`docs/architecture.md`](docs/architecture.md).
-5. Claude writes the session log in `claude-logs/YYYYMMDDHHmm-session-name.md`.
-6. The user exports the transcript with `/export claude-logs/transcripts/YYYYMMDDHHmm-session-name.txt` (same name as the log).
-7. Claude commits the session, pushes the branch and opens the PR (the log names the branch, which is enough to find the PR). This end-of-session commit and push is agreed once and for all, so the next session starts clean.
+4. **Drift check** (a few minutes, decided in the E7 session): search the repository for the names, numbers and behaviours the session changed ("until E7", an old signature, "the max is the base") and fix every stale mention; write, move or drop this task's pending tests and "decide when implementing" items; remove the NextSession reminders it resolved. Anything noticed outside the session's scope is not fixed: one line under "For the next review" in NextSession.
+5. End by updating the Readme (checkboxes, decisions, How to play when what a player can do changes), `NextSession.md` (remove the done session, adjust the plan, review the next session's model and effort in light of this one) and, if the code structure changed, [`docs/architecture.md`](docs/architecture.md).
+6. Claude writes the session log in `claude-logs/YYYYMMDDHHmm-session-name.md`.
+7. The user exports the transcript with `/export claude-logs/transcripts/YYYYMMDDHHmm-session-name.txt` (same name as the log).
+8. Claude commits the session, pushes the branch and opens the PR (the log names the branch, which is enough to find the PR). This end-of-session commit and push is agreed once and for all, so the next session starts clean.
 
 ## How we develop
 
@@ -29,7 +30,8 @@ Rough sizes, for sessions of about 1.5 hours, to get an idea of the work left. N
 | R1 (YAML layout, IDs, first tables) | 1 |
 | Engine skeleton E1–E5 | 5 (E5 in two sessions) |
 | YAML batches R2–R7 | 5–6, can run in parallel |
-| Step 1, E6–E17 | 12 or more (E7, E8, E10 and E12 are the big ones) |
+| Step 1, E6–E17 | 12 or more (E8, E10 and E12 are the big ones) |
+| Consistency reviews V1–V4 | 4 |
 | Step 2, E18–E20 | 3–4 |
 
 ## Which model for which session
@@ -41,6 +43,7 @@ Rough sizes, for sessions of about 1.5 hours, to get an idea of the work left. N
 | Copying rules text | R2–R7 | Sonnet, medium effort; Opus for a messy batch (events) |
 | Writing user stories and their issues | When a task has a player-facing story (E4 on) | Sonnet, medium effort; Opus if slicing the game into stories turns into a design debate |
 | Step-back review: an adversarial review of the whole project, findings only | Project review (after E4) | Opus, high effort |
+| Consistency review: what is built agrees with itself, findings then small fixes | V1–V4 | Opus, high effort |
 | Routine setup | Project setup and GitHub planning | Sonnet (it posts to GitHub, so not Haiku) |
 | Small chores | renames, housekeeping | Haiku; never for rules text, where a misreading costs more than it saves |
 
@@ -48,6 +51,22 @@ Rough sizes, for sessions of about 1.5 hours, to get an idea of the work left. N
 - Fable: not used. It does not follow the same pricing rules as the other models.
 - No default effort. Model and effort are picked per session in [NextSession.md](NextSession.md); each wrap-up reviews the next session's with what the session showed: a session that struggled moves similar ones up, an easy one moves them down. The table above is only the starting point.
 - [`CLAUDE.md`](CLAUDE.md) (working rules: commits, rulings, spoilers) loads the same way whatever the model.
+
+## Consistency reviews
+
+Two levels, decided in the E7 session, so the project stays consistent as it grows without a costly wrap-up:
+
+- **The drift check at each wrap-up** (step 4 above) fixes only what the session itself made stale, and lists anything else under "For the next review" in NextSession.
+- **The fixed reviews** are roadmap entries at the end of each group of tasks that build on each other: V1 after E9 (effects, moments, inventory), V2 after E14 (combat), V3 after E17 (Step 1), V4 after E20 (Step 2, with the design review). A fresh session reads the project cold and checks five areas: docs against code (`docs/`, the Readme's How to play), design and rulings against the tests, the YAML against `gameRules/` (and the "Fixed or reworded" list of `book_errors.md`), code health (file sizes, duplication, names, pending tests), the process files (NextSession reminders, the model table). It starts from "For the next review".
+- **Findings only about what exists.** A finding never asks to decide early what can wait (the lesson of the project review). Each comes with a proposed fix; the user triages them one at a time; small fixes are done in the session, one commit per kind, bigger ones become roadmap entries.
+
+```
+Consistency review V1. Read CLAUDE.md, NextSession.md (For the next review), the Readme and
+the latest log. Check that what is built agrees with itself: docs against code, design and
+rulings against the tests, the YAML against gameRules/, code health, the process files.
+Findings only about what exists, each with a proposed fix; then take me through them one
+at a time. Small fixes in this session, one commit per kind; bigger ones become entries.
+```
 
 ## Prompts
 

@@ -29,7 +29,9 @@ import pytest
 
 from alone_against_fear.content import load_content
 from alone_against_fear.dice import ScriptedDice
+from alone_against_fear.effect_targets import RollType
 from alone_against_fear.engine import Game, GameError, Happened, Level, Position, Stat
+from alone_against_fear.engine.effects import Held, Modifier
 from alone_against_fear.engine.game import Rolled, RolledVsL, Searched
 from alone_against_fear.engine.leads import LEADS, Auto, Nowhere
 from alone_against_fear.engine.loop import play
@@ -48,7 +50,7 @@ from alone_against_fear.engine.protocol import (
     Topic,
     ask,
 )
-from alone_against_fear.engine.state import Mark, Note
+from alone_against_fear.engine.state import Mark, Note, SkillLevel
 from alone_against_fear.interface.scripted import ScriptedInterface
 
 HOME = Position(2, 2)
@@ -62,6 +64,8 @@ MANUAL = (Manual.GAIN, Manual.LOSE, Manual.ROLL, Manual.WRITE_NOTE, Manual.SAFE_
 """The manual actions of an entry, for a character with no notes."""
 EFFECTS = (Manual.GAIN, Manual.LOSE, Manual.ROLL, Manual.WRITE_NOTE, Manual.BACK)
 """The "apply an effect" menu, for a character with no notes."""
+ROLLS = tuple(roll for roll in RollType if roll is not RollType.SEARCH)
+"""The rolls vs L a manual roll may be."""
 
 
 @pytest.fixture(scope="module")
@@ -172,16 +176,112 @@ def test_only_what_the_character_has_can_be_lost(content):
 def test_the_player_rolls_vs_the_l_the_text_gives(content):
     # given the Street's entry asks for an L4 Save at +1; the die shows 3
     game = new_game(content, *STREET, 3)
-    interface = ScriptedInterface(on_the_street(Manual.ROLL, 4, 1, Book.DONE, Action.QUIT))
+    interface = ScriptedInterface(
+        on_the_street(Manual.ROLL, RollType.SAVE, 4, 1, Book.DONE, Action.QUIT)
+    )
 
     play(game, interface)
 
     # then 3 + 1 makes the L4
-    assert told(interface, RolledVsL) == [
-        RolledVsL(level=4, modifier=1, face=3, total=4, success=True)
-    ]
+    (rolled,) = told(interface, RolledVsL)
+    assert (rolled.roll, rolled.level, rolled.face, rolled.total, rolled.success) == (
+        RollType.SAVE,
+        4,
+        3,
+        4,
+        True,
+    )
+    assert rolled.modifiers == (Modifier(None, 1),)
+    # every roll vs L is offered, not the Search (a free action of its own)
+    assert asked(interface, Topic.ROLL) == [Choose(Topic.ROLL, ROLLS)]
     assert asked(interface, Topic.LEVEL) == [Number(Topic.LEVEL, minimum=1)]
     assert asked(interface, Topic.MODIFIER) == [Number(Topic.MODIFIER)]
+    # a character with no Skills is asked nothing about the roll's tags
+    assert asked(interface, Topic.TAG) == []
+
+
+# --- Rolls vs L get their modifiers (E7) ------------------------------------------------------
+
+
+def skilled_game(content, *skills, faces=()):
+    game = Game(dice=ScriptedDice([*STREET, *faces]), content=content)
+    game.create_character(life=8, sanity=8, food=FOOD, skills=skills)
+    return game
+
+
+def test_a_save_asks_about_each_skill_that_depends_on_what_it_is_about(content):
+    # given Resilient and Agile; the text asks for a save vs L4 against toxic fumes; the die 3
+    game = skilled_game(content, "skill.resilient", "skill.agile", faces=[3])
+    interface = ScriptedInterface(
+        on_the_street(Manual.ROLL, RollType.SAVE, 4, True, False, 0, Book.DONE, Action.QUIT)
+    )
+
+    # when the player says it is a save vs poison, not one to climb, jump or avoid danger
+    play(game, interface)
+
+    # then each Skill was asked about once, in the character's order; Resilient's +1 makes it
+    agile, resilient = (
+        Held(id_, game.content.skill(id_).effects[-1], 1)
+        for id_ in (
+            "skill.agile",
+            "skill.resilient",
+        )
+    )
+    assert asked(interface, Topic.TAG) == [
+        Choose(Topic.TAG, (True, False), about=resilient),
+        Choose(Topic.TAG, (True, False), about=agile),
+    ]
+    (rolled,) = told(interface, RolledVsL)
+    assert rolled.modifiers == (Modifier("skill.resilient", 1),)
+    assert (rolled.total, rolled.success) == (4, True)
+
+
+def test_a_bonus_on_every_roll_of_its_type_is_not_asked_about(content):
+    # Agile's Defense bonus applies to every Defense roll
+    game = skilled_game(content, "skill.agile", faces=[3])
+    interface = ScriptedInterface(
+        on_the_street(Manual.ROLL, RollType.DEFENSE, 4, 0, Book.DONE, Action.QUIT)
+    )
+
+    play(game, interface)
+
+    assert asked(interface, Topic.TAG) == []
+    assert told(interface, RolledVsL)[0].modifiers == (Modifier("skill.agile", 1),)
+
+
+def test_a_bow_attack_needs_no_question_about_ranged_weapons(content):
+    # given Bow and Good Shot: a bow is a ranged weapon
+    game = skilled_game(content, "skill.bow", "skill.good_shot", faces=[2])
+    interface = ScriptedInterface(
+        on_the_street(Manual.ROLL, RollType.ATTACK, 3, True, -1, Book.DONE, Action.QUIT)
+    )
+
+    # when the player says the Attack is with a bow, and types the bow's -1
+    play(game, interface)
+
+    # then Good Shot is not asked about, and both bonuses count
+    assert [request.about.source for request in asked(interface, Topic.TAG)] == ["skill.bow"]
+    (rolled,) = told(interface, RolledVsL)
+    assert rolled.modifiers == (
+        Modifier("skill.bow", 1),
+        Modifier("skill.good_shot", 1),
+        Modifier(None, -1),
+    )
+    assert rolled.total == 3
+
+
+def test_agile_set_aside_by_dodge_is_told(content):
+    game = skilled_game(content, "skill.agile", "skill.dodge", faces=[3])
+    game.character.skills["skill.dodge"] = SkillLevel.EXPERT
+    interface = ScriptedInterface(
+        on_the_street(Manual.ROLL, RollType.DEFENSE, 5, 0, Book.DONE, Action.QUIT)
+    )
+
+    play(game, interface)
+
+    (rolled,) = told(interface, RolledVsL)
+    assert rolled.modifiers == (Modifier("skill.dodge", 2),)
+    assert rolled.set_aside == (Modifier("skill.agile", 1),)
 
 
 def test_the_player_marks_the_box_as_a_safe_house(content):
@@ -406,7 +506,7 @@ def test_search_is_a_free_action_until_the_box_is_searched(content):
     assert game.campaign.map.boxes[HOME].searched
     # and nothing found leads nowhere: no book mode
     assert told(interface, Searched) == [
-        Searched(face=3, modifier=0, rolled=Rolled("table.search", (3,), "table.search.2-5"))
+        Searched(face=3, modifiers=(), rolled=Rolled("table.search", (3,), "table.search.2-5"))
     ]
     assert asked(interface, Topic.BOOK) == []
 
@@ -449,7 +549,9 @@ def test_a_natural_1_on_the_search_stays_1(content):
         "table.unique_vampires",
     ]
     assert told(interface, Searched)[0] == Searched(
-        face=1, modifier=2, rolled=Rolled("table.search", (1,), "table.search.1")
+        face=1,
+        modifiers=(Modifier(None, 2),),
+        rolled=Rolled("table.search", (1,), "table.search.1"),
     )
 
 
@@ -521,11 +623,16 @@ def test_the_search_table_leads_as_its_text_says():
     ],
 )
 def test_a_roll_vs_l(content, face, level, modifier, success):
-    game = Game(dice=ScriptedDice([face]), content=content)
+    game = new_game(content, face)
 
-    rolled = game.roll_vs(level, modifier)
+    rolled = game.roll_vs(level, RollType.SAVE, modifier=modifier)
 
-    assert rolled == RolledVsL(level, modifier, face, face + modifier, success)
+    assert (rolled.face, rolled.modifier, rolled.total, rolled.success) == (
+        face,
+        modifier,
+        face + modifier,
+        success,
+    )
 
 
 # --- Typed answers ---------------------------------------------------------------------------

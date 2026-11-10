@@ -14,6 +14,9 @@ from typing import NamedTuple
 
 from ..content import CatalogueEvent, CatalogueTable, Content
 from ..dice import Dice, DiceCode
+from ..effect_targets import Parameter, RollType, Tag, with_implied
+from . import effects
+from .effects import Held, Modifier, RollModifiers
 from .state import (
     Box,
     Campaign,
@@ -35,7 +38,17 @@ from .state import (
 from .town import boxes_of, neighbours, sheet_neighbours, sheet_of
 
 FOOD_INTERVAL = 5
-"""One Food every this many box numbers (Skills that change it come with E9)."""
+"""One Food every this many box numbers; the Food interval's base (the upkeep reads the
+parameter with E8)."""
+CARRY_LIMIT = 10
+"""Items carried, before the backpack and Strong (E9)."""
+
+PARAMETER_BASES = {Parameter.CARRY_LIMIT: CARRY_LIMIT, Parameter.FOOD_INTERVAL: FOOD_INTERVAL}
+"""The bases written in the rules; max Life and Sanity are the character's, the surprise chance
+and the Clue cost the text's."""
+PARAMETER_FLOORS = {Parameter.SURPRISE_CHANCE: 0, Parameter.CLUE_COST: 1}
+"""Danger Sense leaves a 1 in 6 creature no chance; Investigator reduces a Clue cost "to a
+minimum of 1" (`1_2_skills.md`)."""
 
 PLACE_TABLES = frozenset(
     {
@@ -89,23 +102,36 @@ class Rolled:
 
 @dataclass(frozen=True)
 class RolledVsL:
-    """A roll vs L: the die, the modifier, the total and whether it made the L. A natural 1
-    always fails and a natural 6 always succeeds."""
+    """A roll vs L: its type and tags, the die, the modifiers applied (each with its source)
+    and the ones set aside, the total and whether it made the L. A natural 1 always fails and
+    a natural 6 always succeeds."""
 
     level: int
-    modifier: int
+    roll: RollType
+    tags: frozenset[Tag]
     face: int
+    modifiers: tuple[Modifier, ...]
+    set_aside: tuple[Modifier, ...]
     total: int
     success: bool
+
+    @property
+    def modifier(self) -> int:
+        return sum(m.amount for m in self.modifiers)
 
 
 @dataclass(frozen=True)
 class Searched:
-    """A Search roll: the die, the modifier and the Search table rolled with their result."""
+    """A Search roll: the die, the modifiers (Investigator, the text's) and the Search table
+    rolled with their result."""
 
     face: int
-    modifier: int
+    modifiers: tuple[Modifier, ...]
     rolled: Rolled
+
+    @property
+    def modifier(self) -> int:
+        return sum(m.amount for m in self.modifiers)
 
 
 class Purchase(NamedTuple):
@@ -166,8 +192,9 @@ class Game:
         skills: Iterable[str] = (),
     ) -> Character:
         """A new character, who continues the campaign; the last one is forgotten. Their
-        starting Life and Sanity are the base of the max; their Skills are at Basic, and none
-        is Arcane (creation, `1_1_main_rules.md`)."""
+        starting Life and Sanity are the base of the max, and they start at the max: Tough and
+        Strong Grip on Reality raise both. Their Skills are at Basic, and none is Arcane
+        (creation, `1_1_main_rules.md`)."""
         skills = list(skills)
         for skill_id in skills:
             if skill_id not in self.content.skills:
@@ -182,25 +209,57 @@ class Game:
             skills=dict.fromkeys(skills, SkillLevel.BASIC),
             items=[*items],
         )
+        character = self.campaign.character
+        character.life, character.sanity = self.max(Stat.LIFE), self.max(Stat.SANITY)
         log.info(
             "new character %r: Life %d, Sanity %d, Food %d, Skills %s",
             name,
-            life,
-            sanity,
+            character.life,
+            character.sanity,
             food,
             ", ".join(skills) or "none",
         )
         return self.campaign.character
 
     def max(self, stat: Stat) -> int | None:
-        """The max of Life or Sanity: the base until the effects that raise it (E7). None
-        for the numbers with no max (the Food limit comes with E9)."""
+        """The max of Life or Sanity: the base plus the effects held (Tough, Strong Grip on
+        Reality). None for the numbers with no max (the Food limit comes with E9)."""
         match stat:
             case Stat.LIFE:
-                return self.character.base_life
+                return self.parameter(Parameter.MAX_LIFE)
             case Stat.SANITY:
-                return self.character.base_sanity
+                return self.parameter(Parameter.MAX_SANITY)
         return None
+
+    # --- Effects ------------------------------------------------------------------------------
+
+    def effects(self) -> tuple[Held, ...]:
+        """Every effect in play, read from its source: the character's Skills (E7)."""
+        return effects.held(self.character, self.content)
+
+    def parameter(self, parameter: Parameter, base: int | None = None) -> int:
+        """A parameter's value: its base plus the effects held, never below its floor. The
+        surprise chance and the Clue cost take their base from the text or the creature."""
+        if base is None:
+            match parameter:
+                case Parameter.MAX_LIFE:
+                    base = self.character.base_life
+                case Parameter.MAX_SANITY:
+                    base = self.character.base_sanity
+                case _:
+                    base = PARAMETER_BASES.get(parameter)
+        if base is None:
+            raise GameError(f"{parameter} needs a base: the text or the creature gives it")
+        value = base + effects.parameter_change(self.effects(), parameter)
+        return max(value, PARAMETER_FLOORS.get(parameter, value))
+
+    def roll_modifiers(self, roll: RollType, tags: frozenset[Tag] = frozenset()) -> RollModifiers:
+        """The modifiers a roll of this type and tags collects from the effects held."""
+        return effects.roll_modifiers(self.effects(), roll, with_implied(tags))
+
+    def depending_on_tags(self, roll: RollType) -> tuple[Held, ...]:
+        """The effects held on this roll type that apply only to some tags."""
+        return effects.depending_on_tags(self.effects(), roll)
 
     def gain(self, stat: Stat, amount: int) -> int:
         """Add to one of the character's numbers, never above its max; returns the new
@@ -224,18 +283,29 @@ class Game:
 
     # --- Rolls -----------------------------------------------------------------------------
 
-    def roll_vs(self, level: int, modifier: int = 0) -> RolledVsL:
-        """Roll d6 + modifier vs L: made on L or more; a natural 1 always fails and a natural 6
-        always succeeds (design/rulings.md, Combat). The modifier is the text's until the
-        Skills and items give theirs (E7)."""
+    def roll_vs(
+        self,
+        level: int,
+        roll: RollType,
+        tags: frozenset[Tag] = frozenset(),
+        modifier: int = 0,
+    ) -> RolledVsL:
+        """Roll d6 vs L with the modifiers of the effects held that match the roll's type and
+        tags, plus the text's `modifier`: made on L or more; a natural 1 always fails and a
+        natural 6 always succeeds (design/rulings.md, Combat)."""
+        tags = with_implied(tags)
+        collected = self.roll_modifiers(roll, tags)
+        modifiers = collected.applied + ((Modifier(None, modifier),) if modifier else ())
         face = D6.roll(self.dice).total
-        total = face + modifier
+        total = face + sum(m.amount for m in modifiers)
         success = face != 1 and (face == 6 or total >= level)
-        rolled = RolledVsL(level, modifier, face, total, success)
+        rolled = RolledVsL(level, roll, tags, face, modifiers, collected.set_aside, total, success)
         log.info(
-            "roll vs L%d at %+d: %d, total %d, %s",
+            "%s vs L%d%s at %+d: %d, total %d, %s",
+            roll,
             level,
-            modifier,
+            f" ({', '.join(sorted(tags))})" if tags else "",
+            rolled.modifier,
             face,
             total,
             "success" if success else "failure",
@@ -259,11 +329,17 @@ class Game:
 
     def buy(self, purchase: Purchase) -> None:
         """Spend XP on a Skill, at any moment (`1_1_main_rules.md`, Experience). Its effects
-        stay text until E7."""
+        apply at once: a max it raises raises the current value by as much (Tough: "both
+        your maximum number of Life points and your current number of Life points are
+        increased"), it does not heal."""
         if purchase not in self.purchases():
             raise GameError(f"cannot buy {purchase}")
+        before = {stat: self.max(stat) for stat in (Stat.LIFE, Stat.SANITY)}
         self.character.xp -= purchase.cost
         self.character.skills[purchase.skill_id] = purchase.level
+        for stat, top in before.items():
+            if (raised := self.max(stat) - top) > 0:
+                self._set(stat, getattr(self.character, stat) + raised, f"gains {raised} max")
         log.info(
             "character buys %s at %s for %d XP, %d left",
             purchase.skill_id,
@@ -421,11 +497,15 @@ class Game:
         return not box.searched and Mark.SAFE_HOUSE not in box.marks
 
     def search(self, modifier: int = 0) -> Searched:
-        """Search the box: d6 + modifier on the Search table, a natural 1 stays 1, the result
-        kept on the table. The box is Searched and the entry recorded."""
+        """Search the box: d6 plus the Search modifiers held (Investigator) and the text's
+        `modifier` on the Search table, a natural 1 stays 1, the result kept on the table. The
+        box is Searched and the entry recorded."""
         if not self.may_search():
             raise GameError(f"box {tuple(self._position())} cannot be Searched")
         table = self.content.table(SEARCH_TABLE)
+        modifiers = self.roll_modifiers(RollType.SEARCH).applied
+        modifiers += (Modifier(None, modifier),) if modifier else ()
+        modifier = sum(m.amount for m in modifiers)
         face = D6.roll(self.dice).total
         results = DiceCode.parse(table.dice).results()
         result = face if face == 1 else max(results[0], min(results[-1], face + modifier))
@@ -433,7 +513,7 @@ class Game:
         self.mark_searched(self._position())
         self._record_everywhere(Happened.PLAYED, entry.id)
         log.info("search at %+d: %d, result %d: %s", modifier, face, result, entry.id)
-        return Searched(face, modifier, Rolled(SEARCH_TABLE, (result,), entry.id))
+        return Searched(face, modifiers, Rolled(SEARCH_TABLE, (result,), entry.id))
 
     # --- Tables and events ------------------------------------------------------------
 

@@ -9,12 +9,14 @@ from typing import Any
 import yaml
 
 from ..dice import DiceCode, DiceError
+from ..effect_targets import Parameter, RollType, Tag
 from .model import (
     CatalogueEvent,
     CatalogueTable,
     Content,
     ContentError,
     Count,
+    Effect,
     Entry,
     Gear,
     Roll,
@@ -34,7 +36,8 @@ _CATALOGUE_EVENT_KEYS = {"id", "name", "source"}
 _WEAPONS_KEYS = {"name", "source", "weapons"}
 _WEAPON_KEYS = {"id", "name", "text", "variants"}
 _VARIANT_KEYS = {"id", "name", "extra"}
-_SKILL_KEYS = {"id", "name", "xp", "text", "expert", "starting_gear"}
+_SKILL_KEYS = {"id", "name", "xp", "text", "expert", "starting_gear", "effects"}
+_EFFECT_KEYS = {"roll", "tags", "parameter", "group", "basic", "expert"}
 _GEAR_KEYS = {"id", "count", "uses"}
 _ARCANE_KEYS = _SKILL_KEYS | {"components", "sacrifice"}
 _SKILL_LISTS = {
@@ -205,9 +208,57 @@ def _skills(raw: dict, path: Path, key: str) -> list[Skill]:
                 components=item.get("components"),
                 sacrifice=item.get("sacrifice"),
                 starting_gear=tuple(_gear(gear, what) for gear in item.get("starting_gear") or []),
+                effects=tuple(
+                    _effect(effect, what, "expert" in item) for effect in item.get("effects") or []
+                ),
             )
         )
     return skills
+
+
+def _effect(raw: Any, what: str, has_expert: bool) -> Effect:
+    """A Skill's effect: a roll (type, tags, group) or a parameter, and its amounts. Every
+    name is checked against `effect_targets`, so a misspelt one fails here."""
+    what = f"{what} effect"
+    _check_keys(raw, _EFFECT_KEYS, {"basic"}, what)
+    if ("roll" in raw) == ("parameter" in raw):
+        raise ContentError(f"{what}: an effect changes a roll or a parameter, got {raw}")
+    if "roll" not in raw:
+        for key in ("tags", "group"):
+            if key in raw:
+                raise ContentError(
+                    f"{what}: {'tags need' if key == 'tags' else 'a group needs'} a roll"
+                )
+    if has_expert != ("expert" in raw):
+        if has_expert:
+            raise ContentError(
+                f"{what}: the Skill has an Expert line: its effects need an expert amount"
+            )
+        raise ContentError(
+            f"{what}: the Skill has no Expert line: its effects have no expert amount"
+        )
+    for key in ("basic", "expert"):
+        if key in raw and (not isinstance(raw[key], int) or isinstance(raw[key], bool)):
+            raise ContentError(f"{what}: an amount is a whole number, got {raw[key]!r}")
+    return Effect(
+        basic=raw["basic"],
+        expert=raw.get("expert"),
+        roll=None if "roll" not in raw else _named(RollType, raw["roll"], "roll type", what),
+        tags=frozenset(_named(Tag, tag, "tag", what) for tag in raw.get("tags") or []),
+        parameter=(
+            None
+            if "parameter" not in raw
+            else _named(Parameter, raw["parameter"], "parameter", what)
+        ),
+        group=raw.get("group"),
+    )
+
+
+def _named[E: (RollType, Tag, Parameter)](kind: type[E], raw: Any, called: str, what: str) -> E:
+    try:
+        return kind(raw)
+    except ValueError:
+        raise ContentError(f"{what}: unknown {called} {raw!r}") from None
 
 
 def _gear(raw: Any, what: str) -> Gear:

@@ -12,7 +12,7 @@ Errors of the book's own text that the YAML batches kept as printed, because the
 | R3 | Weapon summary, Kitchen knife/ritual dagger | a colon after the heading | a full stop, like the others |
 | R3 | Weapon summary, Pitchfork | "Two handed, Damage 1." | a full stop, like the others |
 | R3 | Random Weapon 2 | no final full stop | |
-| R2 | Will, Expert line | "saves vs. Fear, Magic or Psionics" (the Basic line also lists Hypnotism) | Hypnotism left out by mistake, or on purpose |
+| R2 | Will, Expert line | "saves vs. Fear, Magic or Psionics" (the Basic line also lists Hypnotism) | Hypnotism left out by mistake: Expert covers it too ([ruling](../design/rulings.md#character), E7) |
 | R2 | Gate, how to learn | "Read the Occult Guide and the Occultist Skill at Expert level" | a word is missing: "and have the Occultist Skill" (as in the Summon Servitor list) |
 | R2 | Gate | "the energies of the hell gate course through you" | "Hell Gate", as everywhere else in the entry |
 | R2 | Summon Servitor | "You can try again as many times you want" | a word is missing: "as many times as you want" |
