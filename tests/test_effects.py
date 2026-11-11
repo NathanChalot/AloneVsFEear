@@ -285,7 +285,7 @@ def test_dodge_loses_balance_on_a_natural_1():
     pass
 
 
-@pytest.mark.skip(reason="E18: Faith turns vampires like Exorcism, at +1 at Expert")
+@pytest.mark.skip(reason="E12: Faith turns vampires like Exorcism, at +1 at Expert")
 def test_faith_turns_vampires_with_a_holy_symbol():
     pass
 

@@ -197,7 +197,7 @@ def test_every_skill_has_an_expert_line_and_no_ritual_fields():
 
 
 def test_every_skill_but_faith_and_medic_has_effects():
-    # Faith and Medic only grant actions: Python, with E18 and E11 (E7)
+    # Faith and Medic only grant actions: Python, with E12 and E11 (E7)
     without = [s.id for s in CONTENT.skills.values() if not s.effects]
     assert without == ["skill.faith", "skill.medic"]
 

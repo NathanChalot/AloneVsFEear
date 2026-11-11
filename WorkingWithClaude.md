@@ -32,11 +32,11 @@ Rough sizes, for sessions of about 1.5 hours, to get an idea of the work left. N
 | R1 (YAML layout, IDs, first tables) | 1 |
 | Engine skeleton E1–E5 | 5 (E5 in two sessions) |
 | YAML batches R2–R7 | 5–6, can run in parallel |
-| Step 1, E6–E17 | 12 or more (E8, E10 and E12 are the big ones) |
+| Step 1, E6–E18 | 13 or more (E8, E10 and E12 are the big ones) |
 | Drills and feedback (T1, T2) | 2 |
 | Playtests P1, P2 | 2 |
 | Consistency reviews V1–V4 | 4 |
-| Step 2, E18–E20 | 3–4 |
+| Step 2, E19–E20 | 2–3 |
 
 ## Which model for which session
 

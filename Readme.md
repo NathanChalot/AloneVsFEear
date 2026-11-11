@@ -8,12 +8,12 @@ The rules text is from a commercial book: keep this repository private. The orig
 
 ## Status
 
-MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables (R1), the Skills and harm tables (R2), the weapons and items (R3) are in. The engine has started: dice (E1), the game state (E2), the town map with moves and time (E3), the engine/interface protocol with the game loop (E4), book mode (E5a, E5b), the character with its creation (E6), the Skills' effects on rolls and max values (E7), moments with lasting effects and the Food clock (E8), drills with feedback written while playing (T1), and creation screens that say what each step asks (T2, from the first drill's feedback): a player creates a character, then walks the town in the terminal, every box's entry shown as text and applied with manual actions, until death or quitting, and may spend XP on Skills at any time ([how to play](#how-to-play)). Short drills try one feature in a break (`--drill`), and `#` at any prompt writes feedback. Next: a planning session that moves books and learning Arcane Skills into Step 1, then E9 (inventory, with its drill), then the first consistency review (V1); Step 1 goes on with the YAML batches it needs.
+MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables (R1), the Skills and harm tables (R2), the weapons and items (R3) are in. The engine has started: dice (E1), the game state (E2), the town map with moves and time (E3), the engine/interface protocol with the game loop (E4), book mode (E5a, E5b), the character with its creation (E6), the Skills' effects on rolls and max values (E7), moments with lasting effects and the Food clock (E8), drills with feedback written while playing (T1), and creation screens that say what each step asks (T2, from the first drill's feedback): a player creates a character, then walks the town in the terminal, every box's entry shown as text and applied with manual actions, until death or quitting, and may spend XP on Skills at any time ([how to play](#how-to-play)). Short drills try one feature in a break (`--drill`), and `#` at any prompt writes feedback. Next: E9 (inventory, with its drill), then the first consistency review (V1), then books and learning Arcane Skills (E18, moved into Step 1 by the planning session after T2, with the Random Book table, R7a); Step 1 goes on with the YAML batches it needs.
 
 **MVP goal:** play a whole campaign in the terminal, in two steps ([MVP scope](design/mvp-scope.md)):
 
-1. **Bring Home the Bacon** — one complete mission: create a character, explore the town box by box, resolve encounters, search, manage inventory, Food and health, and end back Home with the Food, dead or insane.
-2. **Close a Hell Gate** — Arcane Skills, books, and missions played one after another until 7 Hell Gates are closed. The game state is shaped as a campaign from the start: the map, the box counter, Food and Clues carry on across missions (see [game flow](design/game-flow.md)).
+1. **Bring Home the Bacon** — one complete mission: create a character, explore the town box by box, resolve encounters, search, manage inventory, Food and health, read books and learn Arcane Skills, and end back Home with the Food, dead or insane.
+2. **Close a Hell Gate** — closing Hell Gates, and missions played one after another until 7 Hell Gates are closed. The game state is shaped as a campaign from the start: the map, the box counter, Food and Clues carry on across missions (see [game flow](design/game-flow.md)).
 
 The engine follows the whole design, but only a thin slice of content is written. Everything else goes through **book mode**: the engine shows the entry's text and the player applies it with manual actions.
 
@@ -76,7 +76,7 @@ Work happens in small, planned sessions with Claude. The upcoming sessions are l
 - **Moments** (E8): the loop announces each moment (a box of time so far): its reactions run, then the lasting effects counting it go down. Reactions take the interface, so they can ask the player. Lasting effects are the only stored effects; the player can add one by hand. See [effects](design/effects.md) and [architecture](docs/architecture.md).
 - **Playtesting** (E8 session): drills, short scoped runs played in a break (T1 on, one per task), and playtest sessions P1 and P2 before V3 and V4.
 - **Screen text** (T2): the terminal's own wording (headings, explanations, prompts) is YAML in `interface/screens/`, apart from the rules text in `content/` and never in the same folder as Python files; keys like `creation.points.heading`. It may repeat the rules' words. Creation, book mode and the roll line use it; the other terminal strings move there in V1. See [architecture](docs/architecture.md).
-- **Drills before a session** (T2): not part of `/start` and never a blocker. At wrap-up, NextSession says which drills to play before the next session, chosen from the features it builds on ([Working with Claude](WorkingWithClaude.md#playtesting)).
+- **Drills before a session** (T2): not part of `/start` and never a blocker. At wrap-up, NextSession says which drills to play before the next session, chosen from the features it builds on ([Working with Claude](WorkingWithClaude.md#playtesting)). The roadmap does not track when a drill was played: each task's Done when names its drill, and the log of the session that triages its notes says what became of them (planning session after T2).
 - **Effects** (E7): a Skill's effects are a YAML field (a roll modifier by roll type and tags, or a change to a parameter such as max Life, at Basic and Expert), checked against the names of `effect_targets.py`; what a Skill does beyond a number is Python keyed by its ID. Effects are not stored: they are read from what the character holds, so removing a source removes its effects. See [rules text in YAML](docs/content.md#effects) and [rolls](design/rolls.md).
 - **Rules text in YAML** (part of D1): every table, entry, creature, item, event and Skill gets a stable ID and its text in YAML; behaviour stays in Python, keyed by the same ID. The Markdown in `gameRules/` stays as the readable copy, fixed together with the YAML. Files, IDs (`table.town_exploration.7`, `mission.bring_home_the_bacon`) and the shape of a table: [rules text in YAML](docs/content.md).
 
@@ -162,8 +162,13 @@ The 42 numbered events.
 - Fixes: body text parsed as headings in `6_unique_events.md`.
 - Depends on: R1.
 
-#### [ ] R7 — The rest
-Random Books, Random Magic Items, Rewards, Side Missions.
+#### [ ] R7a — Random Books
+The Random Book table, ahead of E18 (split from R7 in the planning session after T2).
+- Fixes: row 12, cut in two by the OCR.
+- Depends on: R1.
+
+#### [ ] R7b — The rest
+Random Magic Items, Rewards, Side Missions.
 - Fixes: Random Magic Items (missing roll numbers).
 - Depends on: R1.
 
@@ -248,7 +253,7 @@ Life and Sanity with current and max values; the 22 Skills at Basic and Expert; 
 Roll types and context tags; roll vs L with natural 1 and 6; effects with source, holder, kind and lifetime; a roll collects matching modifiers from every holder, with stacking limits; max values calculated from effects. Every Skill written as effects. Manual rolls in book mode now get their modifiers.
 - Design: [rolls](design/rolls.md), [effects](design/effects.md), [character](design/character.md)
 - Decided: effects in the YAML, derived from what the character holds (see Decisions); `effect_targets.py` names roll types, tags and parameters; Bow and Martial Arts are bonuses on bow and unarmed Attacks, the weapon keeping its own malus; a roll made by hand asks a yes or no only for the Skills whose bonus depends on its tags. Rulings: an Expert amount replaces the Basic one, Agile and Dodge give the higher bonus (the other shown set aside), Will covers every Will roll and saves vs Fear, Magic, Hypnotism and Psionics, at Expert too ([rulings](design/rulings.md#character)).
-- Done when: every Skill's effect is tested. Met: the numbers of 20 Skills; Dodge's balance, Faith and Medic are pending tests for E12, E18 and E11.
+- Done when: every Skill's effect is tested. Met: the numbers of 20 Skills; Dodge's balance and Faith are pending tests for E12 (Faith moved from E18 in the planning session after T2), Medic for E11.
 - Depends on: E6.
 
 #### [x] E8 — Moments and reactions
@@ -285,6 +290,15 @@ A fresh session reads the project cold and checks that what is built agrees with
 - Done when: every finding is fixed, turned into an entry, or dropped by the user.
 - Depends on: E9.
 
+#### [ ] E18 — Books and Arcane Skills
+Moved into Step 1 in the planning session after T2: books and Arcane Skills are core to the game (the ID is kept, so it sits out of numeric order). The Random Book table, rolled where a result calls it (Random Objects 45 and 61 at creation, a roll in book mode); each book an item, found once per game (a book already found gives the next or previous one). Reading takes d3 boxes of time without moving, which advance the clock; a book you begin the game with is already read. A manual action records a book read, for the books that book-mode results give. Learning the 11 Arcane Skills: offered with the other purchases once a prerequisite is met (a book read, a Skill at a level, a Sanity cost) and paid in XP, Expert where they have one. Their effects, and what a book does besides teaching, stay in book mode until written. Gate is learned from its books here; its Clue path and its closing roll come with E19.
+- Rules: [arcane skills](gameRules/1_3_arcane_skills.md), [random books](gameRules/tables/5_32_random_books_table.md), [random objects](gameRules/tables/2_1_random_object_tables.md) (45 and 61)
+- Design: [character](design/character.md#xp-and-skills), [MVP scope](design/mvp-scope.md#step-1-bring-home-the-bacon), [rulings](design/rulings.md#effects) (a box of time without moving)
+- Also: add Douglas Harrison's book read (Computer printout of "They Are Among Us") to his pregenerated sheet in `content/characters/pregenerated.yaml`, left out in T1 for want of books (the YAML comment says so).
+- Open: whether an Arcane Skill can be learned any time after the book is read, or only while reading (Random Objects 45 and the Exorcism book point both ways); whether a book takes an item slot (the encumbrance summary is silent); Healing names the Holy Book, which does not list it; a Sanity cost before E13 is a plain loss, E13 then adds the Mental Scar offer.
+- Done when: every Arcane Skill can be learned through each of its book prerequisites, with tests; the `books` drill exists.
+- Depends on: V1, R7a.
+
 #### [ ] E10 — Tables and result scripts
 Results as scripts of steps: encounter, chain, choice, gate, gain or loss, effect, box mark, movement; forced and shifted results; limits and fallbacks read the history; timed steps hooked to moments; an unwritten entry goes to book mode. Town Exploration, Random Encounter and Search written.
 - Also: move the die ranges written in Python into the YAML (D1): the leads of `leads.py` (for example Town Exploration's "on a 1-5 … on a 6") and the samurai sword of Random Objects 54, authentic or replica (`PICKED_BY_DIE` in `engine/creation.py`). Left from E6, so a "roll a die to pick a result" field is shaped once, for every table.
@@ -305,7 +319,7 @@ The full arrival flow: new box, visited box, left-behind encounters. An encounte
 Creature profiles, groups and members; surprise; rounds; Attack with exploding sixes and hits = total ÷ L; Defense with fumbles; weapon modifiers, Damage and specials on the natural die; ammo; automatic Damage (vulnerabilities, grenade); XP and loot; end-of-combat reactions. Effects scoped to one attack, round or combat; several reactions on one moment (helpful first, then the player picks). The stats of every creature and every weapon written; special rules stay text, with manual actions open during the fight (creature Life up or down). The "fight a creature" manual action.
 - Rules: [combat](gameRules/3_combat.md), [monster rules](gameRules/4_monster_rules.md), [weapons](gameRules/1_4_weapons.md), [weapon summary](gameRules/8_weapon_summary_table.md), [creatures](gameRules/tables/creatures/)
 - Design: [combat](design/combat.md)
-- Since E7: the surprise chance is `Parameter.SURPRISE_CHANCE` (Danger Sense); weapons bring their own modifiers (-1 unskilled bow, -2 unarmed: Bow and Martial Arts are bonuses on top); Dodge's balance on a natural 1 is a pending test. Open: does Dodge's balance need Dodge's bonus to be the one used? If so, the Agile or Dodge choice could become the player's ([ruling](design/rulings.md#character)).
+- Since E7: the surprise chance is `Parameter.SURPRISE_CHANCE` (Danger Sense); weapons bring their own modifiers (-1 unskilled bow, -2 unarmed: Bow and Martial Arts are bonuses on top); Dodge's balance on a natural 1 and Faith turning vampires like Exorcism (+1 at Expert) are pending tests. Open: does Dodge's balance need Dodge's bonus to be the one used? If so, the Agile or Dodge choice could become the player's ([ruling](design/rulings.md#character)).
 - Done when: a fight against any creature can be played, with a test on the book's worked example; the `fight` drill exists.
 - Depends on: E11, R4.
 
@@ -363,22 +377,12 @@ A fresh session reads the project cold and checks that what is built agrees with
 
 ### Milestone 7 — Step 2: Close a Hell Gate
 
-#### [ ] E18 — Arcane Skills and books
-Learning Arcane Skills works for all 11 (prerequisites: a book read, a Skill, Clues spent in a Hell Gate box; XP cost); Gate written, the other effects in book mode. The Random Books table; reading takes d3 boxes of time, which advances the clock without entering a box; each book once per game.
-- Rules: [arcane skills](gameRules/1_3_arcane_skills.md), [random books](gameRules/tables/5_32_random_books_table.md)
-- Design: [character](design/character.md#xp-and-skills), [rulings](design/rulings.md#effects)
-- Also: Faith turns vampires like Exorcism (pending test since E7).
-- To move into Step 1 (T2 session: books and Arcane Skills are core, and books are items already): the Random Books table, reading and learning Arcane Skills, split from E18; Gate (and closing Hell Gates) stays in Step 2. A planning session after T2 rewrites the entries.
-- Also: add Douglas Harrison's book read (Computer printout of "They Are Among Us") to his pregenerated sheet in `content/characters/pregenerated.yaml`, left out in T1 for want of books read (the YAML comment says so).
-- Done when: Gate can be learned through each of its prerequisites, with tests.
-- Depends on: E17, R7.
-
 #### [ ] E19 — Close a Hell Gate
-The mission: a Hell Gate after 12+d6 new boxes and another in the 30th box if none was found. Hell Gates as box marks, also from table results (manual action: mark a Hell Gate). The closing roll; Hell Gates can be closed during any mission.
+The mission: a Hell Gate after 12+d6 new boxes and another in the 30th box if none was found. Hell Gates as box marks, also from table results (manual action: mark a Hell Gate). The closing roll (Gate); Hell Gates can be closed during any mission. Gate's last path: the Occultist Skill and 5 Clues spent in a box with a Hell Gate (the rest of learning Arcane Skills is in E18).
 - Rules: [missions table](gameRules/tables/5_3_missions_table.md), [arcane skills](gameRules/1_3_arcane_skills.md) (Gate)
 - Open: Will or Magic roll to close ([MVP scope](design/mvp-scope.md#to-decide-when-step-2-starts)).
 - Done when: a Hell Gate can be found and closed, with tests.
-- Depends on: E18.
+- Depends on: E17.
 
 #### [ ] E20 — Campaign play
 Missions one after another: rewards, Life and Sanity back to max, reroll the same mission; abort at a Safe House; a new character after death or insanity continues the campaign without the previous one's Food, Clues and stash; won when the 7th Hell Gate is closed.

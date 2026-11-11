@@ -6,8 +6,8 @@ What the first versions of the game contain, and what happens with the rest of t
 
 The MVP is done when **a whole campaign can be played** in the terminal. It comes in two steps:
 
-1. **First playable: Bring Home the Bacon.** One mission from character creation to the end: back Home with the Food, dead, or insane.
-2. **Campaign playable: Close a Hell Gate.** Arcane Skills, books, and missions played one after another until 7 Hell Gates are closed.
+1. **First playable: Bring Home the Bacon.** One mission from character creation to the end: back Home with the Food, dead, or insane. Books can be read and Arcane Skills learned.
+2. **Campaign playable: Close a Hell Gate.** Hell Gates closed with Gate, and missions played one after another until 7 Hell Gates are closed.
 
 The aim is a working version as fast as possible that stays easy to extend.
 
@@ -71,6 +71,7 @@ From the design, as far as this step's content needs:
 - Effects and moments: holders, kinds, lifetimes, reactions ([effects](effects.md)).
 - Character: Life, Sanity, the 22 non-Arcane Skills (Basic and Expert), **spending XP at any time**, Food, Clues, Injuries and Mental Scars, death and insanity ([character](character.md)).
 - Inventory: hands, carry and Food limits, backpack, ammo, discarding, stash ([inventory](inventory.md)).
+- Books and Arcane Skills: the Random Books table, reading takes d3 boxes of time, each book once per game; learning works for all 11 Arcane Skills (prerequisites, XP cost). Gate's other path (5 Clues in a Hell Gate box) comes with step 2. Moved from step 2 in the planning session after T2: books and Arcane Skills are core to the game.
 - Character creation: 2 Skills, 3 points, random weapon and knife, Random Object and Useful Stuff, d6 Food.
 - Town map, moves, box numbers, Food every 5 boxes ([town map](town-map.md)).
 - Arriving in a box, encounters and their life, left-behind encounters, Search and Clues ([game flow](game-flow.md), [encounters](encounters.md)).
@@ -90,17 +91,17 @@ From the design, as far as this step's content needs:
 | Places | Street, Store, Farm (the mission's places) | the other 11 place tables, Special Events |
 | Creatures | the stats of every creature in the 12 creature tables | special rules, until written |
 | Creation | Random Weapon table, weapons from the weapon summary, Random Objects, Useful Stuff | item uses that need a mechanism not in this step |
-| Skills | the 22 non-Arcane Skills | |
+| Skills | the 22 non-Arcane Skills; learning the 11 Arcane Skills | Arcane Skill effects, until written |
+| Books | Random Books table, reading, the Arcane Skills a book teaches | a book's other effects, until written |
 | Harm | Injury and Insanity tables | |
-| Everything else | | events, side missions, rewards, books, magic items, Children's Stuff |
+| Everything else | | events, side missions, rewards, magic items, Children's Stuff |
 
 Every Skill is written: almost all are roll modifiers, stat modifiers or rule parameters, cheap once effects exist.
 
 ## Step 2: Close a Hell Gate
 
 - **Close a Hell Gate mission**: a Hell Gate after 12+d6 new boxes and another in the 30th box if none was found, the closing roll, Hell Gates closable during any mission.
-- **Arcane Skills**: learning works for all 11 (prerequisites, XP cost). **Gate** is written; the other 10 can be learned and their effects use book mode until written.
-- **Books**: the Random Books table, reading takes d3 boxes of time, each book once per game. Reading and the Arcane Skills it unlocks are written; other book effects use book mode until written.
+- **Gate**: written (the closing roll), and learned through its last path too: the Occultist Skill and 5 Clues spent in a box with a Hell Gate. Books and learning the other Arcane Skills come with step 1.
 - **Campaign play**: missions one after another (rewards, Life and Sanity back to max, reroll the same mission), abort at a Safe House, a new character after death or insanity continues the campaign without the previous one's Food, Clues and stash, the campaign is won when the 7th Hell Gate is closed ([game flow](game-flow.md)).
 - With two missions written, "reroll if same as last one" makes them alternate.
 
@@ -117,7 +118,7 @@ Every Skill is written: almost all are roll modifiers, stat modifiers or rule pa
 - **Switchable rule options.** The MVP plays the default [rulings](rulings.md).
 - **Optional rules** and random Skill generation.
 - **The forest side map of #41**: its size, entry and exit are decided when #41 is written. The model already holds side maps ([town map](town-map.md)).
-- **All other content** (place tables, events, side missions, rewards, magic items, books, Arcane Skill effects) can be written at any time, each piece replacing part of book mode.
+- **All other content** (place tables, events, side missions, rewards, magic items, book effects, Arcane Skill effects) can be written at any time, each piece replacing part of book mode.
 
 ## Decide when implementing
 
