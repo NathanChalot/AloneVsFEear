@@ -8,10 +8,12 @@ How the work sessions run, and recommendations for them: how many to expect, whi
 2. GitHub issues only for user stories and bugs, and only when needed; the PR then says `Closes #N`. An engine task with no user story gets no issue: the Readme entry is the task.
 3. Work on a dedicated branch; one PR per session. Create the branch in the main checkout; use a worktree only when another session runs at the same time (see [Parallel sessions](#parallel-sessions)). During the session, Claude never commits or pushes without explicit permission.
 4. **Drift check** (a few minutes, decided in the E7 session): search the repository for the names, numbers and behaviours the session changed ("until E7", an old signature, "the max is the base") and fix every stale mention; write, move or drop this task's pending tests and "decide when implementing" items; remove the NextSession reminders it resolved. Anything noticed outside the session's scope is not fixed: one line under "For the next review" in NextSession.
-5. End by updating the Readme (checkboxes, decisions, How to play when what a player can do changes), `NextSession.md` (remove the done session, adjust the plan, review the next session's model and effort in light of this one) and, if the code structure changed, [`docs/architecture.md`](docs/architecture.md).
+5. End by updating the Readme (checkboxes, decisions, How to play when what a player can do changes), `NextSession.md` (remove the done session, adjust the plan, review the next session's model and effort in light of this one, say which drills to play before it) and, if the code structure changed, [`docs/architecture.md`](docs/architecture.md).
 6. Claude writes the session log in `claude-logs/YYYYMMDDHHmm-session-name.md`.
-7. The user exports the transcript with `/export claude-logs/transcripts/YYYYMMDDHHmm-session-name.txt` (same name as the log).
+7. The user exports the transcript with `/export claude-logs/transcripts/YYYYMMDDHHmm-session-name.txt` (same name as the log). Only the user can type `/export`, and it sends Claude no message: Claude waits for the file in the background and goes on once it appears, so the user need not say "done".
 8. Claude commits the session, pushes the branch and opens the PR (the log names the branch, which is enough to find the PR). This end-of-session commit and push is agreed once and for all, so the next session starts clean.
+
+Steps 4 to 8 are `/wrap-up` (`.claude/skills/wrap-up/SKILL.md`, decided in the T2 session).
 
 ## How we develop
 
@@ -31,7 +33,7 @@ Rough sizes, for sessions of about 1.5 hours, to get an idea of the work left. N
 | Engine skeleton E1–E5 | 5 (E5 in two sessions) |
 | YAML batches R2–R7 | 5–6, can run in parallel |
 | Step 1, E6–E17 | 12 or more (E8, E10 and E12 are the big ones) |
-| Drills and feedback (T1) | 1 |
+| Drills and feedback (T1, T2) | 2 |
 | Playtests P1, P2 | 2 |
 | Consistency reviews V1–V4 | 4 |
 | Step 2, E18–E20 | 3–4 |
@@ -47,7 +49,7 @@ Rough sizes, for sessions of about 1.5 hours, to get an idea of the work left. N
 | Step-back review: an adversarial review of the whole project, findings only | Project review (after E4) | Opus, high effort |
 | Consistency review: what is built agrees with itself, findings then small fixes | V1–V4 | Opus, high effort |
 | Playtest: the user's play logs and notes checked against the rules, findings then small fixes | P1, P2 | Opus, high effort |
-| Drills and feedback | T1 | Opus, medium effort (the user's choice in the E8 session: Sonnet's lower cost is a default, not a rule) |
+| Drills and feedback | T1, T2 | Opus, medium effort (the user's choice in the E8 session: Sonnet's lower cost is a default, not a rule) |
 | Routine setup | Project setup and GitHub planning | Sonnet (it posts to GitHub, so not Haiku) |
 | Small chores | renames, housekeeping | Haiku; never for rules text, where a misreading costs more than it saves |
 
@@ -77,6 +79,8 @@ at a time. Small fixes in this session, one commit per kind; bigger ones become 
 Decided in the E8 session: the user tries the game early and often, in short scoped runs, so feedback comes while a feature is fresh, not only at the end.
 
 - **Drills** (from T1): `alone-against-fear --drill NAME` sets up a start through the engine (a pregenerated character, a situation) and stops at a natural end, 5 to 15 minutes: something to play in a break. No rule changes, except the `quick` run of E17 (Bring Home the Bacon for d6+2 Food), a campaign option marked as not the book's rules. Each task from T1 on adds its drill to its Done-when.
+- **Drills before a session** (decided in the T2 session): a feature should have been tried before the next one builds on it. At wrap-up, Claude writes in NextSession which drills to play before the next session, chosen from the features that session builds on, and leaves out a drill whose content is not copied yet (`walk` before the town tables). Not part of `/start`, and never a blocker: the session starts whether they were played or not.
+- **Drill feedback can make its own session** (T2): when a drill's notes ask for more than wording (here, creation screens), the fixes become a T task, discussed one note at a time.
 - **Feedback** is written while playing: `#` and a note at any prompt (T1). It goes to [`feedback/feedback.md`](feedback/feedback.md), kept in the repository, with the date, drill, seed and box number, so the moment can be found in the log. It is triaged at the next consistency review (V1 to V4) or playtest, one finding at a time like the review findings.
 - **Playtests** (P1 after E17, P2 after E20): the user plays the drills and a full game; the session reads the logs and notes, sorts the findings (bug, rule misread, ruling to revisit, screen and wording, rules-text typo, missing feature) and triages them. They come before V3 and V4, which start from what they found.
 
