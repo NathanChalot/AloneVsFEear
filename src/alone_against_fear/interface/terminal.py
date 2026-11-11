@@ -26,6 +26,12 @@ Rolls and effects (E7): a roll vs L asks which roll (numbered), the L, then a ye
 `n`) for each Skill whose bonus depends on what the roll is about, then the text's modifier.
 The result names each modifier, and a bonus that does not stack with a higher one is shown set
 aside: "Defense vs L5: rolled 3, Dodge +2 (Agile +1 does not stack), total 5. Success."
+
+Moments and lasting effects (E8): a meal ("You eat 1 Food") and an effect that ends ("Ended: -1
+on all rolls.") are told after the arrival. The status line shows the next meal, with the
+Injuries, Mental Scars and lasting effects under it ("-1 on all rolls (ends at box 14)"). `f`
+adds a lasting effect (all rolls or one roll type, numbered; the modifier; the boxes, Enter for
+until removed), `u` removes one.
 """
 
 from __future__ import annotations
@@ -59,6 +65,8 @@ from ..engine.protocol import (
     EventPlayed,
     FoodUpkeep,
     ItemTaken,
+    LastingAdded,
+    LastingRemoved,
     LeadRolled,
     Marked,
     NoteRemoved,
@@ -95,6 +103,8 @@ KEYS = {
     Manual.GAIN: ("g", "gain"),
     Manual.LOSE: ("l", "lose"),
     Manual.ROLL: ("v", "roll vs L"),
+    Manual.ADD_LASTING: ("f", "add a lasting effect"),
+    Manual.REMOVE_LASTING: ("u", "remove a lasting effect"),
     Manual.WRITE_NOTE: ("w", "write a note"),
     Manual.REMOVE_NOTE: ("x", "remove a note"),
     Manual.SAFE_HOUSE: ("h", "mark a Safe House"),
@@ -147,7 +157,10 @@ NUMBER_PROMPTS = {
     Topic.AMOUNT: "How much? ",
     Topic.LEVEL: "L? ",
     Topic.MODIFIER: "Modifier (Enter for none): ",
+    Topic.BOXES: "For the next how many boxes? (Enter: until removed) ",
 }
+ENTER_IS_0 = frozenset({Topic.MODIFIER, Topic.BOXES})
+"""Numbers where Enter alone means 0: no modifier, until removed."""
 RULES_KEY = "r"
 
 SIDES = {(0, -1): "above", (-1, 0): "left of", (1, 0): "right of", (0, 1): "below"}
@@ -205,6 +218,14 @@ class TerminalInterface:
                 return self._menu(options, "What do you do? ")
             case Topic.APPLY:
                 return self._menu(options, "Which effect? ")
+            case Topic.TARGET:
+                labels = ["All rolls", *(_roll(o) for o in options[1:])]
+                self._output("  ".join(f"{n}) {label}" for n, label in _numbered(labels)))
+                return self._read(_by_number(options), f"On which rolls? [1-{len(options)}] ")
+            case Topic.LASTING:
+                for n, lasting in _numbered(options):
+                    self._output(f"{n}) {self._lasting_with_end(lasting)}")
+                return self._read(_by_number(options), f"Which one? [1-{len(options)}] ")
             case Topic.NOTES:
                 for n, note in _numbered(options):
                     self._output(f"{n}) {_note(note)}")
@@ -259,6 +280,10 @@ class TerminalInterface:
                 self._output(f"No Food: you lose 1 Life (Life {self.game.character.life}).")
             case EffectEnded(lasting=lasting):
                 self._output(f"Ended: {self._lasting(lasting)}.")
+            case LastingAdded(lasting=lasting):
+                self._output(f"Lasting effect: {self._lasting_with_end(lasting)}.")
+            case LastingRemoved(lasting=lasting):
+                self._output(f"Removed: {self._lasting(lasting)}.")
             case Rolled():
                 self._show_rolled(event)
             case LeadRolled(face=face, ref=ref):
@@ -327,7 +352,7 @@ class TerminalInterface:
                 number = int(line) if line else 0
             except ValueError:
                 number = None
-            if number is not None and (line or request.topic is Topic.MODIFIER):
+            if number is not None and (line or request.topic in ENTER_IS_0):
                 if request.fits(number):
                     return number
             self._output(f"Type a whole number{_bounds(request)}.")
@@ -412,6 +437,12 @@ class TerminalInterface:
         if lasting.source == PLAYER:
             return what
         return f"{self._source(lasting.source)}: {what}"
+
+    def _lasting_with_end(self, lasting: Lasting) -> str:
+        """A lasting effect, then when it ends: "-1 on all rolls (ends at box 14)"."""
+        ends_at = self.game.ends_at(lasting)
+        end = "until removed" if ends_at is None else f"ends at box {ends_at}"
+        return f"{self._lasting(lasting)} ({end})"
 
     def _vs_l(self, rolled: RolledVsL) -> str:
         result = "Success." if rolled.success else "Failure."
@@ -507,13 +538,14 @@ class TerminalInterface:
     # --- Showing ----------------------------------------------------------------------------
 
     def _status(self) -> str:
-        """The status line, then the Skills, Injuries, Mental Scars and items, if any."""
+        """The status line, then the Skills, Injuries, Mental Scars, items and lasting
+        effects, if any."""
         game, c = self.game, self.game.character
         name = f"{c.name} · " if c.name else ""
         lines = [
             f"{name}Box {game.campaign.box_counter} · "
             f"Life {c.life}/{game.max(Stat.LIFE)} · Sanity {c.sanity}/{game.max(Stat.SANITY)} · "
-            f"Food {c.food} · XP {c.xp} · Clues {c.clues}"
+            f"Food {c.food}{self._next_meal()} · XP {c.xp} · Clues {c.clues}"
         ]
         if c.skills:
             skills = (
@@ -526,7 +558,15 @@ class TerminalInterface:
                 lines.append(f"{label}: {', '.join(self._source(id_) for id_ in held)}")
         if c.items:
             lines.append(f"Items: {', '.join(self._item(item) for item in c.items)}")
+        if c.lasting:
+            lasting = ", ".join(self._lasting_with_end(lasting) for lasting in c.lasting)
+            lines.append(f"Lasting effects: {lasting}")
         return "\n".join(lines)
+
+    def _next_meal(self) -> str:
+        """When the next meal comes, once the interval can change (E8): " (next meal: box
+        10)". On its own, so it is easy to drop."""
+        return f" (next meal: box {self.game.next_meal()})"
 
     def _notes(self) -> str:
         notes = "  ".join(

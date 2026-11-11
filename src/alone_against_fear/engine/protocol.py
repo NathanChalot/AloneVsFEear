@@ -54,7 +54,15 @@ class Topic(StrEnum):
     LEVEL = "level"
     """The L of a roll, from the text (a `Number`)."""
     MODIFIER = "modifier"
-    """The modifier the text gives a roll or a Search, 0 if none (a `Number`)."""
+    """The modifier the text gives a roll, a Search or a lasting effect, 0 if none (a
+    `Number`)."""
+    TARGET = "target"
+    """What a lasting effect added by hand changes: every roll (`manual.ALL_ROLLS`) or one
+    `effect_targets.RollType` (E8)."""
+    BOXES = "boxes"
+    """For how many boxes a lasting effect holds, 0 for until removed (a `Number`)."""
+    LASTING = "lasting"
+    """Which lasting effect to remove."""
     NOTE = "note"
     """The text of a note to write (a `Text`)."""
     NOTES = "notes"
@@ -155,6 +163,20 @@ class EffectEnded:
 
 
 @dataclass(frozen=True)
+class LastingAdded:
+    """The player added a lasting effect by hand (E8)."""
+
+    lasting: Lasting
+
+
+@dataclass(frozen=True)
+class LastingRemoved:
+    """The player removed a lasting effect by hand."""
+
+    lasting: Lasting
+
+
+@dataclass(frozen=True)
 class Wandering:
     """The 1 in 6 chance of a Random Encounter in a visited box: the die, and whether it came."""
 
@@ -238,6 +260,8 @@ type Event = (
     Arrival
     | FoodUpkeep
     | EffectEnded
+    | LastingAdded
+    | LastingRemoved
     | Rolled
     | Wandering
     | LeadRolled
