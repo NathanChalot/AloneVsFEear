@@ -1,0 +1,748 @@
+ ▐▛███▛█   Claude Code v2.1.322
+▝▜██████▀  Opus 5.5 · Claude Pro
+ ▝▝   ▝▝   ~/Code/RPGs/AloneVsFEear
+
+
+❯ /start                                                                        
+
+  Searched for 1 pattern, read 1 file, ran 3 shell commands (ctrl+o to expand)
+
+⏺ Reading done; now checking the planning template and running the tests.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Where we are
+  You can create a character, then walk the town in the terminal. Each box shows
+  its entry as text and you apply it with manual actions (book mode), and you
+  can spend XP on Skills at any time. Short drills let you try one feature in a
+  break, and # writes feedback while you play. The last session (T2) made the
+  creation screens readable: each step has a heading and an explanation, and the
+  finished character is shown as a list.
+
+  This session: Planning — books and Arcane Skills into Step 1
+  - Goal: books and learning Arcane Skills come earlier. We split E18: the
+    Random Books table, reading and learning Arcane Skills go into Step 1, and
+    Gate (with closing Hell Gates) stays in Step 2. R7's Random Books moves
+    ahead of it, and the new task gets its place in Step 1's order. It doesn't
+    need to wait for E9, because books are already items. We also settle whether
+    the roadmap shows the drills (T2's idea: each task notes when its drill was
+    played).
+  - Done when: the Readme's roadmap entries are rewritten (the new Step 1 task,
+    a smaller E18, R7 split or reordered, dependencies), and NextSession's plan
+    matches.
+
+  How it will go
+  1. A planning session with no code. I propose the split, with options where
+     there's a real choice: where the new task goes in Step 1 and what it
+     depends on (Clues come with E11, XP is already there); whether R7 splits;
+     what the books task's drill is. You decide each one.
+  2. Then the drills question, with options.
+  3. One or two commits (roadmap, then NextSession), then /wrap-up.
+
+  Before we start
+  - Model: Opus, medium effort is planned. I run on Opus 5.5, so that matches.
+    Check the effort level on your side.
+  - Checks: main is clean apart from your note, up to date with origin, and T2's
+    PR #26 is merged. 898 tests pass and 10 are skipped.
+  - Uncommitted note: feedback/feedback.md holds your xp drill note from
+    2026-11-12 00:02 ("Will becomes Expert: 6 XP spent" vs "Spent 6 XP to
+    upgrade Will to Expert"). It will come along on the branch. My suggestion:
+    we look at it briefly here, since the plan said this session could start
+    from the xp drill, or we leave it for V1.
+  - Reminder that touches this session: Douglas Harrison's book read waits for
+    E18, so it moves with the books part.
+
+  Say go and I'll create the branch.
+
+✻ Baked for 33s · done 0:03
+
+❯ go                                                                            
+
+  Ran 5 shell commands (ctrl+o to expand)
+
+⏺ Still planning, nothing written yet. I've read the Arcane Skills, the Random
+  Books table and where books appear in the YAML. Checking one pending test,
+  then I'll bring you the options.
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Books are only half items so far: Random Objects 45 and 61 point to the Random
+  Book table without giving an item, so I'm making each book an item (12 books,
+  plus the printout as a variant), and I'm weighing your four decisions on
+  learning Arcane Skills next. · summary
+
+⏺ User answered Claude's questions:
+  ⎿  · How should E18 be split? (Books and learning Arcane Skills move to Step 
+     1; Gate's Clue path and its closing roll stay in Step 2.) → E18 moves, rest
+     into E19 (Recommended)
+     · Where should the books task go in Step 1? → After V1, before E10 
+     (Recommended)
+     · How should the Random Book table get into the YAML ahead of the task? → 
+     Split R7: R7a / R7b (Recommended)
+     · Should the roadmap show the drills (T2's idea: each task notes when its 
+     drill was played)? → No change (Recommended)
+
+⏺ Faith is one of the 22 ordinary Skills that Step 1 writes, so the pending test
+  doesn't need to wait for E18; I'll draft the entries with that in mind. 
+  · summary
+
+⏺ User answered Claude's questions:
+  ⎿  · The pending Faith test (Faith turns vampires like Exorcism, +1 at Expert)
+     waited for E18. With E18 now about books and learning, which task should 
+     it wait for? → E12 Combat (Recommended)
+
+⏺ All decided. Now the edits: the Readme, design/mvp-scope.md, NextSession,
+  WorkingWithClaude, plus the Faith test's skip reason. First, every place that
+  mentions E18, E19 or R7:
+
+  Searched for 2 patterns, ran 2 shell commands (ctrl+o to expand)
+
+⏺ Now the edits. The MVP scope first:
+
+⏺ Bash(python3 - <<'EOF'
+      import re…)
+  ⎿   design/mvp-scope.md  | 15 ++++++++-------
+      feedback/feedback.md |  8 ++++++++
+      2 files changed, 16 insertions(+), 7 deletions(-)
+  ⎿  Updated design/mvp-scope.md (+8 -7)
+       6  
+       7  The MVP is done when **a whole campaign can be played** in the 
+          terminal. It comes in two steps:
+       8  
+       9 -1. **First playable: Bring Home the Bacon.** One mission from c
+         -haracter creation to the end: back Home with the Food, dead, or
+         - insane.                                                       
+      10 -2. **Campaign playable: Close a Hell Gate.** Arcane Skills, boo
+         -ks, and missions played one after another until 7 Hell Gates ar
+         -e closed.                                                      
+       9 +1. **First playable: Bring Home the Bacon.** One mission from c
+         +haracter creation to the end: back Home with the Food, dead, or
+         + insane. Books can be read and Arcane Skills learned.          
+      10 +2. **Campaign playable: Close a Hell Gate.** Hell Gates closed 
+         +with Gate, and missions played one after another until 7 Hell G
+         +ates are closed.                                               
+      11  
+      12  The aim is a working version as fast as possible that stays eas
+          y to extend.
+      13  
+     ...
+      71  - Effects and moments: holders, kinds, lifetimes, reactions ([e
+          ffects](effects.md)).
+      72  - Character: Life, Sanity, the 22 non-Arcane Skills (Basic and 
+          Expert), **spending XP at any time**, Food, Clues, Injuries and
+           Mental Scars, death and insanity ([character](character.md)).
+      73  - Inventory: hands, carry and Food limits, backpack, ammo, disc
+          arding, stash ([inventory](inventory.md)).
+      74 +- Books and Arcane Skills: the Random Books table, reading take
+         +s d3 boxes of time, each book once per game; learning works for
+         + all 11 Arcane Skills (prerequisites, XP cost). Gate's other pa
+         +th (5 Clues in a Hell Gate box) comes with step 2. Moved from s
+         +tep 2 in the planning session after T2: books and Arcane Skills
+         + are core to the game.                                         
+      75  - Character creation: 2 Skills, 3 points, random weapon and kni
+          fe, Random Object and Useful Stuff, d6 Food.
+      76  - Town map, moves, box numbers, Food every 5 boxes ([town map](
+          town-map.md)).
+      77  - Arriving in a box, encounters and their life, left-behind enc
+          ounters, Search and Clues ([game flow](game-flow.md), [encounte
+          rs](encounters.md)).
+     ...
+       91  | Places | Street, Store, Farm (the mission's places) | the ot
+           her 11 place tables, Special Events |
+       92  | Creatures | the stats of every creature in the 12 creature t
+           ables | special rules, until written |
+       93  | Creation | Random Weapon table, weapons from the weapon summ
+           ary, Random Objects, Useful Stuff | item uses that need a mech
+           anism not in this step |
+       93 -| Skills | the 22 non-Arcane Skills | |                       
+       94 +| Skills | the 22 non-Arcane Skills; learning the 11 Arcane Sk
+          +ills | Arcane Skill effects, until written |                  
+       95 +| Books | Random Books table, reading, the Arcane Skills a boo
+          +k teaches | a book's other effects, until written |           
+       96  | Harm | Injury and Insanity tables | |
+       95 -| Everything else | | events, side missions, rewards, books, m
+          -agic items, Children's Stuff |                                
+       97 +| Everything else | | events, side missions, rewards, magic it
+          +ems, Children's Stuff |                                       
+       98  
+       99  Every Skill is written: almost all are roll modifiers, stat mo
+           difiers or rule parameters, cheap once effects exist.
+      100  
+      101  ## Step 2: Close a Hell Gate
+      102  
+      103  - **Close a Hell Gate mission**: a Hell Gate after 12+d6 new b
+           oxes and another in the 30th box if none was found, the closin
+           g roll, Hell Gates closable during any mission.
+      102 -- **Arcane Skills**: learning works for all 11 (prerequisites,
+          - XP cost). **Gate** is written; the other 10 can be learned an
+          -d their effects use book mode until written.                  
+      103 -- **Books**: the Random Books table, reading takes d3 boxes of
+          - time, each book once per game. Reading and the Arcane Skills 
+          -it unlocks are written; other book effects use book mode until
+          - written.                                                     
+      104 +- **Gate**: written (the closing roll), and learned through it
+          +s last path too: the Occultist Skill and 5 Clues spent in a bo
+          +x with a Hell Gate. Books and learning the other Arcane Skills
+          + come with step 1.                                            
+      105  - **Campaign play**: missions one after another (rewards, Life
+            and Sanity back to max, reroll the same mission), abort at a 
+           Safe House, a new character after death or insanity continues 
+           the campaign without the previous one's Food, Clues and stash,
+            the campaign is won when the 7th Hell Gate is closed ([game f
+           low](game-flow.md)).
+      106  - With two missions written, "reroll if same as last one" make
+           s them alternate.
+      107  
+     ...
+      118  - **Switchable rule options.** The MVP plays the default [ruli
+           ngs](rulings.md).
+      119  - **Optional rules** and random Skill generation.
+     … 6 more lines (ctrl+o to expand)
+
+⏺ Now the Readme roadmap:
+
+⏺ Bash(python3 - <<'EOF'
+      p='Readme.md'…)
+  ⎿  6:371:- Depends on: E17.
+     8:378:### Milestone 7 — Step 2: Close a Hell Gate
+     12:385:- Depends on: E17.
+     14:392:- Depends on: E19.
+  ⎿  Updated Readme.md (+23 -19)
+       8  
+       9  ## Status
+      10  
+      11 -MVP phase. Rules extraction and domain design ([`design/`](desi
+         -gn/)) are done. The rules text is being copied into YAML: the f
+         -ormat and the four exploration tables (R1), the Skills and harm
+         - tables (R2), the weapons and items (R3) are in. The engine has
+         - started: dice (E1), the game state (E2), the town map with mov
+         -es and time (E3), the engine/interface protocol with the game l
+         -oop (E4), book mode (E5a, E5b), the character with its creation
+         - (E6), the Skills' effects on rolls and max values (E7), moment
+         -s with lasting effects and the Food clock (E8), drills with fee
+         -dback written while playing (T1), and creation screens that say
+         - what each step asks (T2, from the first drill's feedback): a p
+         -layer creates a character, then walks the town in the terminal,
+         - every box's entry shown as text and applied with manual action
+         -s, until death or quitting, and may spend XP on Skills at any t
+         -ime ([how to play](#how-to-play)). Short drills try one feature
+         - in a break (`--drill`), and `#` at any prompt writes feedback.
+         - Next: a planning session that moves books and learning Arcane 
+         -Skills into Step 1, then E9 (inventory, with its drill), then t
+         -he first consistency review (V1); Step 1 goes on with the YAML 
+         -batches it needs.                                              
+      11 +MVP phase. Rules extraction and domain design ([`design/`](desi
+         +gn/)) are done. The rules text is being copied into YAML: the f
+         +ormat and the four exploration tables (R1), the Skills and harm
+         + tables (R2), the weapons and items (R3) are in. The engine has
+         + started: dice (E1), the game state (E2), the town map with mov
+         +es and time (E3), the engine/interface protocol with the game l
+         +oop (E4), book mode (E5a, E5b), the character with its creation
+         + (E6), the Skills' effects on rolls and max values (E7), moment
+         +s with lasting effects and the Food clock (E8), drills with fee
+         +dback written while playing (T1), and creation screens that say
+         + what each step asks (T2, from the first drill's feedback): a p
+         +layer creates a character, then walks the town in the terminal,
+         + every box's entry shown as text and applied with manual action
+         +s, until death or quitting, and may spend XP on Skills at any t
+         +ime ([how to play](#how-to-play)). Short drills try one feature
+         + in a break (`--drill`), and `#` at any prompt writes feedback.
+         + Next: E9 (inventory, with its drill), then the first consisten
+         +cy review (V1), then books and learning Arcane Skills (E18, mov
+         +ed into Step 1 by the planning session after T2, with the Rando
+         +m Book table, R7a); Step 1 goes on with the YAML batches it nee
+         +ds.                                                            
+      12  
+      13  **MVP goal:** play a whole campaign in the terminal, in two ste
+          ps ([MVP scope](design/mvp-scope.md)):
+      14  
+      15 -1. **Bring Home the Bacon** — one complete mission: create a ch
+         -aracter, explore the town box by box, resolve encounters, searc
+         -h, manage inventory, Food and health, and end back Home with th
+         -e Food, dead or insane.                                        
+      16 -2. **Close a Hell Gate** — Arcane Skills, books, and missions p
+         -layed one after another until 7 Hell Gates are closed. The game
+         - state is shaped as a campaign from the start: the map, the box
+         - counter, Food and Clues carry on across missions (see [game fl
+         -ow](design/game-flow.md)).                                     
+      15 +1. **Bring Home the Bacon** — one complete mission: create a ch
+         +aracter, explore the town box by box, resolve encounters, searc
+         +h, manage inventory, Food and health, read books and learn Arca
+         +ne Skills, and end back Home with the Food, dead or insane.    
+      16 +2. **Close a Hell Gate** — closing Hell Gates, and missions pla
+         +yed one after another until 7 Hell Gates are closed. The game s
+         +tate is shaped as a campaign from the start: the map, the box c
+         +ounter, Food and Clues carry on across missions (see [game flow
+         +](design/game-flow.md)).                                       
+      17  
+      18  The engine follows the whole design, but only a thin slice of c
+          ontent is written. Everything else goes through **book mode**: 
+          the engine shows the entry's text and the player applies it wit
+          h manual actions.
+      19  
+     ...
+      162  - Fixes: body text parsed as headings in `6_unique_events.md`.
+      163  - Depends on: R1.
+      164  
+      165 -#### [ ] R7 — The rest                                        
+      166 -Random Books, Random Magic Items, Rewards, Side Missions.     
+      165 +#### [ ] R7a — Random Books                                   
+      166 +The Random Book table, ahead of E18 (split from R7 in the plan
+          +ning session after T2).                                       
+      167 +- Fixes: row 12, cut in two by the OCR.                       
+      168 +- Depends on: R1.                                             
+      169 +                                                              
+      170 +#### [ ] R7b — The rest                                       
+      171 +Random Magic Items, Rewards, Side Missions.                   
+      172  - Fixes: Random Magic Items (missing roll numbers).
+      173  - Depends on: R1.
+      174  
+     ...
+      253  Roll types and context tags; roll vs L with natural 1 and 6; e
+           ffects with source, holder, kind and lifetime; a roll collects
+            matching modifiers from every holder, with stacking limits; m
+           ax values calculated from effects. Every Skill written as effe
+           cts. Manual rolls in book mode now get their modifiers.
+      254  - Design: [rolls](design/rolls.md), [effects](design/effects.m
+           d), [character](design/character.md)
+      255  - Decided: effects in the YAML, derived from what the characte
+           r holds (see Decisions); `effect_targets.py` names roll types,
+            tags and parameters; Bow and Martial Arts are bonuses on bow 
+           and unarmed Attacks, the weapon keeping its own malus; a roll 
+           made by hand asks a yes or no only for the Skills whose bonus 
+           depends on its tags. Rulings: an Expert amount replaces the Ba
+           sic one, Agile and Dodge give the higher bonus (the other show
+           n set aside), Will covers every Will roll and saves vs Fear, M
+           agic, Hypnotism and Psionics, at Expert too ([rulings](design/
+           rulings.md#character)).
+      251 -- Done when: every Skill's effect is tested. Met: the numbers 
+          -of 20 Skills; Dodge's balance, Faith and Medic are pending tes
+          -ts for E12, E18 and E11.                                      
+      256 +- Done when: every Skill's effect is tested. Met: the numbers 
+          +of 20 Skills; Dodge's balance and Faith are pending tests for 
+          +E12 (Faith moved from E18 in the planning session after T2), M
+          +edic for E11.                                                 
+      257  - Depends on: E6.
+      258  
+      259  #### [x] E8 — Moments and reactions
+     ...
+      290  - Done when: every finding is fixed, turned into an entry, or 
+           dropped by the user.
+      291  - Depends on: E9.
+     … 45 more lines (ctrl+o to expand)
+
+⏺ Now NextSession, WorkingWithClaude, the catalogue comment and the Faith test's
+  skip reason:
+
+⏺ Bash(python3 - <<'EOF'
+      def edit(p, rep):…)
+  ⎿  ## Drills to play before the next session
+
+     - `xp` (5 minutes): buying a Skill with XP, which learning Arcane Skil
+     … +25 lines (ctrl+o to expand)
+  ⎿  Updated NextSession.md (+7 -8)
+       5  ## Reminders
+       6  
+       7  - E10 also moves the die ranges written in Python into the YAML
+           (D1): the leads of `leads.py` and the samurai sword of Random 
+          Objects 54 (`PICKED_BY_DIE` in `engine/creation.py`). See the R
+          eadme's E10.
+       8 -- Merge the T2 PR (`t2-creation-screens`) before the planning s
+         -ession.                                                        
+       9 -- Since E7, Skills give their numbers through `effects` in the 
+         -YAML and `engine/effects.py`; later tasks plug in the parameter
+         -s they read (E9 the carry limit, E12 the surprise chance) and t
+         -he pending tests in `tests/test_effects.py` (Dodge's balance E1
+         -2, Faith E18, Medic E11).                                      
+       8 +- Since E7, Skills give their numbers through `effects` in the 
+         +YAML and `engine/effects.py`; later tasks plug in the parameter
+         +s they read (E9 the carry limit, E12 the surprise chance) and t
+         +he pending tests in `tests/test_effects.py` (Dodge's balance an
+         +d Faith E12, Medic E11).                                       
+       9  - **Literal blocks for R3's texts** (a small PR, Sonnet, any ti
+          me): R2 keeps a text of several paragraphs or a list as a liter
+          al block (`|-`, a blank line between paragraphs, one list item 
+          per line), which the user prefers on screen. R3's mission text 
+          and any other folded text with several paragraphs move to the s
+          ame, without changing a word.
+      10  - [`gameRules/book_errors.md`](gameRules/book_errors.md) now al
+          so lists the typos a batch fixed and the text it reworded ("Fix
+          ed or reworded"), to check again in the review session.
+      11  - E4 dropped log replay (seed + answers played back through the
+           scripted interface): not needed for now. The seed and every an
+          swer are still logged, so it can be added when a bug needs it. 
+          P1 decides whether it needs it.
+     ...
+      15  - Reading the PDFs: this machine has no poppler (`pdftotext`, `
+          pdftoppm`). Install `pypdf` in a scratch venv to extract the eb
+          ook's text, and `pymupdf` to render a page as an image (T1 chec
+          ked the pregenerated sheets that way).
+      16  - **E9: an item's count has no unit on screen**: creation says 
+          `You take: Rifle (11).`, where 11 is bullets (uses, jars…). E9 
+          shows the inventory: give the count its unit (`Rifle, 11 bullet
+          s`), probably a unit per item in the YAML (noted in the T2 sess
+          ion).
+      17  - **Drills from E9 on**: each task adds its drill to `DRILLS` i
+          n `engine/drills.py` (a line saying what it tries, a setup thro
+          ugh the `Game` API that gives the stop condition) and a scenari
+          o in `tests/test_drills.py`; the pregenerated characters (`crea
+          tion.pregenerated`) are the usual start. E9's is `inventory`.
+      19 -- The pending tests (skipped, in `tests/test_manual_actions.py`
+         - and `tests/test_effects.py`) name the task they wait for: E11,
+         - E12, E13, E15, E18, after R3. Write their bodies when that tas
+         -k comes.                                                       
+      18 +- The pending tests (skipped, in `tests/test_manual_actions.py`
+         + and `tests/test_effects.py`) name the task they wait for: E11,
+         + E12, E13, E15, after R3. Write their bodies when that task com
+         +es.                                                            
+      19  
+      20  ## For the next review
+      21  
+     ...
+      40  
+      41  ## Plan
+      42  
+      44 -1. **Planning** — move books and learning Arcane Skills into St
+         -ep 1: split E18 (the Random Books table, reading, learning the 
+         -Arcane Skills; Gate and closing Hell Gates stay in Step 2), wit
+         -h R7's Random Books ahead of it, and place it in Step 1's order
+         - (books are items already: no E9 dependency). Also open: whethe
+         -r the roadmap shows the drills (T2 idea: each task notes when i
+         -ts drill was played).                                          
+      45 -   Model: **Opus, medium effort** (planning with the user, no c
+         -ode). T2 went smoothly on Opus: one note at a time, the code fo
+         -llowed.                                                        
+      46 -2. **E9** — inventory, with its `inventory` drill.             
+      43 +1. **E9** — inventory, with its `inventory` drill.             
+      44     Model: **Sonnet, high effort** (a clear spec in `design/inve
+          ntory.md`, but many limits that may need rulings; switch to Opu
+          s if a design question comes up).
+      48 -3. **V1** — the first consistency review (Opus, high effort), w
+         -hich also triages the drill feedback.                          
+      49 -4. **Step 1** goes on — E10 to E17 with V2 after E14, then P1 (
+         -the first playtest) and V3 after E17, one task per session, eac
+         -h with its drill, and the R batches done ahead of the task that
+         - needs them (R4 before E12, R5 before E16; R6 and R7 any time).
+         - The batches do not touch the engine and can run as background 
+         -agents of a coordinator session.                               
+      45 +2. **V1** — the first consistency review (Opus, high effort), w
+         +hich also triages the drill feedback (the `xp` drill's note amo
+         +ng them: the wording of a purchase).                           
+      46 +3. **R7a** — the Random Book table, ahead of E18. Model: **Sonn
+         +et, medium effort** (a copying batch of 12 entries; can run any
+         + time before E18, also as a background agent).                 
+      47 +4. **E18** — books and learning Arcane Skills, moved into Step 
+         +1 (the planning session after T2), with its `books` drill. Mode
+         +l: **Opus, high effort** (new engine parts, time without moving
+         + and prerequisites, and four open rule questions in its entry).
+      48 +5. **Step 1** goes on — E10 to E17 with V2 after E14, then P1 (
+         +the first playtest) and V3 after E17, one task per session, eac
+         +h with its drill, and the R batches done ahead of the task that
+         + needs them (R4 before E12, R5 before E16; R6 and R7b any time)
+         +. The batches do not touch the engine and can run as background
+         + agents of a coordinator session.                              
+      49     Model: per task, from the [model table](WorkingWithClaude.md
+          #which-model-for-which-session): Opus, high effort for E10 and 
+          E12, the reviews and the playtests; Sonnet for the others (E9 i
+          ncluded); Sonnet, medium effort for the copying agents, Opus fo
+          r R6 (events). E8 went smoothly at Opus, high effort: the time 
+          went to rulings with the user, the code followed the design; ke
+          ep E10 and E12 there.
+  ⎿  Updated WorkingWithClaude.md (+2 -2)
+      32  | R1 (YAML layout, IDs, first tables) | 1 |
+      33  | Engine skeleton E1–E5 | 5 (E5 in two sessions) |
+      34  | YAML batches R2–R7 | 5–6, can run in parallel |
+      35 -| Step 1, E6–E17 | 12 or more (E8, E10 and E12 are the big ones
+         -) |                                                            
+      35 +| Step 1, E6–E18 | 13 or more (E8, E10 and E12 are the big ones
+         +) |                                                            
+      36  | Drills and feedback (T1, T2) | 2 |
+      37  | Playtests P1, P2 | 2 |
+      38  | Consistency reviews V1–V4 | 4 |
+      39 -| Step 2, E18–E20 | 3–4 |                                      
+      39 +| Step 2, E19–E20 | 2–3 |                                      
+      40  
+      41  ## Which model for which session
+      42  
+  ⎿  Updated src/alone_against_fear/content/catalogue.yaml (+3 -1)
+      36  - {id: table.unique_vampires, name: Unique Vampires table, dice
+          : d6, source: gameRules/tables/creatures/5_30_unique_vampires_t
+          able.md}
+      37  - {id: table.unique_zombies, name: Unique Zombies table, dice: 
+          d6, source: gameRules/tables/creatures/5_31_unique_zombies_tabl
+          e.md}
+      38  
+      39 -# The rest (R7)                                                
+      39 +# Random Books (R7a)                                           
+      40  - {id: table.random_book, name: Random Book table, dice: 2d6, s
+          ource: gameRules/tables/5_32_random_books_table.md}
+      41 +                                                               
+      42 +# The rest (R7b)                                               
+      43  - {id: table.rewards, name: Rewards table, dice: d6, source: ga
+          meRules/tables/5_33_rewards_table.md}
+      44  - {id: table.side_mission, name: Side Mission table, dice: d6, 
+          source: gameRules/tables/5_34_side_missions_table.md}
+      45  - {id: table.random_magic_item, name: Random Magic Item table, 
+          dice: d6, source: gameRules/tables/5_35_random_magic_items_tabl
+          e.md}
+  ⎿  Updated tests/test_content_r2.py (+1 -1)
+      197  
+      198  
+      199  def test_every_skill_but_faith_and_medic_has_effects():
+      200 -    # Faith and Medic only grant actions: Python, with E18 and
+          - E11 (E7)                                                     
+      200 +    # Faith and Medic only grant actions: Python, with E12 and
+          + E11 (E7)                                                     
+      201      without = [s.id for s in CONTENT.skills.values() if not s.
+           effects]
+      202      assert without == ["skill.faith", "skill.medic"]
+      203  
+  ⎿  Updated tests/test_effects.py (+1 -1)
+      285      pass
+      286  
+      287  
+      288 -@pytest.mark.skip(reason="E18: Faith turns vampires like Exorc
+          -ism, at +1 at Expert")                                        
+      288 +@pytest.mark.skip(reason="E12: Faith turns vampires like Exorc
+          +ism, at +1 at Expert")                                        
+      289  def test_faith_turns_vampires_with_a_holy_symbol():
+      290      pass
+      291  
+
+⏺ Tests still pass (898, 10 skipped) and ruff is clean. One last line: I'm
+  recording the drills decision in the Readme so it isn't asked again.
+
+⏺ Bash(python3 - <<'EOF'
+      p='Readme.md'…)
+  ⎿   NextSession.md                                | 15 +++++----
+      Readme.md                                     | 44 +++++++++++++++---
+     ---------
+     … +7 lines (ctrl+o to expand)
+  ⎿  Updated Readme.md (+1 -1)
+      76  - **Moments** (E8): the loop announces each moment (a box of ti
+          me so far): its reactions run, then the lasting effects countin
+          g it go down. Reactions take the interface, so they can ask the
+           player. Lasting effects are the only stored effects; the playe
+          r can add one by hand. See [effects](design/effects.md) and [ar
+          chitecture](docs/architecture.md).
+      77  - **Playtesting** (E8 session): drills, short scoped runs playe
+          d in a break (T1 on, one per task), and playtest sessions P1 an
+          d P2 before V3 and V4.
+      78  - **Screen text** (T2): the terminal's own wording (headings, e
+          xplanations, prompts) is YAML in `interface/screens/`, apart fr
+          om the rules text in `content/` and never in the same folder as
+           Python files; keys like `creation.points.heading`. It may repe
+          at the rules' words. Creation, book mode and the roll line use 
+          it; the other terminal strings move there in V1. See [architect
+          ure](docs/architecture.md).
+      79 -- **Drills before a session** (T2): not part of `/start` and ne
+         -ver a blocker. At wrap-up, NextSession says which drills to pla
+         -y before the next session, chosen from the features it builds o
+         -n ([Working with Claude](WorkingWithClaude.md#playtesting)).   
+      79 +- **Drills before a session** (T2): not part of `/start` and ne
+         +ver a blocker. At wrap-up, NextSession says which drills to pla
+         +y before the next session, chosen from the features it builds o
+         +n ([Working with Claude](WorkingWithClaude.md#playtesting)). Th
+         +e roadmap does not track when a drill was played: each task's D
+         +one when names its drill, and the log of the session that triag
+         +es its notes says what became of them (planning session after T
+         +2).                                                            
+      80  - **Effects** (E7): a Skill's effects are a YAML field (a roll 
+          modifier by roll type and tags, or a change to a parameter such
+           as max Life, at Basic and Expert), checked against the names o
+          f `effect_targets.py`; what a Skill does beyond a number is Pyt
+          hon keyed by its ID. Effects are not stored: they are read from
+           what the character holds, so removing a source removes its eff
+          ects. See [rules text in YAML](docs/content.md#effects) and [ro
+          lls](design/rolls.md).
+      81  - **Rules text in YAML** (part of D1): every table, entry, crea
+          ture, item, event and Skill gets a stable ID and its text in YA
+          ML; behaviour stays in Python, keyed by the same ID. The Markdo
+          wn in `gameRules/` stays as the readable copy, fixed together w
+          ith the YAML. Files, IDs (`table.town_exploration.7`, `mission.
+          bring_home_the_bacon`) and the shape of a table: [rules text in
+           YAML](docs/content.md).
+      82  
+
+⏺ The plan is rewritten. Nothing is committed yet: here is what changed so you
+  can check it.
+
+  Roadmap (Readme.md)
+  - E18 — Books and Arcane Skills now sits in Step 1, between V1 and E10. It
+    keeps its ID, so it's out of numeric order.
+    - What it does: the Random Book table is rolled wherever a result calls it,
+      each book becomes an item found once per game, and reading takes d3 boxes
+      of time without moving. A book you start with counts as read. A manual
+      action records a book read for book-mode results. The 11 Arcane Skills are
+      offered with the other purchases once a prerequisite is met. Their
+      effects, and what a book does besides teaching, stay in book mode.
+      Douglas's printout comes along.
+    - Open (to settle when we implement it, with options for you):
+      - Can an Arcane Skill be learned at any time after reading, or only while
+        reading? Two passages point different ways.
+      - Does a book take an item slot?
+      - Healing names a book that doesn't list it.
+      - A Sanity cost before E13 is a plain loss.
+    - Done when: every Arcane Skill can be learned through each of its book
+      prerequisites, with tests, and the books drill exists.
+    - Depends on: V1 and R7a.
+  - R7 is split: R7a is the Random Book table, ahead of E18. R7b is Magic Items,
+    Rewards and Side Missions.
+  - E19 takes Gate's Clue path (Occultist plus 5 Clues in a Hell Gate box) next
+    to its closing roll. It now depends on E17.
+  - E12 takes the pending Faith test. The skip reason in tests/test_effects.py
+    and a comment in tests/test_content_r2.py change to match.
+  - The Status, the MVP goal and the drills decision are updated: the roadmap
+    doesn't track when a drill was played.
+
+  Other files
+  - design/mvp-scope.md: books and Arcane Skills move to Step 1, with two new
+    rows in the content table. Step 2 keeps Gate.
+  - NextSession.md: the plan is now E9, V1, R7a (Sonnet, medium effort), E18
+    (Opus, high effort, because of the four open questions), then the rest of
+    Step 1. The Faith reminders are updated and the "merge T2" reminder is
+    removed.
+  - WorkingWithClaude.md: the session counts change (Step 1 is E6–E18, Step 2 is
+    E19–E20).
+  - catalogue.yaml: its comments now say R7a and R7b.
+
+  Proposed commits
+  1. Feedback: xp drill note: your note in feedback/feedback.md.
+  2. Planning: books and Arcane Skills into Step 1: everything else.
+
+  Then /wrap-up for the log, NextSession's drills section (none needed before
+  E9, I think), the transcript, push and the PR.
+
+  Can I commit like this?
+
+✻ Worked for 3m 52s · done 0:16
+
+※ recap: We're moving books and learning Arcane Skills into Step 1 as E18, after V1. The roadmap and plan edits are done but not committed. Next: say yes to the two proposed commits, then we run /wrap-up. (disable recaps in /config)
+
+❯ yes, commit then /wrap-up                                                     
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Skill(wrap-up)  ⎿  Successfully loaded skill
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ The drift check is clean. The other places that mention Step 2 and R7 still
+  hold. Now NextSession's drills section, then the log.
+
+  Searched for 1 pattern, ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='NextSession.md'…)
+  ⎿   M NextSession.md
+     ?? claude-logs/202611120003-planning-books-arcane.md
+  ⎿  Updated NextSession.md (+1 -1)
+      35  
+      36  ## Drills to play before the next session
+      37  
+      38 -- `xp` (5 minutes): buying a Skill with XP, which learning Arca
+         -ne Skills extends; the planning session can start from what you
+         - notice.                                                       
+      38 +- None needed before E9. Optional: `creation` (5 minutes), to l
+         +ook at the items a character starts with, which E9's inventory 
+         +will show (with units for counts).                             
+      39  - Not `walk` for now: most town tables are not copied, so nearl
+          y every box ends in book mode (T2 feedback). It comes back once
+           the town tables are copied.
+      40  
+      41  ## Plan
+  ⎿  Created claude-logs/202611120003-planning-books-arcane.md (+41 -0)
+       1 +# Planning: books and Arcane Skills into Step 1                
+       2 +                                                               
+       3 +- Date: 2026-11-12                                             
+       4 +- Session ID: d89529ba-dc96-4c3b-96e4-76eff48a4f3b (`~/.claude/
+         +projects/-Users-nathanchalot-Code-RPGs-AloneVsFEear/`)         
+       5 +- Branch: `planning-books-arcane` (the PR is found from it)    
+       6 +- Model: Opus 5.5, medium effort                               
+       7 +- Transcript: [transcripts/202611120003-planning-books-arcane.t
+         +xt](transcripts/202611120003-planning-books-arcane.txt)        
+       8 +                                                               
+       9 +## Goal                                                        
+      10 +                                                               
+      11 +Move books and learning Arcane Skills into Step 1 (the T2 decis
+         +ion): split E18, put the Random Book table ahead of it, place i
+         +t in Step 1's order. Also settle whether the roadmap shows the 
+         +drills. Planning with the user, no code.                       
+      12 +                                                               
+      13 +Done when: the roadmap entries are rewritten and NextSession's 
+         +plan matches. Met.                                             
+      14 +                                                               
+      15 +## Done                                                        
+      16 +                                                               
+      17 +- **Read** the Arcane Skills rules, the Random Book table, Rand
+         +om Objects 45 and 61, and the pending tests that name E18. Foun
+         +d: books are only half items (the entries point to the Random B
+         +ook table but give no item yet); a book you start with is alrea
+         +dy read; Gate's last path (5 Clues in a Hell Gate box) needs He
+         +ll Gates; the pending Faith test is about Exorcism's effect.   
+      18 +- **Roadmap** (`Readme.md`): E18 "Books and Arcane Skills" move
+         +s into Step 1 between V1 and E10 (Random Book table, books as i
+         +tems found once per game, reading in d3 boxes of time, a book r
+         +ead by manual action, learning the 11 Arcane Skills through pur
+         +chases; effects in book mode; Douglas's printout; the `books` d
+         +rill), with its open questions listed. R7 split into R7a (Rando
+         +m Book table) and R7b. E19 takes Gate's Clue path and depends o
+         +n E17. E12 takes the Faith pending test. Status and MVP goal up
+         +dated.                                                         
+      19 +- **`design/mvp-scope.md`**: books and Arcane Skills in Step 1 
+         +(engine list and content table), Gate in Step 2.               
+      20 +- **NextSession**: plan E9, V1, R7a, E18, then the rest of Step
+         + 1; Faith reminders; the T2 merge reminder removed. **WorkingWi
+         +thClaude**: session counts. **`catalogue.yaml`**: R7a and R7b c
+         +omments. **Tests**: the Faith skip reason and a comment say E12
+         +. 898 pass, 10 skipped, ruff clean.                            
+      21 +- Commits: the `xp` drill note, then the planning changes.     
+      22 +                                                               
+      23 +## What became of each note                                    
+      24 +                                                               
+      25 +`xp` drill (2026-11-12 00:02): "Will becomes Expert: 6 XP spent
+         +" vs "Spent 6 XP to upgrade Will to Expert" → V1, which moves t
+         +he terminal's wording into `screens/`; E18's learning lines fol
+         +low the same pattern.                                          
+      26 +                                                               
+      27 +## Decisions                                                   
+      28 +                                                               
+      29 +- **E18 keeps its ID and moves into Step 1**; what is left of i
+         +t (Gate's Clue path) joins E19, which already has the closing r
+         +oll. Rejected: E18a / E18b (a very thin E18b), renumbering the 
+         +roadmap (every reference to E10 to E20 changes).               
+      30 +- **E18 comes after V1, before E10**: V1 tidies the terminal fi
+         +rst, V2 reviews E18. Rejected: before V1 (V1 waits, its list al
+         +ready long), after E11 (books found by Search, but later).     
+      31 +- **R7 split**: R7a (the Random Book table) ahead of E18, R7b a
+         +ny time. Rejected: E18 copying the table itself, the whole R7 f
+         +irst.                                                          
+      32 +- **The roadmap does not track drills played**: each Done when 
+         +names its drill, the log of the session that triages its notes 
+         +says what became of them. Rejected: a "played" line per entry, 
+         +a drills table.                                                
+      33 +- **The Faith pending test waits for E12** (turning a vampire h
+         +appens in a fight; Faith is one of the 22 Skills Step 1 writes)
+         +. Rejected: E18 writing Exorcism's effect, Later.              
+      34 +                                                               
+      35 +## Open questions                                              
+      36 +                                                               
+      37 +- E18 (listed in its entry): learning any time after reading or
+         + only while reading; whether a book takes an item slot; Healing
+         + and the Holy Book; a Sanity cost before E13.                  
+      38 +                                                               
+      39 +## Next                                                        
+      40 +                                                               
+     … 1 more lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ I've written the session log and updated NextSession's drills section. Please
+  type:
+
+  /export claude-logs/transcripts/202611120003-planning-books-arcane.txt
+
+  That's all I need from you: I'll see the file appear and then commit, push and
+  open the PR.
+
+✻ Sautéed for 45s · done 0:22

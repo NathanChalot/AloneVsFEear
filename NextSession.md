@@ -35,7 +35,7 @@ Drift noticed outside a session's scope, for the next consistency review (V1) to
 
 ## Drills to play before the next session
 
-- `xp` (5 minutes): buying a Skill with XP, which learning Arcane Skills extends; the planning session can start from what you notice.
+- None needed before E9. Optional: `creation` (5 minutes), to look at the items a character starts with, which E9's inventory will show (with units for counts).
 - Not `walk` for now: most town tables are not copied, so nearly every box ends in book mode (T2 feedback). It comes back once the town tables are copied.
 
 ## Plan
