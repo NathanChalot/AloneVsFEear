@@ -1,15 +1,15 @@
 """E3: the town map, moves and time (design/town-map.md).
 
 The town is one grid; a sheet is a 5-column, 6-row block of it. Boxes are neighbours across a
-side or a corner, distance is the larger of the column and row gaps, every move numbers the box
-entered, and every 5th box number costs 1 Food (or 1 Life without Food).
+side or a corner, distance is the larger of the column and row gaps, and every move numbers the
+box entered. The Food upkeep that comes with the box of time is in tests/test_moments.py (E8).
 """
 
 import pytest
 
 from alone_against_fear.content import load_content
 from alone_against_fear.dice import ScriptedDice
-from alone_against_fear.engine import Game, GameError, MoveKind, Position, Upkeep
+from alone_against_fear.engine import Game, GameError, MoveKind, Position
 from alone_against_fear.engine.town import distance, neighbours, sheet_of
 
 FIRST = Position(0, 0)  # the first sheet, as a position in the grid of sheets
@@ -243,57 +243,15 @@ def test_escape_to_an_unvisited_box_is_refused_when_a_visited_one_exists(home):
         home.move(Position(4, 4), MoveKind.ESCAPE)
 
 
-# --- Food every 5 boxes ------------------------------------------------------------------
+# --- Moving is not eating -------------------------------------------------------------
 
 
-def test_the_character_eats_on_every_fifth_box_number(home):
-    # given Home is box 1; boxes 2, 3 and 4 cost nothing
+def test_moving_numbers_the_box_and_eats_nothing(home):
+    # the Food upkeep is a reaction to the box of time (E8, tests/test_moments.py)
     walk(home, Position(3, 2), Position(3, 3), Position(2, 3))
-    assert home.character.food == 3
-    # when box 5 is entered
     arrival = home.move(Position(2, 2))
-    # then 1 Food is eaten
     assert arrival.number == 5
-    assert arrival.upkeep is Upkeep.ATE
-    assert home.character.food == 2
-
-
-def test_other_boxes_have_no_upkeep(home):
-    assert home.move(Position(3, 3)).upkeep is None
-
-
-def test_the_next_meal_is_five_boxes_later(home):
-    box = [Position(3, 2), Position(3, 3)]
-    for _ in range(9):  # boxes 2 to 10
-        home.move(box[_ % 2])
-    # Food was eaten at 5 and 10 only
-    assert home.character.food == 1
-
-
-def test_without_food_the_character_loses_1_life_instead(game):
-    # given a character with no Food
-    game.create_character(life=7, sanity=6, food=0)
-    game.choose_home(Position(2, 2))
-    walk(game, Position(3, 2), Position(3, 3), Position(2, 3))
-    # when box 5 is entered
-    arrival = game.move(Position(2, 2))
-    # then 1 Life is lost and Food stays at 0
-    assert arrival.upkeep is Upkeep.STARVED
-    assert game.character.life == 6
-    assert game.character.food == 0
-
-
-def test_the_meal_follows_the_campaign_clock_not_the_character(game):
-    # given a campaign at box 3 whose character dies; a new one continues it
-    game.choose_home(Position(2, 2))
-    walk(game, Position(3, 2), Position(3, 3))
-    game.create_character(life=7, sanity=6, food=2)
-    # when the new character enters boxes 4 and 5
-    game.move(Position(2, 3))
-    arrival = game.move(Position(2, 2))
-    # then the boxes do not reset: box 5 is a meal for the newcomer too
-    assert arrival.number == 5
-    assert game.character.food == 1
+    assert home.character.food == 3
 
 
 # --- Sheets ------------------------------------------------------------------------------

@@ -71,6 +71,9 @@ class Entry:
     choice."""
     uses: Count | None = None
     """How many times the single item it gives can be used (a First Aid Kit's points)."""
+    effects: tuple[Effect, ...] = ()
+    """What the entry changes while the character holds it, as numbers: an Injury or a
+    Mental Scar (E8). Single amounts, read as Basic."""
 
     def count_of(self, id_: str) -> Count | None:
         """How many of `id_` the entry gives: a dice code to roll, a number, or None."""
@@ -164,9 +167,11 @@ class Gear:
 
 @dataclass(frozen=True)
 class Effect:
-    """One rule change a Skill gives, as its YAML writes it (E7): a modifier to a roll of
-    one type, or to a parameter, at Basic and at Expert. What it does beyond a number
-    (Dodge's balance, Faith, Medic) is Python, keyed by the Skill's ID."""
+    """One rule change a Skill or an entry gives, as its YAML writes it (E7): a modifier to
+    a roll of one type, or to a parameter, at Basic and at Expert (an entry has a single
+    amount, its Basic one, E8). What it does beyond a number (Dodge's balance, Faith,
+    Medic) is Python, keyed by the source's ID. With neither `roll` nor `parameter`, it
+    changes every roll (a lasting effect, E8; the YAML always names one)."""
 
     basic: int
     expert: int | None = None

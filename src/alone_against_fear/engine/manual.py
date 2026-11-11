@@ -6,7 +6,10 @@ what the rules allow is offered, and the engine keeps every number (design/mvp-s
 mode). Offered in the resolve step, after an entry the engine cannot read; the ones about the
 character also as the free action "apply an effect" (a lasting effect noted earlier, on a turn
 with no entry). Marking a Safe House is about the town: only with the entry that gives it.
-Notes are the player's reminders of what the engine cannot track yet. Items (take, drop) come
+A modifier for a number of boxes is a lasting effect the engine tracks and ends on time
+(E8): on every roll or on one roll type, for the next N boxes or until removed. Notes are the
+player's reminders of what the engine cannot track yet (a restriction, "until you reach a Safe
+House"). Items (take, drop) come
 once R3 gives them IDs; fighting a creature with E12.
 """
 
@@ -14,12 +17,15 @@ from __future__ import annotations
 
 from enum import StrEnum
 
+from ..content import Effect
 from ..effect_targets import RollType, Tag, with_implied
 from .game import Game
 from .protocol import (
     Changed,
     Choose,
     Interface,
+    LastingAdded,
+    LastingRemoved,
     Marked,
     NoteRemoved,
     NoteWritten,
@@ -31,6 +37,14 @@ from .protocol import (
 from .state import Mark, Stat
 
 
+class Target(StrEnum):
+    ALL_ROLLS = "all_rolls"
+    """A lasting effect on every roll: no roll type (design/rulings.md, Effects)."""
+
+
+ALL_ROLLS = Target.ALL_ROLLS
+
+
 class Manual(StrEnum):
     GAIN = "gain"
     """Gain Life, Sanity, Food, XP or Clues; Life and Sanity stop at their max."""
@@ -39,6 +53,11 @@ class Manual(StrEnum):
     ROLL = "roll"
     """A roll vs L: its type, the L and the modifier typed from the text; the effects held
     add theirs (E7)."""
+    ADD_LASTING = "add_lasting"
+    """Add a lasting effect: a modifier on every roll or one roll type, for the next N boxes
+    or until removed; the engine applies it and ends it (E8)."""
+    REMOVE_LASTING = "remove_lasting"
+    """Remove a lasting effect, picked among the character's."""
     WRITE_NOTE = "write_note"
     """Write a note: a lasting effect or a modifier to remember."""
     REMOVE_NOTE = "remove_note"
@@ -73,7 +92,10 @@ def _about_the_character(game: Game) -> tuple[Manual, ...]:
     actions = [Manual.GAIN]
     if _losable(game):
         actions.append(Manual.LOSE)
-    actions += [Manual.ROLL, Manual.WRITE_NOTE]
+    actions += [Manual.ROLL, Manual.ADD_LASTING]
+    if game.character.lasting:
+        actions.append(Manual.REMOVE_LASTING)
+    actions.append(Manual.WRITE_NOTE)
     if game.character.notes:
         actions.append(Manual.REMOVE_NOTE)
     return tuple(actions)
@@ -98,6 +120,19 @@ def apply(game: Game, interface: Interface, action: Manual) -> None:
             tags = _tags(game, interface, roll)
             modifier = ask(interface, Number(Topic.MODIFIER))
             interface.tell(game.roll_vs(level, roll, tags, modifier))
+        case Manual.ADD_LASTING:
+            target = ask(interface, Choose(Topic.TARGET, (ALL_ROLLS, *RollType)))
+            amount = ask(interface, Number(Topic.MODIFIER))
+            if amount == 0:
+                return
+            boxes = ask(interface, Number(Topic.BOXES, minimum=0))
+            roll = None if target is ALL_ROLLS else target
+            lasting = game.add_lasting(Effect(basic=amount, roll=roll), boxes or None)
+            interface.tell(LastingAdded(lasting))
+        case Manual.REMOVE_LASTING:
+            lasting = ask(interface, Choose(Topic.LASTING, tuple(game.character.lasting)))
+            game.remove_lasting(lasting)
+            interface.tell(LastingRemoved(lasting))
         case Manual.WRITE_NOTE:
             interface.tell(NoteWritten(game.add_note(ask(interface, Text(Topic.NOTE)))))
         case Manual.REMOVE_NOTE:

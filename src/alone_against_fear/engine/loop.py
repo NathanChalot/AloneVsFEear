@@ -2,7 +2,8 @@
 
 A new campaign, or one whose character is gone, creates a character (E6). The first game asks
 for Home. Then each turn: free actions, until the player moves to a
-box (numbered, Food upkeep) and arrives, or quits. Arriving rolls Town Exploration in a new box
+box (numbered, a box of time announced: the Food upkeep, lasting effects ending, E8) and
+arrives, or quits. Arriving rolls Town Exploration in a new box
 and a 1 in 6 chance of a Random Encounter in a visited one; what is reached goes through book
 mode (E5a), whose actions follow the entry to other tables and events; the player applies what
 the engine cannot read with manual actions (E5b). Home is box 1 and rolls nothing. The free
@@ -17,7 +18,7 @@ from __future__ import annotations
 import logging
 
 from ..dice import Chance
-from . import book_mode, creation, manual
+from . import book_mode, creation, manual, moments
 from .game import Arrival, Game
 from .manual import Manual
 from .protocol import (
@@ -34,7 +35,7 @@ from .protocol import (
     Wandering,
     ask,
 )
-from .state import Position
+from .state import Moment, Position
 from .town import boxes_of
 
 FIRST_SHEET = Position(0, 0)
@@ -107,9 +108,10 @@ def _spend_xp(game: Game, interface: Interface) -> None:
 
 
 def _arrive(game: Game, interface: Interface, arrival: Arrival) -> None:
-    """Tell the arrival, then roll what the box calls for and resolve it, unless the Food
-    upkeep killed the character."""
+    """Tell the arrival, announce the box of time it took (E8), then roll what the box calls
+    for and resolve it, unless the Food upkeep killed the character."""
     interface.tell(arrival)
+    moments.announce(game, interface, Moment.TIME_PASSES)
     if game.ended():
         return
     if arrival.new:

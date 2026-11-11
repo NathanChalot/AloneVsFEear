@@ -713,3 +713,45 @@ def test_an_effect_of_a_skill_without_expert_line_has_no_expert_amount(root):
 
     with pytest.raises(ContentError, match="no Expert line: its effects have no expert"):
         load_content(root)
+
+
+# --- Entry effects (E8) --------------------------------------------------------
+# An Injury or a Mental Scar changes a number with a single amount: no Expert level.
+
+
+def test_an_entry_effect_is_loaded_with_its_amount(root):
+    content = load_one(
+        root,
+        d6_table(
+            "  - roll: 1-6\n"
+            "    id: mental_scar.test\n"
+            "    effects:\n"
+            "      - {parameter: food_interval, amount: -2}\n"
+            "      - {roll: charisma, amount: -1}\n"
+        ),
+    )
+
+    interval, charisma = content.entry("mental_scar.test").effects
+
+    assert (interval.parameter, interval.amount(expert=False)) == (Parameter.FOOD_INTERVAL, -2)
+    assert (charisma.roll, charisma.amount(expert=False)) == (RollType.CHARISMA, -1)
+
+
+def test_an_entry_without_effects_has_none(root):
+    content = load_one(root, d6_table("  - roll: 1-6\n    id: injury.test\n"))
+
+    assert content.entry("injury.test").effects == ()
+
+
+@pytest.mark.parametrize(
+    ("effect", "message"),
+    [
+        ("{parameter: food_interval}", r"missing keys \['amount'\]"),
+        ("{parameter: food_interval, basic: -2}", r"unknown keys \['basic'\]"),
+        ("{parameter: food_interval, amount: two}", "an amount is a whole number"),
+        ("{parameter: food_hours, amount: -2}", "unknown parameter 'food_hours'"),
+    ],
+)
+def test_a_malformed_entry_effect_is_refused(root, effect, message):
+    with pytest.raises(ContentError, match=message):
+        load_one(root, d6_table(f"  - roll: 1-6\n    effects:\n      - {effect}\n"))

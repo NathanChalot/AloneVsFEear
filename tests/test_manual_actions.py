@@ -21,27 +21,32 @@ The Search roll is a free action, offered while the box has not been Searched an
 Safe House: d6, a natural 1 stays 1; when the character has notes, the player first types the
 modifier they give. Its entry is then followed like any other.
 
+A modifier for a number of boxes is added as a lasting effect (E8): the engine applies it to
+every roll and ends it on time; one "until removed" is removed by hand.
+
 Items (take, drop) wait for R3, which gives items their IDs. Scenarios are played by a scripted
 interface; the dice show the faces given.
 """
 
 import pytest
 
-from alone_against_fear.content import load_content
+from alone_against_fear.content import Effect, load_content
 from alone_against_fear.dice import ScriptedDice
 from alone_against_fear.effect_targets import RollType
 from alone_against_fear.engine import Game, GameError, Happened, Level, Position, Stat
-from alone_against_fear.engine.effects import Held, Modifier
+from alone_against_fear.engine.effects import PLAYER, Held, Modifier
 from alone_against_fear.engine.game import Rolled, RolledVsL, Searched
 from alone_against_fear.engine.leads import LEADS, Auto, Nowhere
 from alone_against_fear.engine.loop import play
-from alone_against_fear.engine.manual import Manual
+from alone_against_fear.engine.manual import ALL_ROLLS, Manual
 from alone_against_fear.engine.protocol import (
     Action,
     Book,
     Changed,
     Choose,
     End,
+    LastingAdded,
+    LastingRemoved,
     Marked,
     NoteRemoved,
     NoteWritten,
@@ -50,7 +55,7 @@ from alone_against_fear.engine.protocol import (
     Topic,
     ask,
 )
-from alone_against_fear.engine.state import Mark, Note, SkillLevel
+from alone_against_fear.engine.state import Lasting, Mark, Note, SkillLevel
 from alone_against_fear.interface.scripted import ScriptedInterface
 
 HOME = Position(2, 2)
@@ -60,9 +65,23 @@ FOOD = 3
 STREET = (3, 3, 4)
 """A new box: Town Exploration 6 (3 and 3) rolls the Street, whose d6 shows 4. The Street is
 not copied yet: its entry is book mode."""
-MANUAL = (Manual.GAIN, Manual.LOSE, Manual.ROLL, Manual.WRITE_NOTE, Manual.SAFE_HOUSE)
+MANUAL = (
+    Manual.GAIN,
+    Manual.LOSE,
+    Manual.ROLL,
+    Manual.ADD_LASTING,
+    Manual.WRITE_NOTE,
+    Manual.SAFE_HOUSE,
+)
 """The manual actions of an entry, for a character with no notes."""
-EFFECTS = (Manual.GAIN, Manual.LOSE, Manual.ROLL, Manual.WRITE_NOTE, Manual.BACK)
+EFFECTS = (
+    Manual.GAIN,
+    Manual.LOSE,
+    Manual.ROLL,
+    Manual.ADD_LASTING,
+    Manual.WRITE_NOTE,
+    Manual.BACK,
+)
 """The "apply an effect" menu, for a character with no notes."""
 ROLLS = tuple(roll for roll in RollType if roll is not RollType.SEARCH)
 """The rolls vs L a manual roll may be."""
@@ -402,6 +421,7 @@ def test_apply_an_effect_opens_the_manual_actions_about_the_character(content):
         Manual.GAIN,
         Manual.LOSE,
         Manual.ROLL,
+        Manual.ADD_LASTING,
         Manual.WRITE_NOTE,
         Manual.REMOVE_NOTE,
         Manual.BACK,
@@ -706,17 +726,117 @@ def test_pending_a_library_can_be_searched_again(): ...
 def test_pending_home_cannot_be_searched(): ...
 
 
-@pytest.mark.skip(reason="E8: consider manual effects the engine applies, replacing notes")
-def test_pending_a_lasting_effect_typed_by_the_player_is_applied_by_the_engine():
-    # given the player adds "-1 to Search for the next 3 boxes" as an effect, not a note
-    # when they Search within those 3 boxes
-    # then the engine applies the -1 by itself, and the effect ends after 3 boxes
-    ...
-
-
 @pytest.mark.skip(reason="After R3: take and drop items as manual actions, picked by ID")
 def test_pending_the_player_takes_the_item_the_text_gives():
     # given an entry that gives an item
     # when the player takes it, picked from the copied items
     # then it is in the inventory, and can be dropped
     ...
+
+
+# --- Scenario: a lasting effect added by hand (E8) ---------------------------------------------
+# A text the engine cannot read gives a modifier for a number of boxes: the player adds it as a
+# lasting effect (every roll or one roll type, the amount, the boxes; 0 boxes: until removed),
+# and the engine applies it to every roll and ends it on time (design/rulings.md, Effects).
+
+
+def test_a_lasting_effect_is_added_by_hand(content):
+    # given painkillers in box 1: -1 on all your die rolls for the next 3 boxes
+    game = new_game(content)
+    interface = ScriptedInterface(
+        [HOME, Action.APPLY, Manual.ADD_LASTING, ALL_ROLLS, -1, 3, Manual.BACK, Action.QUIT]
+    )
+
+    play(game, interface)
+
+    # then it was asked what it changes (every roll first, then each roll type), how much
+    # and for how long; the engine holds it and told it
+    assert asked(interface, Topic.TARGET)[0].options == (ALL_ROLLS, *RollType)
+    assert asked(interface, Topic.MODIFIER)[0] == Number(Topic.MODIFIER)
+    assert asked(interface, Topic.BOXES)[0] == Number(Topic.BOXES, minimum=0)
+    (lasting,) = game.character.lasting
+    assert lasting.effect == Effect(basic=-1)
+    assert game.ends_at(lasting) == 5
+    assert told(interface, LastingAdded) == [LastingAdded(lasting)]
+
+
+def test_a_lasting_effect_on_one_roll_type(content):
+    game = new_game(content)
+    interface = ScriptedInterface(
+        [HOME, Action.APPLY, Manual.ADD_LASTING, RollType.STEALTH, 1, 2, Manual.BACK, Action.QUIT]
+    )
+
+    play(game, interface)
+
+    (lasting,) = game.character.lasting
+    assert lasting.effect == Effect(basic=1, roll=RollType.STEALTH)
+
+
+def test_a_lasting_effect_until_removed_is_removed_by_hand(content):
+    game = new_game(content)
+    interface = ScriptedInterface(
+        [
+            HOME,
+            Action.APPLY,
+            Manual.ADD_LASTING,
+            ALL_ROLLS,
+            -1,
+            0,
+            Manual.BACK,
+            Action.APPLY,
+            Manual.REMOVE_LASTING,
+            Lasting(Effect(basic=-1), PLAYER),
+            Manual.BACK,
+            Action.QUIT,
+        ]
+    )
+
+    play(game, interface)
+
+    # the menu offers removing once there is one; the effect is gone and it was told
+    assert Manual.REMOVE_LASTING not in asked(interface, Topic.APPLY)[0].options
+    assert Manual.REMOVE_LASTING in asked(interface, Topic.APPLY)[2].options
+    (added,) = told(interface, LastingAdded)
+    assert game.ends_at(added.lasting) is None
+    assert told(interface, LastingRemoved) == [LastingRemoved(added.lasting)]
+    assert game.character.lasting == []
+
+
+def test_a_lasting_modifier_of_0_adds_nothing(content):
+    game = new_game(content)
+    interface = ScriptedInterface(
+        [HOME, Action.APPLY, Manual.ADD_LASTING, ALL_ROLLS, 0, Manual.BACK, Action.QUIT]
+    )
+
+    play(game, interface)
+
+    assert game.character.lasting == []
+    assert asked(interface, Topic.BOXES) == []
+    assert told(interface, LastingAdded) == []
+
+
+def test_a_roll_made_by_hand_collects_a_lasting_modifier(content):
+    # given -1 on all rolls; a Save vs L4 with no text modifier; the die shows 5
+    game = new_game(content, 5)
+    interface = ScriptedInterface(
+        [
+            HOME,
+            Action.APPLY,
+            Manual.ADD_LASTING,
+            ALL_ROLLS,
+            -1,
+            3,
+            Manual.ROLL,
+            RollType.SAVE,
+            4,
+            0,
+            Manual.BACK,
+            Action.QUIT,
+        ]
+    )
+
+    play(game, interface)
+
+    (rolled,) = told(interface, RolledVsL)
+    assert rolled.modifiers == (Modifier(PLAYER, -1),)
+    assert rolled.total == 4

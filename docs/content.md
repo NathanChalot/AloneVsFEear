@@ -124,6 +124,7 @@ entries:
 | `item` | entry | the item the entry gives (`item.backpack`); two entries may give the same one |
 | `count` | entry | how many objects it gives: a dice code (`2d6`) or a number; or one per thing, `{weapon.bow: 2d6+3}`, when the entry gives a choice |
 | `uses` | entry | how many times the single item it gives can be used: a dice code or a number |
+| `effects` | entry | what the entry changes while the character holds it (an Injury, a Mental Scar), with a single `amount` ([effects](#effects)); decided in E8 |
 
 - **Entries cover the dice range exactly**: every result has one entry, no gaps, no overlaps. Nested tables too.
 - **A nested table** is used only where the book prints one (Random Encounter). An entry that says "Roll d6. On a 1-5 … On a 6 …" stays one entry with its text, as printed (Town Exploration 7).
@@ -227,7 +228,7 @@ arcane_skills:
 
 ### Effects
 
-A Skill's `effects` say what it changes, in the names of `effect_targets.py` ([rolls](../design/rolls.md)): the loader refuses a name it does not know, so a misspelt tag fails at load time instead of never matching.
+A Skill's or an entry's `effects` say what it changes, in the names of `effect_targets.py` ([rolls](../design/rolls.md)): the loader refuses a name it does not know, so a misspelt tag fails at load time instead of never matching.
 
 ```yaml
   - id: skill.agile
@@ -246,6 +247,16 @@ A Skill's `effects` say what it changes, in the names of `effect_targets.py` ([r
 | `group` | with `roll`: modifiers of one group do not stack, the highest applies (Agile and Dodge) |
 | `parameter` | instead of `roll`: the parameter it changes (`max_life`, `carry_limit`, `food_interval`, …) |
 | `basic`, `expert` | the amount at each level, a whole number (negative lowers); `expert` replaces `basic` ([rulings](../design/rulings.md#character)), present exactly when the Skill has an Expert line |
+| `amount` | instead of `basic` and `expert`, for an entry's effect: there is no level |
+
+An Injury or a Mental Scar is a table entry the character holds for life (E8): its `effects` take a single `amount`.
+
+```yaml
+  - roll: 2
+    id: mental_scar.eating_disorder
+    effects:
+      - {parameter: food_interval, amount: -2}
+```
 
 - **Only numbers.** What a Skill does beyond a modifier (Dodge's balance on a natural 1, Faith turning vampires, Medic healing after an encounter) is Python keyed by the Skill's ID, written with the task that has its moment. Faith and Medic have no `effects`.
 - **Bow and Martial Arts are bonuses** (the user, E7): +1 / +2 on bow or unarmed Attacks; the weapon keeps its own malus (-1 unskilled bow, -2 unarmed), so the totals are the book's.

@@ -8,8 +8,9 @@ test plays the terminal with typed lines.
 
 import pytest
 
-from alone_against_fear.content import load_content
+from alone_against_fear.content import Effect, load_content
 from alone_against_fear.dice import ScriptedDice
+from alone_against_fear.effect_targets import RollType
 from alone_against_fear.engine import Game, Position, book_mode
 from alone_against_fear.engine.loop import play
 from alone_against_fear.engine.protocol import End
@@ -455,7 +456,9 @@ def test_a_player_creates_a_character_in_the_terminal(content):
     # what was taken, and the character sheet at the first turn
     assert "You take: Pistol (7)." in text
     # Tough: 2 more Life (E7)
-    assert "Ann · Box 1 · Life 12/12 · Sanity 9/9 · Food 4 · XP 0 · Clues 0" in text
+    assert (
+        "Ann · Box 1 · Life 12/12 · Sanity 9/9 · Food 4 (next meal: box 5) · XP 0 · Clues 0" in text
+    )
     assert "Skills: Agile, Tough" in text
     assert "Items: Pistol (7), Knife, Rope, Small bell" in text
 
@@ -481,3 +484,90 @@ def test_healing_at_max_says_so(content):
     play(game, interface)
 
     assert "You are at your max Life (8)." in output
+
+
+# --- Injuries and Mental Scars (E8) --------------------------------------------------------
+
+
+def test_the_status_lists_injuries_and_mental_scars(content):
+    game = ready(content)
+    game.gain_injury("injury.limping")
+    game.gain_mental_scar("mental_scar.eating_disorder")
+    interface, output = terminal(game, [HOME_TOP_LEFT, QUIT])
+
+    play(game, interface)
+
+    assert "Injuries: Limping\nMental Scars: Eating Disorder" in "\n".join(output)
+
+
+def test_a_modifier_from_an_injury_or_a_mental_scar_is_named_after_it(content):
+    # their roll modifiers are written with E13; the name is ready for them
+    interface, _ = terminal(ready(content), [])
+
+    assert interface._source("injury.limping") == "Limping"
+    assert interface._source("mental_scar.phobic") == "Phobic"
+    assert interface._source("skill.agile") == "Agile"
+
+
+# --- Moments and lasting effects (E8) --------------------------------------------------------
+
+
+def test_a_lasting_effect_that_ends_is_told(content):
+    # given -1 on all rolls for the next box, at Home; the player walks two boxes
+    game = ready(content, *EXPLORE, NO_ENCOUNTER)
+    game.choose_home(Position(0, 0))
+    game.add_lasting(Effect(basic=-1), boxes=1)
+    interface, output = terminal(game, ["m", "1", RESOLVE, "m", "1", QUIT])
+
+    play(game, interface)
+
+    # then it ends as box 3 starts
+    assert output.index("Box 3.") < output.index("Ended: -1 on all rolls.")
+    assert "Ended: -1 on all rolls." not in output[: output.index("Box 3.")]
+
+
+def test_a_meal_is_told_after_the_arrival(content):
+    # given Eating Disorder: a meal every 3 boxes
+    game = ready(content, *EXPLORE, NO_ENCOUNTER)
+    game.gain_mental_scar("mental_scar.eating_disorder")
+    interface, output = terminal(game, [HOME_TOP_LEFT, "m", "1", RESOLVE, "m", "1", QUIT])
+
+    play(game, interface)
+
+    assert output[output.index("Box 3.") + 1] == "You eat 1 Food (Food 2)."
+
+
+def test_the_status_shows_the_next_meal(content):
+    # with Eating Disorder, the meal after Home comes at box 3
+    game = ready(content)
+    game.gain_mental_scar("mental_scar.eating_disorder")
+    interface, output = terminal(game, [HOME_TOP_LEFT, QUIT])
+
+    play(game, interface)
+
+    status = "Box 1 · Life 8/8 · Sanity 8/8 · Food 3 (next meal: box 3) · XP 0 · Clues 0"
+    assert status in "\n".join(output).splitlines()
+
+
+def test_a_player_adds_a_lasting_effect_and_sees_it_in_the_status(content):
+    # given painkillers at Home: -1 on all rolls for the next 3 boxes (f, 1 all rolls, -1, 3);
+    # then +1 on Stealth until removed (Enter); the player removes the first one (u, 1)
+    game = ready(content)
+    lines = [HOME_TOP_LEFT, "a", "f", "1", "-1", "3", "f", "6", "1", "", "b"]
+    interface, output = terminal(game, [*lines, "a", "u", "1", "b", QUIT])
+
+    play(game, interface)
+
+    text = "\n".join(output)
+    assert "f) add a lasting effect" in text
+    assert "1) All rolls  2) Attack  3) Defense  4) Save  5) Escape  6) Stealth" in text
+    assert interface._input.prompts[5] == "For the next how many boxes? (Enter: until removed) "
+    assert "Lasting effect: -1 on all rolls (ends at box 5)." in output
+    assert "Lasting effect: +1 on Stealth rolls (until removed)." in output
+    assert (
+        "Lasting effects: -1 on all rolls (ends at box 5), +1 on Stealth rolls (until removed)"
+        in text
+    )
+    assert "1) -1 on all rolls (ends at box 5)" in output
+    assert "Removed: -1 on all rolls." in output
+    assert game.character.lasting[0].effect == Effect(basic=1, roll=RollType.STEALTH)

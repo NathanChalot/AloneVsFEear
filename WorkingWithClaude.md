@@ -4,7 +4,7 @@ How the work sessions run, and recommendations for them: how many to expect, whi
 
 ## How a session works
 
-1. Start from [NextSession.md](NextSession.md), the [Readme](Readme.md) and the latest log in [`claude-logs/`](claude-logs/).
+1. Start with `/start` (or `/start E9` for another session than the planned one; decided in the E8 session): Claude reads [NextSession.md](NextSession.md), the [Readme](Readme.md), the latest log in [`claude-logs/`](claude-logs/) and the matching prompt template below, checks that `main` is clean and up to date and the model is the planned one, then gives a short plain-words summary (where we are, the session's goal, how it will go) and waits for the go. The skill is `.claude/skills/start/SKILL.md`.
 2. GitHub issues only for user stories and bugs, and only when needed; the PR then says `Closes #N`. An engine task with no user story gets no issue: the Readme entry is the task.
 3. Work on a dedicated branch; one PR per session. Create the branch in the main checkout; use a worktree only when another session runs at the same time (see [Parallel sessions](#parallel-sessions)). During the session, Claude never commits or pushes without explicit permission.
 4. **Drift check** (a few minutes, decided in the E7 session): search the repository for the names, numbers and behaviours the session changed ("until E7", an old signature, "the max is the base") and fix every stale mention; write, move or drop this task's pending tests and "decide when implementing" items; remove the NextSession reminders it resolved. Anything noticed outside the session's scope is not fixed: one line under "For the next review" in NextSession.
@@ -31,6 +31,8 @@ Rough sizes, for sessions of about 1.5 hours, to get an idea of the work left. N
 | Engine skeleton E1–E5 | 5 (E5 in two sessions) |
 | YAML batches R2–R7 | 5–6, can run in parallel |
 | Step 1, E6–E17 | 12 or more (E8, E10 and E12 are the big ones) |
+| Drills and feedback (T1) | 1 |
+| Playtests P1, P2 | 2 |
 | Consistency reviews V1–V4 | 4 |
 | Step 2, E18–E20 | 3–4 |
 
@@ -44,6 +46,8 @@ Rough sizes, for sessions of about 1.5 hours, to get an idea of the work left. N
 | Writing user stories and their issues | When a task has a player-facing story (E4 on) | Sonnet, medium effort; Opus if slicing the game into stories turns into a design debate |
 | Step-back review: an adversarial review of the whole project, findings only | Project review (after E4) | Opus, high effort |
 | Consistency review: what is built agrees with itself, findings then small fixes | V1–V4 | Opus, high effort |
+| Playtest: the user's play logs and notes checked against the rules, findings then small fixes | P1, P2 | Opus, high effort |
+| Drills and feedback | T1 | Opus, medium effort (the user's choice in the E8 session: Sonnet's lower cost is a default, not a rule) |
 | Routine setup | Project setup and GitHub planning | Sonnet (it posts to GitHub, so not Haiku) |
 | Small chores | renames, housekeeping | Haiku; never for rules text, where a misreading costs more than it saves |
 
@@ -57,7 +61,7 @@ Rough sizes, for sessions of about 1.5 hours, to get an idea of the work left. N
 Two levels, decided in the E7 session, so the project stays consistent as it grows without a costly wrap-up:
 
 - **The drift check at each wrap-up** (step 4 above) fixes only what the session itself made stale, and lists anything else under "For the next review" in NextSession.
-- **The fixed reviews** are roadmap entries at the end of each group of tasks that build on each other: V1 after E9 (effects, moments, inventory), V2 after E14 (combat), V3 after E17 (Step 1), V4 after E20 (Step 2, with the design review). A fresh session reads the project cold and checks five areas: docs against code (`docs/`, the Readme's How to play), design and rulings against the tests, the YAML against `gameRules/` (and the "Fixed or reworded" list of `book_errors.md`), code health (file sizes, duplication, names, pending tests), the process files (NextSession reminders, the model table). It starts from "For the next review".
+- **The fixed reviews** are roadmap entries at the end of each group of tasks that build on each other: V1 after E9 (effects, moments, inventory), V2 after E14 (combat), V3 after E17 (Step 1), V4 after E20 (Step 2, with the design review). A fresh session reads the project cold and checks five areas: docs against code (`docs/`, the Readme's How to play), design and rulings against the tests, the YAML against `gameRules/` (and the "Fixed or reworded" list of `book_errors.md`), code health (file sizes, duplication, names, pending tests), the process files (NextSession reminders, the model table). It starts from "For the next review" and the drill feedback collected since the last review.
 - **Findings only about what exists.** A finding never asks to decide early what can wait (the lesson of the project review). Each comes with a proposed fix; the user triages them one at a time; small fixes are done in the session, one commit per kind, bigger ones become roadmap entries.
 
 ```
@@ -68,9 +72,17 @@ Findings only about what exists, each with a proposed fix; then take me through 
 at a time. Small fixes in this session, one commit per kind; bigger ones become entries.
 ```
 
+## Playtesting
+
+Decided in the E8 session: the user tries the game early and often, in short scoped runs, so feedback comes while a feature is fresh, not only at the end.
+
+- **Drills** (from T1): `alone-against-fear --drill NAME` sets up a start through the engine (a pregenerated character, a situation) and stops at a natural end, 5 to 15 minutes: something to play in a break. No rule changes, except the `quick` run of E17 (Bring Home the Bacon for d6+2 Food), a campaign option marked as not the book's rules. Each task from T1 on adds its drill to its Done-when.
+- **Feedback** is written while playing, with the seed and the box number, so the moment can be found in the log. It is triaged at the next consistency review (V1 to V4) or playtest, one finding at a time like the review findings.
+- **Playtests** (P1 after E17, P2 after E20): the user plays the drills and a full game; the session reads the logs and notes, sorts the findings (bug, rule misread, ruling to revisit, screen and wording, rules-text typo, missing feature) and triages them. They come before V3 and V4, which start from what they found.
+
 ## Prompts
 
-Once `CLAUDE.md` holds the conventions (project setup session), prompts can stay short: the session workflow is already known.
+Once `CLAUDE.md` holds the conventions (project setup session), prompts can stay short: the session workflow is already known. Since the E8 session, `/start` picks the template matching the planned session; the templates below stay the reference for what each kind of session does, and can still be pasted.
 
 Architecture session (design, then code):
 

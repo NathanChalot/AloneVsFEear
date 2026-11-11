@@ -12,11 +12,11 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import NamedTuple
 
-from ..content import CatalogueEvent, CatalogueTable, Content
+from ..content import CatalogueEvent, CatalogueTable, Content, Effect
 from ..dice import Dice, DiceCode
 from ..effect_targets import Parameter, RollType, Tag, with_implied
 from . import effects
-from .effects import Held, Modifier, RollModifiers
+from .effects import PLAYER, Held, Modifier, RollModifiers
 from .state import (
     Box,
     Campaign,
@@ -25,9 +25,11 @@ from .state import (
     Happened,
     History,
     Item,
+    Lasting,
     Level,
     Mark,
     Mission,
+    Moment,
     MoveKind,
     Note,
     Position,
@@ -38,17 +40,21 @@ from .state import (
 from .town import boxes_of, neighbours, sheet_neighbours, sheet_of
 
 FOOD_INTERVAL = 5
-"""One Food every this many box numbers; the Food interval's base (the upkeep reads the
-parameter with E8)."""
+"""One Food every this many boxes: the Food interval's base."""
 CARRY_LIMIT = 10
 """Items carried, before the backpack and Strong (E9)."""
 
 PARAMETER_BASES = {Parameter.CARRY_LIMIT: CARRY_LIMIT, Parameter.FOOD_INTERVAL: FOOD_INTERVAL}
 """The bases written in the rules; max Life and Sanity are the character's, the surprise chance
 and the Clue cost the text's."""
-PARAMETER_FLOORS = {Parameter.SURPRISE_CHANCE: 0, Parameter.CLUE_COST: 1}
+PARAMETER_FLOORS = {
+    Parameter.SURPRISE_CHANCE: 0,
+    Parameter.CLUE_COST: 1,
+    Parameter.FOOD_INTERVAL: 1,
+}
 """Danger Sense leaves a 1 in 6 creature no chance; Investigator reduces a Clue cost "to a
-minimum of 1" (`1_2_skills.md`)."""
+minimum of 1" (`1_2_skills.md`); a meal is never more often than every box
+(design/rulings.md, Character)."""
 
 PLACE_TABLES = frozenset(
     {
@@ -81,12 +87,11 @@ class GameError(Exception):
 
 @dataclass(frozen=True)
 class Arrival:
-    """What entering a box did: its new number, whether it was its first visit, and what the
-    Food upkeep did, if it was due."""
+    """What entering a box did: its new number, and whether it was its first visit. The box
+    of time that comes with it is announced apart (E8, `moments`)."""
 
     position: Position
     number: int
-    upkeep: Upkeep | None = None
     new: bool = False
 
 
@@ -231,10 +236,28 @@ class Game:
                 return self.parameter(Parameter.MAX_SANITY)
         return None
 
+    def gain_injury(self, entry_id: str) -> None:
+        """The character keeps an Injury for life. How one is offered (a loss negated, at
+        most 3, duplicates rerolled) comes with E13."""
+        self._gain_harm(entry_id, "injury.", self.character.injuries)
+
+    def gain_mental_scar(self, entry_id: str) -> None:
+        """The character keeps a Mental Scar for life; see `gain_injury`."""
+        self._gain_harm(entry_id, "mental_scar.", self.character.mental_scars)
+
+    def _gain_harm(self, entry_id: str, prefix: str, held: list[str]) -> None:
+        if not entry_id.startswith(prefix) or entry_id not in self.content:
+            raise GameError(f"no such {prefix.rstrip('.')}: {entry_id}")
+        if entry_id in held:
+            raise GameError(f"the character already has {entry_id}")
+        held.append(entry_id)
+        log.info("gained %s", entry_id)
+
     # --- Effects ------------------------------------------------------------------------------
 
     def effects(self) -> tuple[Held, ...]:
-        """Every effect in play, read from its source: the character's Skills (E7)."""
+        """Every effect in play, read from its source: the character's Skills (E7), Injuries,
+        Mental Scars and lasting effects (E8)."""
         return effects.held(self.character, self.content)
 
     def parameter(self, parameter: Parameter, base: int | None = None) -> int:
@@ -252,6 +275,46 @@ class Game:
             raise GameError(f"{parameter} needs a base: the text or the creature gives it")
         value = base + effects.parameter_change(self.effects(), parameter)
         return max(value, PARAMETER_FLOORS.get(parameter, value))
+
+    def add_lasting(
+        self, effect: Effect, boxes: int | None = None, source: str = PLAYER
+    ) -> Lasting:
+        """An effect for the next `boxes` boxes (it ends as the one after starts,
+        design/rulings.md, Effects), or until it is removed."""
+        if boxes is not None and boxes < 1:
+            raise GameError(f"a lasting effect lasts at least 1 box, not {boxes}")
+        if boxes is None:
+            lasting = Lasting(effect, source)
+        else:
+            lasting = Lasting(effect, source, Moment.TIME_PASSES, boxes + 1)
+        self.character.lasting.append(lasting)
+        log.info("lasting effect from %s: %s, %s", source, effect, _lifetime(boxes))
+        return lasting
+
+    def remove_lasting(self, lasting: Lasting) -> None:
+        self.character.lasting.remove(lasting)
+        log.info("lasting effect removed: %s", lasting.effect)
+
+    def ends_at(self, lasting: Lasting) -> int | None:
+        """The box number whose start ends a lasting effect counted in boxes; None for one
+        that waits for something else."""
+        if lasting.moment is not Moment.TIME_PASSES:
+            return None
+        return self.campaign.box_counter + lasting.remaining
+
+    def count_down(self, moment: Moment) -> tuple[Lasting, ...]:
+        """A moment happened: the lasting effects counting it go down by one, and the ones
+        that reach 0 end. Returns those, in the order they started."""
+        ended = []
+        for lasting in self.character.lasting:
+            if lasting.moment is moment:
+                lasting.remaining -= 1
+                if lasting.remaining <= 0:
+                    ended.append(lasting)
+        for lasting in ended:
+            self.character.lasting.remove(lasting)
+            log.info("lasting effect ends: %s", lasting.effect)
+        return tuple(ended)
 
     def roll_modifiers(self, roll: RollType, tags: frozenset[Tag] = frozenset()) -> RollModifiers:
         """The modifiers a roll of this type and tags collects from the effects held."""
@@ -418,25 +481,33 @@ class Game:
         return around
 
     def move(self, to: Position, kind: MoveKind = MoveKind.NORMAL) -> Arrival:
-        """Move to a box: time passes, the box gets the next number, and the Food upkeep runs
-        if the number is due. What arriving does in the box comes with the game loop (E4)."""
+        """Move to a box: it gets the next number. The box of time it takes is announced by
+        the game loop (`moments`, E8), and what arriving does in the box comes with it too."""
         if to not in self.targets(kind):
             raise GameError(f"cannot move from {tuple(self._position())} to {tuple(to)}")
         new = to not in self.campaign.map.boxes
         self.campaign.position = to
         number = self.number_box(to)
-        return Arrival(to, number, self._upkeep(number), new=new)
+        return Arrival(to, number, new=new)
 
     def _position(self) -> Position:
         if self.campaign.position is None:
             raise GameError("Home is not chosen yet")
         return self.campaign.position
 
-    def _upkeep(self, number: int) -> Upkeep | None:
-        """1 Food every 5 box numbers, or 1 Life without Food. Not clamped to the Life: dying
-        comes with E13."""
-        if number % FOOD_INTERVAL:
+    def next_meal(self) -> int:
+        """The box number of the next Food upkeep: the Food interval after the last one,
+        read now, so a change applies to the interval already running (design/rulings.md,
+        Map)."""
+        return self.campaign.last_meal + self.parameter(Parameter.FOOD_INTERVAL)
+
+    def food_upkeep(self) -> Upkeep | None:
+        """A box of time passed: 1 Food if the meal is due (or overdue: one meal, the only
+        one owed), or 1 Life without Food; None if it is not due. Not clamped to the Life:
+        dying comes with E13."""
+        if self.campaign.box_counter < self.next_meal():
             return None
+        self.campaign.last_meal = self.campaign.box_counter
         if self.character.food > 0:
             self.lose(Stat.FOOD, 1)
             return Upkeep.ATE
@@ -578,3 +649,7 @@ class Game:
 def _check_amount(stat: Stat, amount: int) -> None:
     if amount < 0:
         raise GameError(f"a negative amount of {stat}: {amount}")
+
+
+def _lifetime(boxes: int | None) -> str:
+    return "until removed" if boxes is None else f"for the next {boxes} boxes"
