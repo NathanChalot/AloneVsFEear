@@ -57,3 +57,13 @@ gear:
     1 item from the Random Objects table and 1 from the Useful Stuff table (roll one of them
     twice if you traded your points for it); anything you have already is rolled again. Then
     d6 Food.
+
+recap:
+  title: Your character
+  prompt: "Press Enter to go on: "
+  show: Show the descriptions
+  hide: Hide the descriptions
+  skills: "Skills:"
+  weapons: "Weapons:"
+  items: "Items:"
+  notes: "Notes:"

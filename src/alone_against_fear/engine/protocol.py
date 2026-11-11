@@ -264,6 +264,11 @@ class StepStarted:
 
 
 @dataclass(frozen=True)
+class Created:
+    """Character creation is over: the character is made (T2)."""
+
+
+@dataclass(frozen=True)
 class Bought:
     """XP was spent on a Skill."""
 
@@ -299,6 +304,7 @@ type Event = (
     | ItemTaken
     | Duplicate
     | StepStarted
+    | Created
     | Bought
     | Ended
 )

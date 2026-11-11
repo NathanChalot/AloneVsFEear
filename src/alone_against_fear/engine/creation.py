@@ -30,6 +30,7 @@ from .leads import DieRoll
 from .protocol import (
     Changed,
     Choose,
+    Created,
     Duplicate,
     Interface,
     ItemTaken,
@@ -121,6 +122,7 @@ def create(game: Game, interface: Interface) -> Character:
         if table_id == RANDOM_WEAPON:
             giving.take(Item(ask(interface, Choose(Topic.WEAPON, FREE_WEAPONS))))
     giving.gain_food(FOOD.roll(game.dice).total)
+    interface.tell(Created())
     return character
 
 

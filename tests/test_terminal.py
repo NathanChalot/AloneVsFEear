@@ -11,7 +11,7 @@ import pytest
 from alone_against_fear.content import Effect, load_content
 from alone_against_fear.dice import ScriptedDice
 from alone_against_fear.effect_targets import RollType
-from alone_against_fear.engine import Game, Position, book_mode
+from alone_against_fear.engine import Game, Position, book_mode, drills
 from alone_against_fear.engine.creation import create
 from alone_against_fear.engine.loop import play
 from alone_against_fear.engine.protocol import End
@@ -123,7 +123,7 @@ def test_ending_the_input_quits(content):
 
 def test_main_writes_the_log_to_a_file_with_the_seed_and_the_answers(tmp_path):
     # seed 7 rolls Random Weapon 3: the grenade (1) or the bow; then the knife (1)
-    typist = Typist(["Ann", "l", "2", "1", "18", "1", "1", HOME_TOP_LEFT, QUIT])
+    typist = Typist(["Ann", "l", "2", "1", "18", "1", "1", "", HOME_TOP_LEFT, QUIT])
     output = []
 
     code = main(
@@ -459,9 +459,9 @@ def test_a_note_is_removed_by_its_number(content):
 
 CREATION_DICE = (5, 3, 4, 1, 1, 1, 3, 4)
 """A pistol with 7 bullets, a rope, a small bell, 4 Food."""
-CREATING = ["Ann", "l", "2", "1", "19", "1"]
+CREATING = ["Ann", "l", "2", "1", "19", "1", ""]
 """Ann; the points on Life and Sanity, 2 on Life; Agile (1), then Tough (19th, its number
-on both lists); the knife (1)."""
+on both lists); the knife (1); Enter after the recap (T2)."""
 
 
 def test_a_player_creates_a_character_in_the_terminal(content):
@@ -534,7 +534,7 @@ def test_the_points_are_explained_and_their_result_shown(content):
 def test_points_traded_for_a_skill_ask_for_3(content):
     # given the points traded for a 3rd Skill: Agile, Tough, then Bow (its d6+3 arrows: 2)
     game = Game(dice=ScriptedDice((2, *CREATION_DICE)), content=content)
-    interface, output = terminal(game, ["Ann", "k", "1", "19", "2", "1"])
+    interface, output = terminal(game, ["Ann", "k", "1", "19", "2", "1", ""])
 
     create(game, interface)
 
@@ -563,7 +563,7 @@ def test_the_skills_keep_their_numbers_and_the_taken_one_is_marked(content):
 def test_a_taken_skill_is_refused_and_r_hides_or_shows_the_texts(content):
     # given the player hides the texts on the first list, then shows them on the second
     game = Game(dice=ScriptedDice(CREATION_DICE), content=content)
-    interface, output = terminal(game, ["Ann", "l", "2", "r", "1", "1", "r", "19", "1"])
+    interface, output = terminal(game, ["Ann", "l", "2", "r", "1", "1", "r", "19", "1", ""])
 
     create(game, interface)
 
@@ -571,7 +571,7 @@ def test_a_taken_skill_is_refused_and_r_hides_or_shows_the_texts(content):
     # the texts: on the first list, hidden on r and on the next list, then shown again on r
     bow = [line for line in output if line.startswith("  2) Bow (3 XP)")]
     assert [line == "  2) Bow (3 XP)" for line in bow] == [False, True, True, False]
-    assert output.count("  r) Show the descriptions") == 2
+    assert output.count("  r) Show the descriptions") == 3  # twice for the Skills, once after
     assert list(game.character.skills) == ["skill.agile", "skill.tough"]
 
 
@@ -592,7 +592,7 @@ def test_the_knife_or_stick_shows_what_they_share_once(content):
 def test_two_weapons_of_different_headings_show_their_texts(content):
     # given Random Weapon 2: a chainsaw or an authentic samurai sword
     game = Game(dice=ScriptedDice((2, 1, 1, 1, 3, 4)), content=content)
-    interface, output = terminal(game, ["Ann", "l", "2", "1", "19", "1", "1"])
+    interface, output = terminal(game, ["Ann", "l", "2", "1", "19", "1", "1", ""])
 
     create(game, interface)
 
@@ -600,13 +600,82 @@ def test_two_weapons_of_different_headings_show_their_texts(content):
     assert "Which weapon? [1-2] " in interface._input.prompts
 
 
+def test_a_recap_shows_the_character_once_made(content):
+    # given Ann created with a pistol, the knife, a rope, a small bell and 4 Food
+    game = Game(dice=ScriptedDice(CREATION_DICE), content=content)
+    interface, output = terminal(game, CREATING)
+
+    create(game, interface)
+
+    # then the character, one thing a line, names only, until the player goes on
+    recap = output.index("Your character")
+    assert output[recap - 1] == ""
+    assert output[recap + 1 :] == [
+        "  Ann · Food 4 · XP 0 · Clues 0",
+        "    - Life 12/12",
+        "    - Sanity 9/9",
+        "  Skills:",
+        "    - Agile",
+        "    - Tough",
+        "  Weapons:",
+        "    - Pistol (7)",
+        "    - Knife",
+        "  Items:",
+        "    - Rope",
+        "    - Small bell",
+        "  r) Show the descriptions",
+    ]
+    assert interface._input.prompts[-1] == "Press Enter to go on: "
+
+
+def test_r_shows_the_descriptions_in_the_recap(content):
+    game = Game(dice=ScriptedDice(CREATION_DICE), content=content)
+    interface, output = terminal(game, [*CREATING[:-1], "r", ""])
+
+    create(game, interface)
+
+    assert (
+        "    - Agile: Add +1 to your Defense rolls and rolls performed to climb, jump, or avoid "
+        "danger."
+    ) in output
+    assert "    - Knife: -1 to Attack rolls." in output
+    assert any(line.startswith("    - Rope: ") for line in output)
+    assert output[-1] == "  r) Hide the descriptions"
+
+
+BOOK_AT_CREATION = (5, 3, 4, 4, 5, 1, 3, 4)
+"""A pistol, Random Objects 45 (a random book), a small bell, 4 Food."""
+NOTING_THE_BOOK = [*CREATING[:-1], "w", "The Occult Guide", "d", ""]
+"""Creating Ann; the book is written as a note, and its text leads nowhere else."""
+
+
+def test_a_note_written_at_creation_shows_in_the_recap(content):
+    game = Game(dice=ScriptedDice(BOOK_AT_CREATION), content=content)
+    interface, output = terminal(game, NOTING_THE_BOOK)
+
+    create(game, interface)
+
+    assert output[-3:] == ["  Notes:", "    - The Occult Guide", "  r) Show the descriptions"]
+
+
+def test_the_creation_drill_shows_the_character_once(content):
+    game = Game(dice=ScriptedDice(CREATION_DICE), content=content)
+    interface, output = terminal(game, CREATING)
+
+    drills.run("creation", game, interface)
+
+    assert output[-1] == "The drill is over."
+    assert sum("Ann · " in line for line in output) == 1
+
+
 def test_every_creation_text_is_used(content):
     # given one screen text shared by the plays above that cover every branch
     text = load_screen_text()
     plays = [
-        (CREATION_DICE, ["Ann", "l", "2", "r", "1", "1", "r", "19", "1"]),
-        ((2, *CREATION_DICE), ["Ann", "k", "1", "19", "2", "1"]),
-        ((2, 1, 1, 1, 3, 4), ["Ann", "l", "2", "1", "19", "1", "1"]),
+        (CREATION_DICE, ["Ann", "l", "2", "r", "1", "1", "r", "19", "1", "r", ""]),
+        ((2, *CREATION_DICE), ["Ann", "k", "1", "19", "2", "1", ""]),
+        ((2, 1, 1, 1, 3, 4), ["Ann", "l", "2", "1", "19", "1", "1", ""]),
+        (BOOK_AT_CREATION, NOTING_THE_BOOK),
     ]
     for dice, lines in plays:
         game = Game(dice=ScriptedDice(dice), content=content)
@@ -754,7 +823,7 @@ def test_a_drill_starts_with_what_to_try_and_asks_for_a_pregenerated_character(t
 
 def test_a_drill_over_says_so_and_shows_the_character(tmp_path):
     # given the creation drill (seed 7 as above)
-    typist = Typist(["Ann", "l", "2", "1", "18", "1", "1"])
+    typist = Typist(["Ann", "l", "2", "1", "18", "1", "1", ""])
     output = []
 
     main(
@@ -763,10 +832,9 @@ def test_a_drill_over_says_so_and_shows_the_character(tmp_path):
         output_fn=output.append,
     )
 
-    # then once the character is made, the drill is over and the sheet is shown, with no Home
-    shown = "\n".join(output)
-    assert "The drill is over." in shown
-    assert output[-1].startswith("Ann · Box 0 · Life")
+    # then once the character is made and shown (T2), the drill is over, with no Home
+    assert "Your character" in output
+    assert output[-1] == "The drill is over."
     assert typist.lines == []
 
 

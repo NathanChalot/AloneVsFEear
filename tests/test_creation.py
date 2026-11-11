@@ -23,6 +23,7 @@ from alone_against_fear.engine.protocol import (
     Book,
     Changed,
     Choose,
+    Created,
     Duplicate,
     ItemTaken,
     LeadRolled,
@@ -128,6 +129,14 @@ def test_what_creation_tells(content):
         "item.small_bell",
     ]
     assert told(interface, Changed) == [Changed(Stat.FOOD, FOOD, FOOD)]
+
+
+def test_creation_tells_when_the_character_is_made(content):
+    _, interface = created(content, [*PISTOL, *ROPE, *BELL, FOOD], [*basics(), "weapon.knife"])
+
+    # the last thing told, after the Food
+    assert interface.told[-1] == Created()
+    assert interface.told[-2] == Changed(Stat.FOOD, FOOD, FOOD)
 
 
 class InOrder(ScriptedInterface):

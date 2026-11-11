@@ -73,6 +73,7 @@ from ..engine.protocol import (
     Bought,
     Changed,
     Choose,
+    Created,
     Duplicate,
     EffectEnded,
     End,
@@ -205,6 +206,10 @@ class TerminalInterface:
         """Tables whose own rules were shown in this game."""
         self._rules: Table | None = None
         """The last table with rules rolled in this box, to show them on request."""
+        self._recap = False
+        """The character was just shown, at the end of creation."""
+        self._sheet_texts = False
+        """The recap shows the descriptions (`r` switches)."""
         self._skill_texts = True
         """The Skills are listed with their text (`r` switches)."""
         self._skill_count = STARTING_SKILLS
@@ -296,9 +301,11 @@ class TerminalInterface:
     def tell(self, event: Event) -> None:
         match event:
             case Arrival(number=1):
+                self._recap = False
                 self._rules = None
                 self._output("Home is box 1.")
             case Arrival(number=number):
+                self._recap = False
                 self._rules = None
                 self._output(f"Box {number}.")
             case FoodUpkeep(result=Upkeep.ATE):
@@ -348,11 +355,15 @@ class TerminalInterface:
                 self._output("You have it already: roll again.")
             case StepStarted(step=step):
                 self._step(step)
+            case Created():
+                self._recap_sheet()
+                self._recap = True
             case Bought(purchase=purchase):
                 self._output(f"{self._purchase_done(purchase)}: {purchase.cost} XP spent.")
             case Ended(end=end):
                 self._output(ENDINGS[end])
-                if end is End.DRILL_OVER and self.game.campaign.character is not None:
+                shown = self._recap  # the creation drill ends on the recap
+                if end is End.DRILL_OVER and self.game.campaign.character is not None and not shown:
                     self._output(self._status())
 
     # --- Reading ----------------------------------------------------------------------------
@@ -731,6 +742,70 @@ class TerminalInterface:
             lines.append(f"Lasting effects: {lasting}")
         return "\n".join(lines)
 
+    def _recap_sheet(self) -> None:
+        """The character once made, until the player goes on (Enter); `r` hides or shows the
+        descriptions. A pause of the terminal's own: nothing is answered to the engine."""
+        while True:
+            self._output("")
+            self._output(self.screen("creation.recap.title"))
+            for line in self._sheet(self._sheet_texts):
+                self._output(line)
+            toggle = "creation.recap.hide" if self._sheet_texts else "creation.recap.show"
+            self._output(f"  {RULES_KEY}) " + self.screen(toggle))
+            line = None
+            while line not in ("", RULES_KEY):  # anything else: asked again
+                line = self._line(self.screen("creation.recap.prompt")).lower()
+            if not line:
+                return
+            self._sheet_texts = not self._sheet_texts
+
+    def _sheet(self, texts: bool = False) -> list[str]:
+        """The character sheet, one thing a line: the numbers, then the Skills, the weapons,
+        the other items and the notes, each with its description when asked. Shown after
+        creation (T2); meant to grow into the sheet shown during play."""
+        game, c = self.game, self.game.character
+        content = game.content
+        name = f"{c.name} · " if c.name else ""
+        weapons = [i for i in c.items if i.id in content.weapons or i.id in content.variants]
+        others = [item for item in c.items if item not in weapons]
+        skills = [
+            (
+                content.skill(id_).name + (" (Expert)" if level is SkillLevel.EXPERT else ""),
+                content.skill(id_).text,
+            )
+            for id_, level in c.skills.items()
+        ]
+        sections = [
+            ("skills", skills),
+            ("weapons", [(self._item(i), content.weapon(i.id).text) for i in weapons]),
+            ("items", [(self._item(item), self._item_text(item)) for item in others]),
+            ("notes", [(note.text, None) for note in c.notes]),
+        ]
+        lines = [
+            f"  {name}Food {c.food} · XP {c.xp} · Clues {c.clues}",
+            f"    - Life {c.life}/{game.max(Stat.LIFE)}",
+            f"    - Sanity {c.sanity}/{game.max(Stat.SANITY)}",
+        ]
+        for key, shown in sections:
+            if shown:
+                lines.append("  " + self.screen(f"creation.recap.{key}"))
+                for label, text in shown:
+                    if texts and text:
+                        described = _indented(text, f"    - {label}: ", "      ")
+                        lines += [line.rstrip() for line in described.splitlines()]
+                    else:
+                        lines.append(f"    - {label}")
+        return lines
+
+    def _item_text(self, item: Item) -> str | None:
+        """An item's description: the text of the entry that gave it, or of the first entry
+        that gives it (one item, one text)."""
+        content = self.game.content
+        source = item.source if item.source in content.entries else None
+        if source is None:
+            source = next(iter(content.items.get(item.id, ())), None)
+        return content.entry(source).text if source is not None else None
+
     def _pregenerated(self, id_: str) -> str:
         """A pregenerated character in one line: "Anna Miller: Life 10, Sanity 9, Food 4;
         Will, Occultist"."""
@@ -822,9 +897,9 @@ def _span(keys: dict[str, object]) -> str:
     return f"{next(iter(keys))} to {list(keys)[-1]}"
 
 
-def _indented(text: str, first: str = "  ") -> str:
+def _indented(text: str, first: str = "  ", rest: str = "  ") -> str:
     lines = text.strip().splitlines()
-    return "\n".join([first + lines[0], *("  " + line for line in lines[1:])])
+    return "\n".join([first + lines[0], *(rest + line for line in lines[1:])])
 
 
 # --- Starting a game ------------------------------------------------------------------------
