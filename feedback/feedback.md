@@ -145,3 +145,11 @@ its kind of a pain to test this drill without all the table implemented
 - Log: logs/20261111-231645.log
 
 same comment IO ll quite the session. I think we should post pone the drill to after we implement the other tables
+
+## 2026-11-12 00:02 · drill xp · seed 3525280453 · box 1
+
+- Character: Anna Miller
+- Asked: What do you do?
+- Log: logs/20261112-000054.log
+
+"Will becomes Expert: 6 XP spent" wdyt of "Spent 6 XP to upgrade Will to Expert" ?
