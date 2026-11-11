@@ -5,8 +5,7 @@ Planned work sessions with Claude, in order, each with the model and effort to u
 ## Reminders
 
 - E10 also moves the die ranges written in Python into the YAML (D1): the leads of `leads.py` and the samurai sword of Random Objects 54 (`PICKED_BY_DIE` in `engine/creation.py`). See the Readme's E10.
-- Merge the T2 PR (`t2-creation-screens`) before the planning session.
-- Since E7, Skills give their numbers through `effects` in the YAML and `engine/effects.py`; later tasks plug in the parameters they read (E9 the carry limit, E12 the surprise chance) and the pending tests in `tests/test_effects.py` (Dodge's balance E12, Faith E18, Medic E11).
+- Since E7, Skills give their numbers through `effects` in the YAML and `engine/effects.py`; later tasks plug in the parameters they read (E9 the carry limit, E12 the surprise chance) and the pending tests in `tests/test_effects.py` (Dodge's balance and Faith E12, Medic E11).
 - **Literal blocks for R3's texts** (a small PR, Sonnet, any time): R2 keeps a text of several paragraphs or a list as a literal block (`|-`, a blank line between paragraphs, one list item per line), which the user prefers on screen. R3's mission text and any other folded text with several paragraphs move to the same, without changing a word.
 - [`gameRules/book_errors.md`](gameRules/book_errors.md) now also lists the typos a batch fixed and the text it reworded ("Fixed or reworded"), to check again in the review session.
 - E4 dropped log replay (seed + answers played back through the scripted interface): not needed for now. The seed and every answer are still logged, so it can be added when a bug needs it. P1 decides whether it needs it.
@@ -16,7 +15,7 @@ Planned work sessions with Claude, in order, each with the model and effort to u
 - Reading the PDFs: this machine has no poppler (`pdftotext`, `pdftoppm`). Install `pypdf` in a scratch venv to extract the ebook's text, and `pymupdf` to render a page as an image (T1 checked the pregenerated sheets that way).
 - **E9: an item's count has no unit on screen**: creation says `You take: Rifle (11).`, where 11 is bullets (uses, jars…). E9 shows the inventory: give the count its unit (`Rifle, 11 bullets`), probably a unit per item in the YAML (noted in the T2 session).
 - **Drills from E9 on**: each task adds its drill to `DRILLS` in `engine/drills.py` (a line saying what it tries, a setup through the `Game` API that gives the stop condition) and a scenario in `tests/test_drills.py`; the pregenerated characters (`creation.pregenerated`) are the usual start. E9's is `inventory`.
-- The pending tests (skipped, in `tests/test_manual_actions.py` and `tests/test_effects.py`) name the task they wait for: E11, E12, E13, E15, E18, after R3. Write their bodies when that task comes.
+- The pending tests (skipped, in `tests/test_manual_actions.py` and `tests/test_effects.py`) name the task they wait for: E11, E12, E13, E15, after R3. Write their bodies when that task comes.
 
 ## For the next review
 
@@ -36,15 +35,15 @@ Drift noticed outside a session's scope, for the next consistency review (V1) to
 
 ## Drills to play before the next session
 
-- `xp` (5 minutes): buying a Skill with XP, which learning Arcane Skills extends; the planning session can start from what you notice.
+- None needed before E9. Optional: `creation` (5 minutes), to look at the items a character starts with, which E9's inventory will show (with units for counts).
 - Not `walk` for now: most town tables are not copied, so nearly every box ends in book mode (T2 feedback). It comes back once the town tables are copied.
 
 ## Plan
 
-1. **Planning** — move books and learning Arcane Skills into Step 1: split E18 (the Random Books table, reading, learning the Arcane Skills; Gate and closing Hell Gates stay in Step 2), with R7's Random Books ahead of it, and place it in Step 1's order (books are items already: no E9 dependency). Also open: whether the roadmap shows the drills (T2 idea: each task notes when its drill was played).
-   Model: **Opus, medium effort** (planning with the user, no code). T2 went smoothly on Opus: one note at a time, the code followed.
-2. **E9** — inventory, with its `inventory` drill.
+1. **E9** — inventory, with its `inventory` drill.
    Model: **Sonnet, high effort** (a clear spec in `design/inventory.md`, but many limits that may need rulings; switch to Opus if a design question comes up).
-3. **V1** — the first consistency review (Opus, high effort), which also triages the drill feedback.
-4. **Step 1** goes on — E10 to E17 with V2 after E14, then P1 (the first playtest) and V3 after E17, one task per session, each with its drill, and the R batches done ahead of the task that needs them (R4 before E12, R5 before E16; R6 and R7 any time). The batches do not touch the engine and can run as background agents of a coordinator session.
+2. **V1** — the first consistency review (Opus, high effort), which also triages the drill feedback (the `xp` drill's note among them: the wording of a purchase).
+3. **R7a** — the Random Book table, ahead of E18. Model: **Sonnet, medium effort** (a copying batch of 12 entries; can run any time before E18, also as a background agent).
+4. **E18** — books and learning Arcane Skills, moved into Step 1 (the planning session after T2), with its `books` drill. Model: **Opus, high effort** (new engine parts, time without moving and prerequisites, and four open rule questions in its entry).
+5. **Step 1** goes on — E10 to E17 with V2 after E14, then P1 (the first playtest) and V3 after E17, one task per session, each with its drill, and the R batches done ahead of the task that needs them (R4 before E12, R5 before E16; R6 and R7b any time). The batches do not touch the engine and can run as background agents of a coordinator session.
    Model: per task, from the [model table](WorkingWithClaude.md#which-model-for-which-session): Opus, high effort for E10 and E12, the reviews and the playtests; Sonnet for the others (E9 included); Sonnet, medium effort for the copying agents, Opus for R6 (events). E8 went smoothly at Opus, high effort: the time went to rulings with the user, the code followed the design; keep E10 and E12 there.

@@ -36,8 +36,10 @@
 - {id: table.unique_vampires, name: Unique Vampires table, dice: d6, source: gameRules/tables/creatures/5_30_unique_vampires_table.md}
 - {id: table.unique_zombies, name: Unique Zombies table, dice: d6, source: gameRules/tables/creatures/5_31_unique_zombies_table.md}
 
-# The rest (R7)
+# Random Books (R7a)
 - {id: table.random_book, name: Random Book table, dice: 2d6, source: gameRules/tables/5_32_random_books_table.md}
+
+# The rest (R7b)
 - {id: table.rewards, name: Rewards table, dice: d6, source: gameRules/tables/5_33_rewards_table.md}
 - {id: table.side_mission, name: Side Mission table, dice: d6, source: gameRules/tables/5_34_side_missions_table.md}
 - {id: table.random_magic_item, name: Random Magic Item table, dice: d6, source: gameRules/tables/5_35_random_magic_items_table.md}
