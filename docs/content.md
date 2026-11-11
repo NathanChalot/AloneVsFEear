@@ -127,7 +127,11 @@ entries:
 | `item` | entry | the item the entry gives (`item.backpack`); two entries may give the same one |
 | `count` | entry | how many objects it gives: a dice code (`2d6`) or a number; or one per thing, `{weapon.bow: 2d6+3}`, when the entry gives a choice |
 | `uses` | entry | how many times the single item it gives can be used: a dice code or a number |
-| `effects` | entry | what the entry changes while the character holds it (an Injury, a Mental Scar), with a single `amount` ([effects](#effects)); decided in E8 |
+| `effects` | entry | what the entry changes while the character holds it (an Injury, a Mental Scar, an item: the backpack), with a single `amount` ([effects](#effects)); decided in E8 |
+| `slots` | entry | the item slots its item takes carried: 1 when absent, 0 for "Negligible weight", 2 for "Counts as 2 carried items"; a bundle takes them once ([items](#items)); E9 |
+| `worn` | entry | the slots its item takes worn, present only when its text says it can be worn; E9 |
+| `unit` | entry | what the count or uses count, when the item's name does not say (`doses`, `jars`); E9 |
+| `ammo` | entry | the ammo type it gives instead of an item, `count` of them (`shells`); E9 |
 
 - **Entries cover the dice range exactly**: every result has one entry, no gaps, no overlaps. Nested tables too.
 - **A nested table** is used only where the book prints one (Random Encounter). An entry that says "Roll d6. On a 1-5 … On a 6 …" stays one entry with its text, as printed (Town Exploration 7).
@@ -153,6 +157,8 @@ weapons:
 | --- | --- | --- |
 | `name`, `source` | list | the heading and the readable Markdown copy |
 | `id`, `name`, `text` | weapon | the weapon's ID, its heading as printed, its rules as printed |
+| `hands` | weapon | 2 for a two-handed weapon, 1 when absent; its variants share it; E9 |
+| `ammo` | weapon | the ammo type it fires: `bullets`, `rifle_bullets`, `bolts`, `arrows`, `shells` (`3_combat.md`); its variants share it; E9 |
 
 - **A weapon has its own ID**, so the tables that give one point to it: Random Weapon 2, "Chainsaw or authentic samurai sword (choose)", has `refs: [weapon.chainsaw, weapon.samurai_sword_authentic]`, and the player picks one.
 - **A heading that names two weapons lists them as variants** (decided in E6): "Baseball bat or hammer" keeps its ID and text, and `weapon.baseball_bat` and `weapon.hammer` are weapons of their own with that text, so the character holds the exact one. A variant may add a sentence of its own (`extra`: the hammer drives stakes, the bat does not). Tables point to the variant they give; a heading with variants is never held.
@@ -180,6 +186,8 @@ The Random Objects and Useful Stuff entries give the character something (decide
 - **An item**: `item: item.rope`. The ID is the printed name without its count, the same way as a table (`item.garlic_heads` for "d6 Garlic heads", `item.flower_bunch_or_present`, `item.exorcism_ritual_book`); a long name is shortened to the thing (`item.leather_jacket`). Two tables may give the same item (`item.backpack`, `item.candles`): one item, one text, so their entries say the same words, each keeping its own count (reworded with the user, in the book errors).
 - **A weapon**: its `refs`, as above.
 - **Neither**: Random Objects 33 (d6 Food points: Food, a number on the sheet) and 45 and 61 (a random book: book mode until the books, E18). Python handles them by entry ID.
+- **Ammo**: `ammo: shells` with its `count` (Random Objects 46). Ammo is not an item: the character keeps a count per ammo type (decided in E9, [rulings](../design/rulings.md#inventory)).
+- **Item data agrees across entries** (E9): `slots`, `worn`, `unit` and `effects` are the item's, so every entry giving the same item says the same; the loader refuses otherwise. `Content.item_entry(id)` is the first one.
 - **Three numbers, three meanings**: `count` is how many objects (d6 garlic heads, ammo, candles); `uses` is how many times one object serves (a First Aid Kit's d6+2 points, Salt's 6 doses, Strong coffee's 6 drinks); durability (Body armor's 4 Life points, the Helmet's 3) stays in the text until E13 (harm).
 
 ## A list of Skills

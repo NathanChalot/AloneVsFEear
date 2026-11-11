@@ -9,6 +9,7 @@ entries:
       as 1 Food each or to avoid one encounter with a cat-like monster.
     item: item.cat_food
     count: d6
+    unit: jars
   - roll: 12
     text: >-
       Flower bunch/present. Use once to gain a +1 on a Charisma roll.
@@ -16,9 +17,14 @@ entries:
   - roll: 13
     text: Small bell. Useful for some spells. Negligible weight.
     item: item.small_bell
+    slots: 0
   - roll: 14
     text: Backpack. You may carry 15 items instead of 10, and 15 Food points instead of 10.
     item: item.backpack
+    slots: 0
+    effects:
+      - {parameter: carry_limit, amount: 5, group: backpack}
+      - {parameter: food_limit, amount: 5, group: backpack}
   - roll: 15
     text: >-
       Body armor. The body armor has 4 Life points. Every time you take
@@ -27,6 +33,8 @@ entries:
       body armor and is ignored. When the body armor loses its last Life, it
       is rendered useless. Wearing body armor counts as carrying 2 objects.
     item: item.body_armor
+    slots: 2
+    worn: 2
   - roll: 16
     text: Butterfly collection.
     item: item.butterfly_collection
@@ -49,6 +57,7 @@ entries:
       susceptible to holy symbols, but if you roll a 1 it breaks and must be
       discarded. Negligible weight.
     item: item.cheap_holy_symbol_or_beads
+    slots: 0
   - roll: 24
     text: >-
       Toy. You may sacrifice it to gain a +1 on an Escape roll or Charisma
@@ -70,6 +79,7 @@ entries:
       encounter with a mummy, the scarab loses its powers and the bonus is
       lost. Negligible weight.
     item: item.egyptian_scarab
+    slots: 0
   - roll: 32
     text: >-
       Dog toy. You may sacrifice it to gain a +1 on an Escape roll to flee
@@ -90,6 +100,7 @@ entries:
       and the body armor are worn in conjunction, on a 3, 4, or 5 you take
       Damage off the body armor; on a 6 you take Damage off the helmet.
     item: item.helmet
+    worn: 0
   - roll: 35
     text: >-
       d3 bottles of liquor. If you drink a whole bottle before an encounter,
@@ -100,12 +111,14 @@ entries:
       box by drinking coffee.
     item: item.liquor
     count: d3
+    unit: bottles
   - roll: 36
     text: >-
       Strong coffee. Drink to reduce the effect of liquor, above. This is
       enough for drinking 6 times.
     item: item.strong_coffee
     uses: 6
+    unit: drinks
   - roll: 41
     text: >-
       2d6 candles. Used for many spells and rituals. You need a lighter or other
@@ -141,6 +154,7 @@ entries:
   - roll: 51
     text: Protein bars. This count as 1 Food point, negligible weight.
     item: item.protein_bars
+    slots: 0
   - roll: 52
     text: >-
       d6 Energy drinks. These count as 1 Food point each. However, they should
@@ -158,6 +172,7 @@ entries:
       Cell phone. There is no reception or electricity to recharge it.
       Negligible weight.
     item: item.cell_phone
+    slots: 0
   - roll: 55
     text: >-
       d6 painkillers. For each painkiller taken, roll d6. If you roll any 1,
@@ -176,6 +191,7 @@ entries:
       time. Worn clothes have negligible weight. Carried clothes count as 1
       carried object.
     item: item.dark_clothes
+    worn: 0
   - roll: 61
     text: >-
       Stylish clothes. Once per game, you can claim a +1 bonus to a Charisma
@@ -183,6 +199,7 @@ entries:
       a time. Worn clothes have negligible weight. Carried clothes count as 1
       carried object.
     item: item.stylish_clothes
+    worn: 0
   - roll: 62
     text: >-
       Sport clothes. Once per game, you may claim a +1 bonus to an Escape roll
@@ -190,6 +207,7 @@ entries:
       time. Worn clothes have negligible weight. Carried clothes count as 1
       carried object.
     item: item.sport_clothes
+    worn: 0
   - roll: 63
     text: >-
       Hockey stick/ golf club. This may be used as a two-handed weapon. Damage
@@ -209,9 +227,11 @@ entries:
       rifle if you have smelting equipment or just used in a shotgun shell.
       Negligible weight.
     item: item.silver_ring
+    slots: 0
   - roll: 66
     text: >-
       Gas Mask. If you wear it, it does not count as a carried item, and you
       are immune to the effect of any gas or respiratory agent. If you carry
       it, it counts as a carried object and it can be worn in 1 Action.
     item: item.gas_mask
+    worn: 0
