@@ -2,8 +2,8 @@
 
 Effects are not stored: they are read from their sources whenever a rule needs them, so
 removing a source removes its effects and a max is never out of date. The sources are the
-Skills for now; items (E9), Injuries and Mental Scars (E13) and effects with a lifetime of
-their own (E8) join them with their tasks.
+Skills and, since E8, the Injuries and Mental Scars (their table entries' effects); items
+(E9) join them with their task.
 """
 
 from __future__ import annotations
@@ -19,7 +19,8 @@ from .state import Character, SkillLevel
 
 @dataclass(frozen=True)
 class Held:
-    """An effect in play: its source (a Skill ID) and the amount at the level held."""
+    """An effect in play: its source (a Skill or an entry ID) and the amount at the level
+    held."""
 
     source: str
     effect: Effect
@@ -44,12 +45,19 @@ class RollModifiers(NamedTuple):
 
 
 def held(character: Character, content: Content) -> tuple[Held, ...]:
-    """Every effect the character holds, in the order of their Skills."""
-    return tuple(
+    """Every effect the character holds: their Skills', then their Injuries' and Mental
+    Scars', each in the order gained."""
+    skills = (
         Held(skill_id, effect, effect.amount(expert=level is SkillLevel.EXPERT))
         for skill_id, level in character.skills.items()
         for effect in content.skill(skill_id).effects
     )
+    harm = (
+        Held(entry_id, effect, effect.amount(expert=False))
+        for entry_id in (*character.injuries, *character.mental_scars)
+        for effect in content.entry(entry_id).effects
+    )
+    return (*skills, *harm)
 
 
 def matches(effect: Effect, roll: RollType, tags: frozenset[Tag]) -> bool:

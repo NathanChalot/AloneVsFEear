@@ -163,6 +163,11 @@ class Character:
     clues: int = 0
     skills: dict[str, SkillLevel] = field(default_factory=dict)
     """Skill and Arcane Skill IDs, at their level."""
+    injuries: list[str] = field(default_factory=list)
+    """Injury table entry IDs (`injury.`), in the order gained (E8; the offer comes with
+    E13)."""
+    mental_scars: list[str] = field(default_factory=list)
+    """Insanity table entry IDs (`mental_scar.`), in the order gained."""
     items: list[Item] = field(default_factory=list)
     notes: list[Note] = field(default_factory=list)
     """The player's notes (E5b): lasting effects and modifiers of texts the engine cannot

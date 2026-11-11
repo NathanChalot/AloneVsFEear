@@ -377,7 +377,13 @@ class TerminalInterface:
         return self._read(_by_number(request.options), f"Skill? [1-{len(request.options)}] ")
 
     def _source(self, source: str | None) -> str:
-        return "modifier" if source is None else self.game.content.skill(source).name
+        """Where a modifier comes from: a Skill, an Injury or a Mental Scar, or the text."""
+        content = self.game.content
+        if source is None:
+            return "modifier"
+        if source.startswith(("skill.", "arcane_skill.")):
+            return content.skill(source).name
+        return content.entry(source).name or source
 
     def _modifiers(self, modifiers: Sequence[Modifier], set_aside: Sequence[Modifier] = ()) -> str:
         """ ", Resilient +1, modifier -1", each set aside after the one it gives way to."""
@@ -480,7 +486,7 @@ class TerminalInterface:
     # --- Showing ----------------------------------------------------------------------------
 
     def _status(self) -> str:
-        """The status line, then the Skills and items, if any."""
+        """The status line, then the Skills, Injuries, Mental Scars and items, if any."""
         game, c = self.game, self.game.character
         name = f"{c.name} · " if c.name else ""
         lines = [
@@ -494,6 +500,9 @@ class TerminalInterface:
                 for id_, level in c.skills.items()
             )
             lines.append(f"Skills: {', '.join(skills)}")
+        for label, held in (("Injuries", c.injuries), ("Mental Scars", c.mental_scars)):
+            if held:
+                lines.append(f"{label}: {', '.join(self._source(id_) for id_ in held)}")
         if c.items:
             lines.append(f"Items: {', '.join(self._item(item) for item in c.items)}")
         return "\n".join(lines)

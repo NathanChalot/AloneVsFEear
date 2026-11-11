@@ -30,14 +30,28 @@ CATALOGUE = "catalogue.yaml"
 
 _TABLE_KEYS = {"id", "name", "dice", "text", "source", "notes", "entries"}
 _NESTED_KEYS = {"dice", "entries"}
-_ENTRY_KEYS = {"roll", "id", "name", "text", "refs", "notes", "table", "item", "count", "uses"}
+_ENTRY_KEYS = {
+    "roll",
+    "id",
+    "name",
+    "text",
+    "refs",
+    "notes",
+    "table",
+    "item",
+    "count",
+    "uses",
+    "effects",
+}
 _CATALOGUE_KEYS = {"id", "name", "dice", "source"}
 _CATALOGUE_EVENT_KEYS = {"id", "name", "source"}
 _WEAPONS_KEYS = {"name", "source", "weapons"}
 _WEAPON_KEYS = {"id", "name", "text", "variants"}
 _VARIANT_KEYS = {"id", "name", "extra"}
 _SKILL_KEYS = {"id", "name", "xp", "text", "expert", "starting_gear", "effects"}
-_EFFECT_KEYS = {"roll", "tags", "parameter", "group", "basic", "expert"}
+_TARGET_KEYS = {"roll", "tags", "parameter", "group"}
+_EFFECT_KEYS = _TARGET_KEYS | {"basic", "expert"}
+_ENTRY_EFFECT_KEYS = _TARGET_KEYS | {"amount"}
 _GEAR_KEYS = {"id", "count", "uses"}
 _ARCANE_KEYS = _SKILL_KEYS | {"components", "sacrifice"}
 _SKILL_LISTS = {
@@ -216,6 +230,17 @@ def _skills(raw: dict, path: Path, key: str) -> list[Skill]:
     return skills
 
 
+def _entry_effect(raw: Any, what: str) -> Effect:
+    """An entry's effect (an Injury, a Mental Scar, E8): a target and a single amount, read
+    as a Basic amount with no Expert level."""
+    _check_keys(raw, _ENTRY_EFFECT_KEYS, {"amount"}, f"{what} effect")
+    return _effect(
+        {**{k: v for k, v in raw.items() if k != "amount"}, "basic": raw["amount"]},
+        what,
+        has_expert=False,
+    )
+
+
 def _effect(raw: Any, what: str, has_expert: bool) -> Effect:
     """A Skill's effect: a roll (type, tags, group) or a parameter, and its amounts. Every
     name is checked against `effect_targets`, so a misspelt one fails here."""
@@ -311,6 +336,7 @@ def _entry(raw: Any, table_id: str, path: Path) -> Entry:
         item=item,
         count=_counts(raw.get("count"), {*refs, item}, what),
         uses=_uses(raw.get("uses"), item, what),
+        effects=tuple(_entry_effect(effect, what) for effect in raw.get("effects") or []),
     )
 
 

@@ -21,6 +21,9 @@ entries:
     name: Eating Disorder
     text: >-
       You require 1 Food every 3 boxes.
+    # -2 on the usual 5, stacking with Resistant to Hunger (design/rulings.md, Character)
+    effects:
+      - {parameter: food_interval, amount: -2}
   - roll: 3
     id: mental_scar.absent_mindedness
     name: Absent Mindedness

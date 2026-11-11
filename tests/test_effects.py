@@ -293,3 +293,58 @@ def test_faith_turns_vampires_with_a_holy_symbol():
 @pytest.mark.skip(reason="E11: Medic heals up to 3 (Expert 4) Life from a first aid kit")
 def test_medic_heals_after_an_encounter():
     pass
+
+
+# --- Injuries and Mental Scars (E8) ------------------------------------------------------
+# Held by ID; their effects are written in their table entries, with a single amount.
+
+
+def test_eating_disorder_shortens_the_food_interval_to_3(content):
+    game = character(content)
+
+    game.gain_mental_scar("mental_scar.eating_disorder")
+
+    assert game.character.mental_scars == ["mental_scar.eating_disorder"]
+    assert game.parameter(Parameter.FOOD_INTERVAL) == 3
+
+
+@pytest.mark.parametrize(("expert", "interval"), [((), 4), (("skill.resistant_to_hunger",), 5)])
+def test_eating_disorder_stacks_with_resistant_to_hunger(content, expert, interval):
+    # design/rulings.md, Character: Eating Disorder is -2, the Skill still adds
+    game = character(content, "skill.resistant_to_hunger", expert=expert)
+
+    game.gain_mental_scar("mental_scar.eating_disorder")
+
+    assert game.parameter(Parameter.FOOD_INTERVAL) == interval
+
+
+def test_the_food_interval_is_never_below_1(content):
+    game = character(content)
+    game.gain_mental_scar("mental_scar.eating_disorder")
+
+    assert game.parameter(Parameter.FOOD_INTERVAL, base=2) == 1
+
+
+def test_a_mental_scar_or_injury_is_held_once(content):
+    game = character(content)
+    game.gain_mental_scar("mental_scar.eating_disorder")
+    game.gain_injury("injury.limping")
+
+    with pytest.raises(GameError, match="already"):
+        game.gain_mental_scar("mental_scar.eating_disorder")
+    with pytest.raises(GameError, match="already"):
+        game.gain_injury("injury.limping")
+    assert game.character.injuries == ["injury.limping"]
+
+
+@pytest.mark.parametrize(
+    ("method", "id_"),
+    [
+        ("gain_mental_scar", "injury.limping"),
+        ("gain_injury", "mental_scar.eating_disorder"),
+        ("gain_injury", "injury.no_such_thing"),
+    ],
+)
+def test_only_an_entry_of_its_table_can_be_gained(content, method, id_):
+    with pytest.raises(GameError):
+        getattr(character(content), method)(id_)

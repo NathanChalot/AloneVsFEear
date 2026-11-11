@@ -46,9 +46,14 @@ CARRY_LIMIT = 10
 PARAMETER_BASES = {Parameter.CARRY_LIMIT: CARRY_LIMIT, Parameter.FOOD_INTERVAL: FOOD_INTERVAL}
 """The bases written in the rules; max Life and Sanity are the character's, the surprise chance
 and the Clue cost the text's."""
-PARAMETER_FLOORS = {Parameter.SURPRISE_CHANCE: 0, Parameter.CLUE_COST: 1}
+PARAMETER_FLOORS = {
+    Parameter.SURPRISE_CHANCE: 0,
+    Parameter.CLUE_COST: 1,
+    Parameter.FOOD_INTERVAL: 1,
+}
 """Danger Sense leaves a 1 in 6 creature no chance; Investigator reduces a Clue cost "to a
-minimum of 1" (`1_2_skills.md`)."""
+minimum of 1" (`1_2_skills.md`); a meal is never more often than every box
+(design/rulings.md, Character)."""
 
 PLACE_TABLES = frozenset(
     {
@@ -231,10 +236,28 @@ class Game:
                 return self.parameter(Parameter.MAX_SANITY)
         return None
 
+    def gain_injury(self, entry_id: str) -> None:
+        """The character keeps an Injury for life. How one is offered (a loss negated, at
+        most 3, duplicates rerolled) comes with E13."""
+        self._gain_harm(entry_id, "injury.", self.character.injuries)
+
+    def gain_mental_scar(self, entry_id: str) -> None:
+        """The character keeps a Mental Scar for life; see `gain_injury`."""
+        self._gain_harm(entry_id, "mental_scar.", self.character.mental_scars)
+
+    def _gain_harm(self, entry_id: str, prefix: str, held: list[str]) -> None:
+        if not entry_id.startswith(prefix) or entry_id not in self.content:
+            raise GameError(f"no such {prefix.rstrip('.')}: {entry_id}")
+        if entry_id in held:
+            raise GameError(f"the character already has {entry_id}")
+        held.append(entry_id)
+        log.info("gained %s", entry_id)
+
     # --- Effects ------------------------------------------------------------------------------
 
     def effects(self) -> tuple[Held, ...]:
-        """Every effect in play, read from its source: the character's Skills (E7)."""
+        """Every effect in play, read from its source: the character's Skills (E7), Injuries
+        and Mental Scars (E8)."""
         return effects.held(self.character, self.content)
 
     def parameter(self, parameter: Parameter, base: int | None = None) -> int:

@@ -481,3 +481,26 @@ def test_healing_at_max_says_so(content):
     play(game, interface)
 
     assert "You are at your max Life (8)." in output
+
+
+# --- Injuries and Mental Scars (E8) --------------------------------------------------------
+
+
+def test_the_status_lists_injuries_and_mental_scars(content):
+    game = ready(content)
+    game.gain_injury("injury.limping")
+    game.gain_mental_scar("mental_scar.eating_disorder")
+    interface, output = terminal(game, [HOME_TOP_LEFT, QUIT])
+
+    play(game, interface)
+
+    assert "Injuries: Limping\nMental Scars: Eating Disorder" in "\n".join(output)
+
+
+def test_a_modifier_from_an_injury_or_a_mental_scar_is_named_after_it(content):
+    # their roll modifiers are written with E13; the name is ready for them
+    interface, _ = terminal(ready(content), [])
+
+    assert interface._source("injury.limping") == "Limping"
+    assert interface._source("mental_scar.phobic") == "Phobic"
+    assert interface._source("skill.agile") == "Agile"
