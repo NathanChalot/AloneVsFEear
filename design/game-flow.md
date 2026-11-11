@@ -33,7 +33,7 @@ flowchart TD
     start([Mission rolled]) --> home[First mission: choose Home box<br/>it is box 1, no content roll<br/>Later missions: continue where you stand]
     home --> turn
     subgraph turn [Turn]
-        move[Move to a neighbouring box<br/>number it] --> upkeep[Upkeep<br/>Food every 5 boxes, effects tick,<br/>mission triggers on box count]
+        move[Move to a neighbouring box<br/>number it] --> upkeep[A box of time<br/>Food when due, effects tick,<br/>mission triggers on box count]
         upkeep --> arrive[[Arrive in box]]
         arrive --> search{Search allowed<br/>and wanted?}
         search -- yes --> doSearch[Search roll]

@@ -726,14 +726,6 @@ def test_pending_a_library_can_be_searched_again(): ...
 def test_pending_home_cannot_be_searched(): ...
 
 
-@pytest.mark.skip(reason="E8: consider manual effects the engine applies, replacing notes")
-def test_pending_a_lasting_effect_typed_by_the_player_is_applied_by_the_engine():
-    # given the player adds "-1 to Search for the next 3 boxes" as an effect, not a note
-    # when they Search within those 3 boxes
-    # then the engine applies the -1 by itself, and the effect ends after 3 boxes
-    ...
-
-
 @pytest.mark.skip(reason="After R3: take and drop items as manual actions, picked by ID")
 def test_pending_the_player_takes_the_item_the_text_gives():
     # given an entry that gives an item

@@ -1,8 +1,8 @@
 """E3: the town map, moves and time (design/town-map.md).
 
 The town is one grid; a sheet is a 5-column, 6-row block of it. Boxes are neighbours across a
-side or a corner, distance is the larger of the column and row gaps, every move numbers the box
-entered, and every 5th box number costs 1 Food (or 1 Life without Food).
+side or a corner, distance is the larger of the column and row gaps, and every move numbers the
+box entered. The Food upkeep that comes with the box of time is in tests/test_moments.py (E8).
 """
 
 import pytest
