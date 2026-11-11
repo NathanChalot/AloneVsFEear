@@ -12,6 +12,8 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import NamedTuple
 
+from ..content import Effect
+
 
 class Level(StrEnum):
     CAMPAIGN = "campaign"
@@ -41,6 +43,14 @@ class Upkeep(StrEnum):
     ATE = "ate"
     STARVED = "starved"
     """No Food: 1 Life lost instead."""
+
+
+class Moment(StrEnum):
+    """A point in play that reactions and lifetimes wait for (E8, design/effects.md,
+    Moments). The others come with the tasks that need them."""
+
+    TIME_PASSES = "time_passes"
+    """A box of time: the box number goes up (moving, or time spent without moving)."""
 
 
 class Stat(StrEnum):
@@ -97,6 +107,19 @@ class Item:
     """The table entry it came from; None when no entry gave it (the knife or stick)."""
     count: int | None = None
     uses: int | None = None
+
+
+@dataclass
+class Lasting:
+    """An effect with a lifetime of its own (E8): it holds until `remaining` counts of its
+    `moment` have happened, the last one ending it; with no moment, until it is removed.
+    "For the next 3 boxes" counts 4 boxes of time: it ends as the fourth box starts
+    (design/rulings.md, Effects). `source` is what gave it: an ID, or `effects.PLAYER`."""
+
+    effect: Effect
+    source: str
+    moment: Moment | None = None
+    remaining: int = 0
 
 
 @dataclass
@@ -169,6 +192,8 @@ class Character:
     mental_scars: list[str] = field(default_factory=list)
     """Insanity table entry IDs (`mental_scar.`), in the order gained."""
     items: list[Item] = field(default_factory=list)
+    lasting: list[Lasting] = field(default_factory=list)
+    """Effects with a lifetime of their own (E8), in the order they started."""
     notes: list[Note] = field(default_factory=list)
     """The player's notes (E5b): lasting effects and modifiers of texts the engine cannot
     read, kept as a reminder."""
@@ -181,6 +206,9 @@ class Campaign:
     map: TownMap = field(default_factory=TownMap)
     box_counter: int = 0
     """The last box number written: the clock, never reset."""
+    last_meal: int = 0
+    """The box number of the last Food upkeep (a meal, or 1 Life lost without Food); the
+    next comes once the Food interval has passed (E8, design/rulings.md, Map)."""
     home: Position | None = None
     position: Position | None = None
     """The box the character stands in."""

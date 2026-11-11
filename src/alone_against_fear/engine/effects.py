@@ -2,8 +2,9 @@
 
 Effects are not stored: they are read from their sources whenever a rule needs them, so
 removing a source removes its effects and a max is never out of date. The sources are the
-Skills and, since E8, the Injuries and Mental Scars (their table entries' effects); items
-(E9) join them with their task.
+Skills and, since E8, the Injuries and Mental Scars (their table entries' effects) and the
+lasting effects, the only ones stored, since they have a lifetime of their own; items (E9)
+join them with their task.
 """
 
 from __future__ import annotations
@@ -16,11 +17,15 @@ from ..content import Content, Effect
 from ..effect_targets import Parameter, RollType, Tag
 from .state import Character, SkillLevel
 
+PLAYER = "player"
+"""The source of a lasting effect the player added by hand, from a text the engine cannot
+read (E8)."""
+
 
 @dataclass(frozen=True)
 class Held:
-    """An effect in play: its source (a Skill or an entry ID) and the amount at the level
-    held."""
+    """An effect in play: its source (a Skill or an entry ID, or `PLAYER`) and the amount
+    at the level held."""
 
     source: str
     effect: Effect
@@ -45,8 +50,8 @@ class RollModifiers(NamedTuple):
 
 
 def held(character: Character, content: Content) -> tuple[Held, ...]:
-    """Every effect the character holds: their Skills', then their Injuries' and Mental
-    Scars', each in the order gained."""
+    """Every effect the character holds: their Skills', their Injuries' and Mental Scars',
+    then their lasting effects, each in the order gained."""
     skills = (
         Held(skill_id, effect, effect.amount(expert=level is SkillLevel.EXPERT))
         for skill_id, level in character.skills.items()
@@ -57,11 +62,16 @@ def held(character: Character, content: Content) -> tuple[Held, ...]:
         for entry_id in (*character.injuries, *character.mental_scars)
         for effect in content.entry(entry_id).effects
     )
-    return (*skills, *harm)
+    lasting = (Held(e.source, e.effect, e.effect.amount(expert=False)) for e in character.lasting)
+    return (*skills, *harm, *lasting)
 
 
 def matches(effect: Effect, roll: RollType, tags: frozenset[Tag]) -> bool:
-    """The effect changes this roll: same type, and one of its tags if it names any."""
+    """The effect changes this roll: same type, and one of its tags if it names any. An
+    effect with neither a roll type nor a parameter changes every roll (design/rulings.md,
+    Effects: "all your die rolls")."""
+    if effect.roll is None:
+        return effect.parameter is None
     return effect.roll is roll and (not effect.tags or bool(effect.tags & tags))
 
 

@@ -41,7 +41,7 @@ from ..dice import RandomDice
 from ..effect_targets import RollType, Tag
 from ..engine import Arrival, Game, Position, Stat, Upkeep
 from ..engine.creation import Points
-from ..engine.effects import Held, Modifier
+from ..engine.effects import PLAYER, Held, Modifier
 from ..engine.game import Purchase, Rolled, RolledVsL, Searched
 from ..engine.loop import play
 from ..engine.manual import Manual
@@ -52,10 +52,12 @@ from ..engine.protocol import (
     Changed,
     Choose,
     Duplicate,
+    EffectEnded,
     End,
     Ended,
     Event,
     EventPlayed,
+    FoodUpkeep,
     ItemTaken,
     LeadRolled,
     Marked,
@@ -69,7 +71,7 @@ from ..engine.protocol import (
     Topic,
     Wandering,
 )
-from ..engine.state import Item, Note, SkillLevel
+from ..engine.state import Item, Lasting, Note, SkillLevel
 from ..engine.town import SHEET_COLUMNS, SHEET_ROWS, sheet_neighbours
 
 CELL = 5
@@ -248,13 +250,15 @@ class TerminalInterface:
             case Arrival(number=1):
                 self._rules = None
                 self._output("Home is box 1.")
-            case Arrival(number=number, upkeep=upkeep):
+            case Arrival(number=number):
                 self._rules = None
                 self._output(f"Box {number}.")
-                if upkeep is Upkeep.ATE:
-                    self._output(f"You eat 1 Food (Food {self.game.character.food}).")
-                elif upkeep is Upkeep.STARVED:
-                    self._output(f"No Food: you lose 1 Life (Life {self.game.character.life}).")
+            case FoodUpkeep(result=Upkeep.ATE):
+                self._output(f"You eat 1 Food (Food {self.game.character.food}).")
+            case FoodUpkeep(result=Upkeep.STARVED):
+                self._output(f"No Food: you lose 1 Life (Life {self.game.character.life}).")
+            case EffectEnded(lasting=lasting):
+                self._output(f"Ended: {self._lasting(lasting)}.")
             case Rolled():
                 self._show_rolled(event)
             case LeadRolled(face=face, ref=ref):
@@ -381,6 +385,8 @@ class TerminalInterface:
         content = self.game.content
         if source is None:
             return "modifier"
+        if source == PLAYER:
+            return "lasting effect"
         if source.startswith(("skill.", "arcane_skill.")):
             return content.skill(source).name
         return content.entry(source).name or source
@@ -391,6 +397,21 @@ class TerminalInterface:
         for m in set_aside:
             shown += f" ({self._source(m.source)} {m.amount:+d} does not stack)"
         return shown
+
+    def _lasting(self, lasting: Lasting) -> str:
+        """What a lasting effect changes: "-1 on all rolls", "-1 on Stealth rolls", named
+        after its source unless the player added it."""
+        effect = lasting.effect
+        amount = effect.amount(expert=False)
+        if effect.parameter is not None:
+            what = f"{amount:+d} to the {effect.parameter.replace('_', ' ')}"
+        elif effect.roll is None:
+            what = f"{amount:+d} on all rolls"
+        else:
+            what = f"{amount:+d} on {_roll(effect.roll)} rolls"
+        if lasting.source == PLAYER:
+            return what
+        return f"{self._source(lasting.source)}: {what}"
 
     def _vs_l(self, rolled: RolledVsL) -> str:
         result = "Success." if rolled.success else "Failure."

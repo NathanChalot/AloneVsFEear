@@ -19,7 +19,16 @@ from alone_against_fear.engine.creation import Points
 from alone_against_fear.engine.game import Purchase
 from alone_against_fear.engine.loop import play
 from alone_against_fear.engine.manual import Manual
-from alone_against_fear.engine.protocol import Action, Book, Bought, Choose, End, Ended, Topic
+from alone_against_fear.engine.protocol import (
+    Action,
+    Book,
+    Bought,
+    Choose,
+    End,
+    Ended,
+    FoodUpkeep,
+    Topic,
+)
 from alone_against_fear.engine.state import SkillLevel
 from alone_against_fear.engine.town import boxes_of
 from alone_against_fear.interface.scripted import ScriptedInterface, ScriptError
@@ -104,8 +113,10 @@ def test_the_interface_is_told_every_arrival_then_the_end(content):
     arrivals = [event for event in interface.told if isinstance(event, Arrival)]
     assert [arrival.position for arrival in arrivals] == [HOME, *WALK]
     assert [arrival.number for arrival in arrivals] == list(range(1, 12))
-    assert [arrival.upkeep for arrival in arrivals if arrival.upkeep] == [Upkeep.ATE] * 2
-    assert arrivals[4].upkeep is arrivals[9].upkeep is Upkeep.ATE  # boxes 5 and 10
+    # and the Food upkeep, told right after the arrival in boxes 5 and 10 (E8)
+    meals = [i for i, event in enumerate(interface.told) if isinstance(event, FoodUpkeep)]
+    assert [interface.told[i - 1] for i in meals] == [arrivals[4], arrivals[9]]
+    assert [interface.told[i] for i in meals] == [FoodUpkeep(Upkeep.ATE)] * 2
     assert interface.told[-1] == Ended(End.QUIT)
 
 

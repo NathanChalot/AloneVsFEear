@@ -18,7 +18,7 @@ from enum import StrEnum
 from typing import Protocol
 
 from .game import Arrival, GameError, Purchase, Rolled, RolledVsL, Searched
-from .state import End, Item, Note, Position, Stat
+from .state import End, Item, Lasting, Note, Position, Stat, Upkeep
 
 log = logging.getLogger(__name__)
 
@@ -141,6 +141,20 @@ class Ended:
 
 
 @dataclass(frozen=True)
+class FoodUpkeep:
+    """A box of time brought a meal (E8): eaten, or 1 Life lost without Food."""
+
+    result: Upkeep
+
+
+@dataclass(frozen=True)
+class EffectEnded:
+    """A lasting effect ran its course (E8)."""
+
+    lasting: Lasting
+
+
+@dataclass(frozen=True)
 class Wandering:
     """The 1 in 6 chance of a Random Encounter in a visited box: the die, and whether it came."""
 
@@ -222,6 +236,8 @@ class Marked:
 type Request = Choose | Number | Text
 type Event = (
     Arrival
+    | FoodUpkeep
+    | EffectEnded
     | Rolled
     | Wandering
     | LeadRolled

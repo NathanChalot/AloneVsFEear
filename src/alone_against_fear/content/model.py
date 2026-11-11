@@ -170,7 +170,8 @@ class Effect:
     """One rule change a Skill or an entry gives, as its YAML writes it (E7): a modifier to
     a roll of one type, or to a parameter, at Basic and at Expert (an entry has a single
     amount, its Basic one, E8). What it does beyond a number (Dodge's balance, Faith,
-    Medic) is Python, keyed by the source's ID."""
+    Medic) is Python, keyed by the source's ID. With neither `roll` nor `parameter`, it
+    changes every roll (a lasting effect, E8; the YAML always names one)."""
 
     basic: int
     expert: int | None = None

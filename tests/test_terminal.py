@@ -8,7 +8,7 @@ test plays the terminal with typed lines.
 
 import pytest
 
-from alone_against_fear.content import load_content
+from alone_against_fear.content import Effect, load_content
 from alone_against_fear.dice import ScriptedDice
 from alone_against_fear.engine import Game, Position, book_mode
 from alone_against_fear.engine.loop import play
@@ -504,3 +504,31 @@ def test_a_modifier_from_an_injury_or_a_mental_scar_is_named_after_it(content):
     assert interface._source("injury.limping") == "Limping"
     assert interface._source("mental_scar.phobic") == "Phobic"
     assert interface._source("skill.agile") == "Agile"
+
+
+# --- Moments and lasting effects (E8) --------------------------------------------------------
+
+
+def test_a_lasting_effect_that_ends_is_told(content):
+    # given -1 on all rolls for the next box, at Home; the player walks two boxes
+    game = ready(content, *EXPLORE, NO_ENCOUNTER)
+    game.choose_home(Position(0, 0))
+    game.add_lasting(Effect(basic=-1), boxes=1)
+    interface, output = terminal(game, ["m", "1", RESOLVE, "m", "1", QUIT])
+
+    play(game, interface)
+
+    # then it ends as box 3 starts
+    assert output.index("Box 3.") < output.index("Ended: -1 on all rolls.")
+    assert "Ended: -1 on all rolls." not in output[: output.index("Box 3.")]
+
+
+def test_a_meal_is_told_after_the_arrival(content):
+    # given Eating Disorder: a meal every 3 boxes
+    game = ready(content, *EXPLORE, NO_ENCOUNTER)
+    game.gain_mental_scar("mental_scar.eating_disorder")
+    interface, output = terminal(game, [HOME_TOP_LEFT, "m", "1", RESOLVE, "m", "1", QUIT])
+
+    play(game, interface)
+
+    assert output[output.index("Box 3.") + 1] == "You eat 1 Food (Food 2)."
