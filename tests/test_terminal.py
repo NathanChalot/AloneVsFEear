@@ -516,6 +516,40 @@ def test_creation_says_what_each_step_asks(content):
     assert "anything you have already is rolled again" in text
 
 
+def test_the_introduction_lists_the_steps(content):
+    # given a new game in the terminal
+    game = Game(dice=ScriptedDice(CREATION_DICE), content=content)
+    interface, output = terminal(game, CREATING)
+
+    # when the player creates Ann
+    create(game, interface)
+
+    # then the introduction lists the 5 steps, one per line, before the first heading
+    start = output.index("It takes 5 steps to create your character:")
+    assert output[start + 1 : start + 6] == [
+        "1. Your name",
+        "2. Your 3 extra points",
+        "3. Your Skills",
+        "4. Weapons",
+        "5. Objects and Food",
+    ]
+    assert start < output.index("Step 1 of 5 — Your name")
+
+
+def test_the_rolls_made_for_the_player_say_rolled(content):
+    # given a new game in the terminal
+    game = Game(dice=ScriptedDice(CREATION_DICE), content=content)
+    interface, output = terminal(game, CREATING)
+
+    # when the player creates Ann
+    create(game, interface)
+
+    # then the screens say the game rolls, not the player (T2 drill feedback)
+    text = "\n".join(output)
+    assert "(rolled twice if you traded your points for it)" in text
+    assert "roll twice" not in text
+
+
 def test_the_points_are_explained_and_their_result_shown(content):
     game = Game(dice=ScriptedDice(CREATION_DICE), content=content)
     interface, output = terminal(game, CREATING)

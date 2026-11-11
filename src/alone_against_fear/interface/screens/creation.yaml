@@ -2,10 +2,15 @@
 # Keys: creation.<step>.<part>; {fields} are filled in by the terminal.
 
 title: Character creation
-intro: >-
-  Your character begins with Life 8 and Sanity 8 and 3 points to add, 2 Skills, a weapon from
-  the Random Weapon table and a knife, 1 item from the Random Objects table and 1 from the
-  Useful Stuff table, and d6 Food. It takes 5 steps.
+intro: |-
+  Your character begins with Life 8 and Sanity 8 and 3 points to add, 2 Skills, a weapon from the Random Weapon table and a knife, 1 item from the Random Objects table and 1 from the Useful Stuff table, and d6 Food.
+
+  It takes 5 steps to create your character:
+  1. Your name
+  2. Your 3 extra points
+  3. Your Skills
+  4. Weapons
+  5. Objects and Food
 
 name:
   heading: Step 1 of 5 — Your name
@@ -46,7 +51,7 @@ skills:
 weapons:
   heading: Step 4 of 5 — Weapons
   text: >-
-    Your weapon comes from the Random Weapon table (roll twice if you traded your points for
+    Your weapon comes from the Random Weapon table (rolled twice if you traded your points for
     it). You also start with a knife, or a stick if you prefer.
   prompt: "Which weapon? [1-{last}] "
   prompt_named: "{name}? [1-{last}] "
@@ -54,7 +59,7 @@ weapons:
 gear:
   heading: Step 5 of 5 — Objects and Food
   text: >-
-    1 item from the Random Objects table and 1 from the Useful Stuff table (roll one of them
+    1 item from the Random Objects table and 1 from the Useful Stuff table (one of them rolled
     twice if you traded your points for it); anything you have already is rolled again. Then
     d6 Food.
 

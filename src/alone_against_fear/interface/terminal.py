@@ -476,7 +476,8 @@ class TerminalInterface:
         if step is Step.NAME:
             self._output("")
             self._output(self.screen("creation.title"))
-            self._output(self.screen("creation.intro"))
+            for line in self.screen("creation.intro").splitlines():
+                self._output(line)
         self._output("")
         self._output(self.screen(f"creation.{step}.heading", count=self._skill_count))
         self._output(self.screen(f"creation.{step}.text"))
