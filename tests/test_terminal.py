@@ -159,13 +159,23 @@ def test_a_new_box_shows_its_entry_and_your_choice(content):
     play(game, interface)
 
     text = "\n".join(output)
-    assert "Town Exploration table: 8" in text
+    assert "Town Exploration table, rolled 8" in text
     assert "Roll on the Store table or the Street table, your choice." in text
     # and only the entry reached: not entry 9
-    assert "Sewers" not in text.split("Town Exploration table: 8")[1]
+    assert "Sewers" not in text.split("Town Exploration table, rolled 8")[1]
     # and the choice offers the two tables only
     assert "1) Store table  2) Street table" in text
-    assert "Street table: 4" in text
+    assert "Street table, rolled 4" in text
+
+
+def test_a_roll_names_the_table_the_number_and_the_entry_s_name(content):
+    # given the Injury table rolled: 1, the Facial scar
+    game = ready(content, 1)
+    interface, output = terminal(game, [])
+
+    interface.tell(game.roll_table("table.injury"))
+
+    assert output[0] == "Injury table, rolled 1: Facial scar"
 
 
 def test_a_die_rolled_by_an_entry_is_shown(content):
@@ -183,10 +193,19 @@ def test_a_table_not_copied_yet_points_to_its_source_and_asks_where_it_leads(con
 
     play(game, interface)
 
-    text = "\n".join(output)
-    assert "House table: 2" in text
-    assert "read entry 2 in gameRules/tables/places/5_7_house_table.md" in text
-    assert "t) a table  e) a numbered event  g) gain  l) lose  v) roll vs L" in text
+    assert (
+        "House table, rolled 2: not copied yet, read entry 2 in "
+        "gameRules/tables/places/5_7_house_table.md"
+    ) in output
+    # book mode: one line to explain it, then where the text leads and what to do by hand
+    explanation = output.index(
+        "The game cannot apply this text by itself: do what it says by hand, then choose where "
+        "it leads."
+    )
+    assert output[explanation - 1] == output[explanation + 1] == ""
+    assert output[explanation + 2] == "  Leads to: t) a table  e) a numbered event  d) nowhere else"
+    assert output[explanation + 3].startswith("  By hand:  g) gain  l) lose  v) roll vs L")
+    assert "Your choice? " in interface._input.prompts
 
 
 def test_a_table_s_rules_are_shown_the_first_time_then_on_request(content):
@@ -200,7 +219,9 @@ def test_a_table_s_rules_are_shown_the_first_time_then_on_request(content):
     rules = [line for line in output if "every time you move into an unexplored area" in line]
     # once on the first roll, once more on request; not on the second roll
     assert len(rules) == 2
-    second_roll = max(i for i, line in enumerate(output) if line == "Town Exploration table: 7")
+    second_roll = max(
+        i for i, line in enumerate(output) if line.startswith("Town Exploration table, rolled 7")
+    )
     asked = [i for i, line in enumerate(output) if "every time you move" in line][-1]
     assert output[second_roll + 1].startswith("  Roll d6.")  # the entry, without the rules
     assert asked > second_roll
@@ -215,9 +236,9 @@ def test_an_entry_shows_the_notes_it_points_to(content):
     play(game, interface)
 
     text = "\n".join(output)
-    assert "Random Encounter table: 6, then 1" in text
+    assert "Random Encounter table, rolled 6, then 1" in text
     assert "Note: When rolling on tables of Unique creatures" in text
-    assert "Unique Vampires table: 3" in text
+    assert "Unique Vampires table, rolled 3" in text
 
 
 def test_the_text_can_lead_to_any_table_and_any_event(content):
@@ -231,7 +252,7 @@ def test_the_text_can_lead_to_any_table_and_any_event(content):
     play(game, interface)
 
     text = "\n".join(output)
-    assert "Undead table: 2" in text
+    assert "Undead table, rolled 2" in text
     assert "Event #12, The sewer people: read it in gameRules/6_unique_events.md" in text
 
 
@@ -271,7 +292,7 @@ def test_a_player_attaches_a_sheet_once_the_first_is_full_and_walks_onto_it(cont
     assert "A new sheet is attached." in text
     assert game.campaign.position == Position(5, 2)
     assert "Box 32." in text
-    assert "Town Exploration table: 7" in text
+    assert "Town Exploration table, rolled 7" in text
 
 
 # --- Manual actions (E5b) --------------------------------------------------------------------
@@ -394,7 +415,7 @@ def test_search_with_no_notes_rolls_at_once(content):
 
     text = "\n".join(output)
     assert "Search: rolled 3." in text
-    assert "Search table: 3" in text
+    assert "Search table, rolled 3" in text
     assert "Nothing found." in text
     assert "Modifier (Enter for none): " not in interface._input.prompts
 
@@ -519,7 +540,7 @@ def test_points_traded_for_a_skill_ask_for_3(content):
 
     assert "→ Life 8, Sanity 8, and a 3rd Skill." in output
     assert "Step 3 of 5 — Choose 3 Skills" in output
-    assert "Skill 3 of 3? [1-22, r: the texts again] " in interface._input.prompts
+    assert "Skill 3 of 3? [1-22] " in interface._input.prompts
 
 
 def test_the_skills_keep_their_numbers_and_the_taken_one_is_marked(content):
@@ -528,26 +549,29 @@ def test_the_skills_keep_their_numbers_and_the_taken_one_is_marked(content):
 
     create(game, interface)
 
-    # the first list has the texts; the second only the names, with the same numbers
-    assert interface._input.prompts[3:5] == [
-        "Skill 1 of 2? [1-22] ",
-        "Skill 2 of 2? [1-22, r: the texts again] ",
-    ]
+    # both lists have the texts and the same numbers
+    assert interface._input.prompts[3:5] == ["Skill 1 of 2? [1-22] ", "Skill 2 of 2? [1-22] "]
     assert "→ Agile." in output
     assert "  1) (TAKEN) Agile (TAKEN)" in output
-    assert " 19) Tough (8 XP)" in output
+    tough = [line for line in output if line.startswith(" 19) Tough (8 XP): Add +2")]
+    assert len(tough) == 2
+    # r hides or shows the texts, on a line of its own under the list
+    assert "  r) Hide the descriptions" in output
     assert "→ Tough." in output
 
 
-def test_a_taken_skill_is_refused_and_r_shows_the_texts_again(content):
+def test_a_taken_skill_is_refused_and_r_hides_or_shows_the_texts(content):
+    # given the player hides the texts on the first list, then shows them on the second
     game = Game(dice=ScriptedDice(CREATION_DICE), content=content)
-    interface, output = terminal(game, ["Ann", "l", "2", "1", "1", "r", "19", "1"])
+    interface, output = terminal(game, ["Ann", "l", "2", "r", "1", "1", "r", "19", "1"])
 
     create(game, interface)
 
     assert "Agile is already taken." in output
-    texts = [line for line in output if line.startswith("  2) Bow (3 XP): Ignore")]
-    assert len(texts) == 2  # the first list, then again on r
+    # the texts: on the first list, hidden on r and on the next list, then shown again on r
+    bow = [line for line in output if line.startswith("  2) Bow (3 XP)")]
+    assert [line == "  2) Bow (3 XP)" for line in bow] == [False, True, True, False]
+    assert output.count("  r) Show the descriptions") == 2
     assert list(game.character.skills) == ["skill.agile", "skill.tough"]
 
 
@@ -560,7 +584,7 @@ def test_the_knife_or_stick_shows_what_they_share_once(content):
     question = output.index("Knife or stick: -1 to Attack rolls.")
     assert output[question + 1 : question + 3] == [
         "  1) Knife",
-        "  2) Stick: You may pick up a stick every time you visit a park.",
+        "  2) Stick (you may pick up a stick every time you visit a park)",
     ]
     assert "Knife or stick? [1-2] " in interface._input.prompts
 
@@ -580,7 +604,7 @@ def test_every_creation_text_is_used(content):
     # given one screen text shared by the plays above that cover every branch
     text = load_screen_text()
     plays = [
-        (CREATION_DICE, ["Ann", "l", "2", "1", "1", "r", "19", "1"]),
+        (CREATION_DICE, ["Ann", "l", "2", "r", "1", "1", "r", "19", "1"]),
         ((2, *CREATION_DICE), ["Ann", "k", "1", "19", "2", "1"]),
         ((2, 1, 1, 1, 3, 4), ["Ann", "l", "2", "1", "19", "1", "1"]),
     ]

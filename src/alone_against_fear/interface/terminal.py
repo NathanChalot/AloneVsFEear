@@ -39,8 +39,10 @@ is shown once more.
 
 Creation screens (T2): each creation step (`StepStarted`) has a heading and says what it
 asks, and each answer what it gave ("→ Life 10, Sanity 9."). The Skills keep their numbers on
-every list, the ones taken marked; `r` shows their texts again. The knife or stick shows the
-text they share once. The wording is in `screens/creation.yaml` (`screen_text`). At the
+every list, the ones taken marked; `r` hides or shows their texts. The knife or stick shows the
+text they share once, and the stick's own sentence as an aside. A roll reads "Injury table,
+rolled 1: Facial scar". Book mode says in one line what it is, then where the text leads and
+what to do by hand on two lines. The wording is in `screens/` (`screen_text`). At the
 keyboard, the arrow keys edit the line typed.
 
 Feedback (T1): a line starting with # at any prompt is a note kept with the seed, the drill and
@@ -203,6 +205,8 @@ class TerminalInterface:
         """Tables whose own rules were shown in this game."""
         self._rules: Table | None = None
         """The last table with rules rolled in this box, to show them on request."""
+        self._skill_texts = True
+        """The Skills are listed with their text (`r` switches)."""
         self._skill_count = STARTING_SKILLS
         """How many Skills creation asks for: one more when the points are traded for one."""
 
@@ -256,7 +260,7 @@ class TerminalInterface:
             case Topic.CHOICE:
                 return self._menu(options, "Your choice: ")
             case Topic.BOOK:
-                return self._menu(options, "Apply the text, then where does it lead? ")
+                return self._book(options)
             case Topic.ROLL:
                 self._output("  ".join(f"{n}) {_roll(o)}" for n, o in _numbered(options)))
                 return self._read(_by_number(options), f"Which roll? [1-{len(options)}] ")
@@ -421,6 +425,32 @@ class TerminalInterface:
         self._output("  ".join(shown))
         return self._read(keys, prompt, rules=True)
 
+    def _book(self, options: Sequence[object]) -> object:
+        """Book mode: what the text cannot do by itself. The explanation, then where the text
+        leads (numbered tables and events, `t`, `e`, `d`) and the manual actions by letter, on
+        two lines; `r` for the rules of the last table rolled in this box."""
+        keys: dict[str, object] = {}
+        numbered = (option for option in options if option not in KEYS)
+        for n, option in enumerate(numbered, start=1):
+            keys[str(n)] = option
+        for option in options:
+            if option in KEYS:
+                keys[KEYS[option][0]] = option
+        leads = [k for k, option in keys.items() if not isinstance(option, Manual)]
+        by_hand = [k for k, option in keys.items() if isinstance(option, Manual)]
+        labels = (self.screen("book_mode.leads"), self.screen("book_mode.by_hand"))
+        width = max(len(label) for label in labels)
+        self._output("")
+        self._output(self.screen("book_mode.explanation"))
+        self._output("")
+        for label, shown in zip(labels, (leads, by_hand), strict=True):
+            if shown:
+                options_shown = "  ".join(f"{k}) {self._label(keys[k])}" for k in shown)
+                self._output(f"  {label.ljust(width)} {options_shown}")
+        if self._rules is not None:
+            self._output(f"  {RULES_KEY}) rules of the {self._rules.name}")
+        return self._read(keys, self.screen("book_mode.prompt"), rules=True)
+
     def _label(self, option: object) -> str:
         if option in KEYS:
             return KEYS[option][1]
@@ -474,18 +504,18 @@ class TerminalInterface:
         return on_life
 
     def _skills(self, request: Choose) -> object:
-        """Skills to choose from at creation, numbered in the book's order on every list:
-        with their text the first time, by name after, the ones taken marked and refused;
-        `r` shows the texts again."""
+        """Skills to choose from at creation, numbered in the book's order on every list,
+        the ones taken marked and refused; `r` hides or shows the texts, for the next list
+        too."""
         content = self.game.content
         every = list(content.skills)
         n = len(every) - len(request.options) + 1
-        first = n == 1
-        self._skill_list(request.options, texts=first)
+        self._skill_list(request.options)
         keys = {str(i): skill for i, skill in _numbered(every) if skill in request.options}
         taken = {str(i): skill for i, skill in _numbered(every) if skill not in request.options}
-        key = "creation.skills.prompt" if first else "creation.skills.prompt_again"
-        prompt = self.screen(key, n=n, count=self._skill_count, last=len(every))
+        prompt = self.screen(
+            "creation.skills.prompt", n=n, count=self._skill_count, last=len(every)
+        )
         while True:
             line = self._line(prompt).lower()
             if line in keys:
@@ -496,22 +526,26 @@ class TerminalInterface:
             if line in taken:
                 name = content.skill(taken[line]).name
                 self._output(self.screen("creation.skills.already", name=name))
-            elif line == RULES_KEY and not first:
-                self._skill_list(request.options, texts=True)
+            elif line == RULES_KEY:
+                self._skill_texts = not self._skill_texts
+                self._skill_list(request.options)
             else:
                 self._output(f"Choose one of 1 to {len(every)}.")
 
-    def _skill_list(self, offered: Sequence[object], texts: bool) -> None:
-        """Every Skill, numbered: name and XP, with the text when asked; a taken one marked."""
+    def _skill_list(self, offered: Sequence[object]) -> None:
+        """Every Skill, numbered: name and XP, with the text unless hidden; a taken one
+        marked. Then `r` to hide or show the texts."""
         content = self.game.content
         for n, skill_id in _numbered(list(content.skills)):
             skill = content.skill(skill_id)
             if skill_id not in offered:
                 self._output(f"{n:>3}) " + self.screen("creation.skills.taken", name=skill.name))
-            elif texts:
+            elif self._skill_texts:
                 self._output(_indented(skill.text, f"{n:>3}) {skill.name} ({skill.xp} XP): "))
             else:
                 self._output(f"{n:>3}) {skill.name} ({skill.xp} XP)")
+        toggle = "creation.skills.hide" if self._skill_texts else "creation.skills.show"
+        self._output(f"{RULES_KEY:>3}) " + self.screen(toggle))
 
     def _weapons(self, request: Choose) -> object:
         """Weapons to choose from. Variants of one heading (the knife or stick) show the
@@ -524,8 +558,8 @@ class TerminalInterface:
             heading = content.weapon(weapons[0].heading)
             self._output(f"{heading.name}: {heading.text}")
             for n, weapon in _numbered(weapons):
-                extra = f": {weapon.extra}" if weapon.extra else ""
-                self._output(f"  {n}) {weapon.name}{extra}")
+                aside = f" ({_aside(weapon.extra)})" if weapon.extra else ""
+                self._output(f"  {n}) {weapon.name}{aside}")
             prompt = self.screen("creation.weapons.prompt_named", name=heading.name, last=last)
         else:
             for n, weapon in _numbered(weapons):
@@ -616,18 +650,24 @@ class TerminalInterface:
         results = ", then ".join(str(result) for result in rolled.results)
         if rolled.entry_id is None:
             source = content.catalogue[rolled.table_id]
-            self._output(f"{source.name}: {results}")
-            self._output(f"  Not copied yet: read entry {results} in {source.source}")
+            self._output(
+                self.screen(
+                    "rolls.not_copied", table=source.name, results=results, source=source.source
+                )
+            )
             return
         table = content.table(rolled.table_id)
-        self._output(f"{table.name}: {results}")
+        entry = content.entry(rolled.entry_id)
+        if entry.name:
+            self._output(
+                self.screen("rolls.named", table=table.name, results=results, name=entry.name)
+            )
+        else:
+            self._output(self.screen("rolls.rolled", table=table.name, results=results))
         if table.text:
             self._rules = table
             if table.id not in self._seen:
                 self._show_rules(table)
-        entry = content.entry(rolled.entry_id)
-        if entry.name:
-            self._output(f"  {entry.name}")
         if entry.text:
             self._output(_indented(entry.text))
         for note in entry.notes:
@@ -771,6 +811,11 @@ def _bounds(request: Number) -> str:
 
 def _roll(roll: RollType) -> str:
     return roll.capitalize()
+
+
+def _aside(sentence: str) -> str:
+    """A sentence as an aside in parentheses: "(you may pick up a stick…)"."""
+    return sentence[0].lower() + sentence[1:].rstrip(".")
 
 
 def _span(keys: dict[str, object]) -> str:

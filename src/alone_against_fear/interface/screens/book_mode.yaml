@@ -1,0 +1,9 @@
+# Book mode in the terminal (T2): an entry the engine cannot apply, done by hand.
+# Keys: book_mode.<part>; {fields} are filled in by the terminal.
+
+explanation: >-
+  The game cannot apply this text by itself: do what it says by hand, then choose where it
+  leads.
+leads: "Leads to:"
+by_hand: "By hand:"
+prompt: "Your choice? "

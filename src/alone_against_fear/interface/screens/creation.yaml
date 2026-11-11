@@ -37,7 +37,8 @@ skills:
     Arcane Skills cannot be taken at creation. The XP is what a Skill costs if you learn it
     later in the game.
   prompt: "Skill {n} of {count}? [1-{last}] "
-  prompt_again: "Skill {n} of {count}? [1-{last}, r: the texts again] "
+  hide: Hide the descriptions
+  show: Show the descriptions
   taken: (TAKEN) {name} (TAKEN)
   already: "{name} is already taken."
   chosen: "→ {name}."
