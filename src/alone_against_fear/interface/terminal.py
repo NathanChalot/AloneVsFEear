@@ -32,6 +32,10 @@ on all rolls.") are told after the arrival. The status line shows the next meal,
 Injuries, Mental Scars and lasting effects under it ("-1 on all rolls (ends at box 14)"). `f`
 adds a lasting effect (all rolls or one roll type, numbered; the modifier; the boxes, Enter for
 until removed), `u` removes one.
+
+Drills (T1): `--drill NAME` says what the drill tries, then plays it; a drill with a
+pregenerated character lists the two sheets, numbered. When the drill is over, the character
+is shown once more.
 """
 
 from __future__ import annotations
@@ -45,7 +49,7 @@ from pathlib import Path
 from ..content import CatalogueEvent, CatalogueTable, Table, load_content
 from ..dice import RandomDice
 from ..effect_targets import RollType, Tag
-from ..engine import Arrival, Game, Position, Stat, Upkeep
+from ..engine import Arrival, Game, Position, Stat, Upkeep, drills
 from ..engine.creation import Points
 from ..engine.effects import PLAYER, Held, Modifier
 from ..engine.game import Purchase, Rolled, RolledVsL, Searched
@@ -89,6 +93,7 @@ ENDINGS = {
     End.DEAD: "You are dead. The game is over.",
     End.INSANE: "You have gone insane. The game is over.",
     End.QUIT: "You quit the game.",
+    End.DRILL_OVER: "The drill is over.",
 }
 
 KEYS = {
@@ -203,6 +208,10 @@ class TerminalInterface:
                 return self._read(keys, "Your choice: ")
             case Topic.SKILL:
                 return self._skills(request)
+            case Topic.PREGENERATED:
+                for n, option in _numbered(options):
+                    self._output(f"{n}) {self._pregenerated(option)}")
+                return self._read(_by_number(options), f"Which character? [1-{len(options)}] ")
             case Topic.WEAPON:
                 for n, option in _numbered(options):
                     weapon = self.game.content.weapon(option)
@@ -323,6 +332,8 @@ class TerminalInterface:
                 self._output(f"{self._purchase_done(purchase)}: {purchase.cost} XP spent.")
             case Ended(end=end):
                 self._output(ENDINGS[end])
+                if end is End.DRILL_OVER and self.game.campaign.character is not None:
+                    self._output(self._status())
 
     # --- Reading ----------------------------------------------------------------------------
 
@@ -563,6 +574,15 @@ class TerminalInterface:
             lines.append(f"Lasting effects: {lasting}")
         return "\n".join(lines)
 
+    def _pregenerated(self, id_: str) -> str:
+        """A pregenerated character in one line: "Anna Miller: Life 10, Sanity 9, Food 4;
+        Will, Occultist"."""
+        sheet = self.game.content.pregenerated[id_]
+        skills = ", ".join(self.game.content.skill(skill).name for skill in sheet.skills)
+        return (
+            f"{sheet.name}: Life {sheet.life}, Sanity {sheet.sanity}, Food {sheet.food}; {skills}"
+        )
+
     def _next_meal(self) -> str:
         """When the next meal comes, once the interval can change (E8): " (next meal: box
         10)". On its own, so it is easy to drop."""
@@ -657,6 +677,9 @@ def main(
     parser = argparse.ArgumentParser(description="Play Alone Against Fear in the terminal.")
     parser.add_argument("--seed", type=int, help="dice seed (default: picked and logged)")
     parser.add_argument("--log-dir", default="logs", help="where the log file goes")
+    parser.add_argument(
+        "--drill", choices=list(drills.DRILLS), help="play a short scoped run (a drill)"
+    )
     args = parser.parse_args(argv)
 
     log_dir = Path(args.log_dir)
@@ -671,7 +694,12 @@ def main(
     try:
         output_fn(f"Log: {log_file}")
         game = Game(dice=RandomDice(args.seed), content=load_content())
-        play(game, TerminalInterface(game, input_fn, output_fn))
+        interface = TerminalInterface(game, input_fn, output_fn)
+        if args.drill is None:
+            play(game, interface)
+        else:
+            output_fn(f"Drill {args.drill}: {drills.DRILLS[args.drill].about}")
+            drills.run(args.drill, game, interface)
     finally:
         logger.removeHandler(handler)
         logger.setLevel(level)

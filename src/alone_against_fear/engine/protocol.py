@@ -71,6 +71,8 @@ class Topic(StrEnum):
     """Which effect to apply, as a free action (the manual actions about the character)."""
     NAME = "name"
     """The character's name, at creation (a `Text`)."""
+    PREGENERATED = "pregenerated"
+    """Which sample pregenerated character a drill starts with (T1)."""
     POINTS = "points"
     """What the 3 creation points buy (see `creation.Points`)."""
     LIFE_POINTS = "life_points"

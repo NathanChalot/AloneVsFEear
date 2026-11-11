@@ -10,12 +10,14 @@ the engine cannot read with manual actions (E5b). Home is box 1 and rolls nothin
 actions: move, Search while the box may be Searched, apply an effect (the manual actions about
 the character), spend XP while it can buy a Skill, attach a sheet once one is full, quit. With
 notes, the Search first asks the modifier they give.
-The loop ends at death (Life 0), insanity (Sanity 0) or when the player quits.
+The loop ends at death (Life 0), insanity (Sanity 0) or when the player quits; a drill (T1)
+also ends it when its stop condition holds, checked after creation and before each turn.
 """
 
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 
 from ..dice import Chance
 from . import book_mode, creation, manual, moments
@@ -47,11 +49,15 @@ design/rulings.md) and left-behind encounters change it with their tasks (E11, E
 
 log = logging.getLogger(__name__)
 
+Stop = Callable[[Game], bool]
+"""A drill's natural end (T1): true once the drill is over."""
 
-def play(game: Game, interface: Interface) -> End:
-    """Play until the game ends, and say why. A campaign under way goes on where it stands."""
+
+def play(game: Game, interface: Interface, stop: Stop | None = None) -> End:
+    """Play until the game ends, and say why. A campaign under way goes on where it stands.
+    A drill gives its `stop`; death and insanity end the game first."""
     try:
-        end = _turns(game, interface)
+        end = _turns(game, interface, stop or _never)
     except Quit:
         end = End.QUIT
     log.info("game ends: %s", end)
@@ -59,14 +65,27 @@ def play(game: Game, interface: Interface) -> End:
     return end
 
 
-def _turns(game: Game, interface: Interface) -> End:
+def choose_home(game: Game, interface: Interface) -> None:
+    """The first game asks for Home: any box of the first sheet, box 1."""
+    home = ask(interface, Choose(Topic.HOME, tuple(boxes_of(FIRST_SHEET))))
+    number = game.choose_home(home)
+    interface.tell(Arrival(home, number, new=True))
+
+
+def _never(game: Game) -> bool:
+    return False
+
+
+def _turns(game: Game, interface: Interface, stop: Stop) -> End:
     if game.campaign.character is None:
         creation.create(game, interface)
+        if stop(game):
+            return End.DRILL_OVER
     if game.campaign.home is None:
-        home = ask(interface, Choose(Topic.HOME, tuple(boxes_of(FIRST_SHEET))))
-        number = game.choose_home(home)
-        interface.tell(Arrival(home, number, new=True))
+        choose_home(game, interface)
     while (end := game.ended()) is None:
+        if stop(game):
+            return End.DRILL_OVER
         action = ask(interface, Choose(Topic.ACTION, _actions(game)))
         match action:
             case Action.QUIT:
