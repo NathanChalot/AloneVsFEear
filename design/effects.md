@@ -76,18 +76,19 @@ stateDiagram-v2
 
 - **Scopes nest**: an attack is inside a round, a round inside a combat, a combat inside an encounter, an encounter inside a box visit, a visit inside a mission. "Until the end of the combat" is the end moment of the current combat.
 - **"Next" counts from the next one**: "for the next 3 boxes" counts boxes entered after the effect starts, "your next combat" waits for a combat that has not started yet.
+- **"Until a moment" is one of that moment**: a lifetime is the moment it counts and how many remain; a permanent effect counts nothing. "For the next 3 boxes" counts boxes of time and ends when the fourth one starts ([rulings](rulings.md#effects)).
 - Some effects have two ways out: the Sewers infection ends at a Safe House or with a first aid kit dose, the curse ends with an action that raises Sanity or a ritual.
 
 ## Moments
 
-A moment is a point in play that effects can react to or end on. The list is the one found in the topics so far, grouped by the scope they belong to. Each moment carries what it is about: the box and its places, the creature, the natural die, the Damage.
+A moment is a point in play that effects can react to or end on. **Announcing a moment** runs the reactions waiting for it, then counts down the lifetimes that count it, telling the player what ended. A reaction may ask the player (spend Luck, a script's choice), so a moment is announced where the engine can ask. The list is the one found in the topics so far, grouped by the scope they belong to. Each moment carries what it is about: the box and its places, the creature, the natural die, the Damage.
 
 | Scope | Moments | Read by |
 | --- | --- | --- |
 | Campaign | campaign starts, Hell Gate closed | Witch Children -1 L ends with the campaign |
 | Character | character created, dies or goes insane, XP gained, Skill learned | journal (every 5 XP), curses removed by a ritual |
 | Mission | mission starts, ends, is aborted | Children's Stuff limit, -1 Magic until the end of the mission |
-| Time | a box of time passes | Food every 5 boxes, "for the next 3 boxes", Hell Gate after 12+d6 new boxes |
+| Time | a box of time passes | Food every 5 boxes since the last meal, "for the next 3 boxes", Hell Gate after 12+d6 new boxes |
 | Box | enter a box (new, visited, Safe House, a place), leave a box | infection on each box, Safe House healing, Medical Supplies at a Clinic, "as you leave" |
 | Encounter | encounter met, ends (resolved, fled, ignored), Search rolled, item picked up, numbered event played | Medic, flashlight batteries, Store 6 "as soon as you pick up", #21 curse |
 | Combat | combat starts, ends, round starts | Fear Saves, grenade aftermath, choking every turn |

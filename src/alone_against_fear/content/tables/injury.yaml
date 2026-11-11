@@ -6,7 +6,8 @@ source: gameRules/tables/3_2_injury_table.md
 # Reworded with the user: the printed paragraph starts "Likewise, you may do the same
 # with Life points": "the same" is spelt out from the Insanity paragraph; the reroll
 # sentence names only Injuries (see gameRules/book_errors.md).
-# To rework at E8, which rules between this and the Life and Sanity passages.
+# E13 checks it against the ruling (the combat chapter wins: all Damage from a single
+# attack is negated).
 text: |-
   When you lose Life points in any event or encounter, you may prevent that Life loss by rolling on the Injury table, negating all Damage from a single attack. You may do so up to 3 times in the lifetime of your character. These physical impairments are permanent.
 
