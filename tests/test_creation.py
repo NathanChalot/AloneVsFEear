@@ -27,6 +27,8 @@ from alone_against_fear.engine.protocol import (
     ItemTaken,
     LeadRolled,
     Number,
+    Step,
+    StepStarted,
     Text,
     Topic,
 )
@@ -126,6 +128,58 @@ def test_what_creation_tells(content):
         "item.small_bell",
     ]
     assert told(interface, Changed) == [Changed(Stat.FOOD, FOOD, FOOD)]
+
+
+class InOrder(ScriptedInterface):
+    """A scripted interface that also keeps what was asked and told in one list, in order."""
+
+    def __init__(self, answers):
+        super().__init__(answers)
+        self.both = []
+
+    def ask(self, request):
+        self.both.append(request)
+        return super().ask(request)
+
+    def tell(self, event):
+        self.both.append(event)
+        super().tell(event)
+
+
+def test_creation_tells_each_step_as_it_starts(content):
+    # given a player who takes Bow, so a bow and d6+3 arrows come before the Random Weapon roll
+    game = Game(dice=ScriptedDice([2, *PISTOL, *ROPE, *BELL, FOOD]), content=content)
+    interface = InOrder([*basics("skill.bow", "skill.agile"), "weapon.knife"])
+
+    # when the character is created
+    create(game, interface)
+
+    # then each step is told before what it asks or rolls: the name, the 3 points, the
+    # Skills (and the gear they give), the weapons, then the objects and the Food
+    both = interface.both
+    steps = [event.step for event in both if isinstance(event, StepStarted)]
+    assert steps == [Step.NAME, Step.POINTS, Step.SKILLS, Step.WEAPONS, Step.GEAR]
+
+    def at(step):
+        return both.index(StepStarted(step))
+
+    def first(match):
+        return next(i for i, x in enumerate(both) if match(x))
+
+    assert at(Step.NAME) < first(lambda x: getattr(x, "topic", None) is Topic.NAME)
+    assert at(Step.POINTS) < first(lambda x: getattr(x, "topic", None) is Topic.POINTS)
+    assert at(Step.SKILLS) < first(lambda x: getattr(x, "topic", None) is Topic.SKILL)
+    bow = first(lambda x: isinstance(x, ItemTaken) and x.item.id == "weapon.bow")
+    assert at(Step.SKILLS) < bow < at(Step.WEAPONS)
+    assert at(Step.WEAPONS) < first(
+        lambda x: isinstance(x, Rolled) and x.table_id == "table.random_weapon"
+    )
+    knife = first(lambda x: getattr(x, "topic", None) is Topic.WEAPON)
+    assert (
+        knife
+        < at(Step.GEAR)
+        < first(lambda x: isinstance(x, Rolled) and x.table_id == "table.random_objects")
+    )
 
 
 # --- The 3 points ---------------------------------------------------------------------------

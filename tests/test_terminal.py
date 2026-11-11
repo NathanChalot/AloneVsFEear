@@ -12,10 +12,12 @@ from alone_against_fear.content import Effect, load_content
 from alone_against_fear.dice import ScriptedDice
 from alone_against_fear.effect_targets import RollType
 from alone_against_fear.engine import Game, Position, book_mode
+from alone_against_fear.engine.creation import create
 from alone_against_fear.engine.loop import play
 from alone_against_fear.engine.protocol import End
 from alone_against_fear.engine.state import SkillLevel
 from alone_against_fear.engine.town import boxes_of
+from alone_against_fear.interface.screen_text import load_screen_text
 from alone_against_fear.interface.terminal import TerminalInterface, main
 
 
@@ -436,9 +438,9 @@ def test_a_note_is_removed_by_its_number(content):
 
 CREATION_DICE = (5, 3, 4, 1, 1, 1, 3, 4)
 """A pistol with 7 bullets, a rope, a small bell, 4 Food."""
-CREATING = ["Ann", "l", "2", "1", "18", "1"]
-"""Ann; the points on Life and Sanity, 2 on Life; Agile (1), then Tough (19th, 18th once
-Agile is gone); the knife (1)."""
+CREATING = ["Ann", "l", "2", "1", "19", "1"]
+"""Ann; the points on Life and Sanity, 2 on Life; Agile (1), then Tough (19th, its number
+on both lists); the knife (1)."""
 
 
 def test_a_player_creates_a_character_in_the_terminal(content):
@@ -450,9 +452,9 @@ def test_a_player_creates_a_character_in_the_terminal(content):
     text = "\n".join(output)
     assert game.character.skills.keys() == {"skill.agile", "skill.tough"}
     # the choices are shown with what they mean
-    assert "l) Life and Sanity" in text
+    assert "l) Share them between Life and Sanity" in text
     assert "1) Agile (8 XP): Add +1 to your Defense rolls" in text
-    assert "1) Knife: -1 to Attack rolls." in text
+    assert "  1) Knife" in output
     # what was taken, and the character sheet at the first turn
     assert "You take: Pistol (7)." in text
     # Tough: 2 more Life (E7)
@@ -461,6 +463,134 @@ def test_a_player_creates_a_character_in_the_terminal(content):
     )
     assert "Skills: Agile, Tough" in text
     assert "Items: Pistol (7), Knife, Rope, Small bell" in text
+
+
+# --- Creation screens (T2) ----------------------------------------------------------------
+# Feedback from the creation drill: each step says what it asks, and each answer what it gave.
+
+
+def test_creation_says_what_each_step_asks(content):
+    # given a new game in the terminal
+    game = Game(dice=ScriptedDice(CREATION_DICE), content=content)
+    interface, output = terminal(game, CREATING)
+
+    # when the player creates Ann
+    create(game, interface)
+
+    # then an introduction, then each step under its heading, in order
+    text = "\n".join(output)
+    headings = [
+        "Character creation",
+        "Step 1 of 5 — Your name",
+        "Step 2 of 5 — Your 3 extra points",
+        "Step 3 of 5 — Choose 2 Skills",
+        "Step 4 of 5 — Weapons",
+        "Step 5 of 5 — Objects and Food",
+    ]
+    assert [line for line in output if line in headings] == headings
+    assert "Give your character a name" in text
+    assert "share them between Life and Sanity, or give all 3 up" in text
+    assert "Arcane Skills cannot be taken at creation." in text
+    assert "You also start with a knife, or a stick if you prefer." in text
+    assert "anything you have already is rolled again" in text
+
+
+def test_the_points_are_explained_and_their_result_shown(content):
+    game = Game(dice=ScriptedDice(CREATION_DICE), content=content)
+    interface, output = terminal(game, CREATING)
+
+    create(game, interface)
+
+    text = "\n".join(output)
+    assert "l) Share them between Life and Sanity" in text
+    assert "k) Trade them for a 3rd Skill" in text
+    assert "u) Trade them for 1 more Useful Stuff roll" in text
+    prompts = interface._input.prompts
+    assert "How many of the 3 points go to Life? The rest go to Sanity. [0-3] " in prompts
+    assert "→ Life 10, Sanity 9." in output
+
+
+def test_points_traded_for_a_skill_ask_for_3(content):
+    # given the points traded for a 3rd Skill: Agile, Tough, then Bow (its d6+3 arrows: 2)
+    game = Game(dice=ScriptedDice((2, *CREATION_DICE)), content=content)
+    interface, output = terminal(game, ["Ann", "k", "1", "19", "2", "1"])
+
+    create(game, interface)
+
+    assert "→ Life 8, Sanity 8, and a 3rd Skill." in output
+    assert "Step 3 of 5 — Choose 3 Skills" in output
+    assert "Skill 3 of 3? [1-22, r: the texts again] " in interface._input.prompts
+
+
+def test_the_skills_keep_their_numbers_and_the_taken_one_is_marked(content):
+    game = Game(dice=ScriptedDice(CREATION_DICE), content=content)
+    interface, output = terminal(game, CREATING)
+
+    create(game, interface)
+
+    # the first list has the texts; the second only the names, with the same numbers
+    assert interface._input.prompts[3:5] == [
+        "Skill 1 of 2? [1-22] ",
+        "Skill 2 of 2? [1-22, r: the texts again] ",
+    ]
+    assert "→ Agile." in output
+    assert "  1) (TAKEN) Agile (TAKEN)" in output
+    assert " 19) Tough (8 XP)" in output
+    assert "→ Tough." in output
+
+
+def test_a_taken_skill_is_refused_and_r_shows_the_texts_again(content):
+    game = Game(dice=ScriptedDice(CREATION_DICE), content=content)
+    interface, output = terminal(game, ["Ann", "l", "2", "1", "1", "r", "19", "1"])
+
+    create(game, interface)
+
+    assert "Agile is already taken." in output
+    texts = [line for line in output if line.startswith("  2) Bow (3 XP): Ignore")]
+    assert len(texts) == 2  # the first list, then again on r
+    assert list(game.character.skills) == ["skill.agile", "skill.tough"]
+
+
+def test_the_knife_or_stick_shows_what_they_share_once(content):
+    game = Game(dice=ScriptedDice(CREATION_DICE), content=content)
+    interface, output = terminal(game, CREATING)
+
+    create(game, interface)
+
+    question = output.index("Knife or stick: -1 to Attack rolls.")
+    assert output[question + 1 : question + 3] == [
+        "  1) Knife",
+        "  2) Stick: You may pick up a stick every time you visit a park.",
+    ]
+    assert "Knife or stick? [1-2] " in interface._input.prompts
+
+
+def test_two_weapons_of_different_headings_show_their_texts(content):
+    # given Random Weapon 2: a chainsaw or an authentic samurai sword
+    game = Game(dice=ScriptedDice((2, 1, 1, 1, 3, 4)), content=content)
+    interface, output = terminal(game, ["Ann", "l", "2", "1", "19", "1", "1"])
+
+    create(game, interface)
+
+    assert any(line.startswith("  1) Chainsaw: ") for line in output)
+    assert "Which weapon? [1-2] " in interface._input.prompts
+
+
+def test_every_creation_text_is_used(content):
+    # given one screen text shared by the plays above that cover every branch
+    text = load_screen_text()
+    plays = [
+        (CREATION_DICE, ["Ann", "l", "2", "1", "1", "r", "19", "1"]),
+        ((2, *CREATION_DICE), ["Ann", "k", "1", "19", "2", "1"]),
+        ((2, 1, 1, 1, 3, 4), ["Ann", "l", "2", "1", "19", "1", "1"]),
+    ]
+    for dice, lines in plays:
+        game = Game(dice=ScriptedDice(dice), content=content)
+        interface = TerminalInterface(game, Typist(lines), lambda line: None, text=text)
+        create(game, interface)
+
+    # then no creation text is left unused
+    assert {key for key in text.keys if key.startswith("creation.")} - text.used == set()
 
 
 def test_a_player_spends_xp_in_the_terminal(content):

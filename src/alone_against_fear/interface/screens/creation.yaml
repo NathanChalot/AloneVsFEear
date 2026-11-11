@@ -1,0 +1,58 @@
+# Character creation in the terminal (T2): what each step says around the engine's questions.
+# Keys: creation.<step>.<part>; {fields} are filled in by the terminal.
+
+title: Character creation
+intro: >-
+  Your character begins with Life 8 and Sanity 8 and 3 points to add, 2 Skills, a weapon from
+  the Random Weapon table and a knife, 1 item from the Random Objects table and 1 from the
+  Useful Stuff table, and d6 Food. It takes 5 steps.
+
+name:
+  heading: Step 1 of 5 — Your name
+  text: >-
+    Give your character a name and create a mental image of him or her. If nothing comes to
+    your mind, just think of a character from your favorite TV series or movie.
+  prompt: "Your character's name: "
+
+points:
+  heading: Step 2 of 5 — Your 3 extra points
+  text: >-
+    Life and Sanity start at 8 each. You have 3 more points: share them between Life and
+    Sanity, or give all 3 up for one extra Skill or random item.
+  share: Share them between Life and Sanity
+  trade: Trade them for {extra}
+  extra:
+    skill: a 3rd Skill
+    weapon: 1 more Random Weapon roll
+    object: 1 more Random Objects roll
+    useful: 1 more Useful Stuff roll
+  prompt: "Your choice: "
+  life: "How many of the 3 points go to Life? The rest go to Sanity. [{minimum}-{maximum}] "
+  shared: "→ Life {life}, Sanity {sanity}."
+  traded: "→ Life {life}, Sanity {sanity}, and {extra}."
+
+skills:
+  heading: Step 3 of 5 — Choose {count} Skills
+  text: >-
+    Arcane Skills cannot be taken at creation. The XP is what a Skill costs if you learn it
+    later in the game.
+  prompt: "Skill {n} of {count}? [1-{last}] "
+  prompt_again: "Skill {n} of {count}? [1-{last}, r: the texts again] "
+  taken: (TAKEN) {name} (TAKEN)
+  already: "{name} is already taken."
+  chosen: "→ {name}."
+
+weapons:
+  heading: Step 4 of 5 — Weapons
+  text: >-
+    Your weapon comes from the Random Weapon table (roll twice if you traded your points for
+    it). You also start with a knife, or a stick if you prefer.
+  prompt: "Which weapon? [1-{last}] "
+  prompt_named: "{name}? [1-{last}] "
+
+gear:
+  heading: Step 5 of 5 — Objects and Food
+  text: >-
+    1 item from the Random Objects table and 1 from the Useful Stuff table (roll one of them
+    twice if you traded your points for it); anything you have already is rolled again. Then
+    d6 Food.
