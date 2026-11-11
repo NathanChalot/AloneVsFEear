@@ -27,6 +27,7 @@ src/alone_against_fear/
   interface/        what answers the engine: reads input, shows the game
     scripted.py     ScriptedInterface: prepared answers, for tests
     terminal.py     TerminalInterface and main(): play in the terminal
+    feedback.py     FeedbackLog: notes written while playing (# at any prompt, T1)
   content/          the rules text: YAML files, their loader and model
     loader.py       YAML files → Content
     model.py        Content, Table, Entry, Roll, CatalogueTable, CatalogueEvent, Weapon, Skill, Gear, the checks
@@ -168,8 +169,9 @@ classDiagram
 - **Resolving a box in the terminal**: the entry reached with the notes it points to, or, for a table not copied yet, its source and the number rolled, then "Apply the text, then where does it lead?" (`t`, `e`, the manual actions, `d`). A table's own rules are shown the first time it is rolled in a game, and again on `r`; this is the terminal's choice, not the engine's. Actions have letters so they keep their key (`m` move, `s` search, `a` apply an effect, `n` new sheet, `q` quit; `g` gain, `l` lose, `v` roll vs L, `f` add a lasting effect, `u` remove one, `w` write a note, `x` remove one, `h` Safe House, `b` back); tables, numbers to lose or gain and notes to remove are numbered.
 - **Creation in the terminal**: a name, the points by letter (`l`, `k`, `w`, `o`, `u`), the Skills with their text the first time, weapons with their text; what is taken ("You take: …"), duplicates ("You have it already: roll again."). `p` spends XP: "Agile: 8 XP", "(Expert)" for the second level.
 - **Rolls in the terminal** (E7): the roll types numbered; "Does this Save involve poison, infection or disease? (Resilient +1) [y/n]"; the result names each modifier and what was set aside: "Defense vs L5: rolled 3, Dodge +2 (Agile +1 does not stack), total 5. Success."
+- **Feedback** (T1): every line the terminal reads goes through one method; a line starting with `#` is not an answer but a note for `FeedbackLog.write`, which appends it to the feedback file under a heading (date, drill, seed, box number) with the character, the question on screen and the log file, and logs it. Then the same question is asked again. With no feedback file (tests), the note is refused.
 - **Typed answers**: a number is asked again until it fits its bounds (Enter alone is no modifier), a note until it is not empty. The character's notes are shown under the status line, and above a modifier to type.
-- **`main(argv)`** (console script `alone-against-fear`, or `python -m alone_against_fear`): `--seed`, `--log-dir` (default `logs`), `--drill NAME` (T1: says what the drill tries, then `drills.run`); sets up the log file, loads the content, plays. The pregenerated characters are listed one per line ("Anna Miller: Life 10, Sanity 9, Food 4; Will, Occultist"); a drill over shows the character once more.
+- **`main(argv)`** (console script `alone-against-fear`, or `python -m alone_against_fear`): `--seed`, `--log-dir` (default `logs`), `--drill NAME` (T1: says what the drill tries, then `drills.run`), `--feedback-file` (default `feedback/feedback.md`, kept in the repository); sets up the log file, loads the content, plays. The pregenerated characters are listed one per line ("Anna Miller: Life 10, Sanity 9, Food 4; Will, Occultist"); a drill over shows the character once more.
 
 ## `content`: the rules text
 
@@ -220,6 +222,7 @@ Used by: `Game.roll_table` and `Game.play_event` (book mode), `Game.start_missio
 | `tests/test_game_state.py` | the game state through `Game`: levels, character, missions, boxes, history, plain data, logging |
 | `tests/test_character.py` | the character: max Life and Sanity, Skills, buying them with XP, items held |
 | `tests/test_effects.py` | every Skill's effects: roll modifiers at Basic and Expert, what they leave alone, stacking, parameters, max values, rolls and the Search collecting them; pending tests for Dodge's balance, Faith and Medic |
+| `tests/test_feedback.py` | feedback notes typed at any prompt: what is kept, the file, the same question asked again |
 | `tests/test_drills.py` | the loop's stop condition, and each drill played through to its end |
 | `tests/test_pregenerated.py` | the two pregenerated characters as printed, and a character made from one |
 | `tests/test_creation.py` | scenarios of character creation: the points, Skills and their gear, the tables rolled, duplicates, counts, the special entries |

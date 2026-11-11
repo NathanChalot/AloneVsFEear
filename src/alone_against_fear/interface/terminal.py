@@ -36,6 +36,9 @@ until removed), `u` removes one.
 Drills (T1): `--drill NAME` says what the drill tries, then plays it; a drill with a
 pregenerated character lists the two sheets, numbered. When the drill is over, the character
 is shown once more.
+
+Feedback (T1): a line starting with # at any prompt is a note kept with the seed, the drill and
+the box (`feedback.FeedbackLog`, `--feedback-file`), then the same question is asked again.
 """
 
 from __future__ import annotations
@@ -85,6 +88,7 @@ from ..engine.protocol import (
 )
 from ..engine.state import Item, Lasting, Note, SkillLevel
 from ..engine.town import SHEET_COLUMNS, SHEET_ROWS, sheet_neighbours
+from .feedback import PREFIX, FeedbackLog
 
 CELL = 5
 """Width of a box on the map: room for "[30]" or a box number in the thousands."""
@@ -177,9 +181,11 @@ class TerminalInterface:
         game: Game,
         input_fn: Callable[[str], str] = input,
         output_fn: Callable[[str], None] = print,
+        feedback: FeedbackLog | None = None,
     ) -> None:
         self.game = game
         self._input = input_fn
+        self._feedback = feedback
         self._output = output_fn
         self._seen: set[str] = set()
         """Tables whose own rules were shown in this game."""
@@ -340,10 +346,7 @@ class TerminalInterface:
     def _read(self, keys: dict[str, object], prompt: str, rules: bool = False) -> object:
         """Ask until the player types one of the keys; `r` shows the last table's rules."""
         while True:
-            try:
-                line = self._input(prompt).strip().lower()
-            except (EOFError, KeyboardInterrupt):
-                raise Quit from None
+            line = self._line(prompt).lower()
             if line in keys:
                 return keys[line]
             if rules and line == RULES_KEY and self._rules is not None:
@@ -355,10 +358,7 @@ class TerminalInterface:
         """Ask until the player types a whole number within the bounds; Enter alone is 0 when
         0 fits (no modifier)."""
         while True:
-            try:
-                line = self._input(NUMBER_PROMPTS.get(request.topic, "Number? ")).strip()
-            except (EOFError, KeyboardInterrupt):
-                raise Quit from None
+            line = self._line(NUMBER_PROMPTS.get(request.topic, "Number? "))
             try:
                 number = int(line) if line else 0
             except ValueError:
@@ -371,13 +371,28 @@ class TerminalInterface:
     def _text(self, prompt: str) -> str:
         """Ask until the player types something."""
         while True:
+            if line := self._line(prompt):
+                return line
+            self._output("Type some text.")
+
+    def _line(self, prompt: str) -> str:
+        """The player's next line. A feedback note (# first) is kept, and the question asked
+        again; end of input quits."""
+        while True:
             try:
                 line = self._input(prompt).strip()
             except (EOFError, KeyboardInterrupt):
                 raise Quit from None
-            if line:
+            if not line.startswith(PREFIX):
                 return line
-            self._output("Type some text.")
+            note = line.removeprefix(PREFIX).strip()
+            if self._feedback is None:
+                self._output("No feedback file in this game.")
+            elif note:
+                self._feedback.write(self.game, prompt, note)
+                self._output("Feedback saved.")
+            else:
+                self._output("Type your note after the #.")
 
     def _menu(self, options: Sequence[object], prompt: str) -> object:
         """One line of options: numbered tables and events, then lettered actions; `r` for
@@ -678,6 +693,11 @@ def main(
     parser.add_argument("--seed", type=int, help="dice seed (default: picked and logged)")
     parser.add_argument("--log-dir", default="logs", help="where the log file goes")
     parser.add_argument(
+        "--feedback-file",
+        default="feedback/feedback.md",
+        help="where feedback notes (# at any prompt) go",
+    )
+    parser.add_argument(
         "--drill", choices=list(drills.DRILLS), help="play a short scoped run (a drill)"
     )
     args = parser.parse_args(argv)
@@ -693,8 +713,11 @@ def main(
     logger.setLevel(logging.DEBUG)
     try:
         output_fn(f"Log: {log_file}")
-        game = Game(dice=RandomDice(args.seed), content=load_content())
-        interface = TerminalInterface(game, input_fn, output_fn)
+        output_fn(f"Type {PREFIX} and a note at any prompt to leave feedback.")
+        dice = RandomDice(args.seed)
+        game = Game(dice=dice, content=load_content())
+        feedback = FeedbackLog(args.feedback_file, dice.seed, args.drill, log_file)
+        interface = TerminalInterface(game, input_fn, output_fn, feedback)
         if args.drill is None:
             play(game, interface)
         else:
