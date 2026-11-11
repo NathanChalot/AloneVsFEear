@@ -1,0 +1,2309 @@
+ ▐▛███▛█   Claude Code v2.1.322
+▝▜██████▀  Opus 5.5 · Claude Pro
+ ▝▝   ▝▝   ~/Code/RPGs/AloneVsFEear
+
+  Fable 5.2 is here for your longest and toughest coding tasks, and is included in your plan until November 16. It draws down usage faster than Opus 5.5. Switch with /model.
+
+❯ /start                                                                        
+
+  Searched for 1 pattern, listed 1 directory, ran 5 shell commands (ctrl+o to expand)
+
+⏺ Checks are done. Here's the session summary.
+
+  Where we are
+  You can create a character and walk the town in the terminal. Each box's entry
+  is shown as text, and you apply it yourself with manual actions. Skills
+  change rolls and maximum values, and you can spend XP at any time. The last
+  session (E8) added moments and lasting effects. Food now runs on a clock that
+  Resistant to Hunger and Eating Disorder change, and "for the next N boxes"
+  effects run out on time. The status line shows the next meal and the active
+  effects.
+
+  This session: T1 — Drills and feedback
+  - Goal: short practice runs you can play in a break (5 to 15 minutes), started
+    with alone-against-fear --drill NAME. Each one sets up a situation and ends
+    at a natural point. There are four:
+    - creation: a new campaign, until the character sheet is done.
+    - walk: a pregenerated character at Home, about 10 boxes of exploring and
+      book mode.
+    - lasting: lasting effects and Eating Disorder, with meals and effects
+      ending within a few boxes.
+    - xp: XP to spend, to buy a Skill and raise one to Expert.
+
+    While playing, you can also write feedback. It's saved with the seed and the
+    box number so the moment can be found in the log.
+  - Done when: the four drills can be played from the terminal, and feedback can
+    be written while playing.
+
+  How it will go
+  1. Pregenerated characters first (a NextSession reminder): compare
+     gameRules/14_pregenerated_characters.md against the original sheets in
+     origin_rules/, and show you any misread. They aren't in the YAML or the
+     code yet, so I'll propose how the walk and xp drills load one.
+  2. Short design with options for what the roadmap left open: the feedback
+     format and where it's kept, and how each drill ends. You decide.
+  3. Tests first, then the code. One drill or one piece at a time, with a commit
+     split I'll propose to you first.
+  4. Wrap-up: drift check, then update the Readme, NextSession and
+     docs/architecture.md if the structure changes. Then the log, the transcript
+     export, the commit, push and PR.
+
+  Before we start
+  - Model: the plan is Opus at medium effort. I'm running on Opus 5.5, which
+    matches. I can't see the effort setting, so check it's on medium if that
+    matters to you.
+  - Checks:
+    - main is clean and up to date, and the E8 PR is merged.
+    - T1's only dependency, E8, is done.
+    - 843 tests pass, 10 skipped.
+  - Reminders for this session:
+    - Pregenerated characters before the drills (step 1).
+    - This machine has no poppler, so I'll read the PDFs with pypdf in a scratch
+      venv. The character sheets are probably images inside the PDF, so I may
+      need to extract and look at them.
+    - The seed and every answer are already logged. Log replay was dropped in
+      E4, so feedback can only point to a seed and a box number, not a
+      replayable run.
+
+  Say go and I'll create the branch t1-drills-feedback and start with the
+  pregenerated characters.
+
+✻ Sautéed for 36s · done 12:51
+
+※ recap: This session is T1: four short practice runs started with `--drill`, plus a way to write feedback while you play. Nothing is started yet; say go and I'll branch and check the pregenerated characters against the original sheets. (disable recaps in /config)
+
+❯ go                                                                            
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Now I'll extract the pregenerated sheets from the ebook to compare them.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ The text layer matches the Markdown. One thing to check: a "3" sits on the
+  left of both sheets, near Injuries and Keywords. I'll look at the blank sheet
+  to see whether it's part of the template.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ The "3" looks like it may be an icon drawn with a font, since the sheet's
+  labels are in the text layer but the filled-in values aren't. I'm rendering
+  both pages to check that, and to catch any filled-in content without a text
+  layer. · summary
+
+  Read 2 files, ran 1 shell command (ctrl+o to expand)
+
+⏺ The rendered sheets match the Markdown exactly, so there's no misread to fix,
+  and the stray "3" exists only in the PDF's text layer rather than on the page.
+  I'm reading the code the drills will build on next. · summary
+
+  Searched for 4 patterns, listed 1 directory, ran 4 shell commands (ctrl+o to expand)
+
+⏺ I've reviewed the code the drills rely on and drafted the design: one drill
+  module that sets up starts through the Game API, a stop condition plus a
+  "drill over" ending in play(), and a --drill option that works with --seed.
+  Four drill endings are proposed, and a few points still need your decision. 
+  · summary
+
+⏺ User answered Claude's questions:
+  ⎿  · Where should the two pregenerated characters (Anna, Douglas) be kept? The
+     walk, lasting and xp drills start from them, and E17's quick run will 
+     reuse one. → YAML content (Recommended)
+     · How do you write feedback while playing? → # at any prompt (Recommended)
+     · Where are the feedback notes kept? Each note is saved with the date, 
+     drill, seed, box number, log file and the question on screen. → feedback/ 
+     committed
+     · Which pregenerated character do the walk, lasting and xp drills use? → 
+     You pick at the start (Recommended)
+
+⏺ You chose pregenerated YAML characters, # feedback at any prompt, a committed
+  feedback/ folder, and a character pick at each drill's start. I'll propose
+  three commits (YAML, drills, feedback) and ask before each, starting with the
+  YAML. · summary
+
+  Searched for 2 patterns, ran 4 shell commands (ctrl+o to expand)
+
+⏺ I've decided the YAML layout from the existing content docs. Writing the tests
+  first.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Writing the content and engine tests for the pregenerated characters.
+
+⏺ Write(tests/test_pregenerated.py)
+  ⎿  Wrote 91 lines to tests/test_pregenerated.py
+       1 """T1: the two sample pregenerated characters, copied into YAML 
+         from their filled-in sheets
+       2 (`gameRules/14_pregenerated_characters.md`), and a character mad
+         e from one. The drills
+       3 start from them."""
+       4 
+       5 import pytest
+       6 
+       7 from alone_against_fear.content import Gear, load_content, refer
+         ence_problems
+     … +84 lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='tests/test_pregenerated.py'…)
+  ⎿  FAILED tests/test_pregenerated.py::test_their_skills_and_gear_exist -
+     Attribu...
+     FAILED tests/test_pregenerated.py::test_a_pregenerated_character_is_ma
+     … +6 lines (ctrl+o to expand)
+  ⎿  Updated tests/test_content.py (+1 -1)
+      58      pattern = re.compile(rf"{segment}(?:\.{segment})+")
+      59      ids = list(CONTENT.tables) + list(CONTENT.catalogue) + [e.i
+          d for e in all_entries()]
+      60      ids += list(CONTENT.weapons) + list(CONTENT.variants) + lis
+          t(CONTENT.items)
+      61 -    ids += [s.id for s in all_skills()]                        
+      61 +    ids += [s.id for s in all_skills()] + list(CONTENT.pregener
+         +ated)                                                          
+      62      for id_ in ids:
+      63          assert pattern.fullmatch(id_), id_
+      64          assert id_.split(".")[0] in KINDS, id_
+  ⎿  Updated tests/test_pregenerated.py (+2 -2)
+       8  from alone_against_fear.dice import ScriptedDice
+       9  from alone_against_fear.engine import creation
+      10  from alone_against_fear.engine.game import Game
+      11 -from alone_against_fear.engine.state import Item, SkillLevel   
+      11 +from alone_against_fear.engine.state import Item, SkillLevel, S
+         +tat                                                            
+      12  
+      13  CONTENT = load_content()
+      14  ANNA = "pregenerated.anna_miller"
+     ...
+      73      assert game.campaign.character is anna
+      74      assert anna.name == "Anna Miller"
+      75      assert (anna.life, anna.sanity, anna.food, anna.xp) == (10,
+           9, 4, 0)
+      76 -    assert (game.max_life, game.max_sanity) == (10, 9)         
+      76 +    assert (game.max(Stat.LIFE), game.max(Stat.SANITY)) == (10,
+         + 9)                                                            
+      77      assert anna.skills == {
+      78          "skill.will": SkillLevel.BASIC,
+      79          "skill.occultist": SkillLevel.BASIC,
+
+⏺ Now the YAML, the model and the loader.
+
+⏺ Write(src/alone_against_fear/content/characters/pregenerated.yaml)
+  ⎿  Wrote 31 lines to
+     src/alone_against_fear/content/characters/pregenerated.yaml
+       1 # The two sample pregenerated characters, from their filled-in c
+         haracter sheets (T1).
+       2 # Where a sheet disagrees with the rules, the rules win (see the
+          Markdown):
+       3 # - Douglas's Strong reads "+2 to Strength rolls, +3 carried ite
+         ms"; he has Strong at Basic.
+       4 # - Anna's hammer is listed under Weapons and under Equipment: o
+         ne hammer.
+       5 # - Douglas's book read (Computer printout of "They Are Among Us
+         ") waits for the books (E18).
+     … +26 lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      import re…)
+  ⎿  21:    Gear,
+     120:        skills=skills["skills"],
+     def _check_weapon_id(id_: Any, what: str) -> None:
+     … +61 lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/content/__init__.py (+2 -0)
+      14      Effect,
+      15      Entry,
+      16      Gear,
+      17 +    Pregenerated,                                              
+      18      Roll,
+      19      Skill,
+      20      Table,
+     ...
+      35      "Effect",
+      36      "Entry",
+      37      "Gear",
+      38 +    "Pregenerated",                                            
+      39      "Roll",
+      40      "Skill",
+      41      "Table",
+  ⎿  Updated src/alone_against_fear/content/model.py (+27 -1)
+      23          "arcane_skill",
+      24          "injury",
+      25          "mental_scar",
+      26 +        "pregenerated",                                        
+      27      }
+      28  )
+      29  """First segment of every ID. A YAML batch adds the kinds it ne
+          eds."""
+     ...
+      210      """What the Skill changes, as numbers (E7)."""
+      211  
+      212  
+      213 +@dataclass(frozen=True)                                       
+      214 +class Pregenerated:                                           
+      215 +    """A sample pregenerated character (`pregenerated.`), as i
+          +ts filled-in sheet gives it                                   
+      216 +    (T1): Life and Sanity as printed, Skills at Basic, and the
+          + gear held, with its ammo                                     
+      217 +    (`count`) and uses."""                                    
+      218 +                                                              
+      219 +    id: str                                                   
+      220 +    name: str                                                 
+      221 +    life: int                                                 
+      222 +    sanity: int                                               
+      223 +    food: int                                                 
+      224 +    source: str                                               
+      225 +    skills: tuple[str, ...] = ()                              
+      226 +    gear: tuple[Gear, ...] = ()                               
+      227 +                                                              
+      228 +                                                              
+      229  @dataclass(frozen=True)
+      230  class Content:
+      231      tables: Mapping[str, Table]
+     ...
+      242      """The Skills, in the book's order."""
+      243      arcane_skills: Mapping[str, Skill] = field(default_factory
+           =dict)
+      244      """The Arcane Skills, in the book's order."""
+      245 +    pregenerated: Mapping[str, Pregenerated] = field(default_f
+          +actory=dict)                                                  
+      246 +    """The sample pregenerated characters, in the book's order
+          +."""                                                          
+      247  
+      248      def table(self, id_: str) -> Table:
+      249          return self.tables[id_]
+     ...
+      274              or id_ in self.items
+      275              or id_ in self.skills
+      276              or id_ in self.arcane_skills
+     … 24 more lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='src/alone_against_fear/content/loader.py'…)
+  ⎿  329:    _check_keys(raw, _GEAR_KEYS, {"id"}, f"{what} starting gear")
+  ⎿  Updated src/alone_against_fear/content/loader.py (+41 -2)
+      19      Effect,
+      20      Entry,
+      21      Gear,
+      22 +    Pregenerated,                                              
+      23      Roll,
+      24      Skill,
+      25      Table,
+     ...
+      60      "skills": ("skill.", "a Skill", _SKILL_KEYS),
+      61      "arcane_skills": ("arcane_skill.", "an Arcane Skill", _ARCA
+          NE_KEYS),
+      62  }
+      63 +_PREGENERATED_KEYS = {"id", "name", "sanity", "life", "food", "
+         +skills", "gear"}                                               
+      64  _RANGE = re.compile(r"(\d+)-(\d+)")
+      65  _EVENT_ID = re.compile(r"event\.(\d+)")
+      66  
+      67  
+      68  def load_content(root: Path | str | None = None) -> Content:
+      67 -    """Read the catalogue, every table file, weapon list and Sk
+         -ill list under `root` (this                                    
+      68 -    package by default)."""                                    
+      69 +    """Read the catalogue, every table file, weapon list, Skill
+         + list and the pregenerated                                     
+      70 +    characters under `root` (this package by default)."""      
+      71      root = Path(root) if root is not None else CONTENT_DIR
+      72      seen: dict[str, Path] = {}
+      73  
+     ...
+      86      tables, entries, weapons, variants = {}, {}, {}, {}
+      87      items: dict[str, list[str]] = {}
+      88      skills: dict[str, dict[str, Skill]] = {key: {} for key in _
+          SKILL_LISTS}
+      89 +    pregenerated: dict[str, Pregenerated] = {}                 
+      90      for path in sorted(root.rglob("*.yaml")):
+      91          if path == catalogue_path:
+      92              continue
+     ...
+      101                  register(skill.id, path)
+      102                  skills[key][skill.id] = skill
+      103              continue
+      104 +        if isinstance(raw, dict) and "characters" in raw:     
+      105 +            for character in _pregenerated(raw, path):        
+      106 +                register(character.id, path)                  
+      107 +                pregenerated[character.id] = character        
+      108 +            continue                                          
+      109          table = _table(raw, path)
+      110          register(table.id, path)
+     … 41 more lines (ctrl+o to expand)
+
+⏺ Now the engine side: creation.pregenerated.
+
+⏺ Bash(python3 - <<'EOF'
+      p='src/alone_against_fear/engine/creation.py'…)
+  ⎿  ssssss................................................................
+     .. [ 92%]
+     ...................................................................
+     … +4 lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/engine/creation.py (+14 -0)
+      13  `count`, `uses`, `starting_gear`); the entries that give someth
+          ing else are behaviour, keyed
+      14  here by entry ID: the samurai sword rolled authentic or replica
+          , Food points, and the books
+      15  (book mode until E18).
+      16 +                                                               
+      17 +A sample pregenerated character (T1) is made from its sheet ins
+         +tead, with no question: the                                    
+      18 +drills start from one.                                         
+      19  """
+      20  
+      21  from __future__ import annotations
+     ...
+      114      return character
+      115  
+      116  
+      117 +def pregenerated(game: Game, pregenerated_id: str) -> Characte
+          +r:                                                            
+      118 +    """Make a sample pregenerated character as its sheet gives
+          + it; they continue the campaign.                              
+      119 +    Their printed Life and Sanity are the base of the max: nei
+          +ther sheet has a Skill that                                   
+      120 +    raises them."""                                           
+      121 +    sheet = game.content.pregenerated[pregenerated_id]        
+      122 +    items = [Item(gear.id, count=gear.count, uses=gear.uses) f
+          +or gear in sheet.gear]                                        
+      123 +    return game.create_character(                             
+      124 +        sheet.life, sheet.sanity, sheet.food, items, name=shee
+          +t.name, skills=sheet.skills                                   
+      125 +    )                                                         
+      126 +                                                              
+      127 +                                                              
+      128  class _Giving:
+      129      """What the creation rolls give, and what was given alread
+           y."""
+      130  
+⏺ Tests pass. One tightening: a sheet's ammo and uses are fixed numbers, so the
+  loader should refuse dice there.
+
+⏺ Bash(python3 - <<'EOF'
+      p='src/alone_against_fear/content/loader.py'…)
+  ⎿  9:    ContentError,
+     94:def test_an_unknown_dice_code_is_refused(root):
+     95:    with pytest.raises(ContentError, match="d7"):
+     … +2 lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/content/loader.py (+10 -1)
+      155                  food=item["food"],
+      156                  source=raw["source"],
+      157                  skills=_strings(item.get("skills"), what),
+      158 -                gear=tuple(_gear(gear, what) for gear in item.
+          -get("gear") or []),                                           
+      158 +                gear=_sheet_gear(item.get("gear"), what),     
+      159              )
+      160          )
+      161      return characters
+      162  
+      163  
+      164 +def _sheet_gear(raw: Any, what: str) -> tuple[Gear, ...]:     
+      165 +    """A sheet's gear: its counts and uses are written numbers
+          +, never dice."""                                              
+      166 +    gear = tuple(_gear(item, what) for item in raw or [])     
+      167 +    for item in gear:                                         
+      168 +        if any(isinstance(n, str) for n in (item.count, item.u
+          +ses)):                                                        
+      169 +            raise ContentError(f"{what}: {item.id} has a numbe
+          +r on the sheet, not dice")                                    
+      170 +    return gear                                               
+      171 +                                                              
+      172 +                                                              
+      173  def _read(path: Path) -> Any:
+      174      with path.open(encoding="utf-8") as file:
+      175          return yaml.safe_load(file)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(cat >> tests/test_content_validation.py <<'EOF'…)
+  ⎿  ......................................................................
+     .. [ 90%]
+     ........
+     … +3 lines (ctrl+o to expand)
+  ⎿  Updated tests/test_content_validation.py (+48 -0)
+      755  def test_a_malformed_entry_effect_is_refused(root, effect, mes
+           sage):
+      756      with pytest.raises(ContentError, match=message):
+      757          load_one(root, d6_table(f"  - roll: 1-6\n    effects:\
+           n      - {effect}\n"))
+      758 +                                                              
+      759 +                                                              
+      760 +# --- Pregenerated characters (T1) ---------------------------
+          +-------------------                                           
+      761 +                                                              
+      762 +                                                              
+      763 +def sheet(character):                                         
+      764 +    return (                                                  
+      765 +        "name: Pregenerated\nsource: test.md\ncharacters:\n"  
+      766 +        "  - {id: pregenerated.test, name: Test, sanity: 8, li
+          +fe: 9, food: 4, "                                             
+      767 +        f"{character}}}\n"                                    
+      768 +    )                                                         
+      769 +                                                              
+      770 +                                                              
+      771 +def test_a_pregenerated_character_is_read(root):              
+      772 +    write(root, "characters/test.yaml", sheet("skills: [skill.
+          +a], gear: [{id: item.a, uses: 3}]"))                          
+      773 +    character = load_content(root).pregenerated["pregenerated.
+          +test"]                                                        
+      774 +                                                              
+      775 +    assert (character.name, character.sanity, character.life, 
+          +character.food) == (                                          
+      776 +        "Test",                                               
+      777 +        8,                                                    
+      778 +        9,                                                    
+      779 +        4,                                                    
+      780 +    )                                                         
+      781 +    assert character.skills == ("skill.a",)                   
+      782 +    assert [(g.id, g.count, g.uses) for g in character.gear] =
+          += [("item.a", None, 3)]                                       
+      783 +                                                              
+      784 +                                                              
+      785 +@pytest.mark.parametrize(                                     
+      786 +    ("character", "message"),                                 
+      787 +    [                                                         
+      788 +        ("gear: [{id: weapon.a, count: 2d6}]", "a number on th
+          +e sheet, not dice"),                                          
+      789 +        ("xp: 3", r"unknown keys \['xp'\]"),                  
+      790 +        ("skills: skill.a", "expected a list of IDs"),        
+      791 +    ],                                                        
+      792 +)                                                             
+      793 +def test_a_malformed_pregenerated_character_is_refused(root, c
+          +haracter, message):                                           
+      794 +    write(root, "characters/test.yaml", sheet(character))     
+     … 11 more lines (ctrl+o to expand)
+
+⏺ Now docs/content.md: the new file, the ID kind, and a short section.
+
+⏺ Bash(python3 - <<'EOF'
+      p='docs/content.md'…)
+  ⎿  12:  dice.py           dice codes, chances, dice sources (shared by co
+     ntent and engine)
+     29:  content/          the rules text: YAML files, their loader and mo
+     … +66 lines (ctrl+o to expand)
+  ⎿  Updated docs/content.md (+27 -1)
+      60    skills/
+      61      skills.yaml           the Skills: a list (R2)
+      62      arcane_skills.yaml    the Arcane Skills: a list (R2)
+      63 +  characters/                                                  
+      64 +    pregenerated.yaml     the two sample pregenerated character
+         +s (T1)                                                         
+      65      (later places/, creatures/ … as the batches need)
+      66  ```
+      67  
+     ...
+      71  
+      72  ## IDs
+      73  
+      72 -Lowercase words joined by `_`, segments joined by `.`. **The fi
+         -rst segment is the kind**: `table`, `mission`, `event`, `weapon
+         -`, `item`, `skill`, `arcane_skill`, `injury`, `mental_scar` so 
+         -far; `creature`, `item`… are added by the batch that first need
+         -s them.                                                        
+      74 +Lowercase words joined by `_`, segments joined by `.`. **The fi
+         +rst segment is the kind**: `table`, `mission`, `event`, `weapon
+         +`, `item`, `skill`, `arcane_skill`, `injury`, `mental_scar`, `p
+         +regenerated` so far; `creature`, `item`… are added by the batch
+         + that first needs them.                                        
+      75  
+      76  | What | ID | Rule |
+      77  | --- | --- | --- |
+     ...
+      85  | An Injury, a Mental Scar | `injury.limping`, `mental_scar.par
+          anoia` | named entries of the Injury and Insanity tables: the k
+          ind, then the result's printed name |
+      86  | An item | `item.backpack` | `item`, then its printed name wit
+          hout the count, the same way as a table |
+      87  | A weapon | `weapon.axe` | `weapon`, then its heading in the w
+          eapon summary, the same way as a table: `/` becomes `_or_` (`we
+          apon.hockey_stick_or_golf_club`), words in brackets are kept (`
+          weapon.samurai_sword_authentic`) |
+      88 +| A pregenerated character | `pregenerated.anna_miller` | `preg
+         +enerated`, then the name on the sheet |                        
+      89  
+      90  - **IDs are stable.** The game state refers to content by ID on
+          ly, so an ID is never renamed once used.
+      91  - **Rolls in IDs keep the book's numbers.** The book's "1,2)" i
+          s written `1-2`.
+     ...
+      264  - **Only numbers.** What a Skill does beyond a modifier (Dodge
+           's balance on a natural 1, Faith turning vampires, Medic heali
+           ng after an encounter) is Python keyed by the Skill's ID, writ
+           ten with the task that has its moment. Faith and Medic have no
+            `effects`.
+      265  - **Bow and Martial Arts are bonuses** (the user, E7): +1 / +2
+            on bow or unarmed Attacks; the weapon keeps its own malus (-1
+            unskilled bow, -2 unarmed), so the totals are the book's.
+      266  
+      267 +## Pregenerated characters                                    
+      268 +                                                              
+      269 +The two sample pregenerated characters of the book, from their
+          + filled-in sheets (decided in T1): the drills start from them,
+          + and so will E17's quick run. One file, a list in the book's o
+          +rder, under the key `characters`.                             
+      270 +                                                              
+      271 +```yaml                                                       
+      272 +name: Sample pregenerated characters                          
+      273 +source: gameRules/14_pregenerated_characters.md               
+      274 +characters:                                                   
+      275 +  - id: pregenerated.anna_miller                              
+      276 +    name: Anna Miller                                         
+      277 +    sanity: 9                                                 
+      278 +    life: 10                                                  
+      279 +    food: 4                                                   
+      280 +    skills: [skill.will, skill.occultist]                     
+     … 18 more lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='docs/architecture.md'…)
+  ⎿   M docs/architecture.md
+      M docs/content.md
+      M src/alone_against_fear/content/__init__.py
+     … +16 lines (ctrl+o to expand)
+  ⎿  Updated docs/architecture.md (+5 -3)
+      19      protocol.py     requests, events, Interface: how the engine
+           talks to an interface
+      20      loop.py         play(): the game loop, arriving in a box
+      21      moments.py      announce(): a moment's reactions (the Food 
+          upkeep), then lifetimes counted down
+      22 -    creation.py     create(): walking the player through charac
+         -ter creation                                                   
+      22 +    creation.py     create(): walking the player through charac
+         +ter creation; pregenerated()                                   
+      23      book_mode.py    resolving a box: follow each entry; book mo
+          de for what the engine cannot read
+      24      manual.py       manual actions: how the player applies a te
+          xt the engine cannot read
+      25      leads.py        how the arrival and Search tables' entries 
+          lead on (until E10)
+     ...
+      153  - **The answer must fit the request**: one of the options, a n
+           umber within the bounds, a text that is not empty. `protocol.a
+           sk` refuses anything else with `GameError`, logs the answer an
+           d returns it (the option itself, the text without the spaces a
+           round it). A scripted answer that does not fit fails the test;
+            the terminal checks the input before answering.
+      154  - **`Quit`** may be raised by an interface at any request: the
+            game ends with `End.QUIT` (the terminal raises it on Ctrl-D o
+           r Ctrl-C).
+      155  - **The loop** (`play(game, interface) -> End`): creates a cha
+           racter if there is none (`creation.create`), asks for Home if 
+           it is not chosen, then turns, as in the [game flow](../design/
+           game-flow.md#2-mission): move, arrive, free actions. The free 
+           actions keep their place: `MOVE` first, `SEARCH` while the box
+            may be Searched, `APPLY` ("apply an effect": `manual.apply_ef
+           fects`), `SPEND_XP` while `Game.purchases()` is not empty (a `
+           PURCHASE` among them, or `Manual.BACK`), `SHEET` once a sheet 
+           is full, `QUIT` last. The Search asks a `MODIFIER` only when t
+           he character has notes, then follows its entry (`book_mode.fol
+           low`). Moving asks a box among `Game.targets()`, in reading or
+           der, and arrives: a new box rolls Town Exploration, a visited 
+           one (Home included, until Safe Houses) has a 1 in 6 Random Enc
+           ounter, and the box is resolved before any free action. Arrivi
+           ng announces a box of time first (`moments.announce(game, inte
+           rface, Moment.TIME_PASSES)`): its reactions run (`moments.RULE
+           S`: the Food upkeep, told as `FoodUpkeep`), then the lasting e
+           ffects counting it go down and the ones that end are told (`Ef
+           fectEnded`). A Food upkeep that kills stops the arrival. React
+           ions take the interface, so a later one can ask the player. Th
+           e game ends at 0 Life (dead, checked first, [ruling](../design
+           /rulings.md#character)), 0 Sanity (insane) or quit.
+      156 -- **Character creation** (`creation.create(game, interface)`, 
+          -E6): a name; the 3 points (`Points`: Life and Sanity split by 
+          -a `LIFE_POINTS` number, or 1 more Skill or table roll); 2 or 3
+          - Skills; `Game.create_character`; then a private `_Giving` giv
+          -es the Skills' `starting_gear`, rolls Random Weapon (and asks 
+          -the knife or stick), Random Objects and Useful Stuff, and d6 F
+          -ood through a gain. An entry gives its `item`, or the weapon a
+          -mong its `refs` (asked when two are offered, the variants not 
+          -held), with its `count` and `uses` rolled. A duplicate is anyt
+          -hing held already, or an entry reached already for what is nei
+          -ther: `Duplicate` is told and the table rolled again. Entries 
+          -that give something else are keyed by ID in `creation.py`: the
+          - samurai sword picked by a die (`PICKED_BY_DIE`, to move into 
+          -the YAML in E10), Food points (`FOOD_POINTS`), and the books, 
+          -followed with `book_mode.lead_on`.                            
+      156 +- **Character creation** (`creation.create(game, interface)`, 
+          +E6): a name; the 3 points (`Points`: Life and Sanity split by 
+          +a `LIFE_POINTS` number, or 1 more Skill or table roll); 2 or 3
+          + Skills; `Game.create_character`; then a private `_Giving` giv
+          +es the Skills' `starting_gear`, rolls Random Weapon (and asks 
+          +the knife or stick), Random Objects and Useful Stuff, and d6 F
+          +ood through a gain. An entry gives its `item`, or the weapon a
+          +mong its `refs` (asked when two are offered, the variants not 
+          +held), with its `count` and `uses` rolled. A duplicate is anyt
+          +hing held already, or an entry reached already for what is nei
+          +ther: `Duplicate` is told and the table rolled again. Entries 
+          +that give something else are keyed by ID in `creation.py`: the
+          + samurai sword picked by a die (`PICKED_BY_DIE`, to move into 
+          +the YAML in E10), Food points (`FOOD_POINTS`), and the books, 
+          +followed with `book_mode.lead_on`. `creation.pregenerated(game
+          +, id)` (T1) makes a sample pregenerated character from its she
+          +et instead, with no question: its Life, Sanity and Food as pri
+          +nted, Skills at Basic, its gear as `Item`s with no source.    
+      157  - **Resolving a box** (`book_mode.resolve(game, interface, id)
+           `, or `follow(game, interface, rolled)` for a table already ro
+           lled; `lead_on` follows an entry already rolled and told): rea
+           ches a table or event through `Game`, tells the interface, the
+           n follows where the entry leads until it leads nowhere. A copi
+           ed entry with a written lead (`leads.LEADS`, keyed by entry ID
+           ) plays itself: `Auto` rolls the one table named, `Choice` ask
+           s among the tables named ("your choice", nothing else offered)
+           , `DieRoll` rolls the die and tells `LeadRolled`, `Nowhere` en
+           ds the chain. **Book mode** is what the engine cannot read: a 
+           table not copied yet, a numbered event, or a copied entry with
+            no written lead. The `BOOK` menu offers where the text leads 
+           (`Book.TABLE` then any table, `Book.EVENT` then any event, or 
+           the entry's own references), the manual actions, and `Book.DON
+           E`; it comes back after each manual action. At 0 Life or Sanit
+           y it offers only the manual actions and `DONE`, so the chain s
+           tops at the entry that kills, once its effects are applied. `l
+           eads.py` covers Town Exploration, Random Encounter and Search,
+            a transitional step until E10's result scripts.
+      158  - **Manual actions** (`manual.py`): `Manual` lists them; `offe
+           red(game)` gives the ones an entry allows now (gain; lose, onl
+           y the numbers above 0; roll vs L, which asks its type, its L, 
+           a yes or no for each effect held that depends on its tags, ski
+           pped when the tags given already match it, then the text's mod
+           ifier; add a lasting effect, which asks its `TARGET` (`manual.
+           ALL_ROLLS` or a roll type), its `MODIFIER` (0 adds nothing) an
+           d its `BOXES` (0 for until removed), and tells `LastingAdded`;
+            remove one, if any, telling `LastingRemoved`; write a note; r
+           emove one, if any; mark a Safe House, unless the box is one), 
+           `apply(game, interface, action)` asks what it needs, changes t
+           he state through `Game` and tells the event. A loss stops at 0
+           . `apply_effects` is the free action: the ones about the chara
+           cter, until `Manual.BACK`.
+      159  - **Interfaces read the game, never change it**: the terminal 
+           reads `Game` to draw the status line and the map; only its ans
+           wers move the game on.
+     ...
+      203  - **A weapon list** (a file with a `weapons` key, no dice) loa
+           ds as `Weapon`s (ID, name, text, source), in `content.weapons`
+           ; `id in content` is true for a weapon, so table entries can p
+           oint to one. A heading that names two weapons lists them as `v
+           ariants` (E6): each is a `Weapon` of its own in `content.varia
+           nts`, with the heading's text plus its `extra` sentence and th
+           e heading's ID in `heading`; `content.weapon(id)` finds both.
+      204  - **Items** (E6): an entry may name the `item` it gives (an `i
+           tem.` ID, defined only there and shared across tables), with i
+           ts `count` (a dice code, a number, or a mapping per item or we
+           apon, read with `entry.count_of(id)`) and `uses`. `content.ite
+           ms` maps an item ID to the entries that give it; `id in conten
+           t` is true for an item.
+      205  - **A Skill list** (a file with a `skills` or an `arcane_skill
+           s` key) loads as `Skill`s (ID, name, XP cost, text, the Expert
+            line; components and sacrifice for an Arcane Skill), in `cont
+           ent.skills` and `content.arcane_skills`; `content.skill(id)` f
+           inds either kind. A Skill's `effects` are `Effect`s (a roll ty
+           pe with tags and a group, or a parameter, and the Basic and Ex
+           pert amounts; E7), their names checked against `effect_targets
+           ` at load time. A Skill's `starting_gear` is a tuple of `Gear`
+            (an item or weapon ID, count, uses), checked by `reference_pr
+           oblems`.
+      206 +- **The pregenerated characters** (T1; a file with a `characte
+          +rs` key) load as `Pregenerated` (ID, name, Life, Sanity, Food,
+          + Skill IDs, gear as `Gear` with written numbers), in `content.
+          +pregenerated`; `reference_problems` checks their Skills and ge
+          +ar.                                                           
+      207  
+      208  Used by: `Game.roll_table` and `Game.play_event` (book mode), 
+           `Game.start_mission`, which checks mission IDs, the terminal, 
+           which shows the text, and the tests.
+      209  
+     ...
+      212  | File | What it covers |
+      213  | --- | --- |
+      214  | `tests/test_content.py` | the real content: the checks over 
+           every table, then what each table says, written from the book 
+           |
+      214 -| `tests/test_content_validation.py` | each check on a small m
+          -ade-up content, so a check that never fires cannot pass unnoti
+          -ced; the weapon and Skill list loaders |                      
+      215 +| `tests/test_content_validation.py` | each check on a small m
+          +ade-up content, so a check that never fires cannot pass unnoti
+          +ced; the weapon, Skill list and pregenerated character loaders
+          + |                                                            
+      216  | `tests/test_dice.py` | every dice code of the Dice Codes sec
+           tion, chances, seeded and scripted dice |
+      217  | `tests/test_game_state.py` | the game state through `Game`: 
+           levels, character, missions, boxes, history, plain data, loggi
+           ng |
+      218  | `tests/test_character.py` | the character: max Life and Sani
+           ty, Skills, buying them with XP, items held |
+      219  | `tests/test_effects.py` | every Skill's effects: roll modifi
+           ers at Basic and Expert, what they leave alone, stacking, para
+           meters, max values, rolls and the Search collecting them; pend
+           ing tests for Dodge's balance, Faith and Medic |
+      220 +| `tests/test_pregenerated.py` | the two pregenerated characte
+          +rs as printed, and a character made from one |                
+      221  | `tests/test_creation.py` | scenarios of character creation: 
+           the points, Skills and their gear, the tables rolled, duplicat
+           es, counts, the special entries |
+      222  | `tests/test_town_map.py` | sheets, neighbours, distance, mov
+           es, numbering, new sheets |
+      223  | `tests/test_moments.py` | the box of time as a moment: the F
+           ood upkeep and its clock (Resistant to Hunger, Eating Disorder
+           , an interval changed between meals, an overdue meal), lasting
+            effects held through their boxes and ending on time, on all r
+           olls or one type |
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ The first part is ready to commit: the pregenerated characters, in YAML and as
+  a way to start a game. 854 tests pass, 10 skipped, and ruff is clean.
+
+  Checked against the original sheets
+  - I rendered both pages of the ebook. Their text matches
+    gameRules/14_pregenerated_characters.md word for word, so there's nothing to
+    correct in the rules text.
+  - The only oddity is a stray "3" in the PDF's text layer that isn't visible on
+    the page. I ignored it.
+
+  What's in it
+  - content/characters/pregenerated.yaml: Anna Miller and Douglas Harrison, with
+    their Life, Sanity, Food, Skills and gear. Anna's pistol carries its 6
+    ammo, she holds 3 stakes, and her first aid kit has 3 points; Douglas's salt
+    has 6 doses. The YAML holds no text of its own: each item's text comes from
+    its weapon or item entry.
+  - Where a sheet disagrees with the rules, the rules win, as the Markdown
+    already says. A YAML comment lists these:
+    - Douglas gets Strong at its normal level; his sheet prints bigger bonuses
+      than the rules give it.
+    - Anna gets one hammer, though her sheet lists it twice.
+    - Douglas's "book read" is left out until the books exist (E18).
+  - Loader and checks: a new ID kind, pregenerated.. The loader refuses dice in
+    a sheet's counts, and the reference check covers the characters' Skills and
+    gear.
+  - creation.pregenerated(game, id) makes a character from a sheet with no
+    questions asked.
+  - Tests in tests/test_pregenerated.py, plus loader validation tests.
+    docs/content.md and docs/architecture.md are updated.
+
+  Proposed commit message: T1: pregenerated characters in YAML
+
+  Can I commit it? Then I'll start part 2, the drills.
+
+✻ Churned for 4m 35s · done 13:16
+
+❯ yes, commit. Don t forget to add a note so we add back Douglas's "book read"  
+  when we do E18                                                                
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='Readme.md'…)
+  ⎿  7bbb7be T1: pregenerated characters in YAML
+  ⎿  Updated Readme.md (+1 -0)
+      343  - Rules: [arcane skills](gameRules/1_3_arcane_skills.md), [ran
+           dom books](gameRules/tables/5_32_random_books_table.md)
+      344  - Design: [character](design/character.md#xp-and-skills), [rul
+           ings](design/rulings.md#effects)
+      345  - Also: Faith turns vampires like Exorcism (pending test since
+            E7).
+      346 +- Also: add Douglas Harrison's book read (Computer printout of
+          + "They Are Among Us") to his pregenerated sheet in `content/ch
+          +aracters/pregenerated.yaml`, left out in T1 for want of books 
+          +read (the YAML comment says so).                              
+      347  - Done when: Gate can be learned through each of its prerequis
+           ites, with tests.
+      348  - Depends on: E17, R7.
+      349  
+
+⏺ Committed as 7bbb7be, with the reminder to add Douglas's book read back added
+  to the Readme's E18 entry.
+
+  Starting part 2, the drills. First a few facts from the code.
+
+  Searched for 1 pattern, ran 3 shell commands (ctrl+o to expand)
+
+⏺ Writing the drill tests.
+
+⏺ Write(tests/test_drills.py)
+  ⎿  Wrote 214 lines to tests/test_drills.py
+       1 """T1: drills, short scoped runs played in a break. A drill sets
+          up a start through the engine
+       2 (a pregenerated character, a situation), then the game loop runs
+          as usual until the drill's
+       3 natural end, told as `End.DRILL_OVER`. No rule changes.
+       4 
+       5 Scenarios are played by a scripted interface that gives the answ
+         ers in order.
+       6 """
+       7 
+     … +207 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Tests fail as expected (no drills module yet). Now the loop changes: a stop
+  condition, End.DRILL_OVER, and Home as its own function.
+
+⏺ Bash(python3 - <<'EOF'
+      p='src/alone_against_fear/engine/state.py'…)
+  ⎿  21:from .state import End, Item, Lasting, Note, Position, Stat, Upkeep
+     149:class Ended:
+     150:    end: End
+     … +2 lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/engine/loop.py (+27 -8)
+      10  actions: move, Search while the box may be Searched, apply an e
+          ffect (the manual actions about
+      11  the character), spend XP while it can buy a Skill, attach a she
+          et once one is full, quit. With
+      12  notes, the Search first asks the modifier they give.
+      13 -The loop ends at death (Life 0), insanity (Sanity 0) or when th
+         -e player quits.                                                
+      13 +The loop ends at death (Life 0), insanity (Sanity 0) or when th
+         +e player quits; a drill (T1)                                   
+      14 +also ends it when its stop condition holds, checked after creat
+         +ion and before each turn.                                      
+      15  """
+      16  
+      17  from __future__ import annotations
+      18  
+      19  import logging
+      20 +from collections.abc import Callable                           
+      21  
+      22  from ..dice import Chance
+      23  from . import book_mode, creation, manual, moments
+     ...
+      49  
+      50  log = logging.getLogger(__name__)
+      51  
+      52 +Stop = Callable[[Game], bool]                                  
+      53 +"""A drill's natural end (T1): true once the drill is over.""" 
+      54  
+      51 -def play(game: Game, interface: Interface) -> End:             
+      52 -    """Play until the game ends, and say why. A campaign under 
+         -way goes on where it stands."""                                
+      55 +                                                               
+      56 +def play(game: Game, interface: Interface, stop: Stop | None = 
+         +None) -> End:                                                  
+      57 +    """Play until the game ends, and say why. A campaign under 
+         +way goes on where it stands.                                   
+      58 +    A drill gives its `stop`; death and insanity end the game f
+         +irst."""                                                       
+      59      try:
+      54 -        end = _turns(game, interface)                          
+      60 +        end = _turns(game, interface, stop or _never)          
+      61      except Quit:
+      62          end = End.QUIT
+      63      log.info("game ends: %s", end)
+     ...
+      65      return end
+      66  
+      67  
+      62 -def _turns(game: Game, interface: Interface) -> End:           
+      68 +def choose_home(game: Game, interface: Interface) -> None:     
+      69 +    """The first game asks for Home: any box of the first sheet
+         +, box 1."""                                                    
+      70 +    home = ask(interface, Choose(Topic.HOME, tuple(boxes_of(FIR
+         +ST_SHEET))))                                                   
+     … 24 more lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/engine/protocol.py (+2 -0)
+      71      """Which effect to apply, as a free action (the manual acti
+          ons about the character)."""
+      72      NAME = "name"
+      73      """The character's name, at creation (a `Text`)."""
+      74 +    PREGENERATED = "pregenerated"                              
+      75 +    """Which sample pregenerated character a drill starts with 
+         +(T1)."""                                                       
+      76      POINTS = "points"
+      77      """What the 3 creation points buy (see `creation.Points`)."
+          ""
+      78      LIFE_POINTS = "life_points"
+  ⎿  Updated src/alone_against_fear/engine/state.py (+2 -0)
+      85      """Sanity went to 0."""
+      86      QUIT = "quit"
+      87      """The player left; the campaign can go on later."""
+      88 +    DRILL_OVER = "drill_over"                                  
+      89 +    """A drill reached its natural end (T1): a test run, not a 
+         +rule."""                                                       
+      90  
+      91  
+      92  @dataclass(frozen=True)
+
+⏺ Now the drills module.
+
+⏺ Write(src/alone_against_fear/engine/drills.py)
+  ⎿  Wrote 105 lines to src/alone_against_fear/engine/drills.py
+      1 """Drills (T1): short scoped runs the player tries in a break, 5 
+        to 15 minutes each.
+      2 
+      3 A drill sets up a start through the engine, as a test does (a pre
+        generated character, a
+      4 situation), then the game loop runs as usual until the drill's na
+        tural end, told as
+      5 `End.DRILL_OVER`; death, insanity and quitting end it too. No rul
+        e changes. Each task from T1
+      6 on adds its drill (WorkingWithClaude.md, Playtesting).
+     … +99 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ All 11 pass. One cleanup: the xp drill writes the XP straight onto the
+  character. I'll check whether Game.gain covers XP, so it goes through the
+  engine.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='src/alone_against_fear/engine/drills.py'…)
+  ⎿  I001 [*] Import block is un-sorted or un-formatted
+       --> tests/test_drills.py:8:1
+        |
+     … +39 lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/engine/drills.py (+3 -4)
+      15  from . import creation, loop
+      16  from .game import Game
+      17  from .protocol import Choose, Interface, Topic, ask
+      18 -from .state import End                                         
+      18 +from .state import End, Stat                                   
+      19  
+      20  WALK_BOXES = 10
+      21  """The walk drill: boxes walked from Home."""
+     ...
+      70      held = game.character.skills
+      71      expert = max(skills[id_].xp for id_ in held if skills[id_].
+          expert is not None)
+      72      new = max(skill.xp for skill in skills.values() if skill.id
+           not in held)
+      73 -    game.character.xp = expert + new                           
+      73 +    game.gain(Stat.XP, expert + new)                           
+      74      return lambda game: not game.purchases()
+      75  
+      76  
+     ...
+      87  DRILLS = {
+      88      "creation": Drill("Create a character; the drill ends with 
+          the sheet done.", _creation),
+      89      "walk": Drill(
+      90 -        f"A pregenerated character at Home walks {WALK_BOXES} b
+         -oxes: exploration and book "                                   
+      91 -        "mode.",                                               
+      90 +        f"A pregenerated character at Home walks {WALK_BOXES} b
+         +oxes: exploration and book mode.",                             
+      91          _walk,
+      92      ),
+      93      "lasting": Drill(
+  ⎿  Updated tests/test_drills.py (+1 -3)
+      195      game = new_game(content)
+      196      will = Purchase("skill.will", SkillLevel.EXPERT, 6)
+      197      agile = Purchase("skill.agile", SkillLevel.BASIC, 8)
+      198 -    interface = ScriptedInterface(                            
+      199 -        [ANNA, HOME, Action.SPEND_XP, will, Action.SPEND_XP, a
+          -gile]                                                         
+      200 -    )                                                         
+      198 +    interface = ScriptedInterface([ANNA, HOME, Action.SPEND_XP
+          +, will, Action.SPEND_XP, agile])                              
+      199  
+      200      # when she raises her dearest Skill to Expert and buys the
+            dearest new one
+      201      end = drills.run("xp", game, interface)
+
+⏺ Engine side done: 865 pass, 10 skipped. Next is the terminal: --drill, the
+  character choice, and the drill's start and end on screen.
+
+⏺ Bash(.venv/bin/ruff check --fix . | tail -1; grep -n "def test.*main\|main(\["
+      tests/test_terminal.py | head -10; grep -n "^def \|^from\|^import"
+      tests/test_terminal…)
+  ⎿  Found 1 error (1 fixed, 0 remaining).
+     122:def test_main_writes_the_log_to_a_file_with_the_seed_and_the_answe
+     rs(tmp_path):
+     … +59 lines (ctrl+o to expand)
+  ⎿  Updated tests/test_drills.py (+1 -2)
+       9  
+      10  from alone_against_fear.content import load_content
+      11  from alone_against_fear.dice import ScriptedDice
+      12 -from alone_against_fear.engine import Game, Position           
+      13 -from alone_against_fear.engine import drills                   
+      12 +from alone_against_fear.engine import Game, Position, drills   
+      13  from alone_against_fear.engine.creation import Points
+      14  from alone_against_fear.engine.game import Purchase
+      15  from alone_against_fear.engine.loop import play
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(cat >> tests/test_terminal.py <<'EOF'…)
+  ⎿  FAILED tests/test_terminal.py::test_a_drill_starts_with_what_to_try_an
+     d_asks_for_a_pregenerated_character
+     FAILED tests/test_terminal.py::test_a_drill_over_says_so_and_shows_the
+     … +4 lines (ctrl+o to expand)
+  ⎿  Updated tests/test_terminal.py (+49 -0)
+      571      assert "1) -1 on all rolls (ends at box 5)" in output
+      572      assert "Removed: -1 on all rolls." in output
+      573      assert game.character.lasting[0].effect == Effect(basic=1,
+            roll=RollType.STEALTH)
+      574 +                                                              
+      575 +                                                              
+      576 +# --- Drills (T1) --------------------------------------------
+          +-------------------------------                               
+      577 +                                                              
+      578 +                                                              
+      579 +def test_a_drill_starts_with_what_to_try_and_asks_for_a_pregen
+          +erated_character(tmp_path):                                   
+      580 +    # given the walk drill: Douglas (2), Home, then quit      
+      581 +    typist = Typist(["2", HOME_TOP_LEFT, QUIT])               
+      582 +    output = []                                               
+      583 +                                                              
+      584 +    main(                                                     
+      585 +        ["--drill", "walk", "--seed", "7", "--log-dir", str(tm
+          +p_path)],                                                     
+      586 +        input_fn=typist,                                      
+      587 +        output_fn=output.append,                              
+      588 +    )                                                         
+      589 +                                                              
+      590 +    # then the drill says what to try, and the two sheets are 
+          +listed with their numbers                                     
+      591 +    shown = "\n".join(output)                                 
+      592 +    assert "Drill walk: A pregenerated character at Home walks
+          + 10 boxes" in shown                                           
+      593 +    assert "1) Anna Miller: Life 10, Sanity 9, Food 4; Will, O
+          +ccultist" in shown                                            
+      594 +    assert "2) Douglas Harrison: Life 11, Sanity 8, Food 4; Sl
+          +ippery, Strong" in shown                                      
+      595 +    assert "Which character? [1-2] " in typist.prompts        
+      596 +    assert "Douglas Harrison · Box 1" in shown                
+      597 +    [log_file] = tmp_path.glob("*.log")                       
+      598 +    assert "drill walk" in log_file.read_text()               
+      599 +                                                              
+      600 +                                                              
+      601 +def test_a_drill_over_says_so_and_shows_the_character(tmp_path
+          +):                                                            
+      602 +    # given the creation drill (seed 7 as above)              
+      603 +    typist = Typist(["Ann", "l", "2", "1", "18", "1", "1"])   
+      604 +    output = []                                               
+      605 +                                                              
+      606 +    main(                                                     
+      607 +        ["--drill", "creation", "--seed", "7", "--log-dir", st
+          +r(tmp_path)],                                                 
+      608 +        input_fn=typist,                                      
+      609 +        output_fn=output.append,                              
+      610 +    )                                                         
+     … 12 more lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='src/alone_against_fear/interface/terminal.py'…)
+  ⎿  4:from .game import Arrival, Game, GameError
+     5:from .state import (
+     ...............sssssss................................................
+     … +6 lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/engine/drills.py (+6 -1)
+       8  
+       9  from __future__ import annotations
+      10  
+      11 +import logging                                                 
+      12  from collections.abc import Callable
+      13  from dataclasses import dataclass
+      14  
+     ...
+      27  """The lasting drill's effect: -1 to every roll, for the next 3
+           boxes."""
+      28  LASTING_EFFECT_BOXES = 3
+      29  
+      30 +log = logging.getLogger(__name__)                              
+      31 +                                                               
+      32  Setup = Callable[[Game, Interface], loop.Stop]
+      33  """Sets the drill's start up and gives its stop condition."""
+      34  
+     ...
+      42  
+      43  def run(name: str, game: Game, interface: Interface) -> End:
+      44      """Set the drill up on a new campaign, then play until its 
+          natural end."""
+      42 -    stop = DRILLS[name].setup(game, interface)                 
+      45 +    drill = DRILLS[name]                                       
+      46 +    log.info("drill %s", name)                                 
+      47 +    stop = drill.setup(game, interface)                        
+      48      return loop.play(game, interface, stop)
+      49  
+      50  
+  ⎿  Updated src/alone_against_fear/interface/terminal.py (+30 -2)
+      32  Injuries, Mental Scars and lasting effects under it ("-1 on all
+           rolls (ends at box 14)"). `f`
+      33  adds a lasting effect (all rolls or one roll type, numbered; th
+          e modifier; the boxes, Enter for
+      34  until removed), `u` removes one.
+      35 +                                                               
+      36 +Drills (T1): `--drill NAME` says what the drill tries, then pla
+         +ys it; a drill with a                                          
+      37 +pregenerated character lists the two sheets, numbered. When the
+         + drill is over, the character                                  
+      38 +is shown once more.                                            
+      39  """
+      40  
+      41  from __future__ import annotations
+     ...
+      49  from ..content import CatalogueEvent, CatalogueTable, Table, lo
+          ad_content
+      50  from ..dice import RandomDice
+      51  from ..effect_targets import RollType, Tag
+      48 -from ..engine import Arrival, Game, Position, Stat, Upkeep     
+      52 +from ..engine import Arrival, Game, Position, Stat, Upkeep, dri
+         +lls                                                            
+      53  from ..engine.creation import Points
+      54  from ..engine.effects import PLAYER, Held, Modifier
+      55  from ..engine.game import Purchase, Rolled, RolledVsL, Searched
+     ...
+      93      End.DEAD: "You are dead. The game is over.",
+      94      End.INSANE: "You have gone insane. The game is over.",
+      95      End.QUIT: "You quit the game.",
+      96 +    End.DRILL_OVER: "The drill is over.",                      
+      97  }
+      98  
+      99  KEYS = {
+     ...
+      208                  return self._read(keys, "Your choice: ")
+      209              case Topic.SKILL:
+      210                  return self._skills(request)
+      211 +            case Topic.PREGENERATED:                          
+      212 +                for n, option in _numbered(options):          
+      213 +                    self._output(f"{n}) {self._pregenerated(op
+          +tion)}")                                                      
+      214 +                return self._read(_by_number(options), f"Which
+          + character? [1-{len(options)}] ")                             
+      215              case Topic.WEAPON:
+      216                  for n, option in _numbered(options):
+      217                      weapon = self.game.content.weapon(option)
+     ...
+      332                  self._output(f"{self._purchase_done(purchase)}
+           : {purchase.cost} XP spent.")
+      333              case Ended(end=end):
+      334                  self._output(ENDINGS[end])
+      335 +                if end is End.DRILL_OVER and self.game.campaig
+          +n.character is not None:                                      
+      336 +                    self._output(self._status())              
+     … 40 more lines (ctrl+o to expand)
+
+⏺ All pass. I'll play the lasting drill through the real command with piped
+  input, to see how it looks on screen.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ The drill works as intended, with meals at boxes 3 and 6 and the stop at box
+  7; the stray "Choose one of" lines come from my piped input, not the game.
+  Next I'll update docs/architecture.md. · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='docs/architecture.md'…)
+  ⎿  154:- **Requests and events are plain data.** Three requests: `Choose(
+     topic, options, about)` picks one option (`about` says what the questi
+     on is about when the topic does not: the effect a `TAG` question asks
+     … +27 lines (ctrl+o to expand)
+  ⎿  Updated docs/architecture.md (+6 -2)
+      23      book_mode.py    resolving a box: follow each entry; book mo
+          de for what the engine cannot read
+      24      manual.py       manual actions: how the player applies a te
+          xt the engine cannot read
+      25      leads.py        how the arrival and Search tables' entries 
+          lead on (until E10)
+      26 +    drills.py       DRILLS and run(): short scoped runs, a star
+         +t set up and a natural end (T1)                                
+      27    interface/        what answers the engine: reads input, shows
+           the game
+      28      scripted.py     ScriptedInterface: prepared answers, for te
+          sts
+      29      terminal.py     TerminalInterface and main(): play in the t
+          erminal
+     ...
+      34      tables/         one YAML file per copied table
+      35      weapons/        the weapon summary: a list of weapons
+      36      skills/         the Skills and the Arcane Skills: two lists
+      37 +    characters/     the two sample pregenerated characters     
+      38  ```
+      39  
+      40  Rules that hold for every package ([`CLAUDE.md`](../CLAUDE.md))
+          : the engine never reads input or prints, and the game state re
+          fers to content by ID only and never holds code.
+     ...
+      154  - **Requests and events are plain data.** Three requests: `Cho
+           ose(topic, options, about)` picks one option (`about` says wha
+           t the question is about when the topic does not: the effect a 
+           `TAG` question asks about), `Number(topic, minimum, maximum)` 
+           a whole number within its bounds (an amount, an L, a modifier)
+           , `Text(topic)` a text that is not empty (a note). The topic t
+           ells the interface how to show it (a map for `HOME` and `MOVE`
+           , a menu for `ACTION`, `CHOICE`, `BOOK`, `APPLY` and `POINTS`,
+            a list for `TABLE`, `EVENT`, `SHEET`, `STAT`, `NOTES`, `TARGE
+           T`, `LASTING`, `SKILL`, `WEAPON`, `PURCHASE` and `ROLL`, a yes
+            or no for `TAG`, a prompt for `AMOUNT`, `LEVEL`, `MODIFIER`, 
+           `BOXES`, `NOTE`, `NAME` and `LIFE_POINTS`). Events are `Arriva
+           l` (from `Game.move`, and for Home), `FoodUpkeep` (a meal or 1
+            Life lost, E8), `EffectEnded` (a lasting effect ran its cours
+           e), `Rolled` (from `Game.roll_table`), `Wandering` (the 1 in 6
+            of a visited box), `LeadRolled` (a die an entry rolls to pick
+            its table or what it gives), `EventPlayed`, `SheetAttached`, 
+           `Changed` (a number gained or lost), `RolledVsL`, `Searched`, 
+           `Marked`, `NoteWritten`, `NoteRemoved`, `LastingAdded`, `Lasti
+           ngRemoved`, `ItemTaken`, `Duplicate` (a creation roll that gav
+           e something held already), `Bought` and `Ended`. Events carry 
+           IDs; the interface reads the text in `game.content`.
+      155  - **The answer must fit the request**: one of the options, a n
+           umber within the bounds, a text that is not empty. `protocol.a
+           sk` refuses anything else with `GameError`, logs the answer an
+           d returns it (the option itself, the text without the spaces a
+           round it). A scripted answer that does not fit fails the test;
+            the terminal checks the input before answering.
+      156  - **`Quit`** may be raised by an interface at any request: the
+            game ends with `End.QUIT` (the terminal raises it on Ctrl-D o
+           r Ctrl-C).
+      155 -- **The loop** (`play(game, interface) -> End`): creates a cha
+          -racter if there is none (`creation.create`), asks for Home if 
+          -it is not chosen, then turns, as in the [game flow](../design/
+          -game-flow.md#2-mission): move, arrive, free actions. The free 
+          -actions keep their place: `MOVE` first, `SEARCH` while the box
+          - may be Searched, `APPLY` ("apply an effect": `manual.apply_ef
+          -fects`), `SPEND_XP` while `Game.purchases()` is not empty (a `
+          -PURCHASE` among them, or `Manual.BACK`), `SHEET` once a sheet 
+          -is full, `QUIT` last. The Search asks a `MODIFIER` only when t
+          -he character has notes, then follows its entry (`book_mode.fol
+          -low`). Moving asks a box among `Game.targets()`, in reading or
+          -der, and arrives: a new box rolls Town Exploration, a visited 
+          -one (Home included, until Safe Houses) has a 1 in 6 Random Enc
+          -ounter, and the box is resolved before any free action. Arrivi
+          -ng announces a box of time first (`moments.announce(game, inte
+          -rface, Moment.TIME_PASSES)`): its reactions run (`moments.RULE
+          -S`: the Food upkeep, told as `FoodUpkeep`), then the lasting e
+          -ffects counting it go down and the ones that end are told (`Ef
+          -fectEnded`). A Food upkeep that kills stops the arrival. React
+          -ions take the interface, so a later one can ask the player. Th
+          -e game ends at 0 Life (dead, checked first, [ruling](../design
+          -/rulings.md#character)), 0 Sanity (insane) or quit.           
+      157 +- **The loop** (`play(game, interface) -> End`): creates a cha
+          +racter if there is none (`creation.create`), asks for Home if 
+          +it is not chosen, then turns, as in the [game flow](../design/
+          +game-flow.md#2-mission): move, arrive, free actions. The free 
+          +actions keep their place: `MOVE` first, `SEARCH` while the box
+          + may be Searched, `APPLY` ("apply an effect": `manual.apply_ef
+          +fects`), `SPEND_XP` while `Game.purchases()` is not empty (a `
+          +PURCHASE` among them, or `Manual.BACK`), `SHEET` once a sheet 
+          +is full, `QUIT` last. The Search asks a `MODIFIER` only when t
+          +he character has notes, then follows its entry (`book_mode.fol
+          +low`). Moving asks a box among `Game.targets()`, in reading or
+          +der, and arrives: a new box rolls Town Exploration, a visited 
+          +one (Home included, until Safe Houses) has a 1 in 6 Random Enc
+          +ounter, and the box is resolved before any free action. Arrivi
+          +ng announces a box of time first (`moments.announce(game, inte
+          +rface, Moment.TIME_PASSES)`): its reactions run (`moments.RULE
+          +S`: the Food upkeep, told as `FoodUpkeep`), then the lasting e
+          +ffects counting it go down and the ones that end are told (`Ef
+          +fectEnded`). A Food upkeep that kills stops the arrival. React
+          +ions take the interface, so a later one can ask the player. Th
+          +e game ends at 0 Life (dead, checked first, [ruling](../design
+          +/rulings.md#character)), 0 Sanity (insane) or quit. `choose_ho
+          +me(game, interface)` asks for Home on its own, so a drill can 
+          +set its start up once Home is chosen.                         
+      158 +- **Drills** (T1, `drills.py`): `DRILLS` maps a name to a `Dri
+          +ll` (a line saying what it tries, and a setup). `run(name, gam
+          +e, interface)` logs the drill, runs its setup through the `Gam
+          +e` API (a `PREGENERATED` choice and `creation.pregenerated`, a
+          + Mental Scar, Home and a lasting effect, XP), which gives a st
+          +op condition, then `play(game, interface, stop)`. The loop che
+          +cks `stop` after creation and before each turn, after death an
+          +d insanity, and ends with `End.DRILL_OVER`. Drills change no r
+          +ule: `creation` (until the character is made), `walk` (10 boxe
+          +s from Home), `lasting` (Eating Disorder and -1 to every roll 
+          +for 3 boxes, 6 boxes), `xp` (XP for the dearest Expert level a
+          +nd the dearest new Skill, until nothing can be bought).       
+      159  - **Character creation** (`creation.create(game, interface)`, 
+           E6): a name; the 3 points (`Points`: Life and Sanity split by 
+           a `LIFE_POINTS` number, or 1 more Skill or table roll); 2 or 3
+            Skills; `Game.create_character`; then a private `_Giving` giv
+           es the Skills' `starting_gear`, rolls Random Weapon (and asks 
+           the knife or stick), Random Objects and Useful Stuff, and d6 F
+           ood through a gain. An entry gives its `item`, or the weapon a
+           mong its `refs` (asked when two are offered, the variants not 
+           held), with its `count` and `uses` rolled. A duplicate is anyt
+           hing held already, or an entry reached already for what is nei
+           ther: `Duplicate` is told and the table rolled again. Entries 
+           that give something else are keyed by ID in `creation.py`: the
+            samurai sword picked by a die (`PICKED_BY_DIE`, to move into 
+           the YAML in E10), Food points (`FOOD_POINTS`), and the books, 
+           followed with `book_mode.lead_on`. `creation.pregenerated(game
+           , id)` (T1) makes a sample pregenerated character from its she
+           et instead, with no question: its Life, Sanity and Food as pri
+           nted, Skills at Basic, its gear as `Item`s with no source.
+      160  - **Resolving a box** (`book_mode.resolve(game, interface, id)
+           `, or `follow(game, interface, rolled)` for a table already ro
+           lled; `lead_on` follows an entry already rolled and told): rea
+           ches a table or event through `Game`, tells the interface, the
+           n follows where the entry leads until it leads nowhere. A copi
+           ed entry with a written lead (`leads.LEADS`, keyed by entry ID
+           ) plays itself: `Auto` rolls the one table named, `Choice` ask
+           s among the tables named ("your choice", nothing else offered)
+           , `DieRoll` rolls the die and tells `LeadRolled`, `Nowhere` en
+           ds the chain. **Book mode** is what the engine cannot read: a 
+           table not copied yet, a numbered event, or a copied entry with
+            no written lead. The `BOOK` menu offers where the text leads 
+           (`Book.TABLE` then any table, `Book.EVENT` then any event, or 
+           the entry's own references), the manual actions, and `Book.DON
+           E`; it comes back after each manual action. At 0 Life or Sanit
+           y it offers only the manual actions and `DONE`, so the chain s
+           tops at the entry that kills, once its effects are applied. `l
+           eads.py` covers Town Exploration, Random Encounter and Search,
+            a transitional step until E10's result scripts.
+      161  - **Manual actions** (`manual.py`): `Manual` lists them; `offe
+           red(game)` gives the ones an entry allows now (gain; lose, onl
+           y the numbers above 0; roll vs L, which asks its type, its L, 
+           a yes or no for each effect held that depends on its tags, ski
+           pped when the tags given already match it, then the text's mod
+           ifier; add a lasting effect, which asks its `TARGET` (`manual.
+           ALL_ROLLS` or a roll type), its `MODIFIER` (0 adds nothing) an
+           d its `BOXES` (0 for until removed), and tells `LastingAdded`;
+            remove one, if any, telling `LastingRemoved`; write a note; r
+           emove one, if any; mark a Safe House, unless the box is one), 
+           `apply(game, interface, action)` asks what it needs, changes t
+           he state through `Game` and tells the event. A loss stops at 0
+           . `apply_effects` is the free action: the ones about the chara
+           cter, until `Manual.BACK`.
+     ...
+      169  - **Creation in the terminal**: a name, the points by letter (
+           `l`, `k`, `w`, `o`, `u`), the Skills with their text the first
+            time, weapons with their text; what is taken ("You take: …"),
+            duplicates ("You have it already: roll again."). `p` spends X
+           P: "Agile: 8 XP", "(Expert)" for the second level.
+      170  - **Rolls in the terminal** (E7): the roll types numbered; "Do
+           es this Save involve poison, infection or disease? (Resilient 
+           +1) [y/n]"; the result names each modifier and what was set as
+           ide: "Defense vs L5: rolled 3, Dodge +2 (Agile +1 does not sta
+           ck), total 5. Success."
+      171  - **Typed answers**: a number is asked again until it fits its
+            bounds (Enter alone is no modifier), a note until it is not e
+           mpty. The character's notes are shown under the status line, a
+           nd above a modifier to type.
+      169 -- **`main(argv)`** (console script `alone-against-fear`, or `p
+          -ython -m alone_against_fear`): `--seed`, `--log-dir` (default 
+          -`logs`); sets up the log file, loads the content, plays.      
+      172 +- **`main(argv)`** (console script `alone-against-fear`, or `p
+          +ython -m alone_against_fear`): `--seed`, `--log-dir` (default 
+          +`logs`), `--drill NAME` (T1: says what the drill tries, then `
+          +drills.run`); sets up the log file, loads the content, plays. 
+          +The pregenerated characters are listed one per line ("Anna Mil
+          +ler: Life 10, Sanity 9, Food 4; Will, Occultist"); a drill ove
+          +r shows the character once more.                              
+      173  
+      174  ## `content`: the rules text
+      175  
+     ...
+      220  | `tests/test_game_state.py` | the game state through `Game`: 
+           levels, character, missions, boxes, history, plain data, loggi
+           ng |
+      221  | `tests/test_character.py` | the character: max Life and Sani
+           ty, Skills, buying them with XP, items held |
+      222  | `tests/test_effects.py` | every Skill's effects: roll modifi
+           ers at Basic and Expert, what they leave alone, stacking, para
+           meters, max values, rolls and the Search collecting them; pend
+           ing tests for Dodge's balance, Faith and Medic |
+      223 +| `tests/test_drills.py` | the loop's stop condition, and each
+          + drill played through to its end |                            
+      224  | `tests/test_pregenerated.py` | the two pregenerated characte
+           rs as printed, and a character made from one |
+      225  | `tests/test_creation.py` | scenarios of character creation: 
+           the points, Skills and their gear, the tables rolled, duplicat
+           es, counts, the special entries |
+      226  | `tests/test_town_map.py` | sheets, neighbours, distance, mov
+           es, numbering, new sheets |
+
+⏺ Bash(sed -i '' 's/`SKILL`, `WEAPON`, `PURCHASE` and `ROLL`, a yes/`SKILL`,
+      `WEAPON`, `PURCHASE`, `PREGENERATED` and `ROLL`, a yes/'
+      docs/architecture.md && grep -c "…)
+  ⎿  1
+     156:- **`Quit`** may be raised by an interface at any request: the gam
+     e ends with `End.QUIT` (the terminal raises it on Ctrl-D or Ctrl-C).
+     … +9 lines (ctrl+o to expand)
+  ⎿  Updated docs/architecture.md (+1 -1)
+      151  ```
+      152  
+      153  - **Callback protocol.** The engine holds the interface and ca
+           lls it while the rules run: `ask(request)` returns the player'
+           s answer at once, `tell(event)` reports what happened, in orde
+           r. A rule deep inside another (a fight inside an event inside 
+           an arrival) asks the same way. Chosen over generators (every f
+           unction on the path would need `yield from`) and a state machi
+           ne (every multi-step rule cut into states). The price: the gam
+           e can only be saved between turns, which fits "saving = saving
+            the campaign"; a GUI would run the engine in a thread.
+      154 -- **Requests and events are plain data.** Three requests: `Cho
+          -ose(topic, options, about)` picks one option (`about` says wha
+          -t the question is about when the topic does not: the effect a 
+          -`TAG` question asks about), `Number(topic, minimum, maximum)` 
+          -a whole number within its bounds (an amount, an L, a modifier)
+          -, `Text(topic)` a text that is not empty (a note). The topic t
+          -ells the interface how to show it (a map for `HOME` and `MOVE`
+          -, a menu for `ACTION`, `CHOICE`, `BOOK`, `APPLY` and `POINTS`,
+          - a list for `TABLE`, `EVENT`, `SHEET`, `STAT`, `NOTES`, `TARGE
+          -T`, `LASTING`, `SKILL`, `WEAPON`, `PURCHASE` and `ROLL`, a yes
+          - or no for `TAG`, a prompt for `AMOUNT`, `LEVEL`, `MODIFIER`, 
+          -`BOXES`, `NOTE`, `NAME` and `LIFE_POINTS`). Events are `Arriva
+          -l` (from `Game.move`, and for Home), `FoodUpkeep` (a meal or 1
+          - Life lost, E8), `EffectEnded` (a lasting effect ran its cours
+          -e), `Rolled` (from `Game.roll_table`), `Wandering` (the 1 in 6
+          - of a visited box), `LeadRolled` (a die an entry rolls to pick
+          - its table or what it gives), `EventPlayed`, `SheetAttached`, 
+          -`Changed` (a number gained or lost), `RolledVsL`, `Searched`, 
+          -`Marked`, `NoteWritten`, `NoteRemoved`, `LastingAdded`, `Lasti
+          -ngRemoved`, `ItemTaken`, `Duplicate` (a creation roll that gav
+          -e something held already), `Bought` and `Ended`. Events carry 
+          -IDs; the interface reads the text in `game.content`.          
+      154 +- **Requests and events are plain data.** Three requests: `Cho
+          +ose(topic, options, about)` picks one option (`about` says wha
+          +t the question is about when the topic does not: the effect a 
+          +`TAG` question asks about), `Number(topic, minimum, maximum)` 
+          +a whole number within its bounds (an amount, an L, a modifier)
+          +, `Text(topic)` a text that is not empty (a note). The topic t
+          +ells the interface how to show it (a map for `HOME` and `MOVE`
+          +, a menu for `ACTION`, `CHOICE`, `BOOK`, `APPLY` and `POINTS`,
+          + a list for `TABLE`, `EVENT`, `SHEET`, `STAT`, `NOTES`, `TARGE
+          +T`, `LASTING`, `SKILL`, `WEAPON`, `PURCHASE`, `PREGENERATED` a
+          +nd `ROLL`, a yes or no for `TAG`, a prompt for `AMOUNT`, `LEVE
+          +L`, `MODIFIER`, `BOXES`, `NOTE`, `NAME` and `LIFE_POINTS`). Ev
+          +ents are `Arrival` (from `Game.move`, and for Home), `FoodUpke
+          +ep` (a meal or 1 Life lost, E8), `EffectEnded` (a lasting effe
+          +ct ran its course), `Rolled` (from `Game.roll_table`), `Wander
+          +ing` (the 1 in 6 of a visited box), `LeadRolled` (a die an ent
+          +ry rolls to pick its table or what it gives), `EventPlayed`, `
+          +SheetAttached`, `Changed` (a number gained or lost), `RolledVs
+          +L`, `Searched`, `Marked`, `NoteWritten`, `NoteRemoved`, `Lasti
+          +ngAdded`, `LastingRemoved`, `ItemTaken`, `Duplicate` (a creati
+          +on roll that gave something held already), `Bought` and `Ended
+          +`. Events carry IDs; the interface reads the text in `game.con
+          +tent`.                                                        
+      155  - **The answer must fit the request**: one of the options, a n
+           umber within the bounds, a text that is not empty. `protocol.a
+           sk` refuses anything else with `GameError`, logs the answer an
+           d returns it (the option itself, the text without the spaces a
+           round it). A scripted answer that does not fit fails the test;
+            the terminal checks the input before answering.
+      156  - **`Quit`** may be raised by an interface at any request: the
+            game ends with `End.QUIT` (the terminal raises it on Ctrl-D o
+           r Ctrl-C).
+      157  - **The loop** (`play(game, interface) -> End`): creates a cha
+           racter if there is none (`creation.create`), asks for Home if 
+           it is not chosen, then turns, as in the [game flow](../design/
+           game-flow.md#2-mission): move, arrive, free actions. The free 
+           actions keep their place: `MOVE` first, `SEARCH` while the box
+            may be Searched, `APPLY` ("apply an effect": `manual.apply_ef
+           fects`), `SPEND_XP` while `Game.purchases()` is not empty (a `
+           PURCHASE` among them, or `Manual.BACK`), `SHEET` once a sheet 
+           is full, `QUIT` last. The Search asks a `MODIFIER` only when t
+           he character has notes, then follows its entry (`book_mode.fol
+           low`). Moving asks a box among `Game.targets()`, in reading or
+           der, and arrives: a new box rolls Town Exploration, a visited 
+           one (Home included, until Safe Houses) has a 1 in 6 Random Enc
+           ounter, and the box is resolved before any free action. Arrivi
+           ng announces a box of time first (`moments.announce(game, inte
+           rface, Moment.TIME_PASSES)`): its reactions run (`moments.RULE
+           S`: the Food upkeep, told as `FoodUpkeep`), then the lasting e
+           ffects counting it go down and the ones that end are told (`Ef
+           fectEnded`). A Food upkeep that kills stops the arrival. React
+           ions take the interface, so a later one can ask the player. Th
+           e game ends at 0 Life (dead, checked first, [ruling](../design
+           /rulings.md#character)), 0 Sanity (insane) or quit. `choose_ho
+           me(game, interface)` asks for Home on its own, so a drill can 
+           set its start up once Home is chosen.
+
+⏺ Part 2 is ready to commit: the four drills, playable from the terminal. 868
+  tests pass, 10 skipped, and ruff is clean.
+
+  What's in it
+  - engine/drills.py: the four drills, each set up through the engine.
+    alone-against-fear --drill NAME starts one with a line saying what it tries;
+    an unknown name is refused with the list. When a drill is over, it says
+    "The drill is over." and shows the character once more.
+    - creation: stops once the character is made, before choosing Home.
+    - walk: you pick Anna or Douglas, choose Home, and the drill stops after 10
+      boxes.
+    - lasting: Eating Disorder (a meal every 3 boxes), and -1 to every roll for
+      the next 3 boxes, set once Home is chosen. You can add and remove effects
+      of your own. It stops after 6 boxes.
+    - xp: gives enough XP to raise the dearest Skill held to Expert and buy the
+      dearest new Skill: 14 for Anna, 13 for Douglas. It stops when nothing more
+      can be bought.
+  - The game loop takes an optional stop condition and ends with a new "drill
+    over" reason. Death and insanity still end the game first. Home is now
+    chosen in a function of its own, so lasting can set its effect after Home.
+  - Tests in tests/test_drills.py, plus 3 terminal tests. docs/architecture.md
+    is updated.
+  - Tried for real: I played the lasting drill through the actual command. Meals
+    came at boxes 3 and 6, the -1 ended on entering box 5, and it stopped at
+    box 7.
+
+  Proposed commit message: T1: drills (--drill creation, walk, lasting, xp)
+
+  Can I commit it? Then part 3: feedback with #.
+
+✻ Sautéed for 3m 28s · done 13:24
+
+※ recap: Building T1, short drills you can play in a break, plus a way to write feedback while playing. The drills work and are ready to commit; I need your yes to commit them, then I'll add feedback with `#`. (disable recaps in /config)
+
+❯ yes, commit                                                                   
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Committed as 6063a14; I'm adding feedback capture with # at every terminal
+  prompt, through a new interface/feedback.py module, and writing tests first. 
+  · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Three input reads, all in one place. Writing the tests.
+
+⏺ Bash(cat > tests/test_feedback.py <<'EOF'
+      """T1: feedback written while playing. A line starting with # at any
+      prompt is a feedback note:…)
+  ⎿  !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!
+     !!!!!!!!!!
+     1 error in 0.17s
+  ⎿  Created tests/test_feedback.py (+125 -0)
+        1 +"""T1: feedback written while playing. A line starting with # 
+          +at any prompt is a feedback note:                             
+        2 +it is kept with the seed, the drill and the box number, so the
+          + moment can be found in the log,                              
+        3 +then the same question is asked again. Notes are triaged at th
+          +e next review or playtest."""                                 
+        4 +                                                              
+        5 +from alone_against_fear.content import load_content           
+        6 +from alone_against_fear.dice import ScriptedDice              
+        7 +from alone_against_fear.engine import Game, Position          
+        8 +from alone_against_fear.engine.loop import play               
+        9 +from alone_against_fear.interface.feedback import FeedbackLog 
+       10 +from alone_against_fear.interface.terminal import TerminalInte
+          +rface, main                                                   
+       11 +                                                              
+       12 +CONTENT = load_content()                                      
+       13 +HOME_TOP_LEFT = "1"                                           
+       14 +QUIT = "q"                                                    
+       15 +                                                              
+       16 +                                                              
+       17 +class Typist:                                                 
+       18 +    def __init__(self, lines):                                
+       19 +        self.lines = list(lines)                              
+       20 +        self.prompts = []                                     
+       21 +                                                              
+       22 +    def __call__(self, prompt=""):                            
+       23 +        self.prompts.append(prompt)                           
+       24 +        if not self.lines:                                    
+       25 +            raise EOFError                                    
+       26 +        return self.lines.pop(0)                              
+       27 +                                                              
+       28 +                                                              
+       29 +def ready():                                                  
+       30 +    game = Game(dice=ScriptedDice([]), content=CONTENT)       
+       31 +    game.create_character(life=8, sanity=8, food=3, name="Ann"
+          +)                                                             
+       32 +    return game                                               
+       33 +                                                              
+       34 +                                                              
+       35 +def test_a_feedback_note_is_kept_and_the_question_asked_again(
+          +tmp_path):                                                    
+       36 +    # given a game at Home, with feedback kept in a file      
+       37 +    game = ready()                                            
+       38 +    path = tmp_path / "feedback.md"                           
+       39 +    feedback = FeedbackLog(path, seed=7, drill="walk", log_fil
+          +e="logs/x.log")                                               
+       40 +    typist = Typist([HOME_TOP_LEFT, "# the map is hard to read
+          +", QUIT])                                                     
+     … 85 more lines (ctrl+o to expand)
+
+⏺ Tests fail as expected. Now the module.
+
+⏺ Write(src/alone_against_fear/interface/feedback.py)
+  ⎿  Wrote 62 lines to src/alone_against_fear/interface/feedback.py
+       1 """Feedback written while playing (T1): a line starting with # a
+         t any prompt of the terminal.
+       2 
+       3 Each note is appended to a Markdown file (`feedback/feedback.md`
+          by default, kept in the
+       4 repository) with what is needed to find the moment again: the da
+         te, the drill, the dice seed,
+       5 the box number, the character, the question on screen and the ru
+         n's log file. It is also
+       6 logged. Notes are triaged at the next consistency review or play
+     … +57 lines (~2 KB) (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='src/alone_against_fear/interface/feedback.py'…)
+  ⎿  All checks passed!
+     ......................................................................
+     .. [ 97%]
+     … +3 lines (ctrl+o to expand)
+  ⎿  Updated src/alone_against_fear/interface/feedback.py (+1 -2)
+      20  HEADER = (
+      21      "# Feedback\n\n"
+      22      "Notes written while playing (`#` at any prompt), newest la
+          st. Each is triaged at the next "
+      23 -    "consistency review or playtest ([Working with Claude](../W
+         -orkingWithClaude.md#playtesting))"                             
+      24 -    ", then removed from here.\n"                              
+      23 +    "consistency review or playtest ([Working with Claude](../W
+         +orkingWithClaude.md#playtesting)).\n"                          
+      24  )
+      25  
+      26  log = logging.getLogger(__name__)
+  ⎿  Updated src/alone_against_fear/interface/terminal.py (+35 -12)
+      36  Drills (T1): `--drill NAME` says what the drill tries, then pla
+          ys it; a drill with a
+      37  pregenerated character lists the two sheets, numbered. When the
+           drill is over, the character
+      38  is shown once more.
+      39 +                                                               
+      40 +Feedback (T1): a line starting with # at any prompt is a note k
+         +ept with the seed, the drill and                               
+      41 +the box (`feedback.FeedbackLog`, `--feedback-file`), then the s
+         +ame question is asked again.                                   
+      42  """
+      43  
+      44  from __future__ import annotations
+     ...
+      88  )
+      89  from ..engine.state import Item, Lasting, Note, SkillLevel
+      90  from ..engine.town import SHEET_COLUMNS, SHEET_ROWS, sheet_neig
+          hbours
+      91 +from .feedback import PREFIX, FeedbackLog                      
+      92  
+      93  CELL = 5
+      94  """Width of a box on the map: room for "[30]" or a box number i
+          n the thousands."""
+     ...
+      181          game: Game,
+      182          input_fn: Callable[[str], str] = input,
+      183          output_fn: Callable[[str], None] = print,
+      184 +        feedback: FeedbackLog | None = None,                  
+      185      ) -> None:
+      186          self.game = game
+      187          self._input = input_fn
+      188 +        self._feedback = feedback                             
+      189          self._output = output_fn
+      190          self._seen: set[str] = set()
+      191          """Tables whose own rules were shown in this game."""
+     ...
+      346      def _read(self, keys: dict[str, object], prompt: str, rule
+           s: bool = False) -> object:
+      347          """Ask until the player types one of the keys; `r` sho
+           ws the last table's rules."""
+      348          while True:
+      343 -            try:                                              
+      344 -                line = self._input(prompt).strip().lower()    
+      345 -            except (EOFError, KeyboardInterrupt):             
+      346 -                raise Quit from None                          
+      349 +            line = self._line(prompt).lower()                 
+      350              if line in keys:
+      351                  return keys[line]
+      352              if rules and line == RULES_KEY and self._rules is 
+           not None:
+     ...
+      358          """Ask until the player types a whole number within th
+           e bounds; Enter alone is 0 when
+      359          0 fits (no modifier)."""
+     … 64 more lines (ctrl+o to expand)
+
+⏺ 873 pass, 10 skipped. I'll try it for real with a scratch feedback file, then
+  create the committed feedback/feedback.md with its header.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Works: the note is saved and the same question comes back. A bare # asks for
+  the note text. Now the committed feedback file, and the docs for this part.
+
+⏺ Bash(.venv/bin/python -c "
+      from alone_against_fear.interface.feedback import HEADER…)
+  ⎿  # Feedback
+
+     Notes written while playing (`#` at any prompt), newest last. Each is
+     … +7 lines (ctrl+o to expand)
+  ⎿  Updated docs/architecture.md (+4 -1)
+      27    interface/        what answers the engine: reads input, shows
+           the game
+      28      scripted.py     ScriptedInterface: prepared answers, for te
+          sts
+      29      terminal.py     TerminalInterface and main(): play in the t
+          erminal
+      30 +    feedback.py     FeedbackLog: notes written while playing (#
+         + at any prompt, T1)                                            
+      31    content/          the rules text: YAML files, their loader an
+          d model
+      32      loader.py       YAML files → Content
+      33      model.py        Content, Table, Entry, Roll, CatalogueTable
+          , CatalogueEvent, Weapon, Skill, Gear, the checks
+     ...
+      169  - **Resolving a box in the terminal**: the entry reached with 
+           the notes it points to, or, for a table not copied yet, its so
+           urce and the number rolled, then "Apply the text, then where d
+           oes it lead?" (`t`, `e`, the manual actions, `d`). A table's o
+           wn rules are shown the first time it is rolled in a game, and 
+           again on `r`; this is the terminal's choice, not the engine's.
+            Actions have letters so they keep their key (`m` move, `s` se
+           arch, `a` apply an effect, `n` new sheet, `q` quit; `g` gain, 
+           `l` lose, `v` roll vs L, `f` add a lasting effect, `u` remove 
+           one, `w` write a note, `x` remove one, `h` Safe House, `b` bac
+           k); tables, numbers to lose or gain and notes to remove are nu
+           mbered.
+      170  - **Creation in the terminal**: a name, the points by letter (
+           `l`, `k`, `w`, `o`, `u`), the Skills with their text the first
+            time, weapons with their text; what is taken ("You take: …"),
+            duplicates ("You have it already: roll again."). `p` spends X
+           P: "Agile: 8 XP", "(Expert)" for the second level.
+      171  - **Rolls in the terminal** (E7): the roll types numbered; "Do
+           es this Save involve poison, infection or disease? (Resilient 
+           +1) [y/n]"; the result names each modifier and what was set as
+           ide: "Defense vs L5: rolled 3, Dodge +2 (Agile +1 does not sta
+           ck), total 5. Success."
+      172 +- **Feedback** (T1): every line the terminal reads goes throug
+          +h one method; a line starting with `#` is not an answer but a 
+          +note for `FeedbackLog.write`, which appends it to the feedback
+          + file under a heading (date, drill, seed, box number) with the
+          + character, the question on screen and the log file, and logs 
+          +it. Then the same question is asked again. With no feedback fi
+          +le (tests), the note is refused.                              
+      173  - **Typed answers**: a number is asked again until it fits its
+            bounds (Enter alone is no modifier), a note until it is not e
+           mpty. The character's notes are shown under the status line, a
+           nd above a modifier to type.
+      172 -- **`main(argv)`** (console script `alone-against-fear`, or `p
+          -ython -m alone_against_fear`): `--seed`, `--log-dir` (default 
+          -`logs`), `--drill NAME` (T1: says what the drill tries, then `
+          -drills.run`); sets up the log file, loads the content, plays. 
+          -The pregenerated characters are listed one per line ("Anna Mil
+          -ler: Life 10, Sanity 9, Food 4; Will, Occultist"); a drill ove
+          -r shows the character once more.                              
+      174 +- **`main(argv)`** (console script `alone-against-fear`, or `p
+          +ython -m alone_against_fear`): `--seed`, `--log-dir` (default 
+          +`logs`), `--drill NAME` (T1: says what the drill tries, then `
+          +drills.run`), `--feedback-file` (default `feedback/feedback.md
+          +`, kept in the repository); sets up the log file, loads the co
+          +ntent, plays. The pregenerated characters are listed one per l
+          +ine ("Anna Miller: Life 10, Sanity 9, Food 4; Will, Occultist"
+          +); a drill over shows the character once more.                
+      175  
+      176  ## `content`: the rules text
+      177  
+     ...
+      222  | `tests/test_game_state.py` | the game state through `Game`: 
+           levels, character, missions, boxes, history, plain data, loggi
+           ng |
+      223  | `tests/test_character.py` | the character: max Life and Sani
+           ty, Skills, buying them with XP, items held |
+      224  | `tests/test_effects.py` | every Skill's effects: roll modifi
+           ers at Basic and Expert, what they leave alone, stacking, para
+           meters, max values, rolls and the Search collecting them; pend
+           ing tests for Dodge's balance, Faith and Medic |
+      225 +| `tests/test_feedback.py` | feedback notes typed at any promp
+          +t: what is kept, the file, the same question asked again |    
+      226  | `tests/test_drills.py` | the loop's stop condition, and each
+            drill played through to its end |
+      227  | `tests/test_pregenerated.py` | the two pregenerated characte
+           rs as printed, and a character made from one |
+      228  | `tests/test_creation.py` | scenarios of character creation: 
+           the points, Skills and their gear, the tables rolled, duplicat
+           es, counts, the special entries |
+  ⎿  Created feedback/feedback.md (+3 -0)
+      1 +# Feedback                                                      
+      2 +                                                                
+      3 +Notes written while playing (`#` at any prompt), newest last. Ea
+        +ch is triaged at the next consistency review or playtest ([Worki
+        +ng with Claude](../WorkingWithClaude.md#playtesting)).          
+
+⏺ Part 3 is ready to commit: feedback while playing. 873 tests pass, 10 skipped,
+  and ruff is clean.
+
+  What's in it
+  - # at any prompt saves a note, then the same question comes back. That covers
+    menus, numbers, the name, creation and book mode. A bare # asks for the
+    note text.
+  - Each note goes into the committed feedback/feedback.md, under a heading with
+    the date, drill, seed and box number. It also records the character, the
+    question on screen and the log file, and the note is copied into the run's
+    log.
+    - The log file it points to isn't committed, but the seed is there, so the
+      run can be replayed.
+    - --feedback-file changes where notes go; the tests use it.
+  - The game says how at the start: "Type # and a note at any prompt to leave
+    feedback."
+  - Tried for real: one drill run, with notes at the character choice and at
+    Home. Both were saved as shown above.
+  - Code: interface/feedback.py (FeedbackLog). terminal.py now reads every line
+    in one place. Tests are in tests/test_feedback.py, and docs/architecture.md
+    is updated.
+
+  Proposed commit message: T1: feedback while playing (# at any prompt)
+
+  Can I commit it? After that comes the wrap-up: drift check, Readme (How to
+  play with the drills, T1 checked), NextSession with E9's model and effort, the
+  log, the transcript export, then push and PR.
+
+✻ Sautéed for 1m 35s · done 13:41
+
+❯ yes, commit                                                                   
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Committed as 9f287c3. Starting the wrap-up with a drift check: everything that
+  mentions drills, T1 or feedback.
+  Searched for 2 patterns (ctrl+o to expand)
+
+⏺ The drift check is finished: the Readme, WorkingWithClaude and NextSession
+  need updating, and nothing in design/ mentions drills. I'm making those edits
+  next. · summary
+
+⏺ Bash(python3 - <<'EOF'
+      p='Readme.md'…)
+  ⎿  5:## Reminders
+     6:
+     7:- E10 also moves the die ranges written in Python into the YAML (D1)
+     … +38 lines (ctrl+o to expand)
+  ⎿  Updated Readme.md (+7 -4)
+       8  
+       9  ## Status
+      10  
+      11 -MVP phase. Rules extraction and domain design ([`design/`](desi
+         -gn/)) are done. The rules text is being copied into YAML: the f
+         -ormat and the four exploration tables (R1), the Skills and harm
+         - tables (R2), the weapons and items (R3) are in. The engine has
+         - started: dice (E1), the game state (E2), the town map with mov
+         -es and time (E3), the engine/interface protocol with the game l
+         -oop (E4), book mode (E5a, E5b), the character with its creation
+         - (E6), the Skills' effects on rolls and max values (E7), and mo
+         -ments with lasting effects and the Food clock (E8): a player cr
+         -eates a character, then walks the town in the terminal, every b
+         -ox's entry shown as text and applied with manual actions, until
+         - death or quitting, and may spend XP on Skills at any time ([ho
+         -w to play](#how-to-play)). Next: drills, short scoped test runs
+         - to play in a break (T1), then E9; Step 1 goes on with the YAML
+         - batches it needs.                                             
+      11 +MVP phase. Rules extraction and domain design ([`design/`](desi
+         +gn/)) are done. The rules text is being copied into YAML: the f
+         +ormat and the four exploration tables (R1), the Skills and harm
+         + tables (R2), the weapons and items (R3) are in. The engine has
+         + started: dice (E1), the game state (E2), the town map with mov
+         +es and time (E3), the engine/interface protocol with the game l
+         +oop (E4), book mode (E5a, E5b), the character with its creation
+         + (E6), the Skills' effects on rolls and max values (E7), moment
+         +s with lasting effects and the Food clock (E8), and drills with
+         + feedback written while playing (T1): a player creates a charac
+         +ter, then walks the town in the terminal, every box's entry sho
+         +wn as text and applied with manual actions, until death or quit
+         +ting, and may spend XP on Skills at any time ([how to play](#ho
+         +w-to-play)). Short drills try one feature in a break (`--drill`
+         +), and `#` at any prompt writes feedback. Next: E9 (inventory, 
+         +with its drill), then the first consistency review (V1); Step 1
+         + goes on with the YAML batches it needs.                       
+      12  
+      13  **MVP goal:** play a whole campaign in the terminal, in two ste
+          ps ([MVP scope](design/mvp-scope.md)):
+      14  
+     ...
+      33  ```
+      34  .venv/bin/alone-against-fear              # or: .venv/bin/pytho
+          n -m alone_against_fear
+      35  .venv/bin/alone-against-fear --seed 7     # the dice of an earl
+          ier game
+      36 +.venv/bin/alone-against-fear --drill walk # a drill: creation, 
+         +walk, lasting or xp                                            
+      37  ```
+      38  
+      39  - Type the number of an option and press Enter. At creation, th
+          e points have letters: `l` Life and Sanity, `k` 1 more Skill, `
+          w`, `o`, `u` 1 more Random Weapon, Random Objects or Useful Stu
+          ff roll. Actions have letters: `m` move, `s` search, `a` apply 
+          an effect (`b` back), `p` spend XP (when you can afford a Skill
+          ), `n` attach a new sheet (once a sheet is full), `q` quit; wit
+          h a text the game cannot read: `g` gain, `l` lose, `v` roll vs 
+          L, `f` add a lasting effect, `u` remove one, `w` write a note, 
+          `x` remove a note, `h` mark a Safe House, then where it leads: 
+          `t` a table, `e` a numbered event, `d` nowhere else; `r` the ru
+          les of the last table rolled in the box. Tables to choose from 
+          are numbered. Type the numbers a text gives (Enter alone is no 
+          modifier). Ctrl-D or Ctrl-C quits.
+      40  - A status line comes before each action: your name, box number
+          , Life and Sanity (current/max), Food with the box of the next 
+          meal, XP, Clues, then your Skills, Injuries and Mental Scars, y
+          our items, your lasting effects (with the box that ends them) a
+          nd your notes.
+      41  - The map: `[n]` the boxes you can choose, `@` where you stand,
+           `H` Home, a number for the last box number written in a visite
+          d box, `.` a box not visited yet.
+      42 +- **Drills**, short runs to play in a break: `--drill creation`
+         + (until the character is made), `walk` (a pregenerated characte
+         +r walks 10 boxes from Home), `lasting` (Eating Disorder and a l
+         +asting effect, 6 boxes), `xp` (XP to spend, until nothing more 
+         +can be bought). The drills with a pregenerated character ask wh
+         +ich: Anna Miller or Douglas Harrison. A drill ends on its own, 
+         +then shows your character; `--seed` works with it.             
+      43 +- **Feedback**: type `#` and a note at any prompt (`# the map i
+         +s hard to read`), then answer the same question as usual. Notes
+         + go to [`feedback/feedback.md`](feedback/feedback.md) with the 
+         +date, drill, seed, box number and log file, for the next review
+         + or playtest.                                                  
+      44  - Each game writes a log to `logs/` (git-ignored; `--log-dir` t
+          o change it): the dice seed, every roll and every answer. Playi
+          ng again with that seed and the same answers gives the same gam
+          e.
+      45  
+      46  ## How to use this roadmap
+     ...
+      243  - Done when: the Food upkeep is a reaction that Resistant to H
+           unger and Eating Disorder change, and "for the next N boxes" e
+           ffects end on time, with tests. Met.
+      244  - Depends on: E7.
+      245  
+      243 -#### [ ] T1 — Drills and feedback                             
+      246 +#### [x] T1 — Drills and feedback                             
+      247  Short, scoped test runs the user plays in a break, 5 to 15 min
+           utes each: `alone-against-fear --drill NAME` sets up a start t
+           hrough the engine, as a test does, and stops at a natural end;
+            no rule changes. The first drills: `creation` (a new campaign
+           , until the character sheet is done), `walk` (a pregenerated c
+           haracter at Home, about 10 boxes: exploration and book mode), 
+           `lasting` (lasting effects running and Eating Disorder: meals 
+           and endings within a few boxes), `xp` (XP to spend: buy a Skil
+           l, raise one to Expert). A way to write feedback while playing
+           , kept with the seed and the box number so the moment can be f
+           ound in the log. From T1 on, each task's Done-when includes it
+           s drill; the feedback is triaged at the next consistency revie
+           w or playtest. Decided in the E8 session.
+      248  - Rules: [pregenerated characters](gameRules/14_pregenerated_c
+           haracters.md)
+      246 -- Decide when implementing: the feedback format and where it i
+          -s kept; how each drill ends.                                  
+      247 -- Done when: the four drills can be played from the terminal, 
+          -and feedback can be written while playing.                    
+      249 +- Decided: the two pregenerated characters are content (`conte
+          +nt/characters/pregenerated.yaml`), checked against the origina
+          +l sheets (no misread); the rules win where a sheet disagrees, 
+          +Douglas's book read waits for E18. A drill sets its start up t
+          +hrough the engine and gives a stop condition to the loop (`End
+          +.DRILL_OVER`); the drills with a pregenerated character ask wh
+          +ich. Ends: `creation` once the character is made, `walk` after
+          + 10 boxes, `lasting` after 6 (Eating Disorder and -1 to every 
+          +roll for 3 boxes, set at Home), `xp` once nothing can be bough
+          +t (XP for the dearest Expert level and the dearest new Skill).
+          + Feedback: `#` at any prompt, appended to `feedback/feedback.m
+          +d` (committed) with the date, drill, seed, box, character, que
+          +stion and log file, then the same question again.             
+      250 +- Done when: the four drills can be played from the terminal, 
+          +and feedback can be written while playing. Met.               
+      251  - Depends on: E8.
+      252  
+      253  #### [ ] E9 — Inventory
+  ⎿  Updated WorkingWithClaude.md (+1 -1)
+      77  Decided in the E8 session: the user tries the game early and of
+          ten, in short scoped runs, so feedback comes while a feature is
+           fresh, not only at the end.
+      78  
+      79  - **Drills** (from T1): `alone-against-fear --drill NAME` sets 
+          up a start through the engine (a pregenerated character, a situ
+          ation) and stops at a natural end, 5 to 15 minutes: something t
+          o play in a break. No rule changes, except the `quick` run of E
+          17 (Bring Home the Bacon for d6+2 Food), a campaign option mark
+          ed as not the book's rules. Each task from T1 on adds its drill
+           to its Done-when.
+      80 -- **Feedback** is written while playing, with the seed and the 
+         -box number, so the moment can be found in the log. It is triage
+         -d at the next consistency review (V1 to V4) or playtest, one fi
+         -nding at a time like the review findings.                      
+      80 +- **Feedback** is written while playing: `#` and a note at any 
+         +prompt (T1). It goes to [`feedback/feedback.md`](feedback/feedb
+         +ack.md), kept in the repository, with the date, drill, seed and
+         + box number, so the moment can be found in the log. It is triag
+         +ed at the next consistency review (V1 to V4) or playtest, one f
+         +inding at a time like the review findings.                     
+      81  - **Playtests** (P1 after E17, P2 after E20): the user plays th
+          e drills and a full game; the session reads the logs and notes,
+           sorts the findings (bug, rule misread, ruling to revisit, scre
+          en and wording, rules-text typo, missing feature) and triages t
+          hem. They come before V3 and V4, which start from what they fou
+          nd.
+      82  
+      83  ## Prompts
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      import re…)
+  ⎿  - `state.py` now imports `content.Effect`, so a `Lasting` holds the ef
+     fect itself rather than an ID: plain frozen data, but the first conten
+     t class in the game state (E8).
+     … +16 lines (ctrl+o to expand)
+  ⎿  Updated NextSession.md (+8 -6)
+       5  ## Reminders
+       6  
+       7  - E10 also moves the die ranges written in Python into the YAML
+           (D1): the leads of `leads.py` and the samurai sword of Random 
+          Objects 54 (`PICKED_BY_DIE` in `engine/creation.py`). See the R
+          eadme's E10.
+       8 -- Merge the E8 PR (`e8-moments-reactions`) before starting T1. 
+       8 +- Merge the T1 PR (`t1-drills-feedback`) before starting E9.   
+       9  - Since E7, Skills give their numbers through `effects` in the 
+          YAML and `engine/effects.py`; later tasks plug in the parameter
+          s they read (E9 the carry limit, E12 the surprise chance) and t
+          he pending tests in `tests/test_effects.py` (Dodge's balance E1
+          2, Faith E18, Medic E11).
+      10  - **Literal blocks for R3's texts** (a small PR, Sonnet, any ti
+          me): R2 keeps a text of several paragraphs or a list as a liter
+          al block (`|-`, a blank line between paragraphs, one list item 
+          per line), which the user prefers on screen. R3's mission text 
+          and any other folded text with several paragraphs move to the s
+          ame, without changing a word.
+      11  - [`gameRules/book_errors.md`](gameRules/book_errors.md) now al
+          so lists the typos a batch fixed and the text it reworded ("Fix
+          ed or reworded"), to check again in the review session.
+     ...
+      13  - Home is a Safe House by default ([ruling](design/rulings.md#s
+          afe-houses)), but until E15 it is a plain box: it rolls the 1 i
+          n 6 and can be Searched (a pending test waits for E15).
+      14  - Attaching a sheet by stepping onto it (the Readme's "Any time
+          " item) replaces the "attach a new sheet" action: a small PR of
+           its own, any time.
+      15  - Taking and dropping items (the Readme's "Any time" item after
+           R3): a small PR, Sonnet. Since E6 an item has an `item.` ID on
+           its table entries, a weapon (or a variant) its `weapon.` ID, a
+          nd `Game.add_item` and `remove_item` exist ([rules text in YAML
+          ](docs/content.md#items)).
+      16 -- Compare the pregenerated characters in [`gameRules/14_pregene
+         -rated_characters.md`](gameRules/14_pregenerated_characters.md) 
+         -against the original sheets in `origin_rules/`: image transcrip
+         -tions are the part most likely to hold a misread. Do it before 
+         -T1: its drills start from them.                                
+      17 -- Reading the PDFs: this machine has no poppler (`pdftotext`, `
+         -pdftoppm`). Install `pypdf` in a scratch venv to extract the eb
+         -ook's text.                                                    
+      16 +- Reading the PDFs: this machine has no poppler (`pdftotext`, `
+         +pdftoppm`). Install `pypdf` in a scratch venv to extract the eb
+         +ook's text, and `pymupdf` to render a page as an image (T1 chec
+         +ked the pregenerated sheets that way).                         
+      17 +- **Drills from E9 on**: each task adds its drill to `DRILLS` i
+         +n `engine/drills.py` (a line saying what it tries, a setup thro
+         +ugh the `Game` API that gives the stop condition) and a scenari
+         +o in `tests/test_drills.py`; the pregenerated characters (`crea
+         +tion.pregenerated`) are the usual start. E9's is `inventory`.  
+      18  - The pending tests (skipped, in `tests/test_manual_actions.py`
+           and `tests/test_effects.py`) name the task they wait for: E11,
+           E12, E13, E15, E18, after R3. Write their bodies when that tas
+          k comes.
+      19  
+      20  ## For the next review
+     ...
+      26  - Tests raise a Skill to Expert, or learn one mid-game, by writ
+          ing `character.skills` directly, not through `Game` (E7; again 
+          in `tests/test_moments.py`, E8).
+      27  - Home's ruling ([Safe Houses](design/rulings.md#safe-houses)) 
+          is tagged `gap` and says "the book never says what Home is", bu
+          t a creator answer says the starting space is not a Safe House 
+          ([creator answers](design/creator-answers.md)). The decision st
+          ands (E5a, the user's choice for role play); the ruling's wordi
+          ng should say that our default departs from the creator's answe
+          r, and that the switchable "horrific" mode is the creator's rea
+          ding (E8).
+      28  - `state.py` now imports `content.Effect`, so a `Lasting` holds
+           the effect itself rather than an ID: plain frozen data, but th
+          e first content class in the game state (E8).
+      29 +- Feedback notes in `feedback/feedback.md`: V1 triages the firs
+         +t ones and decides what happens to a note once triaged (removed
+         +, or moved to the log of the session that triaged it) (T1).    
+      30 +- `interface/terminal.py` is 730 lines after T1; `tests/test_fe
+         +edback.py` repeats the `Typist` of `tests/test_terminal.py` (a 
+         +shared test helper, `conftest.py`, may be worth it) (T1).      
+      31  
+      32  ## Plan
+      33  
+      32 -1. **T1** — drills and feedback: `--drill creation`, `walk`, `l
+         -asting`, `xp`, and a way to write feedback while playing, with 
+         -the seed and the box number. Compare the pregenerated character
+         -s with the original sheets first (see Reminders).              
+      33 -   Model: **Opus, medium effort** (the user's choice: a small, 
+         -clear task, but the drills shape how the user gives feedback fr
+         -om now on).                                                    
+      34 -2. **E9** — inventory, with its `inventory` drill, then **V1**,
+         - the first consistency review (Opus, high effort), which also t
+         -riages the drill feedback.                                     
+      34 +1. **E9** — inventory, with its `inventory` drill.             
+      35 +   Model: **Sonnet, high effort** (a clear spec in `design/inve
+         +ntory.md`, but many limits that may need rulings; switch to Opu
+         +s if a design question comes up). T1 went smoothly at Opus, med
+         +ium effort: the questions were few and the code followed.      
+      36 +2. **V1** — the first consistency review (Opus, high effort), w
+         +hich also triages the drill feedback.                          
+      37  3. **Step 1** goes on — E10 to E17 with V2 after E14, then P1 (
+          the first playtest) and V3 after E17, one task per session, eac
+          h with its drill, and the R batches done ahead of the task that
+           needs them (R4 before E12, R5 before E16; R6 and R7 any time).
+           The batches do not touch the engine and can run as background 
+          agents of a coordinator session.
+      38     Model: per task, from the [model table](WorkingWithClaude.md
+          #which-model-for-which-session): Opus, high effort for E10 and 
+          E12, the reviews and the playtests; Sonnet for the others (E9 i
+          ncluded); Sonnet, medium effort for the copying agents, Opus fo
+          r R6 (events). E8 went smoothly at Opus, high effort: the time 
+          went to rulings with the user, the code followed the design; ke
+          ep E10 and E12 there.
+
+⏺ Now the session log. I need this session's ID.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Write(claude-logs/202611111300-t1-drills-feedback.md)
+  ⎿  Wrote 41 lines to claude-logs/202611111300-t1-drills-feedback.md
+      1 # T1: Drills and feedback
+      2 
+      3 - Date: 2026-11-11
+      4 - Session ID: a0586fb2-e148-4a41-9ac5-00d7608df36d (`~/.claude/pr
+        ojects/-Users-nathanchalot-Code-RPGs-AloneVsFEear/`)
+      5 - Branch: `t1-drills-feedback` (the PR is found from it)
+      6 - Model: Opus 5.5, medium effort
+      7 - Transcript: [transcripts/202611111300-t1-drills-feedback.txt](t
+        ranscripts/202611111300-t1-drills-feedback.txt)
+      8 
+     … +33 lines (ctrl+o to expand)
+
+⏺ The wrap-up docs and the log are written. Before the last commit, please
+  export this conversation:
+
+  /export claude-logs/transcripts/202611111300-t1-drills-feedback.txt
+
+  Once it's there, I'll commit the wrap-up (Readme, NextSession,
+  WorkingWithClaude, the log and the transcript), push the branch and open the
+  PR.
+
+  Also, please check the plan for the next session. I proposed E9 on Sonnet, 
+  high effort, rather than the table's plain Sonnet. The spec in
+  design/inventory.md is clear, but it has many limits that may need rulings, so
+  switch to Opus if a design question comes up. Change it if you'd rather.
+
+✻ Sautéed for 1m 18s · done 13:44
+
+❯ one thing: What does E, D, T stands for in our E18, T1 etc Imay have forgot   
+  some leters, if so give them their def too                                    
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ The roadmap never defines these letters. Each one is clear from the entries
+  that use it, though. These are the six prefixes in the Readme:
+
+  ┌────────┬──────────────────────────────┬─────────────────────────────────┐
+  │ Letter │           Meaning            │            Examples             │
+  ├────────┼──────────────────────────────┼─────────────────────────────────┤
+  │        │                              │ D1 (plain data in YAML), D8     │
+  │ D      │ Decision, an early project   │ (genAI integration, deferred).  │
+  │        │ choice                       │ Most are now "Made" or became   │
+  │        │                              │ "Guidelines".                   │
+  ├────────┼──────────────────────────────┼─────────────────────────────────┤
+  │        │ Rules text: a batch that     │ R1–R7 (R4 creatures, R5 places, │
+  │ R      │ copies the book's text into  │  R6 events…)                    │
+  │        │ YAML (Milestone 3)           │                                 │
+  ├────────┼──────────────────────────────┼─────────────────────────────────┤
+  │        │ Engine: a task that builds   │ E1 dice … E18 Arcane Skills and │
+  │ E      │ the game engine (Milestones  │  books, E20 campaign play       │
+  │        │ 5 to 7)                      │                                 │
+  ├────────┼──────────────────────────────┼─────────────────────────────────┤
+  │        │ Testing tools, for trying    │                                 │
+  │ T      │ the game. Only T1 so far,    │ T1 drills and feedback          │
+  │        │ added in the E8 session      │                                 │
+  ├────────┼──────────────────────────────┼─────────────────────────────────┤
+  │        │ Verification: the            │                                 │
+  │ V      │ consistency reviews, which   │ V1 after E9, V2 after E14, V3   │
+  │        │ check that what's built      │ after E17, V4 after E20         │
+  │        │ agrees with itself           │                                 │
+  ├────────┼──────────────────────────────┼─────────────────────────────────┤
+  │        │ Playtest: you play, the      │                                 │
+  │ P      │ session triages what you     │ P1 after E17, P2 after E20      │
+  │        │ found                        │                                 │
+  └────────┴──────────────────────────────┴─────────────────────────────────┘
+
+  A trailing small letter means a task was split in two: E5a (book mode,
+  reading) and E5b (book mode, manual actions).
+
+  T and V are my reading of the entries; nothing in the docs pins them down.
+
+  Should I add this table to the Readme's "How to use this roadmap" section, in
+  the wrap-up commit? Meanwhile I'm still waiting for the transcript export
+  (/export claude-logs/transcripts/202611111300-t1-drills-feedback.txt) before
+  committing and opening the PR.
+
+✻ Baked for 16s · done 13:45
+
+❯ yes, add the table to the Readme                                              
+
+⏺ Bash(python3 - <<'EOF'
+      p='Readme.md'…)
+  ⎿  50:Entry IDs start with a letter saying what kind of work it is (named
+      in the T1 session):
+     51-
+     … +3 lines (ctrl+o to expand)
+  ⎿  Updated Readme.md (+13 -0)
+      47  
+      48  The roadmap is split into milestones. Consistency reviews (V1 t
+          o V4) sit at fixed points between the tasks, after each group o
+          f tasks that build on each other ([Working with Claude](Working
+          WithClaude.md#consistency-reviews)). Playtests (P1, P2) come be
+          fore V3 and V4, and drills (from T1) let the user try each feat
+          ure in a break ([Working with Claude](WorkingWithClaude.md#play
+          testing)). Each `####` entry is sized to be one session's task:
+           title, description, rules references, "Done when" and "Depends
+           on". Check the box when it is done. GitHub issues are kept for
+           user stories and bugs, only when needed. Deferred decisions ar
+          e tracked here, so they are made deliberately when they block w
+          ork, not up front. Before deciding, ask: is it worth deciding y
+          et, or is it a constraint we would have to fight later?
+      49  
+      50 +Entry IDs start with a letter saying what kind of work it is (n
+         +amed in the T1 session):                                       
+      51 +                                                               
+      52 +| Letter | Kind | Examples |                                   
+      53 +| --- | --- | --- |                                            
+      54 +| **D** | Decision: an early project choice, now made, a guidel
+         +ine or deferred | D1 (plain data in YAML), D8 (genAI integratio
+         +n) |                                                           
+      55 +| **R** | Rules text: a batch copying the book's text into YAML
+         + | R1 to R7 |                                                  
+      56 +| **E** | Engine: a task building the game engine | E1 (dice) t
+         +o E20 (campaign play) |                                        
+      57 +| **T** | Testing tools: ways for the user to try the game | T1
+         + (drills and feedback) |                                       
+      58 +| **V** | Verification: a consistency review of what is built |
+         + V1 to V4 |                                                    
+      59 +| **P** | Playtest: the user plays, the session triages what th
+         +ey found | P1, P2 |                                            
+      60 +                                                               
+      61 +A small letter after the number marks a task split in two (E5a,
+         + E5b).                                                         
+      62 +                                                               
+      63  ## Working with Claude
+      64  
+      65  Work happens in small, planned sessions with Claude. The upcomi
+          ng sessions are listed in [`NextSession.md`](NextSession.md); p
+          ast sessions are summarized in [`claude-logs/`](claude-logs/). 
+          [`WorkingWithClaude.md`](WorkingWithClaude.md) describes how a 
+          session runs and holds recommendations: session estimates, whic
+          h model for which session, prompt templates.
+
+⏺ Update(claude-logs/202611111300-t1-drills-feedback.md)
+  ⎿  Added 1 line
+      21  - **Feedback** (commit 3): `interface/feedback.py` (`FeedbackLo
+          g`); every line the terminal reads goes through `_line`, where 
+          `#` makes a note, then the same question again. `feedback/feedb
+          ack.md` holds the notes (committed), `--feedback-file` changes 
+          it. Tried in a real run.
+      22  - Three commits, each tested and presented, committed with the 
+          user's go. 873 pass, 10 skipped, ruff clean.
+      23  - **Wrap-up**: drift check (the Readme's status, How to play an
+          d T1 entry, WorkingWithClaude's feedback line, NextSession's re
+          minders, review items and plan; `docs/architecture.md` and `doc
+          s/content.md` were updated with each commit).
+      24 +- **The roadmap's letters** (the user asked what they stand for
+         +): a table in the Readme's "How to use this roadmap", D decisio
+         +n, R rules text, E engine, T testing tools, V verification, P p
+         +laytest. T and V were not written anywhere before; their names 
+         +are Claude's reading of the entries, accepted by the user.     
+      25  
+      26  ## Decisions
+      27  
+
+⏺ I added the table to the Readme's "How to use this roadmap" section, under the
+  paragraph about deciding. I also noted it in the session log.
+
+  The transcript isn't in claude-logs/transcripts/ yet. Once you've run this,
+  I'll commit the wrap-up, push and open the PR:
+
+  /export claude-logs/transcripts/202611111300-t1-drills-feedback.txt
+
+✻ Worked for 13s · done 13:45

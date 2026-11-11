@@ -77,7 +77,7 @@ at a time. Small fixes in this session, one commit per kind; bigger ones become 
 Decided in the E8 session: the user tries the game early and often, in short scoped runs, so feedback comes while a feature is fresh, not only at the end.
 
 - **Drills** (from T1): `alone-against-fear --drill NAME` sets up a start through the engine (a pregenerated character, a situation) and stops at a natural end, 5 to 15 minutes: something to play in a break. No rule changes, except the `quick` run of E17 (Bring Home the Bacon for d6+2 Food), a campaign option marked as not the book's rules. Each task from T1 on adds its drill to its Done-when.
-- **Feedback** is written while playing, with the seed and the box number, so the moment can be found in the log. It is triaged at the next consistency review (V1 to V4) or playtest, one finding at a time like the review findings.
+- **Feedback** is written while playing: `#` and a note at any prompt (T1). It goes to [`feedback/feedback.md`](feedback/feedback.md), kept in the repository, with the date, drill, seed and box number, so the moment can be found in the log. It is triaged at the next consistency review (V1 to V4) or playtest, one finding at a time like the review findings.
 - **Playtests** (P1 after E17, P2 after E20): the user plays the drills and a full game; the session reads the logs and notes, sorts the findings (bug, rule misread, ruling to revisit, screen and wording, rules-text typo, missing feature) and triages them. They come before V3 and V4, which start from what they found.
 
 ## Prompts

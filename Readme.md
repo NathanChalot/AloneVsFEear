@@ -8,7 +8,7 @@ The rules text is from a commercial book: keep this repository private. The orig
 
 ## Status
 
-MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables (R1), the Skills and harm tables (R2), the weapons and items (R3) are in. The engine has started: dice (E1), the game state (E2), the town map with moves and time (E3), the engine/interface protocol with the game loop (E4), book mode (E5a, E5b), the character with its creation (E6), the Skills' effects on rolls and max values (E7), and moments with lasting effects and the Food clock (E8): a player creates a character, then walks the town in the terminal, every box's entry shown as text and applied with manual actions, until death or quitting, and may spend XP on Skills at any time ([how to play](#how-to-play)). Next: drills, short scoped test runs to play in a break (T1), then E9; Step 1 goes on with the YAML batches it needs.
+MVP phase. Rules extraction and domain design ([`design/`](design/)) are done. The rules text is being copied into YAML: the format and the four exploration tables (R1), the Skills and harm tables (R2), the weapons and items (R3) are in. The engine has started: dice (E1), the game state (E2), the town map with moves and time (E3), the engine/interface protocol with the game loop (E4), book mode (E5a, E5b), the character with its creation (E6), the Skills' effects on rolls and max values (E7), moments with lasting effects and the Food clock (E8), and drills with feedback written while playing (T1): a player creates a character, then walks the town in the terminal, every box's entry shown as text and applied with manual actions, until death or quitting, and may spend XP on Skills at any time ([how to play](#how-to-play)). Short drills try one feature in a break (`--drill`), and `#` at any prompt writes feedback. Next: E9 (inventory, with its drill), then the first consistency review (V1); Step 1 goes on with the YAML batches it needs.
 
 **MVP goal:** play a whole campaign in the terminal, in two steps ([MVP scope](design/mvp-scope.md)):
 
@@ -33,16 +33,32 @@ Play:
 ```
 .venv/bin/alone-against-fear              # or: .venv/bin/python -m alone_against_fear
 .venv/bin/alone-against-fear --seed 7     # the dice of an earlier game
+.venv/bin/alone-against-fear --drill walk # a drill: creation, walk, lasting or xp
 ```
 
 - Type the number of an option and press Enter. At creation, the points have letters: `l` Life and Sanity, `k` 1 more Skill, `w`, `o`, `u` 1 more Random Weapon, Random Objects or Useful Stuff roll. Actions have letters: `m` move, `s` search, `a` apply an effect (`b` back), `p` spend XP (when you can afford a Skill), `n` attach a new sheet (once a sheet is full), `q` quit; with a text the game cannot read: `g` gain, `l` lose, `v` roll vs L, `f` add a lasting effect, `u` remove one, `w` write a note, `x` remove a note, `h` mark a Safe House, then where it leads: `t` a table, `e` a numbered event, `d` nowhere else; `r` the rules of the last table rolled in the box. Tables to choose from are numbered. Type the numbers a text gives (Enter alone is no modifier). Ctrl-D or Ctrl-C quits.
 - A status line comes before each action: your name, box number, Life and Sanity (current/max), Food with the box of the next meal, XP, Clues, then your Skills, Injuries and Mental Scars, your items, your lasting effects (with the box that ends them) and your notes.
 - The map: `[n]` the boxes you can choose, `@` where you stand, `H` Home, a number for the last box number written in a visited box, `.` a box not visited yet.
+- **Drills**, short runs to play in a break: `--drill creation` (until the character is made), `walk` (a pregenerated character walks 10 boxes from Home), `lasting` (Eating Disorder and a lasting effect, 6 boxes), `xp` (XP to spend, until nothing more can be bought). The drills with a pregenerated character ask which: Anna Miller or Douglas Harrison. A drill ends on its own, then shows your character; `--seed` works with it.
+- **Feedback**: type `#` and a note at any prompt (`# the map is hard to read`), then answer the same question as usual. Notes go to [`feedback/feedback.md`](feedback/feedback.md) with the date, drill, seed, box number and log file, for the next review or playtest.
 - Each game writes a log to `logs/` (git-ignored; `--log-dir` to change it): the dice seed, every roll and every answer. Playing again with that seed and the same answers gives the same game.
 
 ## How to use this roadmap
 
 The roadmap is split into milestones. Consistency reviews (V1 to V4) sit at fixed points between the tasks, after each group of tasks that build on each other ([Working with Claude](WorkingWithClaude.md#consistency-reviews)). Playtests (P1, P2) come before V3 and V4, and drills (from T1) let the user try each feature in a break ([Working with Claude](WorkingWithClaude.md#playtesting)). Each `####` entry is sized to be one session's task: title, description, rules references, "Done when" and "Depends on". Check the box when it is done. GitHub issues are kept for user stories and bugs, only when needed. Deferred decisions are tracked here, so they are made deliberately when they block work, not up front. Before deciding, ask: is it worth deciding yet, or is it a constraint we would have to fight later?
+
+Entry IDs start with a letter saying what kind of work it is (named in the T1 session):
+
+| Letter | Kind | Examples |
+| --- | --- | --- |
+| **D** | Decision: an early project choice, now made, a guideline or deferred | D1 (plain data in YAML), D8 (genAI integration) |
+| **R** | Rules text: a batch copying the book's text into YAML | R1 to R7 |
+| **E** | Engine: a task building the game engine | E1 (dice) to E20 (campaign play) |
+| **T** | Testing tools: ways for the user to try the game | T1 (drills and feedback) |
+| **V** | Verification: a consistency review of what is built | V1 to V4 |
+| **P** | Playtest: the user plays, the session triages what they found | P1, P2 |
+
+A small letter after the number marks a task split in two (E5a, E5b).
 
 ## Working with Claude
 
@@ -240,11 +256,11 @@ Announce moments; reactions with their scripts; the lifetimes the Skills and Foo
 - Done when: the Food upkeep is a reaction that Resistant to Hunger and Eating Disorder change, and "for the next N boxes" effects end on time, with tests. Met.
 - Depends on: E7.
 
-#### [ ] T1 — Drills and feedback
+#### [x] T1 — Drills and feedback
 Short, scoped test runs the user plays in a break, 5 to 15 minutes each: `alone-against-fear --drill NAME` sets up a start through the engine, as a test does, and stops at a natural end; no rule changes. The first drills: `creation` (a new campaign, until the character sheet is done), `walk` (a pregenerated character at Home, about 10 boxes: exploration and book mode), `lasting` (lasting effects running and Eating Disorder: meals and endings within a few boxes), `xp` (XP to spend: buy a Skill, raise one to Expert). A way to write feedback while playing, kept with the seed and the box number so the moment can be found in the log. From T1 on, each task's Done-when includes its drill; the feedback is triaged at the next consistency review or playtest. Decided in the E8 session.
 - Rules: [pregenerated characters](gameRules/14_pregenerated_characters.md)
-- Decide when implementing: the feedback format and where it is kept; how each drill ends.
-- Done when: the four drills can be played from the terminal, and feedback can be written while playing.
+- Decided: the two pregenerated characters are content (`content/characters/pregenerated.yaml`), checked against the original sheets (no misread); the rules win where a sheet disagrees, Douglas's book read waits for E18. A drill sets its start up through the engine and gives a stop condition to the loop (`End.DRILL_OVER`); the drills with a pregenerated character ask which. Ends: `creation` once the character is made, `walk` after 10 boxes, `lasting` after 6 (Eating Disorder and -1 to every roll for 3 boxes, set at Home), `xp` once nothing can be bought (XP for the dearest Expert level and the dearest new Skill). Feedback: `#` at any prompt, appended to `feedback/feedback.md` (committed) with the date, drill, seed, box, character, question and log file, then the same question again.
+- Done when: the four drills can be played from the terminal, and feedback can be written while playing. Met.
 - Depends on: E8.
 
 #### [ ] E9 — Inventory
