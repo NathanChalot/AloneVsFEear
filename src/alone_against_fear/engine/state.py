@@ -85,6 +85,8 @@ class End(StrEnum):
     """Sanity went to 0."""
     QUIT = "quit"
     """The player left; the campaign can go on later."""
+    DRILL_OVER = "drill_over"
+    """A drill reached its natural end (T1): a test run, not a rule."""
 
 
 @dataclass(frozen=True)

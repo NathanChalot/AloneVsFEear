@@ -23,6 +23,7 @@ KINDS = frozenset(
         "arcane_skill",
         "injury",
         "mental_scar",
+        "pregenerated",
     }
 )
 """First segment of every ID. A YAML batch adds the kinds it needs."""
@@ -210,6 +211,22 @@ class Skill:
 
 
 @dataclass(frozen=True)
+class Pregenerated:
+    """A sample pregenerated character (`pregenerated.`), as its filled-in sheet gives it
+    (T1): Life and Sanity as printed, Skills at Basic, and the gear held, with its ammo
+    (`count`) and uses."""
+
+    id: str
+    name: str
+    life: int
+    sanity: int
+    food: int
+    source: str
+    skills: tuple[str, ...] = ()
+    gear: tuple[Gear, ...] = ()
+
+
+@dataclass(frozen=True)
 class Content:
     tables: Mapping[str, Table]
     catalogue: Mapping[str, CatalogueTable | CatalogueEvent]
@@ -225,6 +242,8 @@ class Content:
     """The Skills, in the book's order."""
     arcane_skills: Mapping[str, Skill] = field(default_factory=dict)
     """The Arcane Skills, in the book's order."""
+    pregenerated: Mapping[str, Pregenerated] = field(default_factory=dict)
+    """The sample pregenerated characters, in the book's order."""
 
     def table(self, id_: str) -> Table:
         return self.tables[id_]
@@ -255,6 +274,7 @@ class Content:
             or id_ in self.items
             or id_ in self.skills
             or id_ in self.arcane_skills
+            or id_ in self.pregenerated
         )
 
 
@@ -279,7 +299,7 @@ def coverage_problems(table: Table) -> list[str]:
 
 def reference_problems(content: Content) -> list[str]:
     """Every reference points to a table, an entry, or a catalogued table or event; every
-    Skill's starting gear exists."""
+    Skill's starting gear exists, and a pregenerated character's Skills and gear."""
     problems = [
         f"{entry.id}: no such ID {ref}"
         for table in content.tables.values()
@@ -293,6 +313,12 @@ def reference_problems(content: Content) -> list[str]:
         for skill in skills
         for gear in skill.starting_gear
         if gear.id not in content
+    ]
+    problems += [
+        f"{character.id}: no such ID {id_}"
+        for character in content.pregenerated.values()
+        for id_ in (*character.skills, *(gear.id for gear in character.gear))
+        if id_ not in content
     ]
     return problems
 

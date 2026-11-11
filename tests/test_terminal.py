@@ -571,3 +571,52 @@ def test_a_player_adds_a_lasting_effect_and_sees_it_in_the_status(content):
     assert "1) -1 on all rolls (ends at box 5)" in output
     assert "Removed: -1 on all rolls." in output
     assert game.character.lasting[0].effect == Effect(basic=1, roll=RollType.STEALTH)
+
+
+# --- Drills (T1) ---------------------------------------------------------------------------
+
+
+def test_a_drill_starts_with_what_to_try_and_asks_for_a_pregenerated_character(tmp_path):
+    # given the walk drill: Douglas (2), Home, then quit
+    typist = Typist(["2", HOME_TOP_LEFT, QUIT])
+    output = []
+
+    main(
+        ["--drill", "walk", "--seed", "7", "--log-dir", str(tmp_path)],
+        input_fn=typist,
+        output_fn=output.append,
+    )
+
+    # then the drill says what to try, and the two sheets are listed with their numbers
+    shown = "\n".join(output)
+    assert "Drill walk: A pregenerated character at Home walks 10 boxes" in shown
+    assert "1) Anna Miller: Life 10, Sanity 9, Food 4; Will, Occultist" in shown
+    assert "2) Douglas Harrison: Life 11, Sanity 8, Food 4; Slippery, Strong" in shown
+    assert "Which character? [1-2] " in typist.prompts
+    assert "Douglas Harrison · Box 1" in shown
+    [log_file] = tmp_path.glob("*.log")
+    assert "drill walk" in log_file.read_text()
+
+
+def test_a_drill_over_says_so_and_shows_the_character(tmp_path):
+    # given the creation drill (seed 7 as above)
+    typist = Typist(["Ann", "l", "2", "1", "18", "1", "1"])
+    output = []
+
+    main(
+        ["--drill", "creation", "--seed", "7", "--log-dir", str(tmp_path)],
+        input_fn=typist,
+        output_fn=output.append,
+    )
+
+    # then once the character is made, the drill is over and the sheet is shown, with no Home
+    shown = "\n".join(output)
+    assert "The drill is over." in shown
+    assert output[-1].startswith("Ann · Box 0 · Life")
+    assert typist.lines == []
+
+
+def test_an_unknown_drill_is_refused_with_the_list(tmp_path, capsys):
+    with pytest.raises(SystemExit):
+        main(["--drill", "nothing", "--log-dir", str(tmp_path)], input_fn=Typist([]))
+    assert "creation" in capsys.readouterr().err

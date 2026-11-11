@@ -32,6 +32,13 @@ on all rolls.") are told after the arrival. The status line shows the next meal,
 Injuries, Mental Scars and lasting effects under it ("-1 on all rolls (ends at box 14)"). `f`
 adds a lasting effect (all rolls or one roll type, numbered; the modifier; the boxes, Enter for
 until removed), `u` removes one.
+
+Drills (T1): `--drill NAME` says what the drill tries, then plays it; a drill with a
+pregenerated character lists the two sheets, numbered. When the drill is over, the character
+is shown once more.
+
+Feedback (T1): a line starting with # at any prompt is a note kept with the seed, the drill and
+the box (`feedback.FeedbackLog`, `--feedback-file`), then the same question is asked again.
 """
 
 from __future__ import annotations
@@ -45,7 +52,7 @@ from pathlib import Path
 from ..content import CatalogueEvent, CatalogueTable, Table, load_content
 from ..dice import RandomDice
 from ..effect_targets import RollType, Tag
-from ..engine import Arrival, Game, Position, Stat, Upkeep
+from ..engine import Arrival, Game, Position, Stat, Upkeep, drills
 from ..engine.creation import Points
 from ..engine.effects import PLAYER, Held, Modifier
 from ..engine.game import Purchase, Rolled, RolledVsL, Searched
@@ -81,6 +88,7 @@ from ..engine.protocol import (
 )
 from ..engine.state import Item, Lasting, Note, SkillLevel
 from ..engine.town import SHEET_COLUMNS, SHEET_ROWS, sheet_neighbours
+from .feedback import PREFIX, FeedbackLog
 
 CELL = 5
 """Width of a box on the map: room for "[30]" or a box number in the thousands."""
@@ -89,6 +97,7 @@ ENDINGS = {
     End.DEAD: "You are dead. The game is over.",
     End.INSANE: "You have gone insane. The game is over.",
     End.QUIT: "You quit the game.",
+    End.DRILL_OVER: "The drill is over.",
 }
 
 KEYS = {
@@ -172,9 +181,11 @@ class TerminalInterface:
         game: Game,
         input_fn: Callable[[str], str] = input,
         output_fn: Callable[[str], None] = print,
+        feedback: FeedbackLog | None = None,
     ) -> None:
         self.game = game
         self._input = input_fn
+        self._feedback = feedback
         self._output = output_fn
         self._seen: set[str] = set()
         """Tables whose own rules were shown in this game."""
@@ -203,6 +214,10 @@ class TerminalInterface:
                 return self._read(keys, "Your choice: ")
             case Topic.SKILL:
                 return self._skills(request)
+            case Topic.PREGENERATED:
+                for n, option in _numbered(options):
+                    self._output(f"{n}) {self._pregenerated(option)}")
+                return self._read(_by_number(options), f"Which character? [1-{len(options)}] ")
             case Topic.WEAPON:
                 for n, option in _numbered(options):
                     weapon = self.game.content.weapon(option)
@@ -323,16 +338,15 @@ class TerminalInterface:
                 self._output(f"{self._purchase_done(purchase)}: {purchase.cost} XP spent.")
             case Ended(end=end):
                 self._output(ENDINGS[end])
+                if end is End.DRILL_OVER and self.game.campaign.character is not None:
+                    self._output(self._status())
 
     # --- Reading ----------------------------------------------------------------------------
 
     def _read(self, keys: dict[str, object], prompt: str, rules: bool = False) -> object:
         """Ask until the player types one of the keys; `r` shows the last table's rules."""
         while True:
-            try:
-                line = self._input(prompt).strip().lower()
-            except (EOFError, KeyboardInterrupt):
-                raise Quit from None
+            line = self._line(prompt).lower()
             if line in keys:
                 return keys[line]
             if rules and line == RULES_KEY and self._rules is not None:
@@ -344,10 +358,7 @@ class TerminalInterface:
         """Ask until the player types a whole number within the bounds; Enter alone is 0 when
         0 fits (no modifier)."""
         while True:
-            try:
-                line = self._input(NUMBER_PROMPTS.get(request.topic, "Number? ")).strip()
-            except (EOFError, KeyboardInterrupt):
-                raise Quit from None
+            line = self._line(NUMBER_PROMPTS.get(request.topic, "Number? "))
             try:
                 number = int(line) if line else 0
             except ValueError:
@@ -360,13 +371,28 @@ class TerminalInterface:
     def _text(self, prompt: str) -> str:
         """Ask until the player types something."""
         while True:
+            if line := self._line(prompt):
+                return line
+            self._output("Type some text.")
+
+    def _line(self, prompt: str) -> str:
+        """The player's next line. A feedback note (# first) is kept, and the question asked
+        again; end of input quits."""
+        while True:
             try:
                 line = self._input(prompt).strip()
             except (EOFError, KeyboardInterrupt):
                 raise Quit from None
-            if line:
+            if not line.startswith(PREFIX):
                 return line
-            self._output("Type some text.")
+            note = line.removeprefix(PREFIX).strip()
+            if self._feedback is None:
+                self._output("No feedback file in this game.")
+            elif note:
+                self._feedback.write(self.game, prompt, note)
+                self._output("Feedback saved.")
+            else:
+                self._output("Type your note after the #.")
 
     def _menu(self, options: Sequence[object], prompt: str) -> object:
         """One line of options: numbered tables and events, then lettered actions; `r` for
@@ -563,6 +589,15 @@ class TerminalInterface:
             lines.append(f"Lasting effects: {lasting}")
         return "\n".join(lines)
 
+    def _pregenerated(self, id_: str) -> str:
+        """A pregenerated character in one line: "Anna Miller: Life 10, Sanity 9, Food 4;
+        Will, Occultist"."""
+        sheet = self.game.content.pregenerated[id_]
+        skills = ", ".join(self.game.content.skill(skill).name for skill in sheet.skills)
+        return (
+            f"{sheet.name}: Life {sheet.life}, Sanity {sheet.sanity}, Food {sheet.food}; {skills}"
+        )
+
     def _next_meal(self) -> str:
         """When the next meal comes, once the interval can change (E8): " (next meal: box
         10)". On its own, so it is easy to drop."""
@@ -657,6 +692,14 @@ def main(
     parser = argparse.ArgumentParser(description="Play Alone Against Fear in the terminal.")
     parser.add_argument("--seed", type=int, help="dice seed (default: picked and logged)")
     parser.add_argument("--log-dir", default="logs", help="where the log file goes")
+    parser.add_argument(
+        "--feedback-file",
+        default="feedback/feedback.md",
+        help="where feedback notes (# at any prompt) go",
+    )
+    parser.add_argument(
+        "--drill", choices=list(drills.DRILLS), help="play a short scoped run (a drill)"
+    )
     args = parser.parse_args(argv)
 
     log_dir = Path(args.log_dir)
@@ -670,8 +713,16 @@ def main(
     logger.setLevel(logging.DEBUG)
     try:
         output_fn(f"Log: {log_file}")
-        game = Game(dice=RandomDice(args.seed), content=load_content())
-        play(game, TerminalInterface(game, input_fn, output_fn))
+        output_fn(f"Type {PREFIX} and a note at any prompt to leave feedback.")
+        dice = RandomDice(args.seed)
+        game = Game(dice=dice, content=load_content())
+        feedback = FeedbackLog(args.feedback_file, dice.seed, args.drill, log_file)
+        interface = TerminalInterface(game, input_fn, output_fn, feedback)
+        if args.drill is None:
+            play(game, interface)
+        else:
+            output_fn(f"Drill {args.drill}: {drills.DRILLS[args.drill].about}")
+            drills.run(args.drill, game, interface)
     finally:
         logger.removeHandler(handler)
         logger.setLevel(level)

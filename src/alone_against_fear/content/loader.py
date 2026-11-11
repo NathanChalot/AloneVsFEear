@@ -19,6 +19,7 @@ from .model import (
     Effect,
     Entry,
     Gear,
+    Pregenerated,
     Roll,
     Skill,
     Table,
@@ -59,13 +60,14 @@ _SKILL_LISTS = {
     "skills": ("skill.", "a Skill", _SKILL_KEYS),
     "arcane_skills": ("arcane_skill.", "an Arcane Skill", _ARCANE_KEYS),
 }
+_PREGENERATED_KEYS = {"id", "name", "sanity", "life", "food", "skills", "gear"}
 _RANGE = re.compile(r"(\d+)-(\d+)")
 _EVENT_ID = re.compile(r"event\.(\d+)")
 
 
 def load_content(root: Path | str | None = None) -> Content:
-    """Read the catalogue, every table file, weapon list and Skill list under `root` (this
-    package by default)."""
+    """Read the catalogue, every table file, weapon list, Skill list and the pregenerated
+    characters under `root` (this package by default)."""
     root = Path(root) if root is not None else CONTENT_DIR
     seen: dict[str, Path] = {}
 
@@ -84,6 +86,7 @@ def load_content(root: Path | str | None = None) -> Content:
     tables, entries, weapons, variants = {}, {}, {}, {}
     items: dict[str, list[str]] = {}
     skills: dict[str, dict[str, Skill]] = {key: {} for key in _SKILL_LISTS}
+    pregenerated: dict[str, Pregenerated] = {}
     for path in sorted(root.rglob("*.yaml")):
         if path == catalogue_path:
             continue
@@ -97,6 +100,11 @@ def load_content(root: Path | str | None = None) -> Content:
             for skill in _skills(raw, path, key):
                 register(skill.id, path)
                 skills[key][skill.id] = skill
+            continue
+        if isinstance(raw, dict) and "characters" in raw:
+            for character in _pregenerated(raw, path):
+                register(character.id, path)
+                pregenerated[character.id] = character
             continue
         table = _table(raw, path)
         register(table.id, path)
@@ -119,7 +127,47 @@ def load_content(root: Path | str | None = None) -> Content:
         items={item: tuple(given) for item, given in items.items()},
         skills=skills["skills"],
         arcane_skills=skills["arcane_skills"],
+        pregenerated=pregenerated,
     )
+
+
+def _pregenerated(raw: dict, path: Path) -> list[Pregenerated]:
+    """The sample pregenerated characters (T1): each its ID, name, Sanity, Life, Food, Skills
+    and gear, as its sheet gives them."""
+    keys = {"name", "source", "characters"}
+    _check_keys(raw, keys, keys, str(path))
+    characters = []
+    for item in raw["characters"] or []:
+        what = f"{path}: {item.get('id', '?') if isinstance(item, dict) else item}"
+        _check_keys(item, _PREGENERATED_KEYS, _PREGENERATED_KEYS - {"skills", "gear"}, what)
+        if not str(item["id"]).startswith("pregenerated."):
+            raise ContentError(f"{what}: a pregenerated character ID starts with pregenerated.")
+        for stat in ("sanity", "life", "food"):
+            value = item[stat]
+            if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+                raise ContentError(f"{what}: {stat} is a whole number, got {value!r}")
+        characters.append(
+            Pregenerated(
+                id=item["id"],
+                name=item["name"],
+                life=item["life"],
+                sanity=item["sanity"],
+                food=item["food"],
+                source=raw["source"],
+                skills=_strings(item.get("skills"), what),
+                gear=_sheet_gear(item.get("gear"), what),
+            )
+        )
+    return characters
+
+
+def _sheet_gear(raw: Any, what: str) -> tuple[Gear, ...]:
+    """A sheet's gear: its counts and uses are written numbers, never dice."""
+    gear = tuple(_gear(item, what) for item in raw or [])
+    for item in gear:
+        if any(isinstance(n, str) for n in (item.count, item.uses)):
+            raise ContentError(f"{what}: {item.id} has a number on the sheet, not dice")
+    return gear
 
 
 def _read(path: Path) -> Any:

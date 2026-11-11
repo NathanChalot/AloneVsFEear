@@ -1,0 +1,31 @@
+# The two sample pregenerated characters, from their filled-in character sheets (T1).
+# Where a sheet disagrees with the rules, the rules win (see the Markdown):
+# - Douglas's Strong reads "+2 to Strength rolls, +3 carried items"; he has Strong at Basic.
+# - Anna's hammer is listed under Weapons and under Equipment: one hammer.
+# - Douglas's book read (Computer printout of "They Are Among Us") waits for the books (E18).
+# The gear's text is the weapon summary's and the item's entry; the sheets' own words
+# ("Pistol, +1", "Knife -1") are shown in the Markdown.
+name: Sample pregenerated characters
+source: gameRules/14_pregenerated_characters.md
+characters:
+  - id: pregenerated.anna_miller
+    name: Anna Miller
+    sanity: 9
+    life: 10
+    food: 4
+    skills: [skill.will, skill.occultist]
+    gear:
+      - {id: weapon.pistol, count: 6}
+      - {id: weapon.hammer}
+      - {id: item.wooden_stakes, count: 3}
+      - {id: item.first_aid_kit, uses: 3}
+  - id: pregenerated.douglas_harrison
+    name: Douglas Harrison
+    sanity: 8
+    life: 11
+    food: 4
+    skills: [skill.slippery, skill.strong]
+    gear:
+      - {id: weapon.knife}
+      - {id: weapon.chainsaw}
+      - {id: item.salt, uses: 6}
