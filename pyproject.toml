@@ -19,7 +19,7 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.setuptools.package-data]
-alone_against_fear = ["content/**/*.yaml"]
+alone_against_fear = ["content/**/*.yaml", "interface/screens/*.yaml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

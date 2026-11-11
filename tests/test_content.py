@@ -252,3 +252,26 @@ def test_a_mission_text_starts_after_its_name():
 
 def test_mission_text_holds_the_reroll_rule():
     assert "If you roll the same Mission that you played last time" in MISSION.text
+
+
+# --- Weapons (T2) -----------------------------------------------------------
+# A heading that names two weapons keeps the text they share; a sentence about one of them is
+# that weapon's `extra`, so the other does not show it.
+
+
+@pytest.mark.parametrize(
+    ("shares", "own", "shared", "extra"),
+    [
+        ("weapon.knife", "weapon.stick", "-1 to Attack rolls.", "You may pick up a stick"),
+        (
+            "weapon.ritual_dagger",
+            "weapon.kitchen_knife",
+            "-1 to Attack. Damage 1. If the Attack roll is a 1, it breaks.",
+            "You may pick up a kitchen knife",
+        ),
+    ],
+)
+def test_a_pick_up_sentence_belongs_to_its_own_weapon(shares, own, shared, extra):
+    assert CONTENT.weapon(shares).text == shared
+    assert CONTENT.weapon(own).text.startswith(f"{shared} {extra}")
+    assert CONTENT.weapon(own).extra.startswith(extra)

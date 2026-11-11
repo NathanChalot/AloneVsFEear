@@ -30,11 +30,14 @@ from .leads import DieRoll
 from .protocol import (
     Changed,
     Choose,
+    Created,
     Duplicate,
     Interface,
     ItemTaken,
     LeadRolled,
     Number,
+    Step,
+    StepStarted,
     Text,
     Topic,
     ask,
@@ -78,6 +81,9 @@ class Points(StrEnum):
     """1 more roll on the Useful Stuff table."""
 
 
+STEPS = {RANDOM_WEAPON: Step.WEAPONS, RANDOM_OBJECTS: Step.GEAR}
+"""The tables that start a step of creation."""
+
 EXTRA_ROLL = {
     RANDOM_WEAPON: Points.WEAPON,
     RANDOM_OBJECTS: Points.OBJECT,
@@ -87,12 +93,15 @@ EXTRA_ROLL = {
 
 def create(game: Game, interface: Interface) -> Character:
     """Walk the player through creation; the new character continues the campaign."""
+    interface.tell(StepStarted(Step.NAME))
     name = ask(interface, Text(Topic.NAME))
+    interface.tell(StepStarted(Step.POINTS))
     points = ask(interface, Choose(Topic.POINTS, tuple(Points)))
     life = sanity = BASE
     if points is Points.STATS:
         on_life = ask(interface, Number(Topic.LIFE_POINTS, 0, POINTS))
         life, sanity = life + on_life, sanity + POINTS - on_life
+    interface.tell(StepStarted(Step.SKILLS))
     skills: list[str] = []
     for _ in range(STARTING_SKILLS + (points is Points.SKILL)):
         options = tuple(skill for skill in game.content.skills if skill not in skills)
@@ -105,12 +114,15 @@ def create(game: Game, interface: Interface) -> Character:
             count, uses = giving.amount(gear.count), giving.amount(gear.uses)
             giving.take(Item(gear.id, skill_id, count, uses))
     for table_id in (RANDOM_WEAPON, RANDOM_OBJECTS, USEFUL_STUFF):
+        if table_id in STEPS:
+            interface.tell(StepStarted(STEPS[table_id]))
         giving.roll(table_id)
         if points is EXTRA_ROLL[table_id]:
             giving.roll(table_id)
         if table_id == RANDOM_WEAPON:
             giving.take(Item(ask(interface, Choose(Topic.WEAPON, FREE_WEAPONS))))
     giving.gain_food(FOOD.roll(game.dice).total)
+    interface.tell(Created())
     return character
 
 

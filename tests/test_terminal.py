@@ -11,11 +11,13 @@ import pytest
 from alone_against_fear.content import Effect, load_content
 from alone_against_fear.dice import ScriptedDice
 from alone_against_fear.effect_targets import RollType
-from alone_against_fear.engine import Game, Position, book_mode
+from alone_against_fear.engine import Game, Position, book_mode, drills
+from alone_against_fear.engine.creation import create
 from alone_against_fear.engine.loop import play
 from alone_against_fear.engine.protocol import End
 from alone_against_fear.engine.state import SkillLevel
 from alone_against_fear.engine.town import boxes_of
+from alone_against_fear.interface.screen_text import load_screen_text
 from alone_against_fear.interface.terminal import TerminalInterface, main
 
 
@@ -121,7 +123,7 @@ def test_ending_the_input_quits(content):
 
 def test_main_writes_the_log_to_a_file_with_the_seed_and_the_answers(tmp_path):
     # seed 7 rolls Random Weapon 3: the grenade (1) or the bow; then the knife (1)
-    typist = Typist(["Ann", "l", "2", "1", "18", "1", "1", HOME_TOP_LEFT, QUIT])
+    typist = Typist(["Ann", "l", "2", "1", "18", "1", "1", "", HOME_TOP_LEFT, QUIT])
     output = []
 
     code = main(
@@ -157,13 +159,23 @@ def test_a_new_box_shows_its_entry_and_your_choice(content):
     play(game, interface)
 
     text = "\n".join(output)
-    assert "Town Exploration table: 8" in text
+    assert "Town Exploration table, rolled 8" in text
     assert "Roll on the Store table or the Street table, your choice." in text
     # and only the entry reached: not entry 9
-    assert "Sewers" not in text.split("Town Exploration table: 8")[1]
+    assert "Sewers" not in text.split("Town Exploration table, rolled 8")[1]
     # and the choice offers the two tables only
     assert "1) Store table  2) Street table" in text
-    assert "Street table: 4" in text
+    assert "Street table, rolled 4" in text
+
+
+def test_a_roll_names_the_table_the_number_and_the_entry_s_name(content):
+    # given the Injury table rolled: 1, the Facial scar
+    game = ready(content, 1)
+    interface, output = terminal(game, [])
+
+    interface.tell(game.roll_table("table.injury"))
+
+    assert output[0] == "Injury table, rolled 1: Facial scar"
 
 
 def test_a_die_rolled_by_an_entry_is_shown(content):
@@ -181,10 +193,19 @@ def test_a_table_not_copied_yet_points_to_its_source_and_asks_where_it_leads(con
 
     play(game, interface)
 
-    text = "\n".join(output)
-    assert "House table: 2" in text
-    assert "read entry 2 in gameRules/tables/places/5_7_house_table.md" in text
-    assert "t) a table  e) a numbered event  g) gain  l) lose  v) roll vs L" in text
+    assert (
+        "House table, rolled 2: not copied yet, read entry 2 in "
+        "gameRules/tables/places/5_7_house_table.md"
+    ) in output
+    # book mode: one line to explain it, then where the text leads and what to do by hand
+    explanation = output.index(
+        "The game cannot apply this text by itself: do what it says by hand, then choose where "
+        "it leads."
+    )
+    assert output[explanation - 1] == output[explanation + 1] == ""
+    assert output[explanation + 2] == "  Leads to: t) a table  e) a numbered event  d) nowhere else"
+    assert output[explanation + 3].startswith("  By hand:  g) gain  l) lose  v) roll vs L")
+    assert "Your choice? " in interface._input.prompts
 
 
 def test_a_table_s_rules_are_shown_the_first_time_then_on_request(content):
@@ -198,7 +219,9 @@ def test_a_table_s_rules_are_shown_the_first_time_then_on_request(content):
     rules = [line for line in output if "every time you move into an unexplored area" in line]
     # once on the first roll, once more on request; not on the second roll
     assert len(rules) == 2
-    second_roll = max(i for i, line in enumerate(output) if line == "Town Exploration table: 7")
+    second_roll = max(
+        i for i, line in enumerate(output) if line.startswith("Town Exploration table, rolled 7")
+    )
     asked = [i for i, line in enumerate(output) if "every time you move" in line][-1]
     assert output[second_roll + 1].startswith("  Roll d6.")  # the entry, without the rules
     assert asked > second_roll
@@ -213,9 +236,9 @@ def test_an_entry_shows_the_notes_it_points_to(content):
     play(game, interface)
 
     text = "\n".join(output)
-    assert "Random Encounter table: 6, then 1" in text
+    assert "Random Encounter table, rolled 6, then 1" in text
     assert "Note: When rolling on tables of Unique creatures" in text
-    assert "Unique Vampires table: 3" in text
+    assert "Unique Vampires table, rolled 3" in text
 
 
 def test_the_text_can_lead_to_any_table_and_any_event(content):
@@ -229,7 +252,7 @@ def test_the_text_can_lead_to_any_table_and_any_event(content):
     play(game, interface)
 
     text = "\n".join(output)
-    assert "Undead table: 2" in text
+    assert "Undead table, rolled 2" in text
     assert "Event #12, The sewer people: read it in gameRules/6_unique_events.md" in text
 
 
@@ -269,7 +292,7 @@ def test_a_player_attaches_a_sheet_once_the_first_is_full_and_walks_onto_it(cont
     assert "A new sheet is attached." in text
     assert game.campaign.position == Position(5, 2)
     assert "Box 32." in text
-    assert "Town Exploration table: 7" in text
+    assert "Town Exploration table, rolled 7" in text
 
 
 # --- Manual actions (E5b) --------------------------------------------------------------------
@@ -392,7 +415,7 @@ def test_search_with_no_notes_rolls_at_once(content):
 
     text = "\n".join(output)
     assert "Search: rolled 3." in text
-    assert "Search table: 3" in text
+    assert "Search table, rolled 3" in text
     assert "Nothing found." in text
     assert "Modifier (Enter for none): " not in interface._input.prompts
 
@@ -436,9 +459,9 @@ def test_a_note_is_removed_by_its_number(content):
 
 CREATION_DICE = (5, 3, 4, 1, 1, 1, 3, 4)
 """A pistol with 7 bullets, a rope, a small bell, 4 Food."""
-CREATING = ["Ann", "l", "2", "1", "18", "1"]
-"""Ann; the points on Life and Sanity, 2 on Life; Agile (1), then Tough (19th, 18th once
-Agile is gone); the knife (1)."""
+CREATING = ["Ann", "l", "2", "1", "19", "1", ""]
+"""Ann; the points on Life and Sanity, 2 on Life; Agile (1), then Tough (19th, its number
+on both lists); the knife (1); Enter after the recap (T2)."""
 
 
 def test_a_player_creates_a_character_in_the_terminal(content):
@@ -450,9 +473,9 @@ def test_a_player_creates_a_character_in_the_terminal(content):
     text = "\n".join(output)
     assert game.character.skills.keys() == {"skill.agile", "skill.tough"}
     # the choices are shown with what they mean
-    assert "l) Life and Sanity" in text
+    assert "l) Share them between Life and Sanity" in text
     assert "1) Agile (8 XP): Add +1 to your Defense rolls" in text
-    assert "1) Knife: -1 to Attack rolls." in text
+    assert "  1) Knife" in output
     # what was taken, and the character sheet at the first turn
     assert "You take: Pistol (7)." in text
     # Tough: 2 more Life (E7)
@@ -461,6 +484,240 @@ def test_a_player_creates_a_character_in_the_terminal(content):
     )
     assert "Skills: Agile, Tough" in text
     assert "Items: Pistol (7), Knife, Rope, Small bell" in text
+
+
+# --- Creation screens (T2) ----------------------------------------------------------------
+# Feedback from the creation drill: each step says what it asks, and each answer what it gave.
+
+
+def test_creation_says_what_each_step_asks(content):
+    # given a new game in the terminal
+    game = Game(dice=ScriptedDice(CREATION_DICE), content=content)
+    interface, output = terminal(game, CREATING)
+
+    # when the player creates Ann
+    create(game, interface)
+
+    # then an introduction, then each step under its heading, in order
+    text = "\n".join(output)
+    headings = [
+        "Character creation",
+        "Step 1 of 5 — Your name",
+        "Step 2 of 5 — Your 3 extra points",
+        "Step 3 of 5 — Choose 2 Skills",
+        "Step 4 of 5 — Weapons",
+        "Step 5 of 5 — Objects and Food",
+    ]
+    assert [line for line in output if line in headings] == headings
+    assert "Give your character a name" in text
+    assert "share them between Life and Sanity, or give all 3 up" in text
+    assert "Arcane Skills cannot be taken at creation." in text
+    assert "You also start with a knife, or a stick if you prefer." in text
+    assert "anything you have already is rolled again" in text
+
+
+def test_the_introduction_lists_the_steps(content):
+    # given a new game in the terminal
+    game = Game(dice=ScriptedDice(CREATION_DICE), content=content)
+    interface, output = terminal(game, CREATING)
+
+    # when the player creates Ann
+    create(game, interface)
+
+    # then the introduction lists the 5 steps, one per line, before the first heading
+    start = output.index("It takes 5 steps to create your character:")
+    assert output[start + 1 : start + 6] == [
+        "1. Your name",
+        "2. Your 3 extra points",
+        "3. Your Skills",
+        "4. Weapons",
+        "5. Objects and Food",
+    ]
+    assert start < output.index("Step 1 of 5 — Your name")
+
+
+def test_the_rolls_made_for_the_player_say_rolled(content):
+    # given a new game in the terminal
+    game = Game(dice=ScriptedDice(CREATION_DICE), content=content)
+    interface, output = terminal(game, CREATING)
+
+    # when the player creates Ann
+    create(game, interface)
+
+    # then the screens say the game rolls, not the player (T2 drill feedback)
+    text = "\n".join(output)
+    assert "(rolled twice if you traded your points for it)" in text
+    assert "roll twice" not in text
+
+
+def test_the_points_are_explained_and_their_result_shown(content):
+    game = Game(dice=ScriptedDice(CREATION_DICE), content=content)
+    interface, output = terminal(game, CREATING)
+
+    create(game, interface)
+
+    text = "\n".join(output)
+    assert "l) Share them between Life and Sanity" in text
+    assert "k) Trade them for a 3rd Skill" in text
+    assert "u) Trade them for 1 more Useful Stuff roll" in text
+    prompts = interface._input.prompts
+    assert "How many of the 3 points go to Life? The rest go to Sanity. [0-3] " in prompts
+    assert "→ Life 10, Sanity 9." in output
+
+
+def test_points_traded_for_a_skill_ask_for_3(content):
+    # given the points traded for a 3rd Skill: Agile, Tough, then Bow (its d6+3 arrows: 2)
+    game = Game(dice=ScriptedDice((2, *CREATION_DICE)), content=content)
+    interface, output = terminal(game, ["Ann", "k", "1", "19", "2", "1", ""])
+
+    create(game, interface)
+
+    assert "→ Life 8, Sanity 8, and a 3rd Skill." in output
+    assert "Step 3 of 5 — Choose 3 Skills" in output
+    assert "Skill 3 of 3? [1-22] " in interface._input.prompts
+
+
+def test_the_skills_keep_their_numbers_and_the_taken_one_is_marked(content):
+    game = Game(dice=ScriptedDice(CREATION_DICE), content=content)
+    interface, output = terminal(game, CREATING)
+
+    create(game, interface)
+
+    # both lists have the texts and the same numbers
+    assert interface._input.prompts[3:5] == ["Skill 1 of 2? [1-22] ", "Skill 2 of 2? [1-22] "]
+    assert "→ Agile." in output
+    assert "  1) (TAKEN) Agile (TAKEN)" in output
+    tough = [line for line in output if line.startswith(" 19) Tough (8 XP): Add +2")]
+    assert len(tough) == 2
+    # r hides or shows the texts, on a line of its own under the list
+    assert "  r) Hide the descriptions" in output
+    assert "→ Tough." in output
+
+
+def test_a_taken_skill_is_refused_and_r_hides_or_shows_the_texts(content):
+    # given the player hides the texts on the first list, then shows them on the second
+    game = Game(dice=ScriptedDice(CREATION_DICE), content=content)
+    interface, output = terminal(game, ["Ann", "l", "2", "r", "1", "1", "r", "19", "1", ""])
+
+    create(game, interface)
+
+    assert "Agile is already taken." in output
+    # the texts: on the first list, hidden on r and on the next list, then shown again on r
+    bow = [line for line in output if line.startswith("  2) Bow (3 XP)")]
+    assert [line == "  2) Bow (3 XP)" for line in bow] == [False, True, True, False]
+    assert output.count("  r) Show the descriptions") == 3  # twice for the Skills, once after
+    assert list(game.character.skills) == ["skill.agile", "skill.tough"]
+
+
+def test_the_knife_or_stick_shows_what_they_share_once(content):
+    game = Game(dice=ScriptedDice(CREATION_DICE), content=content)
+    interface, output = terminal(game, CREATING)
+
+    create(game, interface)
+
+    question = output.index("Knife or stick: -1 to Attack rolls.")
+    assert output[question + 1 : question + 3] == [
+        "  1) Knife",
+        "  2) Stick (you may pick up a stick every time you visit a park)",
+    ]
+    assert "Knife or stick? [1-2] " in interface._input.prompts
+
+
+def test_two_weapons_of_different_headings_show_their_texts(content):
+    # given Random Weapon 2: a chainsaw or an authentic samurai sword
+    game = Game(dice=ScriptedDice((2, 1, 1, 1, 3, 4)), content=content)
+    interface, output = terminal(game, ["Ann", "l", "2", "1", "19", "1", "1", ""])
+
+    create(game, interface)
+
+    assert any(line.startswith("  1) Chainsaw: ") for line in output)
+    assert "Which weapon? [1-2] " in interface._input.prompts
+
+
+def test_a_recap_shows_the_character_once_made(content):
+    # given Ann created with a pistol, the knife, a rope, a small bell and 4 Food
+    game = Game(dice=ScriptedDice(CREATION_DICE), content=content)
+    interface, output = terminal(game, CREATING)
+
+    create(game, interface)
+
+    # then the character, one thing a line, names only, until the player goes on
+    recap = output.index("Your character")
+    assert output[recap - 1] == ""
+    assert output[recap + 1 :] == [
+        "  Ann · Food 4 · XP 0 · Clues 0",
+        "    - Life 12/12",
+        "    - Sanity 9/9",
+        "  Skills:",
+        "    - Agile",
+        "    - Tough",
+        "  Weapons:",
+        "    - Pistol (7)",
+        "    - Knife",
+        "  Items:",
+        "    - Rope",
+        "    - Small bell",
+        "  r) Show the descriptions",
+    ]
+    assert interface._input.prompts[-1] == "Press Enter to go on: "
+
+
+def test_r_shows_the_descriptions_in_the_recap(content):
+    game = Game(dice=ScriptedDice(CREATION_DICE), content=content)
+    interface, output = terminal(game, [*CREATING[:-1], "r", ""])
+
+    create(game, interface)
+
+    assert (
+        "    - Agile: Add +1 to your Defense rolls and rolls performed to climb, jump, or avoid "
+        "danger."
+    ) in output
+    assert "    - Knife: -1 to Attack rolls." in output
+    assert any(line.startswith("    - Rope: ") for line in output)
+    assert output[-1] == "  r) Hide the descriptions"
+
+
+BOOK_AT_CREATION = (5, 3, 4, 4, 5, 1, 3, 4)
+"""A pistol, Random Objects 45 (a random book), a small bell, 4 Food."""
+NOTING_THE_BOOK = [*CREATING[:-1], "w", "The Occult Guide", "d", ""]
+"""Creating Ann; the book is written as a note, and its text leads nowhere else."""
+
+
+def test_a_note_written_at_creation_shows_in_the_recap(content):
+    game = Game(dice=ScriptedDice(BOOK_AT_CREATION), content=content)
+    interface, output = terminal(game, NOTING_THE_BOOK)
+
+    create(game, interface)
+
+    assert output[-3:] == ["  Notes:", "    - The Occult Guide", "  r) Show the descriptions"]
+
+
+def test_the_creation_drill_shows_the_character_once(content):
+    game = Game(dice=ScriptedDice(CREATION_DICE), content=content)
+    interface, output = terminal(game, CREATING)
+
+    drills.run("creation", game, interface)
+
+    assert output[-1] == "The drill is over."
+    assert sum("Ann · " in line for line in output) == 1
+
+
+def test_every_creation_text_is_used(content):
+    # given one screen text shared by the plays above that cover every branch
+    text = load_screen_text()
+    plays = [
+        (CREATION_DICE, ["Ann", "l", "2", "r", "1", "1", "r", "19", "1", "r", ""]),
+        ((2, *CREATION_DICE), ["Ann", "k", "1", "19", "2", "1", ""]),
+        ((2, 1, 1, 1, 3, 4), ["Ann", "l", "2", "1", "19", "1", "1", ""]),
+        (BOOK_AT_CREATION, NOTING_THE_BOOK),
+    ]
+    for dice, lines in plays:
+        game = Game(dice=ScriptedDice(dice), content=content)
+        interface = TerminalInterface(game, Typist(lines), lambda line: None, text=text)
+        create(game, interface)
+
+    # then no creation text is left unused
+    assert {key for key in text.keys if key.startswith("creation.")} - text.used == set()
 
 
 def test_a_player_spends_xp_in_the_terminal(content):
@@ -600,7 +857,7 @@ def test_a_drill_starts_with_what_to_try_and_asks_for_a_pregenerated_character(t
 
 def test_a_drill_over_says_so_and_shows_the_character(tmp_path):
     # given the creation drill (seed 7 as above)
-    typist = Typist(["Ann", "l", "2", "1", "18", "1", "1"])
+    typist = Typist(["Ann", "l", "2", "1", "18", "1", "1", ""])
     output = []
 
     main(
@@ -609,10 +866,9 @@ def test_a_drill_over_says_so_and_shows_the_character(tmp_path):
         output_fn=output.append,
     )
 
-    # then once the character is made, the drill is over and the sheet is shown, with no Home
-    shown = "\n".join(output)
-    assert "The drill is over." in shown
-    assert output[-1].startswith("Ann · Box 0 · Life")
+    # then once the character is made and shown (T2), the drill is over, with no Home
+    assert "Your character" in output
+    assert output[-1] == "The drill is over."
     assert typist.lines == []
 
 

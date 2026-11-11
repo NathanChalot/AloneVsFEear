@@ -2,7 +2,7 @@
 
 Digital solo play of **Alone Against Fear** (Four Against Darkness engine). Read [`Readme.md`](Readme.md) (roadmap, decisions), [`NextSession.md`](NextSession.md) and the latest log in `claude-logs/` at the start of a session. How a session runs: [`WorkingWithClaude.md`](WorkingWithClaude.md).
 
-Start a session with `/start` (`.claude/skills/start/`). However the session starts, open it with a short plain-words summary: where we are, the session's goal and Done when, how it will go, the planned model and effort.
+Start a session with `/start` (`.claude/skills/start/`), end it with `/wrap-up` (`.claude/skills/wrap-up/`). However the session starts, open it with a short plain-words summary: where we are, the session's goal and Done when, how it will go, the planned model and effort.
 
 ## Working rules
 

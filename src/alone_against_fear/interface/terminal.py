@@ -37,6 +37,14 @@ Drills (T1): `--drill NAME` says what the drill tries, then plays it; a drill wi
 pregenerated character lists the two sheets, numbered. When the drill is over, the character
 is shown once more.
 
+Creation screens (T2): each creation step (`StepStarted`) has a heading and says what it
+asks, and each answer what it gave ("→ Life 10, Sanity 9."). The Skills keep their numbers on
+every list, the ones taken marked; `r` hides or shows their texts. The knife or stick shows the
+text they share once, and the stick's own sentence as an aside. A roll reads "Injury table,
+rolled 1: Facial scar". Book mode says in one line what it is, then where the text leads and
+what to do by hand on two lines. The wording is in `screens/` (`screen_text`). At the
+keyboard, the arrow keys edit the line typed.
+
 Feedback (T1): a line starting with # at any prompt is a note kept with the seed, the drill and
 the box (`feedback.FeedbackLog`, `--feedback-file`), then the same question is asked again.
 """
@@ -53,7 +61,8 @@ from ..content import CatalogueEvent, CatalogueTable, Table, load_content
 from ..dice import RandomDice
 from ..effect_targets import RollType, Tag
 from ..engine import Arrival, Game, Position, Stat, Upkeep, drills
-from ..engine.creation import Points
+from ..engine.creation import BASE, STARTING_SKILLS, Points
+from ..engine.creation import POINTS as CREATION_POINTS
 from ..engine.effects import PLAYER, Held, Modifier
 from ..engine.game import Purchase, Rolled, RolledVsL, Searched
 from ..engine.loop import play
@@ -64,6 +73,7 @@ from ..engine.protocol import (
     Bought,
     Changed,
     Choose,
+    Created,
     Duplicate,
     EffectEnded,
     End,
@@ -82,6 +92,8 @@ from ..engine.protocol import (
     Quit,
     Request,
     SheetAttached,
+    Step,
+    StepStarted,
     Text,
     Topic,
     Wandering,
@@ -89,6 +101,7 @@ from ..engine.protocol import (
 from ..engine.state import Item, Lasting, Note, SkillLevel
 from ..engine.town import SHEET_COLUMNS, SHEET_ROWS, sheet_neighbours
 from .feedback import PREFIX, FeedbackLog
+from .screen_text import ScreenText, load_screen_text
 
 CELL = 5
 """Width of a box on the map: room for "[30]" or a box number in the thousands."""
@@ -131,13 +144,13 @@ STATS = {
 }
 
 POINTS = {
-    Points.STATS: ("l", "Life and Sanity"),
-    Points.SKILL: ("k", "1 more Skill"),
-    Points.WEAPON: ("w", "1 more Random Weapon roll"),
-    Points.OBJECT: ("o", "1 more Random Objects roll"),
-    Points.USEFUL: ("u", "1 more Useful Stuff roll"),
+    Points.STATS: "l",
+    Points.SKILL: "k",
+    Points.WEAPON: "w",
+    Points.OBJECT: "o",
+    Points.USEFUL: "u",
 }
-"""What the 3 creation points buy, by letter."""
+"""What the 3 creation points buy, by letter; their wording is in `screens/creation.yaml`."""
 
 TAGS = {
     Tag.HAND_TO_HAND: "a hand-to-hand weapon",
@@ -162,7 +175,6 @@ TAGS = {
 YES_NO = {"y": True, "n": False}
 
 NUMBER_PROMPTS = {
-    Topic.LIFE_POINTS: "How many of the 3 points on Life (the rest on Sanity)? ",
     Topic.AMOUNT: "How much? ",
     Topic.LEVEL: "L? ",
     Topic.MODIFIER: "Modifier (Enter for none): ",
@@ -182,8 +194,11 @@ class TerminalInterface:
         input_fn: Callable[[str], str] = input,
         output_fn: Callable[[str], None] = print,
         feedback: FeedbackLog | None = None,
+        text: ScreenText | None = None,
     ) -> None:
         self.game = game
+        self.screen = text or load_screen_text()
+        """The terminal's own wording (`screens/`)."""
         self._input = input_fn
         self._feedback = feedback
         self._output = output_fn
@@ -191,8 +206,14 @@ class TerminalInterface:
         """Tables whose own rules were shown in this game."""
         self._rules: Table | None = None
         """The last table with rules rolled in this box, to show them on request."""
-        self._skills_shown = False
-        """The Skills' text was shown once at creation."""
+        self._recap = False
+        """The character was just shown, at the end of creation."""
+        self._sheet_texts = False
+        """The recap shows the descriptions (`r` switches)."""
+        self._skill_texts = True
+        """The Skills are listed with their text (`r` switches)."""
+        self._skill_count = STARTING_SKILLS
+        """How many Skills creation asks for: one more when the points are traded for one."""
 
     # --- The protocol --------------------------------------------------------------------
 
@@ -200,18 +221,17 @@ class TerminalInterface:
         if isinstance(request, Number):
             if request.topic is Topic.MODIFIER and self.game.character.notes:
                 self._output(self._notes())
+            if request.topic is Topic.LIFE_POINTS:
+                return self._life_points(request)
             return self._number(request)
         if isinstance(request, Text):
-            return self._text(
-                "Your character's name: " if request.topic is Topic.NAME else "Note: "
-            )
+            if request.topic is Topic.NAME:
+                return self._text(self.screen("creation.name.prompt"))
+            return self._text("Note: ")
         options = request.options
         match request.topic:
             case Topic.POINTS:
-                self._output("Your 3 points: on Life and Sanity (8 each), or traded.")
-                keys = {POINTS[option][0]: option for option in options}
-                self._output("  ".join(f"{key}) {POINTS[o][1]}" for key, o in keys.items()))
-                return self._read(keys, "Your choice: ")
+                return self._points(request)
             case Topic.SKILL:
                 return self._skills(request)
             case Topic.PREGENERATED:
@@ -219,10 +239,7 @@ class TerminalInterface:
                     self._output(f"{n}) {self._pregenerated(option)}")
                 return self._read(_by_number(options), f"Which character? [1-{len(options)}] ")
             case Topic.WEAPON:
-                for n, option in _numbered(options):
-                    weapon = self.game.content.weapon(option)
-                    self._output(f"{n}) {weapon.name}: {weapon.text}")
-                return self._read(_by_number(options), f"Which weapon? [1-{len(options)}] ")
+                return self._weapons(request)
             case Topic.PURCHASE:
                 return self._menu(options, "Spend XP on? ")
             case Topic.ACTION:
@@ -248,7 +265,7 @@ class TerminalInterface:
             case Topic.CHOICE:
                 return self._menu(options, "Your choice: ")
             case Topic.BOOK:
-                return self._menu(options, "Apply the text, then where does it lead? ")
+                return self._book(options)
             case Topic.ROLL:
                 self._output("  ".join(f"{n}) {_roll(o)}" for n, o in _numbered(options)))
                 return self._read(_by_number(options), f"Which roll? [1-{len(options)}] ")
@@ -284,9 +301,11 @@ class TerminalInterface:
     def tell(self, event: Event) -> None:
         match event:
             case Arrival(number=1):
+                self._recap = False
                 self._rules = None
                 self._output("Home is box 1.")
             case Arrival(number=number):
+                self._recap = False
                 self._rules = None
                 self._output(f"Box {number}.")
             case FoodUpkeep(result=Upkeep.ATE):
@@ -334,11 +353,17 @@ class TerminalInterface:
                 self._output(f"You take: {self._item(item)}.")
             case Duplicate():
                 self._output("You have it already: roll again.")
+            case StepStarted(step=step):
+                self._step(step)
+            case Created():
+                self._recap_sheet()
+                self._recap = True
             case Bought(purchase=purchase):
                 self._output(f"{self._purchase_done(purchase)}: {purchase.cost} XP spent.")
             case Ended(end=end):
                 self._output(ENDINGS[end])
-                if end is End.DRILL_OVER and self.game.campaign.character is not None:
+                shown = self._recap  # the creation drill ends on the recap
+                if end is End.DRILL_OVER and self.game.campaign.character is not None and not shown:
                     self._output(self._status())
 
     # --- Reading ----------------------------------------------------------------------------
@@ -354,11 +379,12 @@ class TerminalInterface:
                 continue
             self._output(f"Choose one of {', '.join(keys) if len(keys) < 10 else _span(keys)}.")
 
-    def _number(self, request: Number) -> int:
+    def _number(self, request: Number, prompt: str | None = None) -> int:
         """Ask until the player types a whole number within the bounds; Enter alone is 0 when
         0 fits (no modifier)."""
+        prompt = prompt or NUMBER_PROMPTS.get(request.topic, "Number? ")
         while True:
-            line = self._line(NUMBER_PROMPTS.get(request.topic, "Number? "))
+            line = self._line(prompt)
             try:
                 number = int(line) if line else 0
             except ValueError:
@@ -410,6 +436,32 @@ class TerminalInterface:
         self._output("  ".join(shown))
         return self._read(keys, prompt, rules=True)
 
+    def _book(self, options: Sequence[object]) -> object:
+        """Book mode: what the text cannot do by itself. The explanation, then where the text
+        leads (numbered tables and events, `t`, `e`, `d`) and the manual actions by letter, on
+        two lines; `r` for the rules of the last table rolled in this box."""
+        keys: dict[str, object] = {}
+        numbered = (option for option in options if option not in KEYS)
+        for n, option in enumerate(numbered, start=1):
+            keys[str(n)] = option
+        for option in options:
+            if option in KEYS:
+                keys[KEYS[option][0]] = option
+        leads = [k for k, option in keys.items() if not isinstance(option, Manual)]
+        by_hand = [k for k, option in keys.items() if isinstance(option, Manual)]
+        labels = (self.screen("book_mode.leads"), self.screen("book_mode.by_hand"))
+        width = max(len(label) for label in labels)
+        self._output("")
+        self._output(self.screen("book_mode.explanation"))
+        self._output("")
+        for label, shown in zip(labels, (leads, by_hand), strict=True):
+            if shown:
+                options_shown = "  ".join(f"{k}) {self._label(keys[k])}" for k in shown)
+                self._output(f"  {label.ljust(width)} {options_shown}")
+        if self._rules is not None:
+            self._output(f"  {RULES_KEY}) rules of the {self._rules.name}")
+        return self._read(keys, self.screen("book_mode.prompt"), rules=True)
+
     def _label(self, option: object) -> str:
         if option in KEYS:
             return KEYS[option][1]
@@ -419,17 +471,113 @@ class TerminalInterface:
 
     # --- The character ----------------------------------------------------------------------
 
-    def _skills(self, request: Choose) -> object:
-        """Skills to choose from at creation: with their text the first time, by name after."""
-        content = self.game.content
-        for n, option in _numbered(request.options):
-            skill = content.skill(option)
-            if self._skills_shown:
-                self._output(f"{n:>3}) {skill.name}")
+    def _step(self, step: Step) -> None:
+        """A creation step's heading and what it asks; the introduction before the first."""
+        if step is Step.NAME:
+            self._output("")
+            self._output(self.screen("creation.title"))
+            for line in self.screen("creation.intro").splitlines():
+                self._output(line)
+        self._output("")
+        self._output(self.screen(f"creation.{step}.heading", count=self._skill_count))
+        self._output(self.screen(f"creation.{step}.text"))
+
+    def _points(self, request: Choose) -> object:
+        """The 3 points by letter; a trade says what it gave."""
+        for option in request.options:
+            if option is Points.STATS:
+                label = self.screen("creation.points.share")
             else:
+                label = self.screen("creation.points.trade", extra=self._extra(option))
+            self._output(f"  {POINTS[option]}) {label}")
+        keys = {POINTS[option]: option for option in request.options}
+        points = self._read(keys, self.screen("creation.points.prompt"))
+        if points is Points.SKILL:
+            self._skill_count = STARTING_SKILLS + 1
+        if points is not Points.STATS:
+            self._output(
+                self.screen(
+                    "creation.points.traded", life=BASE, sanity=BASE, extra=self._extra(points)
+                )
+            )
+        return points
+
+    def _extra(self, points: Points) -> str:
+        return self.screen(f"creation.points.extra.{points}")
+
+    def _life_points(self, request: Number) -> int:
+        """The points on Life, the rest on Sanity; then Life and Sanity."""
+        prompt = self.screen(
+            "creation.points.life", minimum=request.minimum, maximum=request.maximum
+        )
+        on_life = self._number(request, prompt)
+        life, sanity = BASE + on_life, BASE + CREATION_POINTS - on_life
+        self._output(self.screen("creation.points.shared", life=life, sanity=sanity))
+        return on_life
+
+    def _skills(self, request: Choose) -> object:
+        """Skills to choose from at creation, numbered in the book's order on every list,
+        the ones taken marked and refused; `r` hides or shows the texts, for the next list
+        too."""
+        content = self.game.content
+        every = list(content.skills)
+        n = len(every) - len(request.options) + 1
+        self._skill_list(request.options)
+        keys = {str(i): skill for i, skill in _numbered(every) if skill in request.options}
+        taken = {str(i): skill for i, skill in _numbered(every) if skill not in request.options}
+        prompt = self.screen(
+            "creation.skills.prompt", n=n, count=self._skill_count, last=len(every)
+        )
+        while True:
+            line = self._line(prompt).lower()
+            if line in keys:
+                self._output(
+                    self.screen("creation.skills.chosen", name=content.skill(keys[line]).name)
+                )
+                return keys[line]
+            if line in taken:
+                name = content.skill(taken[line]).name
+                self._output(self.screen("creation.skills.already", name=name))
+            elif line == RULES_KEY:
+                self._skill_texts = not self._skill_texts
+                self._skill_list(request.options)
+            else:
+                self._output(f"Choose one of 1 to {len(every)}.")
+
+    def _skill_list(self, offered: Sequence[object]) -> None:
+        """Every Skill, numbered: name and XP, with the text unless hidden; a taken one
+        marked. Then `r` to hide or show the texts."""
+        content = self.game.content
+        for n, skill_id in _numbered(list(content.skills)):
+            skill = content.skill(skill_id)
+            if skill_id not in offered:
+                self._output(f"{n:>3}) " + self.screen("creation.skills.taken", name=skill.name))
+            elif self._skill_texts:
                 self._output(_indented(skill.text, f"{n:>3}) {skill.name} ({skill.xp} XP): "))
-        self._skills_shown = True
-        return self._read(_by_number(request.options), f"Skill? [1-{len(request.options)}] ")
+            else:
+                self._output(f"{n:>3}) {skill.name} ({skill.xp} XP)")
+        toggle = "creation.skills.hide" if self._skill_texts else "creation.skills.show"
+        self._output(f"{RULES_KEY:>3}) " + self.screen(toggle))
+
+    def _weapons(self, request: Choose) -> object:
+        """Weapons to choose from. Variants of one heading (the knife or stick) show the
+        heading's text once, then each one's own sentence; others show their whole text."""
+        content = self.game.content
+        weapons = [content.weapon(option) for option in request.options]
+        headings = {weapon.heading for weapon in weapons}
+        last = len(weapons)
+        if len(headings) == 1 and None not in headings:
+            heading = content.weapon(weapons[0].heading)
+            self._output(f"{heading.name}: {heading.text}")
+            for n, weapon in _numbered(weapons):
+                aside = f" ({_aside(weapon.extra)})" if weapon.extra else ""
+                self._output(f"  {n}) {weapon.name}{aside}")
+            prompt = self.screen("creation.weapons.prompt_named", name=heading.name, last=last)
+        else:
+            for n, weapon in _numbered(weapons):
+                self._output(f"  {n}) {weapon.name}: {weapon.text}")
+            prompt = self.screen("creation.weapons.prompt", last=last)
+        return self._read(_by_number(request.options), prompt)
 
     def _source(self, source: str | None) -> str:
         """Where a modifier comes from: a Skill, an Injury or a Mental Scar, or the text."""
@@ -514,18 +662,24 @@ class TerminalInterface:
         results = ", then ".join(str(result) for result in rolled.results)
         if rolled.entry_id is None:
             source = content.catalogue[rolled.table_id]
-            self._output(f"{source.name}: {results}")
-            self._output(f"  Not copied yet: read entry {results} in {source.source}")
+            self._output(
+                self.screen(
+                    "rolls.not_copied", table=source.name, results=results, source=source.source
+                )
+            )
             return
         table = content.table(rolled.table_id)
-        self._output(f"{table.name}: {results}")
+        entry = content.entry(rolled.entry_id)
+        if entry.name:
+            self._output(
+                self.screen("rolls.named", table=table.name, results=results, name=entry.name)
+            )
+        else:
+            self._output(self.screen("rolls.rolled", table=table.name, results=results))
         if table.text:
             self._rules = table
             if table.id not in self._seen:
                 self._show_rules(table)
-        entry = content.entry(rolled.entry_id)
-        if entry.name:
-            self._output(f"  {entry.name}")
         if entry.text:
             self._output(_indented(entry.text))
         for note in entry.notes:
@@ -588,6 +742,70 @@ class TerminalInterface:
             lasting = ", ".join(self._lasting_with_end(lasting) for lasting in c.lasting)
             lines.append(f"Lasting effects: {lasting}")
         return "\n".join(lines)
+
+    def _recap_sheet(self) -> None:
+        """The character once made, until the player goes on (Enter); `r` hides or shows the
+        descriptions. A pause of the terminal's own: nothing is answered to the engine."""
+        while True:
+            self._output("")
+            self._output(self.screen("creation.recap.title"))
+            for line in self._sheet(self._sheet_texts):
+                self._output(line)
+            toggle = "creation.recap.hide" if self._sheet_texts else "creation.recap.show"
+            self._output(f"  {RULES_KEY}) " + self.screen(toggle))
+            line = None
+            while line not in ("", RULES_KEY):  # anything else: asked again
+                line = self._line(self.screen("creation.recap.prompt")).lower()
+            if not line:
+                return
+            self._sheet_texts = not self._sheet_texts
+
+    def _sheet(self, texts: bool = False) -> list[str]:
+        """The character sheet, one thing a line: the numbers, then the Skills, the weapons,
+        the other items and the notes, each with its description when asked. Shown after
+        creation (T2); meant to grow into the sheet shown during play."""
+        game, c = self.game, self.game.character
+        content = game.content
+        name = f"{c.name} · " if c.name else ""
+        weapons = [i for i in c.items if i.id in content.weapons or i.id in content.variants]
+        others = [item for item in c.items if item not in weapons]
+        skills = [
+            (
+                content.skill(id_).name + (" (Expert)" if level is SkillLevel.EXPERT else ""),
+                content.skill(id_).text,
+            )
+            for id_, level in c.skills.items()
+        ]
+        sections = [
+            ("skills", skills),
+            ("weapons", [(self._item(i), content.weapon(i.id).text) for i in weapons]),
+            ("items", [(self._item(item), self._item_text(item)) for item in others]),
+            ("notes", [(note.text, None) for note in c.notes]),
+        ]
+        lines = [
+            f"  {name}Food {c.food} · XP {c.xp} · Clues {c.clues}",
+            f"    - Life {c.life}/{game.max(Stat.LIFE)}",
+            f"    - Sanity {c.sanity}/{game.max(Stat.SANITY)}",
+        ]
+        for key, shown in sections:
+            if shown:
+                lines.append("  " + self.screen(f"creation.recap.{key}"))
+                for label, text in shown:
+                    if texts and text:
+                        described = _indented(text, f"    - {label}: ", "      ")
+                        lines += [line.rstrip() for line in described.splitlines()]
+                    else:
+                        lines.append(f"    - {label}")
+        return lines
+
+    def _item_text(self, item: Item) -> str | None:
+        """An item's description: the text of the entry that gave it, or of the first entry
+        that gives it (one item, one text)."""
+        content = self.game.content
+        source = item.source if item.source in content.entries else None
+        if source is None:
+            source = next(iter(content.items.get(item.id, ())), None)
+        return content.entry(source).text if source is not None else None
 
     def _pregenerated(self, id_: str) -> str:
         """A pregenerated character in one line: "Anna Miller: Life 10, Sanity 9, Food 4;
@@ -671,16 +889,30 @@ def _roll(roll: RollType) -> str:
     return roll.capitalize()
 
 
+def _aside(sentence: str) -> str:
+    """A sentence as an aside in parentheses: "(you may pick up a stick…)"."""
+    return sentence[0].lower() + sentence[1:].rstrip(".")
+
+
 def _span(keys: dict[str, object]) -> str:
     return f"{next(iter(keys))} to {list(keys)[-1]}"
 
 
-def _indented(text: str, first: str = "  ") -> str:
+def _indented(text: str, first: str = "  ", rest: str = "  ") -> str:
     lines = text.strip().splitlines()
-    return "\n".join([first + lines[0], *("  " + line for line in lines[1:])])
+    return "\n".join([first + lines[0], *(rest + line for line in lines[1:])])
 
 
 # --- Starting a game ------------------------------------------------------------------------
+
+
+def _line_editing() -> None:
+    """At the keyboard, the arrow keys move in the line typed and go back to lines typed
+    before (T2): loading `readline` is enough for `input`. Some systems have none."""
+    try:
+        import readline  # noqa: F401
+    except ImportError:
+        pass
 
 
 def main(
@@ -717,6 +949,8 @@ def main(
         dice = RandomDice(args.seed)
         game = Game(dice=dice, content=load_content())
         feedback = FeedbackLog(args.feedback_file, dice.seed, args.drill, log_file)
+        if input_fn is input:
+            _line_editing()
         interface = TerminalInterface(game, input_fn, output_fn, feedback)
         if args.drill is None:
             play(game, interface)

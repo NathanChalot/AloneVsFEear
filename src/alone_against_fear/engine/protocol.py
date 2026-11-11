@@ -242,6 +242,32 @@ class Duplicate:
     entry_id: str
 
 
+class Step(StrEnum):
+    """A step of character creation (T2), so an interface can say what is being asked."""
+
+    NAME = "name"
+    POINTS = "points"
+    """The 3 points: on Life and Sanity, or traded."""
+    SKILLS = "skills"
+    """The Skills, and the gear a Skill gives at creation."""
+    WEAPONS = "weapons"
+    """The Random Weapon roll (or two), and the knife or stick."""
+    GEAR = "gear"
+    """The Random Objects and Useful Stuff rolls, then the Food."""
+
+
+@dataclass(frozen=True)
+class StepStarted:
+    """A step of character creation starts: told before what it asks or rolls."""
+
+    step: Step
+
+
+@dataclass(frozen=True)
+class Created:
+    """Character creation is over: the character is made (T2)."""
+
+
 @dataclass(frozen=True)
 class Bought:
     """XP was spent on a Skill."""
@@ -277,6 +303,8 @@ type Event = (
     | Searched
     | ItemTaken
     | Duplicate
+    | StepStarted
+    | Created
     | Bought
     | Ended
 )

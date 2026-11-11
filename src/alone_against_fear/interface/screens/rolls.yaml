@@ -1,0 +1,6 @@
+# A table rolled, in the terminal (T2): the table, the number rolled, then the entry.
+# Keys: rolls.<part>; {fields} are filled in by the terminal.
+
+rolled: "{table}, rolled {results}"
+named: "{table}, rolled {results}: {name}"
+not_copied: "{table}, rolled {results}: not copied yet, read entry {results} in {source}"
