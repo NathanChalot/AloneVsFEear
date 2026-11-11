@@ -343,6 +343,7 @@ Learning Arcane Skills works for all 11 (prerequisites: a book read, a Skill, Cl
 - Rules: [arcane skills](gameRules/1_3_arcane_skills.md), [random books](gameRules/tables/5_32_random_books_table.md)
 - Design: [character](design/character.md#xp-and-skills), [rulings](design/rulings.md#effects)
 - Also: Faith turns vampires like Exorcism (pending test since E7).
+- Also: add Douglas Harrison's book read (Computer printout of "They Are Among Us") to his pregenerated sheet in `content/characters/pregenerated.yaml`, left out in T1 for want of books read (the YAML comment says so).
 - Done when: Gate can be learned through each of its prerequisites, with tests.
 - Depends on: E17, R7.
 

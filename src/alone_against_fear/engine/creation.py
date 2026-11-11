@@ -13,6 +13,9 @@ What an entry or a Skill gives is read from the content (`item`, the weapons of 
 `count`, `uses`, `starting_gear`); the entries that give something else are behaviour, keyed
 here by entry ID: the samurai sword rolled authentic or replica, Food points, and the books
 (book mode until E18).
+
+A sample pregenerated character (T1) is made from its sheet instead, with no question: the
+drills start from one.
 """
 
 from __future__ import annotations
@@ -109,6 +112,17 @@ def create(game: Game, interface: Interface) -> Character:
             giving.take(Item(ask(interface, Choose(Topic.WEAPON, FREE_WEAPONS))))
     giving.gain_food(FOOD.roll(game.dice).total)
     return character
+
+
+def pregenerated(game: Game, pregenerated_id: str) -> Character:
+    """Make a sample pregenerated character as its sheet gives it; they continue the campaign.
+    Their printed Life and Sanity are the base of the max: neither sheet has a Skill that
+    raises them."""
+    sheet = game.content.pregenerated[pregenerated_id]
+    items = [Item(gear.id, count=gear.count, uses=gear.uses) for gear in sheet.gear]
+    return game.create_character(
+        sheet.life, sheet.sanity, sheet.food, items, name=sheet.name, skills=sheet.skills
+    )
 
 
 class _Giving:

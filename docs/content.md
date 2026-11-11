@@ -60,6 +60,8 @@ src/alone_against_fear/content/
   skills/
     skills.yaml           the Skills: a list (R2)
     arcane_skills.yaml    the Arcane Skills: a list (R2)
+  characters/
+    pregenerated.yaml     the two sample pregenerated characters (T1)
     (later places/, creatures/ … as the batches need)
 ```
 
@@ -69,7 +71,7 @@ src/alone_against_fear/content/
 
 ## IDs
 
-Lowercase words joined by `_`, segments joined by `.`. **The first segment is the kind**: `table`, `mission`, `event`, `weapon`, `item`, `skill`, `arcane_skill`, `injury`, `mental_scar` so far; `creature`, `item`… are added by the batch that first needs them.
+Lowercase words joined by `_`, segments joined by `.`. **The first segment is the kind**: `table`, `mission`, `event`, `weapon`, `item`, `skill`, `arcane_skill`, `injury`, `mental_scar`, `pregenerated` so far; `creature`, `item`… are added by the batch that first needs them.
 
 | What | ID | Rule |
 | --- | --- | --- |
@@ -83,6 +85,7 @@ Lowercase words joined by `_`, segments joined by `.`. **The first segment is th
 | An Injury, a Mental Scar | `injury.limping`, `mental_scar.paranoia` | named entries of the Injury and Insanity tables: the kind, then the result's printed name |
 | An item | `item.backpack` | `item`, then its printed name without the count, the same way as a table |
 | A weapon | `weapon.axe` | `weapon`, then its heading in the weapon summary, the same way as a table: `/` becomes `_or_` (`weapon.hockey_stick_or_golf_club`), words in brackets are kept (`weapon.samurai_sword_authentic`) |
+| A pregenerated character | `pregenerated.anna_miller` | `pregenerated`, then the name on the sheet |
 
 - **IDs are stable.** The game state refers to content by ID only, so an ID is never renamed once used.
 - **Rolls in IDs keep the book's numbers.** The book's "1,2)" is written `1-2`.
@@ -261,6 +264,28 @@ An Injury or a Mental Scar is a table entry the character holds for life (E8): i
 - **Only numbers.** What a Skill does beyond a modifier (Dodge's balance on a natural 1, Faith turning vampires, Medic healing after an encounter) is Python keyed by the Skill's ID, written with the task that has its moment. Faith and Medic have no `effects`.
 - **Bow and Martial Arts are bonuses** (the user, E7): +1 / +2 on bow or unarmed Attacks; the weapon keeps its own malus (-1 unskilled bow, -2 unarmed), so the totals are the book's.
 
+## Pregenerated characters
+
+The two sample pregenerated characters of the book, from their filled-in sheets (decided in T1): the drills start from them, and so will E17's quick run. One file, a list in the book's order, under the key `characters`.
+
+```yaml
+name: Sample pregenerated characters
+source: gameRules/14_pregenerated_characters.md
+characters:
+  - id: pregenerated.anna_miller
+    name: Anna Miller
+    sanity: 9
+    life: 10
+    food: 4
+    skills: [skill.will, skill.occultist]
+    gear:
+      - {id: weapon.pistol, count: 6}
+      - {id: weapon.hammer}
+```
+
+- **Numbers and IDs only**: the gear's text is its weapon's or item's; the sheets' own words stay in the [Markdown](../gameRules/14_pregenerated_characters.md). `gear` is a list of `{id, count, uses}` like a Skill's starting gear (ammo is the weapon's `count`), with written numbers, never dice.
+- **Where a sheet disagrees with the rules, the rules win**, as the Markdown says: Douglas has Strong at Basic, Anna one hammer. A YAML comment lists them. Douglas's book read waits for the books (E18).
+
 ## Known but not copied yet
 
 - **`catalogue.yaml` lists every table not copied yet**, with its ID, name, dice and Markdown source. A reference to a catalogued table is valid.
@@ -277,6 +302,7 @@ Tests over the whole content:
 - every reference points to an existing ID: a table, an entry, or a catalogued table or event;
 - every note an entry points to exists in its table;
 - IDs are unique and follow the scheme;
+- every pregenerated character's Skills and gear exist;
 - every table file of `gameRules/tables/` is the source of exactly one table, copied or catalogued;
 - no page reference is left in the text.
 

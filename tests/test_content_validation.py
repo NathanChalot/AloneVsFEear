@@ -755,3 +755,51 @@ def test_an_entry_without_effects_has_none(root):
 def test_a_malformed_entry_effect_is_refused(root, effect, message):
     with pytest.raises(ContentError, match=message):
         load_one(root, d6_table(f"  - roll: 1-6\n    effects:\n      - {effect}\n"))
+
+
+# --- Pregenerated characters (T1) ----------------------------------------------
+
+
+def sheet(character):
+    return (
+        "name: Pregenerated\nsource: test.md\ncharacters:\n"
+        "  - {id: pregenerated.test, name: Test, sanity: 8, life: 9, food: 4, "
+        f"{character}}}\n"
+    )
+
+
+def test_a_pregenerated_character_is_read(root):
+    write(root, "characters/test.yaml", sheet("skills: [skill.a], gear: [{id: item.a, uses: 3}]"))
+    character = load_content(root).pregenerated["pregenerated.test"]
+
+    assert (character.name, character.sanity, character.life, character.food) == (
+        "Test",
+        8,
+        9,
+        4,
+    )
+    assert character.skills == ("skill.a",)
+    assert [(g.id, g.count, g.uses) for g in character.gear] == [("item.a", None, 3)]
+
+
+@pytest.mark.parametrize(
+    ("character", "message"),
+    [
+        ("gear: [{id: weapon.a, count: 2d6}]", "a number on the sheet, not dice"),
+        ("xp: 3", r"unknown keys \['xp'\]"),
+        ("skills: skill.a", "expected a list of IDs"),
+    ],
+)
+def test_a_malformed_pregenerated_character_is_refused(root, character, message):
+    write(root, "characters/test.yaml", sheet(character))
+    with pytest.raises(ContentError, match=message):
+        load_content(root)
+
+
+def test_a_pregenerated_characters_skills_and_gear_must_exist(root):
+    write(root, "characters/test.yaml", sheet("skills: [skill.a], gear: [{id: item.a}]"))
+
+    assert reference_problems(load_content(root)) == [
+        "pregenerated.test: no such ID skill.a",
+        "pregenerated.test: no such ID item.a",
+    ]
