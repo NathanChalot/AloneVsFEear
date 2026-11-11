@@ -72,19 +72,21 @@ weapons:
   - id: weapon.kitchen_knife_or_ritual_dagger
     name: Kitchen knife/ritual dagger
     text: >-
-      -1 to Attack. Damage 1. If the Attack roll is a 1, it breaks. You
-      may pick up a kitchen knife every time you visit a house.
+      -1 to Attack. Damage 1. If the Attack roll is a 1, it breaks.
     variants:
-      - {id: weapon.kitchen_knife, name: Kitchen knife}
+      - id: weapon.kitchen_knife
+        name: Kitchen knife
+        extra: You may pick up a kitchen knife every time you visit a house.
       - {id: weapon.ritual_dagger, name: Ritual dagger}
   - id: weapon.knife_or_stick
     name: Knife or stick
     text: >-
-      -1 to Attack rolls. You may pick up a stick every time you visit a
-      park.
+      -1 to Attack rolls.
     variants:
       - {id: weapon.knife, name: Knife}
-      - {id: weapon.stick, name: Stick}
+      - id: weapon.stick
+        name: Stick
+        extra: You may pick up a stick every time you visit a park.
   - id: weapon.molotov_cocktail
     name: Molotov cocktail
     text: >-
