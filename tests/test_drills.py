@@ -104,7 +104,7 @@ def test_death_ends_a_drill_first(content):
 
 
 def test_the_drills_are_named():
-    assert list(drills.DRILLS) == ["creation", "walk", "lasting", "xp"]
+    assert list(drills.DRILLS) == ["creation", "walk", "lasting", "xp", "inventory"]
     assert all(drill.about for drill in drills.DRILLS.values())
 
 
@@ -209,3 +209,27 @@ def test_the_xp_drill_buys_a_skill_and_an_expert_level(content):
 def test_an_unknown_drill_is_refused(content):
     with pytest.raises(KeyError):
         drills.run("nothing", new_game(content), ScriptedInterface([]))
+
+
+def test_the_inventory_drill_starts_with_a_backpack_and_nearly_full_pockets(content):
+    # given the inventory drill with Anna Miller, who quits at Home
+    game = new_game(content)
+    interface = ScriptedInterface([ANNA, HOME, Action.QUIT])
+
+    drills.run("inventory", game, interface)
+
+    # then she carries her sheet's gear and the drill's: 11 slots of 15, Food 12 of 15
+    ids = [item.id for item in game.character.items]
+    assert ids[:4] == ["weapon.pistol", "weapon.hammer", "item.wooden_stakes", "item.first_aid_kit"]
+    assert "item.backpack" in ids
+    assert (game.slots_used(), game.carry_limit()) == (11, 15)
+    assert (game.character.food, game.food_limit()) == (12, 15)
+    assert game.campaign.home == HOME
+
+
+def test_the_inventory_drill_ends_after_six_boxes(content):
+    game = new_game(content, *EXPLORE * 6)
+    interface = ScriptedInterface([ANNA, HOME, *moves(*WALK[:6])])
+
+    assert drills.run("inventory", game, interface) is End.DRILL_OVER
+    assert game.campaign.box_counter == 7
