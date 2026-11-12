@@ -54,8 +54,8 @@ class Moment(StrEnum):
 
 
 class Stat(StrEnum):
-    """The character's plain numbers. Life and Sanity have a max (E6); the Food limit comes
-    with the inventory (E9)."""
+    """The character's plain numbers. Life and Sanity have a max (E6), Food the room it may
+    take (E9)."""
 
     LIFE = "life"
     SANITY = "sanity"
@@ -74,6 +74,16 @@ class Mark(StrEnum):
     their tasks; other marks a text gives are plain strings until then."""
 
     SAFE_HOUSE = "safe_house"
+
+
+class Place(StrEnum):
+    """Where an item is (E9, design/inventory.md): in a hand, carried, worn, or left in the box
+    the character stands in."""
+
+    HANDS = "hands"
+    CARRIED = "carried"
+    WORN = "worn"
+    BOX = "box"
 
 
 class End(StrEnum):
@@ -101,8 +111,8 @@ class Note:
 @dataclass(frozen=True)
 class Item:
     """Something the character holds (E6): an item or a weapon by ID, the table entry it came
-    from (its text is shown), how many objects (`count`: garlic heads, bullets) and how many
-    uses are left (`uses`: a First Aid Kit's points). The inventory's rules come with E9."""
+    from (its text is shown), how many objects (`count`: garlic heads, grenades) and how many
+    uses are left (`uses`: a First Aid Kit's points). Ammo is not an item (E9)."""
 
     id: str
     source: str | None = None
@@ -157,8 +167,11 @@ class Box:
     """IDs of every place table rolled in it (a haunted clinic holds both)."""
     searched: bool = False
     marks: set[str] = field(default_factory=set)
-    """Safe House, Hell Gate, deconsecrated church... Left-behind encounters and the stash
-    come with the tasks that model them."""
+    """Safe House, Hell Gate, deconsecrated church... Left-behind encounters come with their
+    task."""
+    items: list[Item] = field(default_factory=list)
+    """The items the character left here (E9): a stash in a Safe House, otherwise they may
+    vanish (design/rulings.md, Inventory)."""
 
 
 @dataclass
@@ -194,6 +207,12 @@ class Character:
     mental_scars: list[str] = field(default_factory=list)
     """Insanity table entry IDs (`mental_scar.`), in the order gained."""
     items: list[Item] = field(default_factory=list)
+    """The items carried (E9): in the carry limit, light ones included."""
+    hands: list[Item] = field(default_factory=list)
+    """What is held: two hands, or one two-handed weapon."""
+    worn: list[Item] = field(default_factory=list)
+    ammo: dict[str, int] = field(default_factory=dict)
+    """How many of each ammo type (`content.AMMO_TYPES`); none at 0."""
     lasting: list[Lasting] = field(default_factory=list)
     """Effects with a lifetime of their own (E8), in the order they started."""
     notes: list[Note] = field(default_factory=list)

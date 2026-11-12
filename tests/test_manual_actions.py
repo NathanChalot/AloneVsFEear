@@ -24,8 +24,8 @@ modifier they give. Its entry is then followed like any other.
 A modifier for a number of boxes is added as a lasting effect (E8): the engine applies it to
 every roll and ends it on time; one "until removed" is removed by hand.
 
-Items (take, drop) wait for R3, which gives items their IDs. Scenarios are played by a scripted
-interface; the dice show the faces given.
+Items (take, lose, the backpack) came with E9: see test_carrying.py. Scenarios are played by
+a scripted interface; the dice show the faces given.
 """
 
 import pytest
@@ -68,6 +68,7 @@ not copied yet: its entry is book mode."""
 MANUAL = (
     Manual.GAIN,
     Manual.LOSE,
+    Manual.TAKE_ITEM,
     Manual.ROLL,
     Manual.ADD_LASTING,
     Manual.WRITE_NOTE,
@@ -77,6 +78,7 @@ MANUAL = (
 EFFECTS = (
     Manual.GAIN,
     Manual.LOSE,
+    Manual.TAKE_ITEM,
     Manual.ROLL,
     Manual.ADD_LASTING,
     Manual.WRITE_NOTE,
@@ -420,6 +422,7 @@ def test_apply_an_effect_opens_the_manual_actions_about_the_character(content):
     assert first.options == (
         Manual.GAIN,
         Manual.LOSE,
+        Manual.TAKE_ITEM,
         Manual.ROLL,
         Manual.ADD_LASTING,
         Manual.WRITE_NOTE,

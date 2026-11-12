@@ -9,21 +9,26 @@ with no entry). Marking a Safe House is about the town: only with the entry that
 A modifier for a number of boxes is a lasting effect the engine tracks and ends on time
 (E8): on every roll or on one roll type, for the next N boxes or until removed. Notes are the
 player's reminders of what the engine cannot track yet (a restriction, "until you reach a Safe
-House"). Items (take, drop) come
-once R3 gives them IDs; fighting a creature with E12.
+House"). Items (E9): take what a text gives (an item with its count or uses, a weapon with
+its ammo, ammo), lose an item or ammo, lose the backpack; fighting a creature with E12.
 """
 
 from __future__ import annotations
 
 from enum import StrEnum
 
-from ..content import Effect
+from ..content import AMMO_TYPES, Effect
 from ..effect_targets import RollType, Tag, with_implied
+from . import carrying
 from .game import Game
+from .inventory import is_weapon
 from .protocol import (
+    AmmoChanged,
     Changed,
     Choose,
     Interface,
+    ItemAt,
+    ItemLost,
     LastingAdded,
     LastingRemoved,
     Marked,
@@ -34,7 +39,7 @@ from .protocol import (
     Topic,
     ask,
 )
-from .state import Mark, Stat
+from .state import Item, Mark, Stat
 
 
 class Target(StrEnum):
@@ -50,6 +55,12 @@ class Manual(StrEnum):
     """Gain Life, Sanity, Food, XP or Clues; Life and Sanity stop at their max."""
     LOSE = "lose"
     """Lose one of them, down to 0: only what the character has can be lost."""
+    TAKE_ITEM = "take_item"
+    """Take an item, a weapon or ammo a text gives, through the room rules (E9)."""
+    LOSE_ITEM = "lose_item"
+    """Lose an item or ammo the character has (E9)."""
+    LOSE_BACKPACK = "lose_backpack"
+    """The backpack is stolen or destroyed, with every carried item (E9)."""
     ROLL = "roll"
     """A roll vs L: its type, the L and the modifier typed from the text; the effects held
     add theirs (E7)."""
@@ -92,6 +103,11 @@ def _about_the_character(game: Game) -> tuple[Manual, ...]:
     actions = [Manual.GAIN]
     if _losable(game):
         actions.append(Manual.LOSE)
+    actions.append(Manual.TAKE_ITEM)
+    if carrying.losable(game):
+        actions.append(Manual.LOSE_ITEM)
+    if carrying.has_backpack(game):
+        actions.append(Manual.LOSE_BACKPACK)
     actions += [Manual.ROLL, Manual.ADD_LASTING]
     if game.character.lasting:
         actions.append(Manual.REMOVE_LASTING)
@@ -107,6 +123,9 @@ def apply(game: Game, interface: Interface, action: Manual) -> None:
         case Manual.GAIN:
             stat = ask(interface, Choose(Topic.STAT, tuple(Stat)))
             amount = ask(interface, Number(Topic.AMOUNT, minimum=1))
+            if stat is Stat.FOOD:
+                carrying.gain_food(game, interface, amount)
+                return
             before = _value(game, stat)
             value = game.gain(stat, amount)
             interface.tell(Changed(stat, value - before, value))
@@ -114,6 +133,12 @@ def apply(game: Game, interface: Interface, action: Manual) -> None:
             stat = ask(interface, Choose(Topic.STAT, _losable(game)))
             amount = min(ask(interface, Number(Topic.AMOUNT, minimum=1)), _value(game, stat))
             interface.tell(Changed(stat, -amount, game.lose(stat, amount)))
+        case Manual.TAKE_ITEM:
+            _take_item(game, interface)
+        case Manual.LOSE_ITEM:
+            _lose_item(game, interface)
+        case Manual.LOSE_BACKPACK:
+            carrying.lose_backpack(game, interface)
         case Manual.ROLL:
             roll = ask(interface, Choose(Topic.ROLL, ROLLS))
             level = ask(interface, Number(Topic.LEVEL, minimum=1))
@@ -143,6 +168,44 @@ def apply(game: Game, interface: Interface, action: Manual) -> None:
             position = game.campaign.position
             game.add_mark(position, Mark.SAFE_HOUSE)
             interface.tell(Marked(position, Mark.SAFE_HOUSE))
+
+
+def _take_item(game: Game, interface: Interface) -> None:
+    """The item, weapon or ammo a text gives, with what the player reads in the text: its
+    count, its uses, the ammo that comes with a weapon."""
+    given = ask(interface, Choose(Topic.ITEM, (*carrying.takeable(game), Manual.BACK)))
+    content = game.content
+    if given is Manual.BACK:
+        return
+    if given in AMMO_TYPES:
+        amount = ask(interface, Number(Topic.AMOUNT, minimum=1))
+        carrying.gain_ammo(game, interface, given, amount)
+        return
+    count = uses = None
+    if given in content.items:
+        entries = [content.entry(e) for e in content.items[given]]
+        if any(entry.count is not None for entry in entries):
+            count = ask(interface, Number(Topic.COUNT, minimum=1))
+        if any(entry.uses is not None for entry in entries):
+            uses = ask(interface, Number(Topic.USES, minimum=1))
+    carrying.take(game, interface, Item(given, count=count, uses=uses))
+    if is_weapon(content, Item(given)) and (ammo := content.weapon(given).ammo):
+        if amount := ask(interface, Number(Topic.AMMO, minimum=0)):
+            carrying.gain_ammo(game, interface, ammo, amount)
+
+
+def _lose_item(game: Game, interface: Interface) -> None:
+    """An item or ammo a text takes: used up, broken, stolen."""
+    lost = ask(interface, Choose(Topic.ITEM, (*carrying.losable(game), Manual.BACK)))
+    if lost is Manual.BACK:
+        return
+    if isinstance(lost, ItemAt):
+        game.remove_item(lost.item, here=lost.place)
+        interface.tell(ItemLost(lost.item))
+        return
+    held = game.character.ammo[lost]
+    amount = ask(interface, Number(Topic.AMOUNT, minimum=1, maximum=held))
+    interface.tell(AmmoChanged(lost, -amount, game.lose_ammo(lost, amount)))
 
 
 ROLLS = tuple(roll for roll in RollType if roll is not RollType.SEARCH)

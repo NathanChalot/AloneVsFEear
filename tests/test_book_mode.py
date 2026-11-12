@@ -394,7 +394,8 @@ class RandomPlayer:
             raise Quit
         if isinstance(request, Number):  # an amount, an L, a modifier: small numbers
             low = request.minimum if request.minimum is not None else -2
-            return self.random.randint(low, low + 3)
+            high = low + 3 if request.maximum is None else min(low + 3, request.maximum)
+            return self.random.randint(low, high)
         if isinstance(request, Text):  # a note
             return f"note {self.random.randint(1, 9)}"
         options = [option for option in request.options if option is not Action.QUIT]

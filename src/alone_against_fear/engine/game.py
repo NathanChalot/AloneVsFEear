@@ -12,10 +12,10 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import NamedTuple
 
-from ..content import CatalogueEvent, CatalogueTable, Content, Effect
+from ..content import AMMO_TYPES, CatalogueEvent, CatalogueTable, Content, Effect
 from ..dice import Dice, DiceCode
 from ..effect_targets import Parameter, RollType, Tag, with_implied
-from . import effects
+from . import effects, inventory
 from .effects import PLAYER, Held, Modifier, RollModifiers
 from .state import (
     Box,
@@ -32,6 +32,7 @@ from .state import (
     Moment,
     MoveKind,
     Note,
+    Place,
     Position,
     SkillLevel,
     Stat,
@@ -43,8 +44,16 @@ FOOD_INTERVAL = 5
 """One Food every this many boxes: the Food interval's base."""
 CARRY_LIMIT = 10
 """Items carried, before the backpack and Strong (E9)."""
+FOOD_LIMIT = 10
+"""Food carried before it takes item slots, before the backpack (E9)."""
+LEFT_ITEMS_GONE = 3
+"""Items left in a box are gone on a d6 roll of this or less (design/rulings.md, Inventory)."""
 
-PARAMETER_BASES = {Parameter.CARRY_LIMIT: CARRY_LIMIT, Parameter.FOOD_INTERVAL: FOOD_INTERVAL}
+PARAMETER_BASES = {
+    Parameter.CARRY_LIMIT: CARRY_LIMIT,
+    Parameter.FOOD_LIMIT: FOOD_LIMIT,
+    Parameter.FOOD_INTERVAL: FOOD_INTERVAL,
+}
 """The bases written in the rules; max Life and Sanity are the character's, the surprise chance
 and the Clue cost the text's."""
 PARAMETER_FLOORS = {
@@ -55,6 +64,8 @@ PARAMETER_FLOORS = {
 """Danger Sense leaves a 1 in 6 creature no chance; Investigator reduces a Clue cost "to a
 minimum of 1" (`1_2_skills.md`); a meal is never more often than every box
 (design/rulings.md, Character)."""
+PARAMETER_CEILINGS = {Parameter.CARRY_LIMIT: inventory.MAX_CARRIED}
+"""20 items carried is "the absolute maximum you can carry in the game" (`1_1_main_rules.md`)."""
 
 PLACE_TABLES = frozenset(
     {
@@ -139,6 +150,14 @@ class Searched:
         return sum(m.amount for m in self.modifiers)
 
 
+@dataclass(frozen=True)
+class LeftItems:
+    """The roll for the items left in a box, on coming back (E9): gone on 1-3."""
+
+    face: int
+    gone: bool
+
+
 class Purchase(NamedTuple):
     """A Skill that XP can buy: at Basic, or an owned one at Expert (its cost again)."""
 
@@ -196,7 +215,8 @@ class Game:
         name: str = "",
         skills: Iterable[str] = (),
     ) -> Character:
-        """A new character, who continues the campaign; the last one is forgotten. Their
+        """A new character, who continues the campaign; the last one is forgotten, and so is
+        every item they left in a box. Their
         starting Life and Sanity are the base of the max, and they start at the max: Tough and
         Strong Grip on Reality raise both. Their Skills are at Basic, and none is Arcane
         (creation, `1_1_main_rules.md`)."""
@@ -204,6 +224,8 @@ class Game:
         for skill_id in skills:
             if skill_id not in self.content.skills:
                 raise GameError(f"a character cannot start with {skill_id}")
+        for box in self.campaign.map.boxes.values():
+            box.items.clear()  # what the last character left is lost (design/inventory.md)
         self.campaign.character = Character(
             life=life,
             sanity=sanity,
@@ -228,12 +250,15 @@ class Game:
 
     def max(self, stat: Stat) -> int | None:
         """The max of Life or Sanity: the base plus the effects held (Tough, Strong Grip on
-        Reality). None for the numbers with no max (the Food limit comes with E9)."""
+        Reality). Food's is the Food limit plus the item slots left (E9). None for the
+        numbers with no max."""
         match stat:
             case Stat.LIFE:
                 return self.parameter(Parameter.MAX_LIFE)
             case Stat.SANITY:
                 return self.parameter(Parameter.MAX_SANITY)
+            case Stat.FOOD:
+                return self.food_limit() + self.carry_limit() - self._item_slots()
         return None
 
     def gain_injury(self, entry_id: str) -> None:
@@ -274,6 +299,7 @@ class Game:
         if base is None:
             raise GameError(f"{parameter} needs a base: the text or the creature gives it")
         value = base + effects.parameter_change(self.effects(), parameter)
+        value = min(value, PARAMETER_CEILINGS.get(parameter, value))
         return max(value, PARAMETER_FLOORS.get(parameter, value))
 
     def add_lasting(
@@ -413,15 +439,178 @@ class Game:
 
     # --- Items ------------------------------------------------------------------------------
 
-    def add_item(self, item: Item) -> None:
-        self.character.items.append(item)
-        log.info("character takes %s", item)
+    def carry_limit(self) -> int:
+        """Items carried, hands apart: 10, +3 / +5 Strong, +5 backpack, never above 20."""
+        return self.parameter(Parameter.CARRY_LIMIT)
 
-    def remove_item(self, item: Item) -> None:
-        if item not in self.character.items:
+    def food_limit(self) -> int:
+        """Food carried before each point takes an item slot: 10, 15 with a backpack."""
+        return self.parameter(Parameter.FOOD_LIMIT)
+
+    def slots_used(self) -> int:
+        """The item slots taken: carried and worn items, and the Food over the Food limit."""
+        return self._item_slots() + max(0, self.character.food - self.food_limit())
+
+    def room(self) -> int:
+        """The item slots left; below 0 when a limit dropped."""
+        return self.carry_limit() - self.slots_used()
+
+    def _item_slots(self) -> int:
+        c = self.character
+        return sum(inventory.slots(self.content, i, Place.CARRIED) for i in c.items) + sum(
+            inventory.slots(self.content, i, Place.WORN) for i in c.worn
+        )
+
+    def hands_needed(self, item: Item) -> int:
+        return inventory.hands_needed(self.content, self.character, item)
+
+    def free_hands(self) -> int:
+        return 2 - sum(self.hands_needed(item) for item in self.character.hands)
+
+    def box_items(self) -> list[Item]:
+        """The items left in the box the character stands in."""
+        return self._box(self._position()).items
+
+    def place_of(self, item: Item) -> Place:
+        """Where the character has the item, or the box they stand in."""
+        c = self.character
+        for place, items in (
+            (Place.HANDS, c.hands),
+            (Place.CARRIED, c.items),
+            (Place.WORN, c.worn),
+        ):
+            if item in items:
+                return place
+        if self.campaign.position is not None and item in self.box_items():
+            return Place.BOX
+        raise GameError(f"the character has no {item}")
+
+    def places_for(self, item: Item, here: Place | None = None) -> tuple[Place, ...]:
+        """Where the item may go from where it is (`here`, or the first place it is found),
+        in the order of `Place`."""
+        here = here or self.place_of(item)
+        return tuple(to for to in Place if to is not here and self._refusal(item, here, to) is None)
+
+    def add_item(self, item: Item, to: Place = Place.CARRIED) -> None:
+        """A new item: taken (carried, in hand, worn) or left in the box. Refused where it does
+        not fit."""
+        if (refusal := self._refusal(item, None, to)) is not None:
+            raise GameError(refusal)
+        self._list(to).append(item)
+        log.info("character takes %s, %s", item, to)
+
+    def move_item(self, item: Item, to: Place, here: Place | None = None) -> None:
+        """Hold, stow, wear, take off, leave in the box or pick up from it. `here` says where
+        the item is when two places hold the same (a rope carried, a rope left)."""
+        here = here or self.place_of(item)
+        if item not in self._list(here):
+            raise GameError(f"no {item.id} {here}")
+        if here is to:
+            raise GameError(f"{item.id} is already {to}")
+        if (refusal := self._refusal(item, here, to)) is not None:
+            raise GameError(refusal)
+        self._list(here).remove(item)
+        self._list(to).append(item)
+        log.info("character moves %s: %s to %s", item, here, to)
+
+    def remove_item(self, item: Item, here: Place | None = None) -> None:
+        """The item is gone: used up, broken, stolen. `here` as for `move_item`."""
+        here = here or self.place_of(item)
+        if here is Place.BOX or item not in self._list(here):
             raise GameError(f"the character has no {item}")
-        self.character.items.remove(item)
-        log.info("character drops %s", item)
+        self._list(here).remove(item)
+        log.info("character loses %s", item)
+
+    def _list(self, place: Place) -> list[Item]:
+        c = self.character
+        match place:
+            case Place.HANDS:
+                return c.hands
+            case Place.CARRIED:
+                return c.items
+            case Place.WORN:
+                return c.worn
+            case Place.BOX:
+                return self.box_items()
+
+    def _refusal(self, item: Item, here: Place | None, to: Place) -> str | None:
+        """Why the item cannot go from `here` (None: a new item) to `to`, or None."""
+        content = self.content
+        match to:
+            case Place.HANDS:
+                free = self.free_hands() + (self.hands_needed(item) if here is Place.HANDS else 0)
+                if self.hands_needed(item) > free:
+                    return f"{item.id} needs {self.hands_needed(item)} hands, {free} free"
+            case Place.WORN:
+                if not inventory.wearable(content, item):
+                    return f"{item.id} cannot be worn"
+                worn = {i.id for i in self.character.worn}
+                if item.id in inventory.CLOTHES and worn & inventory.CLOTHES:
+                    return "one set of clothes at a time"
+        if to in (Place.CARRIED, Place.WORN):
+            freed = inventory.slots(content, item, here) if here is not None else 0
+            if inventory.slots(content, item, to) - freed > self.room():
+                return f"no room for {item.id}: {self.room()} slots left"
+        return None
+
+    def gain_ammo(self, ammo: str, amount: int) -> int:
+        """Ammo of one type; returns how many now. Not an item: no slot (rulings, Inventory)."""
+        self._check_ammo(ammo, amount)
+        value = self.character.ammo.get(ammo, 0) + amount
+        self.character.ammo[ammo] = value
+        log.info("character gains %d %s, now %d", amount, ammo, value)
+        return value
+
+    def lose_ammo(self, ammo: str, amount: int) -> int:
+        self._check_ammo(ammo, amount)
+        held = self.character.ammo.get(ammo, 0)
+        if amount > held:
+            raise GameError(f"only {held} {ammo}, cannot lose {amount}")
+        if held == amount:
+            del self.character.ammo[ammo]
+        else:
+            self.character.ammo[ammo] = held - amount
+        log.info("character loses %d %s, now %d", amount, ammo, held - amount)
+        return held - amount
+
+    def _check_ammo(self, ammo: str, amount: int) -> None:
+        if ammo not in AMMO_TYPES:
+            raise GameError(f"no such ammo type: {ammo}")
+        if amount < 0:
+            raise GameError(f"a negative amount of {ammo}: {amount}")
+
+    def lose_backpack(self) -> tuple[Item, ...]:
+        """The backpack is stolen or destroyed: every carried item is lost, light ones too;
+        hands, worn items and ammo are kept, and Food over the new limit takes the slots left
+        or is lost (design/rulings.md, Inventory). Returns what was lost."""
+        if not any(item.id == inventory.BACKPACK for item in self.character.items):
+            raise GameError("the character has no backpack")
+        lost = tuple(self.character.items)
+        self.character.items.clear()
+        log.info("character loses the backpack and %s", ", ".join(i.id for i in lost))
+        if self.character.food > (top := self.max(Stat.FOOD)):
+            self._set(Stat.FOOD, max(top, 0), "loses the Food over the limit:")
+        return lost
+
+    def roll_left_items(self) -> LeftItems | None:
+        """Coming back to a box where items were left: d6, on 1-3 they are all gone. A Safe
+        House keeps them (its stash), Home too (design/rulings.md, Safe Houses). None when
+        there is nothing to roll for."""
+        position = self._position()
+        box = self._box(position)
+        if not box.items or Mark.SAFE_HOUSE in box.marks or position == self.campaign.home:
+            return None
+        face = D6.roll(self.dice).total
+        gone = face <= LEFT_ITEMS_GONE
+        if gone:
+            box.items.clear()
+        log.info(
+            "items left at %s: rolled %d, %s",
+            tuple(position),
+            face,
+            "gone" if gone else "still there",
+        )
+        return LeftItems(face, gone)
 
     def add_note(self, text: str) -> Note:
         """A note the player keeps, written at the current box number; the engine never

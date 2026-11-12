@@ -10,9 +10,10 @@ given at creation (the same item or weapon, or the same entry for what is neithe
 table is rolled again.
 
 What an entry or a Skill gives is read from the content (`item`, the weapons of `refs`,
-`count`, `uses`, `starting_gear`); the entries that give something else are behaviour, keyed
-here by entry ID: the samurai sword rolled authentic or replica, Food points, and the books
-(book mode until E18).
+`ammo`, `count`, `uses`, `starting_gear`); the entries that give something else are behaviour,
+keyed here by entry ID: the samurai sword rolled authentic or replica, Food points, and the
+books (book mode until E18). A ranged weapon's count is its ammo, kept per type (E9); what is
+given goes through the carrying rules (`carrying`), though creation always has the room.
 
 A sample pregenerated character (T1) is made from its sheet instead, with no question: the
 drills start from one.
@@ -24,16 +25,15 @@ from enum import StrEnum
 
 from ..content import Count, Entry
 from ..dice import DiceCode
-from . import book_mode
+from . import book_mode, carrying
 from .game import Game
+from .inventory import held_items
 from .leads import DieRoll
 from .protocol import (
-    Changed,
     Choose,
     Created,
     Duplicate,
     Interface,
-    ItemTaken,
     LeadRolled,
     Number,
     Step,
@@ -42,7 +42,7 @@ from .protocol import (
     Topic,
     ask,
 )
-from .state import Character, Item, Stat
+from .state import Character, Item
 
 BASE = 8
 """Life and Sanity before the points."""
@@ -131,10 +131,28 @@ def pregenerated(game: Game, pregenerated_id: str) -> Character:
     Their printed Life and Sanity are the base of the max: neither sheet has a Skill that
     raises them."""
     sheet = game.content.pregenerated[pregenerated_id]
-    items = [Item(gear.id, count=gear.count, uses=gear.uses) for gear in sheet.gear]
-    return game.create_character(
+    items, ammo = [], []
+    for gear in sheet.gear:
+        if (kind := _ammo(game, gear.id)) is not None:
+            items.append(Item(gear.id, uses=gear.uses))
+            ammo.append((kind, gear.count))
+        else:
+            items.append(Item(gear.id, count=gear.count, uses=gear.uses))
+    character = game.create_character(
         sheet.life, sheet.sanity, sheet.food, items, name=sheet.name, skills=sheet.skills
     )
+    for kind, count in ammo:
+        if count:
+            game.gain_ammo(kind, count)
+    return character
+
+
+def _ammo(game: Game, item_id: str) -> str | None:
+    """The ammo type of a ranged weapon, whose count is its ammo; None for anything else."""
+    content = game.content
+    if item_id in content.weapons or item_id in content.variants:
+        return content.weapon(item_id).ammo
+    return None
 
 
 class _Giving:
@@ -157,17 +175,20 @@ class _Giving:
             self.interface.tell(Duplicate(entry.id))
 
     def take(self, item: Item) -> None:
-        self.game.add_item(item)
-        self.interface.tell(ItemTaken(item))
+        """Take what was given; a ranged weapon's count is its ammo."""
+        if (kind := _ammo(self.game, item.id)) is not None:
+            carrying.take(self.game, self.interface, Item(item.id, item.source, uses=item.uses))
+            if item.count:
+                carrying.gain_ammo(self.game, self.interface, kind, item.count)
+            return
+        carrying.take(self.game, self.interface, item)
 
     def gain_food(self, amount: int) -> None:
-        before = self.game.character.food
-        value = self.game.gain(Stat.FOOD, amount)
-        self.interface.tell(Changed(Stat.FOOD, value - before, value))
+        carrying.gain_food(self.game, self.interface, amount)
 
     def _give(self, entry: Entry, rolled) -> bool:
         """Give what the entry gives; False when it is a duplicate."""
-        held = {item.id for item in self.game.character.items}
+        held = {item.id for item in held_items(self.game.character)}
         if entry.item is not None:
             if entry.item in held:
                 return False
@@ -184,7 +205,9 @@ class _Giving:
         if entry.id in self.reached:
             return False
         self.reached.add(entry.id)
-        if entry.id in FOOD_POINTS:
+        if entry.ammo is not None:
+            carrying.gain_ammo(self.game, self.interface, entry.ammo, self.amount(entry.count))
+        elif entry.id in FOOD_POINTS:
             self.gain_food(self.amount(entry.count))
         else:  # a book: the player reads it in book mode
             book_mode.lead_on(self.game, self.interface, rolled)

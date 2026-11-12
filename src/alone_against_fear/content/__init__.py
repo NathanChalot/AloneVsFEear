@@ -5,6 +5,7 @@ See docs/content.md for the file layout, the ID scheme and the shape of a table.
 
 from .loader import CONTENT_DIR, load_content
 from .model import (
+    AMMO_TYPES,
     KINDS,
     CatalogueEvent,
     CatalogueTable,
@@ -25,6 +26,7 @@ from .model import (
 )
 
 __all__ = [
+    "AMMO_TYPES",
     "CONTENT_DIR",
     "KINDS",
     "CatalogueEvent",

@@ -3,8 +3,8 @@
 Effects are not stored: they are read from their sources whenever a rule needs them, so
 removing a source removes its effects and a max is never out of date. The sources are the
 Skills and, since E8, the Injuries and Mental Scars (their table entries' effects) and the
-lasting effects, the only ones stored, since they have a lifetime of their own; items (E9)
-join them with their task.
+lasting effects, the only ones stored, since they have a lifetime of their own; since E9 the
+items held (their entry's effects: the backpack), in hand, carried or worn.
 """
 
 from __future__ import annotations
@@ -15,6 +15,7 @@ from typing import NamedTuple
 
 from ..content import Content, Effect
 from ..effect_targets import Parameter, RollType, Tag
+from .inventory import held_items
 from .state import Character, SkillLevel
 
 PLAYER = "player"
@@ -51,7 +52,7 @@ class RollModifiers(NamedTuple):
 
 def held(character: Character, content: Content) -> tuple[Held, ...]:
     """Every effect the character holds: their Skills', their Injuries' and Mental Scars',
-    then their lasting effects, each in the order gained."""
+    their items', then their lasting effects, each in the order gained."""
     skills = (
         Held(skill_id, effect, effect.amount(expert=level is SkillLevel.EXPERT))
         for skill_id, level in character.skills.items()
@@ -62,8 +63,14 @@ def held(character: Character, content: Content) -> tuple[Held, ...]:
         for entry_id in (*character.injuries, *character.mental_scars)
         for effect in content.entry(entry_id).effects
     )
+    items = (
+        Held(item.id, effect, effect.amount(expert=False))
+        for item in held_items(character)
+        if item.id in content.items
+        for effect in content.item_entry(item.id).effects
+    )
     lasting = (Held(e.source, e.effect, e.effect.amount(expert=False)) for e in character.lasting)
-    return (*skills, *harm, *lasting)
+    return (*skills, *harm, *items, *lasting)
 
 
 def matches(effect: Effect, roll: RollType, tags: frozenset[Tag]) -> bool:
@@ -106,5 +113,14 @@ def depending_on_tags(effects: Iterable[Held], roll: RollType) -> tuple[Held, ..
 
 
 def parameter_change(effects: Iterable[Held], parameter: Parameter) -> int:
-    """How much the effects held change a parameter."""
-    return sum(h.amount for h in effects if h.effect.parameter is parameter)
+    """How much the effects held change a parameter. They add up, except within a group,
+    where only the highest counts (a second backpack adds nothing, E9)."""
+    total, best = 0, {}
+    for held_effect in effects:
+        if held_effect.effect.parameter is not parameter:
+            continue
+        if (group := held_effect.effect.group) is None:
+            total += held_effect.amount
+        else:
+            best[group] = max(best.get(group, held_effect.amount), held_effect.amount)
+    return total + sum(best.values())
