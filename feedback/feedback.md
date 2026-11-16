@@ -153,3 +153,35 @@ same comment IO ll quite the session. I think we should post pone the drill to a
 - Log: logs/20261112-000054.log
 
 "Will becomes Expert: 6 XP spent" wdyt of "Spent 6 XP to upgrade Will to Expert" ?
+
+## 2026-11-16 10:17 · drill inventory · seed 4188890966 · box 1
+
+- Character: Anna Miller
+- Asked: What do you do?
+- Log: logs/20261116-093751.log
+
+Carried could be displayed as a list with new line between items. I think it should not be displayed by default but on request as it kind of pollute the screen.
+
+## 2026-11-16 11:23 · drill inventory · seed 4188890966 · box 3
+
+- Character: Anna Miller
+- Asked: What do you do?
+- Log: logs/20261116-093751.log
+
+we should be able to check the inventory at any time
+
+## 2026-11-16 11:24 · drill inventory · seed 4188890966 · box 3
+
+- Character: Anna Miller
+- Asked: Move to: choose a box [1-5]
+- Log: logs/20261116-093751.log
+
+nothing alow the user to se what boxes were already visited and/or searched, we may want to rework this
+
+## 2026-11-16 11:25 · drill inventory · seed 4188890966 · box 4
+
+- Character: Anna Miller
+- Asked: What do you do?
+- Log: logs/20261116-093751.log
+
+Carried (2 of 10 slots, 2 for Food): nothing , what does nothing mean here ?

@@ -176,13 +176,9 @@ def test_food_over_the_room_asks_what_to_drop_or_leaves_the_rest(content):
 # --- The inventory, a free action -----------------------------------------------------------------
 
 
-def test_the_inventory_is_a_free_action_once_there_is_something(content):
+def test_the_inventory_is_always_a_free_action(content):
+    # even with nothing held: the player can look (inventory drill feedback)
     game = new_game(content)
-    interface = ScriptedInterface([Action.QUIT])
-    play(game, interface)
-    assert Action.INVENTORY not in asked(interface, Topic.ACTION)[0].options
-
-    game.add_item(ROPE)
     interface = ScriptedInterface([Action.QUIT])
     play(game, interface)
     assert Action.INVENTORY in asked(interface, Topic.ACTION)[0].options

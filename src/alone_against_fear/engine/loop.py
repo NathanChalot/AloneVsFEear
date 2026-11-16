@@ -117,9 +117,8 @@ def _actions(game: Game) -> tuple[Action, ...]:
     """The free actions: move first and quit last, so they keep their place."""
     search = (Action.SEARCH,) if game.may_search() else ()
     spend = (Action.SPEND_XP,) if game.purchases() else ()
-    things = (Action.INVENTORY,) if carrying.items_at(game) else ()
     sheet = (Action.SHEET,) if game.new_sheets() else ()
-    return (Action.MOVE, *search, Action.APPLY, *spend, *things, *sheet, Action.QUIT)
+    return (Action.MOVE, *search, Action.APPLY, *spend, Action.INVENTORY, *sheet, Action.QUIT)
 
 
 def _spend_xp(game: Game, interface: Interface) -> None:

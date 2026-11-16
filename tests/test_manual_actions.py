@@ -403,6 +403,7 @@ def test_apply_an_effect_is_a_free_action(content):
         Action.MOVE,
         Action.SEARCH,
         Action.APPLY,
+        Action.INVENTORY,
         Action.QUIT,
     )
 

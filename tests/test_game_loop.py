@@ -174,7 +174,7 @@ def test_each_turn_offers_move_and_quit(content):
 
     # and Search while the box has not been Searched, apply an effect (E5b)
     assert interface.asked[1] == Choose(
-        Topic.ACTION, (Action.MOVE, Action.SEARCH, Action.APPLY, Action.QUIT)
+        Topic.ACTION, (Action.MOVE, Action.SEARCH, Action.APPLY, Action.INVENTORY, Action.QUIT)
     )
 
 
@@ -318,6 +318,7 @@ def test_a_player_spends_xp_between_moves(content):
         Action.SEARCH,
         Action.APPLY,
         Action.SPEND_XP,
+        Action.INVENTORY,
         Action.QUIT,
     )
     assert agile in interface.asked[2].options

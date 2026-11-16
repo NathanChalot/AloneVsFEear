@@ -1,14 +1,19 @@
 # The inventory in the terminal (E9): what the character holds, carries and wears, the room
-# left, and what to do with an item. Keys: inventory.<part>; {fields} are filled in.
+# left, and what to do with an item. The status has one short line (summary); the full
+# inventory, one item a line, is shown on request. Keys: inventory.<part>; {fields} are filled in.
 
 slots: "{used} of {limit} slots"
-food_slots: "{used} of {limit} slots, {food} for Food"
+food: "Food beyond the first {limit} ({food})"
 hands: "In hand:"
 carried: "Carried ({slots}):"
 worn: "Worn:"
 ammo: "Ammo:"
 here: "Left here:"
-nothing: nothing
+summary:
+  slots: "Items: {slots}"
+  hands: "{count} in hand"
+  worn: "{count} worn"
+  here: "{count} left here"
 
 menu:
   heading: "Inventory:"

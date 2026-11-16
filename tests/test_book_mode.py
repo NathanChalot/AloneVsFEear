@@ -363,6 +363,7 @@ def test_a_player_attaches_a_sheet_and_walks_onto_it(content):
         Action.MOVE,
         Action.SEARCH,
         Action.APPLY,
+        Action.INVENTORY,
         Action.SHEET,
         Action.QUIT,
     )
@@ -420,8 +421,9 @@ class RandomPlayer:
 def test_a_long_random_game_reaches_only_known_content(content, seed):
     game = Game(dice=RandomDice(seed), content=content)
     game.create_character(life=99, sanity=99, food=99)  # so the walk lasts
-    # Long enough that every seed fills a sheet (seed 0 needed more once R2 was copied).
-    player = RandomPlayer(game, seed, 500)
+    # Long enough that every seed fills a sheet (seed 0 needed more once R2 was copied, seed 3
+    # once the inventory was always offered, E9).
+    player = RandomPlayer(game, seed, 600)
 
     play(game, player)
 
