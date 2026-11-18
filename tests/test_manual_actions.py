@@ -730,14 +730,6 @@ def test_pending_a_library_can_be_searched_again(): ...
 def test_pending_home_cannot_be_searched(): ...
 
 
-@pytest.mark.skip(reason="After R3: take and drop items as manual actions, picked by ID")
-def test_pending_the_player_takes_the_item_the_text_gives():
-    # given an entry that gives an item
-    # when the player takes it, picked from the copied items
-    # then it is in the inventory, and can be dropped
-    ...
-
-
 # --- Scenario: a lasting effect added by hand (E8) ---------------------------------------------
 # A text the engine cannot read gives a modifier for a number of boxes: the player adds it as a
 # lasting effect (every roll or one roll type, the amount, the boxes; 0 boxes: until removed),
