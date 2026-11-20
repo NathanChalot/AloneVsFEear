@@ -690,7 +690,6 @@ def test_a_skill_without_effects_has_none(root):
             "an effect changes a roll or a parameter",
         ),
         ("{parameter: max_life, tags: [fear], basic: 1, expert: 2}", "tags need a roll"),
-        ("{parameter: max_life, group: x, basic: 1, expert: 2}", "a group needs a roll"),
         ("{roll: save, basic: one, expert: 2}", "an amount is a whole number"),
         ("{roll: save, expert: 2}", r"missing keys \['basic'\]"),
         ("{roll: save, basic: 1}", "the Skill has an Expert line: its effects need an expert"),
@@ -803,3 +802,121 @@ def test_a_pregenerated_characters_skills_and_gear_must_exist(root):
         "pregenerated.test: no such ID skill.a",
         "pregenerated.test: no such ID item.a",
     ]
+
+
+# --- Inventory data (E9) ---------------------------------------------------------
+# An item's entry says how many slots it takes (default 1, 0 for "Negligible weight"), the
+# slots it takes worn when it can be worn, and the unit of its count or uses; an entry may give
+# ammo of a type instead of an item. A weapon says how many hands it needs and its ammo type.
+
+
+def test_an_items_inventory_data_is_read(root):
+    content = load_one(
+        root,
+        d6_table(
+            "  - {roll: 1-2, text: Ring., item: item.ring, slots: 0}\n"
+            "  - {roll: 3-4, text: Jacket., item: item.jacket, worn: 0}\n"
+            "  - {roll: 5-6, text: Salt., item: item.salt, uses: 6, unit: doses}\n"
+        ),
+    )
+
+    ring, jacket, salt = (content.entry(f"table.test.{r}") for r in ("1-2", "3-4", "5-6"))
+    assert (ring.slots, ring.worn, ring.unit) == (0, None, None)
+    assert (jacket.slots, jacket.worn) == (1, 0)
+    assert (salt.slots, salt.unit) == (1, "doses")
+
+
+def test_an_entry_may_give_ammo(root):
+    content = load_one(root, d6_table("  - {roll: 1-6, text: Shells., ammo: shells, count: d6}\n"))
+
+    entry = content.entry("table.test.1-6")
+    assert (entry.ammo, entry.count, entry.item) == ("shells", "d6", None)
+
+
+@pytest.mark.parametrize(
+    ("entry", "message"),
+    [
+        ("{roll: 1-6, text: x, ammo: pebbles, count: 2}", "unknown ammo type 'pebbles'"),
+        ("{roll: 1-6, text: x, ammo: shells}", "ammo needs a count"),
+        ("{roll: 1-6, text: x, ammo: shells, count: 2, item: item.x}", "ammo or an item"),
+        ("{roll: 1-6, text: x, slots: 0}", "slots need an item"),
+        ("{roll: 1-6, text: x, item: item.x, slots: -1}", "slots are a whole number"),
+        ("{roll: 1-6, text: x, item: item.x, worn: two}", "slots are a whole number"),
+        ("{roll: 1-6, text: x, unit: jars}", "a unit needs an item"),
+    ],
+)
+def test_malformed_inventory_data_is_refused(root, entry, message):
+    with pytest.raises(ContentError, match=message):
+        load_one(root, d6_table(f"  - {entry}\n"))
+
+
+def test_entries_giving_the_same_item_agree_on_its_data(root):
+    with pytest.raises(ContentError, match="item.bag: its entries disagree on slots"):
+        load_one(
+            root,
+            d6_table(
+                "  - {roll: 1-3, text: Bag., item: item.bag, slots: 0}\n"
+                "  - {roll: 4-6, text: Bag., item: item.bag}\n"
+            ),
+        )
+
+
+def test_a_weapons_hands_and_ammo_are_read_and_variants_share_them(root):
+    write(
+        root,
+        "weapons/weapon_summary.yaml",
+        """\
+        name: Weapon summary table
+        source: w.md
+        weapons:
+          - {id: weapon.pistol, name: Pistol, text: Bang., ammo: bullets}
+          - id: weapon.club_or_axe
+            name: Club or axe
+            text: Thud.
+            hands: 2
+            variants:
+              - {id: weapon.club, name: Club}
+              - {id: weapon.axe, name: Axe}
+        """,
+    )
+
+    content = load_content(root)
+
+    assert (content.weapon("weapon.pistol").hands, content.weapon("weapon.pistol").ammo) == (
+        1,
+        "bullets",
+    )
+    assert content.weapon("weapon.axe").hands == 2
+    assert content.weapon("weapon.club").ammo is None
+
+
+@pytest.mark.parametrize(
+    ("weapon", "message"),
+    [
+        ("hands: 3", "hands are 1 or 2"),
+        ("ammo: pebbles", "unknown ammo type 'pebbles'"),
+    ],
+)
+def test_malformed_weapon_data_is_refused(root, weapon, message):
+    write(
+        root,
+        "weapons/weapon_summary.yaml",
+        f"name: W\nsource: w.md\nweapons:\n  - {{id: weapon.a, name: A, text: x, {weapon}}}\n",
+    )
+    with pytest.raises(ContentError, match=message):
+        load_content(root)
+
+
+def test_a_parameter_effect_may_have_a_group(root):
+    content = load_one(
+        root,
+        d6_table(
+            "  - roll: 1-6\n"
+            "    text: Backpack.\n"
+            "    item: item.backpack\n"
+            "    effects: [{parameter: carry_limit, amount: 5, group: backpack}]\n"
+        ),
+    )
+
+    (effect,) = content.entry("table.test.1-6").effects
+    assert (effect.parameter, effect.group) == (Parameter.CARRY_LIMIT, "backpack")

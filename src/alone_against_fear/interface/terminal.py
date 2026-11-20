@@ -45,6 +45,13 @@ rolled 1: Facial scar". Book mode says in one line what it is, then where the te
 what to do by hand on two lines. The wording is in `screens/` (`screen_text`). At the
 keyboard, the arrow keys edit the line typed.
 
+Inventory (E9): the status line shows what is in hand, carried (with the slots taken), worn,
+the ammo and what was left here. `i` opens the inventory: an item, numbered, then what to do
+with it by letter (`h` hold, `c` carry, `w` wear, `l` leave here). With no room for what was
+found, the player leaves an item here (numbered), holds the new one (`h`) or leaves it (`l`).
+By hand, `k` takes what a text gives (numbered, with its count, uses or ammo), `o` loses an
+item or ammo, `j` loses the backpack. A count shows its unit: "Holy water, 2 vials".
+
 Feedback (T1): a line starting with # at any prompt is a note kept with the seed, the drill and
 the box (`feedback.FeedbackLog`, `--feedback-file`), then the same question is asked again.
 """
@@ -64,11 +71,14 @@ from ..engine import Arrival, Game, Position, Stat, Upkeep, drills
 from ..engine.creation import BASE, STARTING_SKILLS, Points
 from ..engine.creation import POINTS as CREATION_POINTS
 from ..engine.effects import PLAYER, Held, Modifier
-from ..engine.game import Purchase, Rolled, RolledVsL, Searched
+from ..engine.game import LeftItems, Purchase, Rolled, RolledVsL, Searched
+from ..engine.inventory import unit
 from ..engine.loop import play
 from ..engine.manual import Manual
 from ..engine.protocol import (
     Action,
+    AmmoChanged,
+    BackpackLost,
     Book,
     Bought,
     Changed,
@@ -81,6 +91,9 @@ from ..engine.protocol import (
     Event,
     EventPlayed,
     FoodUpkeep,
+    ItemAt,
+    ItemLost,
+    ItemMoved,
     ItemTaken,
     LastingAdded,
     LastingRemoved,
@@ -98,7 +111,7 @@ from ..engine.protocol import (
     Topic,
     Wandering,
 )
-from ..engine.state import Item, Lasting, Note, SkillLevel
+from ..engine.state import Item, Lasting, Note, Place, SkillLevel
 from ..engine.town import SHEET_COLUMNS, SHEET_ROWS, sheet_neighbours
 from .feedback import PREFIX, FeedbackLog
 from .screen_text import ScreenText, load_screen_text
@@ -118,12 +131,16 @@ KEYS = {
     Action.SEARCH: ("s", "search"),
     Action.APPLY: ("a", "apply an effect"),
     Action.SPEND_XP: ("p", "spend XP"),
+    Action.INVENTORY: ("i", "inventory"),
     Action.SHEET: ("n", "attach a new sheet"),
     Action.QUIT: ("q", "quit"),
     Book.TABLE: ("t", "a table"),
     Book.EVENT: ("e", "a numbered event"),
     Manual.GAIN: ("g", "gain"),
     Manual.LOSE: ("l", "lose"),
+    Manual.TAKE_ITEM: ("k", "take an item"),
+    Manual.LOSE_ITEM: ("o", "lose an item"),
+    Manual.LOSE_BACKPACK: ("j", "lose the backpack"),
     Manual.ROLL: ("v", "roll vs L"),
     Manual.ADD_LASTING: ("f", "add a lasting effect"),
     Manual.REMOVE_LASTING: ("u", "remove a lasting effect"),
@@ -180,9 +197,19 @@ NUMBER_PROMPTS = {
     Topic.MODIFIER: "Modifier (Enter for none): ",
     Topic.BOXES: "For the next how many boxes? (Enter: until removed) ",
 }
-ENTER_IS_0 = frozenset({Topic.MODIFIER, Topic.BOXES})
+ENTER_IS_0 = frozenset({Topic.MODIFIER, Topic.BOXES, Topic.AMMO})
 """Numbers where Enter alone means 0: no modifier, until removed."""
 RULES_KEY = "r"
+INVENTORY_KEY = KEYS[Action.INVENTORY][0]
+"""Shows the inventory in any menu (inventory drill feedback)."""
+SEPARATOR = "─" * 60
+"""Between screens: before each turn, each arrival, each inventory shown (inventory drill
+feedback)."""
+
+PLACES = {Place.HANDS: "h", Place.CARRIED: "c", Place.WORN: "w", Place.BOX: "l"}
+"""Where an item goes, by letter (E9)."""
+ITEM_COLUMNS = 3
+"""The items a text may give, listed in columns as wide as the longest name."""
 
 SIDES = {(0, -1): "above", (-1, 0): "left of", (1, 0): "right of", (0, 1): "below"}
 
@@ -201,7 +228,8 @@ class TerminalInterface:
         """The terminal's own wording (`screens/`)."""
         self._input = input_fn
         self._feedback = feedback
-        self._output = output_fn
+        self._output_fn = output_fn
+        self._last_output: str | None = None
         self._seen: set[str] = set()
         """Tables whose own rules were shown in this game."""
         self._rules: Table | None = None
@@ -214,6 +242,17 @@ class TerminalInterface:
         """The Skills are listed with their text (`r` switches)."""
         self._skill_count = STARTING_SKILLS
         """How many Skills creation asks for: one more when the points are traded for one."""
+        self._last_taken: object = None
+        """The last item chosen from a list (E9): the ammo question names its weapon's."""
+
+    def _output(self, line: str) -> None:
+        self._last_output = line
+        self._output_fn(line)
+
+    def _separate(self) -> None:
+        """A line between screens, never two in a row."""
+        if self._last_output != SEPARATOR:
+            self._output(SEPARATOR)
 
     # --- The protocol --------------------------------------------------------------------
 
@@ -243,7 +282,7 @@ class TerminalInterface:
             case Topic.PURCHASE:
                 return self._menu(options, "Spend XP on? ")
             case Topic.ACTION:
-                self._output("")
+                self._separate()
                 self._output(self._status())
                 if self.game.character.notes:
                     self._output(self._notes())
@@ -297,16 +336,26 @@ class TerminalInterface:
                 for n, option in _numbered(options):
                     self._output(f"{n}) {self._side(option)}")
                 return self._read(_by_number(options), f"Where? [1-{len(options)}] ")
+            case Topic.ROOM:
+                return self._room(request)
+            case Topic.INVENTORY:
+                return self._inventory(options)
+            case Topic.PLACE:
+                return self._place(request)
+            case Topic.ITEM:
+                return self._item_choice(options)
 
     def tell(self, event: Event) -> None:
         match event:
             case Arrival(number=1):
                 self._recap = False
                 self._rules = None
+                self._separate()
                 self._output("Home is box 1.")
             case Arrival(number=number):
                 self._recap = False
                 self._rules = None
+                self._separate()
                 self._output(f"Box {number}.")
             case FoodUpkeep(result=Upkeep.ATE):
                 self._output(f"You eat 1 Food (Food {self.game.character.food}).")
@@ -349,8 +398,29 @@ class TerminalInterface:
                 if modifiers:
                     line += ": a natural 1 stays 1" if face == 1 else self._modifiers(modifiers)
                 self._output(f"{line}.")
-            case ItemTaken(item=item):
-                self._output(f"You take: {self._item(item)}.")
+            case ItemTaken(item=item, place=place):
+                self._output(self.screen(f"inventory.told.{place}", item=self._item(item)))
+            case ItemMoved(item=item, here=here, to=to):
+                key = _move(here, to)
+                self._output(self.screen(f"inventory.told.moved.{key}", item=self._item(item)))
+            case ItemLost(item=item):
+                self._output(self.screen("inventory.told.lost", item=self._item(item)))
+            case AmmoChanged(ammo=ammo, amount=amount, value=value):
+                key = "ammo_gained" if amount > 0 else "ammo_lost"
+                self._output(
+                    self.screen(
+                        f"inventory.told.{key}", amount=abs(amount), ammo=_ammo(ammo), value=value
+                    )
+                )
+            case BackpackLost(lost=lost):
+                items = [self._item(item) for item in lost if item.id != "item.backpack"]
+                if items:
+                    self._output(self.screen("inventory.told.backpack", items=", ".join(items)))
+                else:
+                    self._output(self.screen("inventory.told.backpack_empty"))
+            case LeftItems(face=face, gone=gone):
+                key = "left_gone" if gone else "left_kept"
+                self._output(self.screen(f"inventory.told.{key}", face=face))
             case Duplicate():
                 self._output("You have it already: roll again.")
             case StepStarted(step=step):
@@ -368,20 +438,37 @@ class TerminalInterface:
 
     # --- Reading ----------------------------------------------------------------------------
 
-    def _read(self, keys: dict[str, object], prompt: str, rules: bool = False) -> object:
-        """Ask until the player types one of the keys; `r` shows the last table's rules."""
+    def _read(
+        self,
+        keys: dict[str, object],
+        prompt: str,
+        rules: bool = False,
+        redraw: Callable[[], None] | None = None,
+    ) -> object:
+        """Ask until the player types one of the keys; `r` shows the last table's rules, `i`
+        the inventory (when not one of the keys), then the options again (`redraw`, after a
+        separator for the inventory) and the question."""
         while True:
             line = self._line(prompt).lower()
             if line in keys:
                 return keys[line]
             if rules and line == RULES_KEY and self._rules is not None:
                 self._show_rules(self._rules)
+            elif line == INVENTORY_KEY and self.game.campaign.character is not None:
+                self._show_inventory()
+                self._separate()
+            else:
+                self._output(f"Choose one of {', '.join(keys) if len(keys) < 10 else _span(keys)}.")
                 continue
+            if redraw is not None:
+                redraw()
             self._output(f"Choose one of {', '.join(keys) if len(keys) < 10 else _span(keys)}.")
 
     def _number(self, request: Number, prompt: str | None = None) -> int:
         """Ask until the player types a whole number within the bounds; Enter alone is 0 when
         0 fits (no modifier)."""
+        if prompt is None and request.topic in (Topic.COUNT, Topic.USES, Topic.AMMO):
+            prompt = self._take_prompt(request.topic)
         prompt = prompt or NUMBER_PROMPTS.get(request.topic, "Number? ")
         while True:
             line = self._line(prompt)
@@ -421,8 +508,8 @@ class TerminalInterface:
                 self._output("Type your note after the #.")
 
     def _menu(self, options: Sequence[object], prompt: str) -> object:
-        """One line of options: numbered tables and events, then lettered actions; `r` for
-        the rules of the last table rolled in this box."""
+        """One line of options: numbered tables and events, then lettered actions; then `i`
+        and `r`, a line each (`_look_keys`)."""
         keys: dict[str, object] = {}
         numbered = (option for option in options if option not in KEYS)
         for n, option in enumerate(numbered, start=1):
@@ -430,11 +517,31 @@ class TerminalInterface:
         for option in options:
             if option in KEYS:
                 keys[KEYS[option][0]] = option
-        shown = [f"{key}) {self._label(option)}" for key, option in keys.items()]
+        shown = [
+            f"{key}) {self._label(option)}"
+            for key, option in keys.items()
+            if option is not Action.INVENTORY
+        ]
+
+        def draw() -> None:
+            self._output("  ".join(shown))
+            for line in self._look_keys():
+                self._output(line)
+
+        draw()
+        return self._read(keys, prompt, rules=True, redraw=draw)
+
+    def _look_keys(self) -> list[str]:
+        """`i` for the inventory and `r` for the rules of the last table rolled in this box, a
+        line each after an empty one, apart from the choices: they show something, then the
+        question is asked again (on the player's turn, `i` is the inventory action, which also
+        moves items)."""
+        lines = []
+        if self.game.campaign.character is not None:
+            lines.append(f"{INVENTORY_KEY}) {KEYS[Action.INVENTORY][1]}")
         if self._rules is not None:
-            shown.append(f"{RULES_KEY}) rules of the {self._rules.name}")
-        self._output("  ".join(shown))
-        return self._read(keys, prompt, rules=True)
+            lines.append(f"{RULES_KEY}) rules of the {self._rules.name}")
+        return ["", *lines] if lines else []
 
     def _book(self, options: Sequence[object]) -> object:
         """Book mode: what the text cannot do by itself. The explanation, then where the text
@@ -454,13 +561,17 @@ class TerminalInterface:
         self._output("")
         self._output(self.screen("book_mode.explanation"))
         self._output("")
-        for label, shown in zip(labels, (leads, by_hand), strict=True):
-            if shown:
-                options_shown = "  ".join(f"{k}) {self._label(keys[k])}" for k in shown)
-                self._output(f"  {label.ljust(width)} {options_shown}")
-        if self._rules is not None:
-            self._output(f"  {RULES_KEY}) rules of the {self._rules.name}")
-        return self._read(keys, self.screen("book_mode.prompt"), rules=True)
+
+        def draw() -> None:
+            for label, shown in zip(labels, (leads, by_hand), strict=True):
+                if shown:
+                    options_shown = "  ".join(f"{k}) {self._label(keys[k])}" for k in shown)
+                    self._output(f"  {label.ljust(width)} {options_shown}")
+            for line in self._look_keys():
+                self._output(f"  {line}" if line else line)
+
+        draw()
+        return self._read(keys, self.screen("book_mode.prompt"), rules=True, redraw=draw)
 
     def _label(self, option: object) -> str:
         if option in KEYS:
@@ -643,17 +754,184 @@ class TerminalInterface:
         return f"You learn {name}"
 
     def _item(self, item: Item) -> str:
-        """An item's name, then how many or how many uses."""
-        content = self.game.content
-        if item.id in content.weapons or item.id in content.variants:
-            name = content.weapon(item.id).name
-        else:
-            name = item.id.split(".", 1)[1].replace("_", " ").capitalize()
+        """An item's name, then how many in brackets, in its unit when the name does not say:
+        "Garlic heads (4)", "Holy water (2 vials)", "First aid kit (5 points)"."""
+        name = self._item_name(item.id)
+        counted = unit(self.game.content, item)
         if item.count is not None:
-            name += f" ({item.count})"
+            name += f" ({item.count}" + (f" {counted})" if counted else ")")
         if item.uses is not None:
-            name += f" ({item.uses} uses)"
+            name += f" ({item.uses} {counted or 'uses'})"
         return name
+
+    def _item_name(self, id_: str) -> str:
+        content = self.game.content
+        if id_ in content.weapons or id_ in content.variants:
+            return content.weapon(id_).name
+        return id_.split(".", 1)[1].replace("_", " ").capitalize()
+
+    # --- The inventory (E9) ---------------------------------------------------------------
+
+    def _slots(self) -> str:
+        game = self.game
+        return self.screen("inventory.slots", used=game.slots_used(), limit=game.carry_limit())
+
+    def _inventory_summary(self) -> str:
+        """The items in one short line, for the status: the slots taken, then how many in
+        hand, worn and left here, and the ammo, if any."""
+        c = self.game.character
+        parts = [self.screen("inventory.summary.slots", slots=self._slots())]
+        if c.hands:
+            parts.append(self.screen("inventory.summary.hands", count=len(c.hands)))
+        if c.worn:
+            parts.append(self.screen("inventory.summary.worn", count=len(c.worn)))
+        if ammo := self._ammo_counts():
+            parts.append(f"{self.screen('inventory.ammo')} {', '.join(ammo)}")
+        if here := self._here():
+            parts.append(self.screen("inventory.summary.here", count=len(here)))
+        return " · ".join(parts)
+
+    def _inventory_lines(self, numbered: Sequence[object] = ()) -> list[str]:
+        """The inventory, one item a line under where it is: in hand, carried (with the slots,
+        and the Food beyond its limit, which takes slots), worn, the ammo, what was left here.
+        An item among `numbered` has its number instead of a dash."""
+        game, c = self.game, self.game.character
+        numbers = {at: n for n, at in _numbered(numbered)}
+
+        def listed(place: Place, items: Sequence[Item]) -> list[str]:
+            lines = []
+            for item in dict.fromkeys(items):  # one line for equal items
+                label = self._item(item)
+                if (times := items.count(item)) > 1:
+                    label += f" (x{times})"
+                n = numbers.get(ItemAt(item, place))
+                lines.append(f"  {'-' if n is None else f'{n})'} {label}")
+            return lines
+
+        lines = []
+        if c.hands:
+            lines += [self.screen("inventory.hands"), *listed(Place.HANDS, c.hands)]
+        lines.append(self.screen("inventory.carried", slots=self._slots()))
+        lines += listed(Place.CARRIED, c.items)
+        if (food := c.food - game.food_limit()) > 0:
+            lines.append("  - " + self.screen("inventory.food", limit=game.food_limit(), food=food))
+        if c.worn:
+            lines += [self.screen("inventory.worn"), *listed(Place.WORN, c.worn)]
+        if ammo := self._ammo_counts():
+            lines += [self.screen("inventory.ammo"), *(f"  - {line}" for line in ammo)]
+        if here := self._here():
+            lines += [self.screen("inventory.here"), *listed(Place.BOX, here)]
+        return lines
+
+    def _ammo_counts(self) -> list[str]:
+        return [f"{n} {_ammo(kind)}" for kind, n in self.game.character.ammo.items() if n]
+
+    def _here(self) -> list[Item]:
+        """The items left in the box the character stands in."""
+        game = self.game
+        return game.box_items() if game.campaign.position is not None else []
+
+    def _show_inventory(self, numbered: Sequence[object] = ()) -> None:
+        self._separate()
+        self._output(self.screen("inventory.menu.heading"))
+        for line in self._inventory_lines(numbered):
+            self._output(f"  {line}")
+
+    def _inventory(self, options: Sequence[object]) -> object:
+        """Which item to move: the inventory with numbers, `b` back."""
+        items = [option for option in options if isinstance(option, ItemAt)]
+        self._show_inventory(items)
+        self._output(f"  {KEYS[Manual.BACK][0]}) {KEYS[Manual.BACK][1]}")
+        keys = {**_by_number(items), KEYS[Manual.BACK][0]: Manual.BACK}
+        return self._read(keys, self.screen("inventory.menu.prompt"))
+
+    def _place(self, request: Choose) -> object:
+        """Where the item goes, by letter, named from where it is: put away, pick up..."""
+        at = request.about
+        assert isinstance(at, ItemAt)
+        keys: dict[str, object] = {}
+        shown = []
+        for option in request.options:
+            if option is Manual.BACK:
+                key, label = KEYS[Manual.BACK]
+            else:
+                key = PLACES[option]
+                label = self.screen(f"inventory.place.{_move(at.place, option)}")
+            keys[key] = option
+            shown.append(f"{key}) {label}")
+        self._output("  ".join(shown))
+        prompt = self.screen("inventory.place.prompt", item=self._item(at.item))
+        return self._read(keys, prompt)
+
+    def _room(self, request: Choose) -> object:
+        """No room for what was found: an item to leave here (numbered), hold the new one,
+        or leave it."""
+        food = request.about == Stat.FOOD
+        if food:
+            self._output(self.screen("inventory.room.food", slots=self._slots()))
+        else:
+            item = request.about
+            assert isinstance(item, Item)
+            self._output(
+                self.screen("inventory.room.item", item=self._item(item), slots=self._slots())
+            )
+        keys: dict[str, object] = {}
+        shown = []
+        freeing = [option for option in request.options if isinstance(option, ItemAt)]
+        for n, at in _numbered(freeing):
+            keys[str(n)] = at
+            shown.append(
+                f"{n}) " + self.screen("inventory.room.leave_one", item=self._item(at.item))
+            )
+        for option in request.options:
+            if option is Place.HANDS:
+                keys[PLACES[option]] = option
+                shown.append(f"{PLACES[option]}) " + self.screen("inventory.room.hold"))
+            elif option is Place.BOX:
+                keys[PLACES[option]] = option
+                last = "leave_food" if food else "leave_new"
+                shown.append(f"{PLACES[option]}) " + self.screen(f"inventory.room.{last}"))
+        for line in shown:
+            self._output(f"  {line}")
+        return self._read(keys, self.screen("inventory.room.prompt"))
+
+    def _item_choice(self, options: Sequence[object]) -> object:
+        """What a text gives (every item, weapon and ammo type, in columns) or takes (what the
+        character has, and their ammo)."""
+        listed = [option for option in options if option is not Manual.BACK]
+        labels = [self._given(option) for option in listed]
+        if all(isinstance(option, str) for option in listed):
+            cells = [f"{n:>3}) {label}" for n, label in _numbered(labels)]
+            width = max(len(cell) for cell in cells) + 2
+            for row in range(0, len(cells), ITEM_COLUMNS):
+                line = "".join(cell.ljust(width) for cell in cells[row : row + ITEM_COLUMNS])
+                self._output(line.rstrip())
+            prompt = self.screen("inventory.take.prompt")
+        else:
+            for n, label in _numbered(labels):
+                self._output(f"  {n}) {label}")
+            prompt = self.screen("inventory.lose.prompt")
+        back, label = KEYS[Manual.BACK]
+        self._output(f"{back:>3}) {label}")
+        chosen = self._read({**_by_number(listed), back: Manual.BACK}, prompt)
+        self._last_taken = chosen
+        return chosen
+
+    def _given(self, option: object) -> str:
+        if isinstance(option, ItemAt):
+            return self._item(option.item)
+        assert isinstance(option, str)
+        if "." not in option:  # an ammo type
+            have = self.game.character.ammo.get(option)
+            return f"{_ammo(option).capitalize()}" + (f" ({have})" if have else "")
+        return self._item_name(option)
+
+    def _take_prompt(self, topic: Topic) -> str:
+        if topic is Topic.AMMO:
+            assert isinstance(self._last_taken, str)
+            weapon = self.game.content.weapon(self._last_taken)
+            return self.screen("inventory.take.ammo", ammo=_ammo(weapon.ammo or ""))
+        return self.screen(f"inventory.take.{topic}")
 
     # --- Book mode --------------------------------------------------------------------------
 
@@ -736,8 +1014,7 @@ class TerminalInterface:
         for label, held in (("Injuries", c.injuries), ("Mental Scars", c.mental_scars)):
             if held:
                 lines.append(f"{label}: {', '.join(self._source(id_) for id_ in held)}")
-        if c.items:
-            lines.append(f"Items: {', '.join(self._item(item) for item in c.items)}")
+        lines.append(self._inventory_summary())
         if c.lasting:
             lasting = ", ".join(self._lasting_with_end(lasting) for lasting in c.lasting)
             lines.append(f"Lasting effects: {lasting}")
@@ -780,6 +1057,7 @@ class TerminalInterface:
             ("skills", skills),
             ("weapons", [(self._item(i), content.weapon(i.id).text) for i in weapons]),
             ("items", [(self._item(item), self._item_text(item)) for item in others]),
+            ("ammo", [(f"{n} {_ammo(kind)}", None) for kind, n in c.ammo.items()]),
             ("notes", [(note.text, None) for note in c.notes]),
         ]
         lines = [
@@ -889,6 +1167,17 @@ def _roll(roll: RollType) -> str:
     return roll.capitalize()
 
 
+def _ammo(ammo: str) -> str:
+    return ammo.replace("_", " ")
+
+
+def _move(here: Place, to: Place) -> str:
+    """How a move reads, from where the item is: the screen text's key."""
+    if to is Place.CARRIED:
+        return {Place.HANDS: "stow", Place.WORN: "take_off", Place.BOX: "pick_up"}[here]
+    return str(to)
+
+
 def _aside(sentence: str) -> str:
     """A sentence as an aside in parentheses: "(you may pick up a stick…)"."""
     return sentence[0].lower() + sentence[1:].rstrip(".")
@@ -946,6 +1235,7 @@ def main(
     try:
         output_fn(f"Log: {log_file}")
         output_fn(f"Type {PREFIX} and a note at any prompt to leave feedback.")
+        output_fn(f"Type {INVENTORY_KEY} in any menu to see the inventory.")
         dice = RandomDice(args.seed)
         game = Game(dice=dice, content=load_content())
         feedback = FeedbackLog(args.feedback_file, dice.seed, args.drill, log_file)

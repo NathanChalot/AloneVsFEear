@@ -1,0 +1,62 @@
+# The inventory in the terminal (E9): what the character holds, carries and wears, the room
+# left, and what to do with an item. The status has one short line (summary); the full
+# inventory, one item a line, is shown on request. Keys: inventory.<part>; {fields} are filled in.
+
+slots: "{used} of {limit} slots"
+food: "Food beyond the first {limit} ({food})"
+hands: "In hand:"
+carried: "Carried ({slots}):"
+worn: "Worn:"
+ammo: "Ammo:"
+here: "Left here:"
+summary:
+  slots: "Items: {slots}"
+  hands: "{count} in hand"
+  worn: "{count} worn"
+  here: "{count} left here"
+
+menu:
+  heading: "Inventory:"
+  prompt: "Which item? "
+place:
+  prompt: "{item}: what do you do? "
+  hands: hold it
+  stow: put it away
+  take_off: take it off
+  pick_up: pick it up
+  worn: wear it
+  box: leave it here
+room:
+  item: "No room for {item}: {slots} taken."
+  food: "No room for all the Food: {slots} taken."
+  leave_one: "leave {item} here"
+  hold: hold it
+  leave_new: leave it here
+  leave_food: leave the rest
+  prompt: "Your choice? "
+take:
+  prompt: "Which one does the text give? "
+  count: "How many? "
+  uses: "How many uses? "
+  ammo: "How many {ammo} come with it? (Enter: none) "
+lose:
+  prompt: "Which one is lost? "
+told:
+  hands: "You hold: {item}."
+  carried: "You take: {item}."
+  worn: "You wear: {item}."
+  box: "No room: {item} stays here."
+  moved:
+    hands: "You hold {item}."
+    stow: "You put {item} away."
+    take_off: "You take {item} off."
+    pick_up: "You pick up {item}."
+    worn: "You wear {item}."
+    box: "You leave {item} here."
+  lost: "Lost: {item}."
+  ammo_gained: "You gain {amount} {ammo} ({ammo} {value})."
+  ammo_lost: "You lose {amount} {ammo} ({ammo} {value})."
+  backpack: "Your backpack is gone, and everything in it: {items}."
+  backpack_empty: "Your backpack is gone."
+  left_gone: "The items you left here are gone. (d6: rolled {face})"
+  left_kept: "The items you left here are still here. (d6: rolled {face})"

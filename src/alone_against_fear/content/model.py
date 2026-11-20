@@ -48,6 +48,10 @@ class Roll:
         return str(self.low) if self.low == self.high else f"{self.low}-{self.high}"
 
 
+AMMO_TYPES = ("bullets", "rifle_bullets", "bolts", "arrows", "shells")
+"""The ammo types, each used by one weapon kind (`3_combat.md`, Keep Track of Ammo). Kept per
+type, not an item (design/rulings.md, Inventory)."""
+
 type Count = str | int
 """A dice code in standard form ("2d6+3"), or a fixed number ("Salt (6 doses)")."""
 
@@ -74,7 +78,16 @@ class Entry:
     """How many times the single item it gives can be used (a First Aid Kit's points)."""
     effects: tuple[Effect, ...] = ()
     """What the entry changes while the character holds it, as numbers: an Injury or a
-    Mental Scar (E8). Single amounts, read as Basic."""
+    Mental Scar (E8), an item (the backpack, E9). Single amounts, read as Basic."""
+    slots: int = 1
+    """The item slots its item takes carried (E9): 0 for "Negligible weight", whatever its
+    count (a bundle takes its slots once)."""
+    worn: int | None = None
+    """The slots its item takes worn; None when it cannot be worn (E9)."""
+    unit: str | None = None
+    """What its count or uses count, when the item's name does not say (doses, jars)."""
+    ammo: str | None = None
+    """The ammo type it gives instead of an item, `count` of them (E9)."""
 
     def count_of(self, id_: str) -> Count | None:
         """How many of `id_` the entry gives: a dice code to roll, a number, or None."""
@@ -155,6 +168,10 @@ class Weapon:
     extra: str | None = None
     """For a variant: a sentence of its own, already at the end of `text` (the hammer drives
     stakes, the baseball bat does not)."""
+    hands: int = 1
+    """How many hands it needs (E9); a variant shares its heading's."""
+    ammo: str | None = None
+    """The ammo type it fires (E9); a variant shares its heading's."""
 
 
 @dataclass(frozen=True)
@@ -254,6 +271,11 @@ class Content:
     def weapon(self, id_: str) -> Weapon:
         """A heading of the weapon summary, or a variant."""
         return self.weapons[id_] if id_ in self.weapons else self.variants[id_]
+
+    def item_entry(self, item_id: str) -> Entry:
+        """The first entry that gives an item: its text and data (every entry giving it
+        agrees, the loader checks)."""
+        return self.entries[self.items[item_id][0]]
 
     def skill(self, id_: str) -> Skill:
         """A Skill or an Arcane Skill."""

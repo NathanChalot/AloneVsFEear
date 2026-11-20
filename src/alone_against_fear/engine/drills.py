@@ -16,7 +16,7 @@ from ..content import Effect
 from . import creation, loop
 from .game import Game
 from .protocol import Choose, Interface, Topic, ask
-from .state import End, Stat
+from .state import End, Item, Stat
 
 WALK_BOXES = 10
 """The walk drill: boxes walked from Home."""
@@ -26,6 +26,21 @@ EATING_DISORDER = "mental_scar.eating_disorder"
 LASTING_EFFECT = Effect(basic=-1)
 """The lasting drill's effect: -1 to every roll, for the next 3 boxes."""
 LASTING_EFFECT_BOXES = 3
+INVENTORY_BOXES = 6
+"""The inventory drill: boxes walked from Home, enough to leave items and come back."""
+INVENTORY_GEAR = (
+    Item("item.backpack"),
+    Item("item.leather_jacket"),
+    Item("item.body_armor"),
+    Item("item.sport_clothes"),
+    Item("item.smelting_equipment"),
+    Item("item.candles", count=6),
+    Item("item.silver_ring"),
+)
+"""The inventory drill's extra gear: a backpack, things to wear, two slots' worth of smelting
+equipment, a bundle and a light item."""
+INVENTORY_FOOD = 12
+"""Over the Food limit without the backpack: losing it shows Food taking slots."""
 
 log = logging.getLogger(__name__)
 
@@ -79,6 +94,18 @@ def _xp(game: Game, interface: Interface) -> loop.Stop:
     return lambda game: not game.purchases()
 
 
+def _inventory(game: Game, interface: Interface) -> loop.Stop:
+    """A pregenerated character at Home with a backpack, things to wear and nearly full
+    pockets: hold, wear, leave and pick up items, take some from a text until there is no
+    room, walk away and come back to what was left, lose the backpack."""
+    _pregenerated(game, interface)
+    for item in INVENTORY_GEAR:
+        game.add_item(item)
+    game.gain(Stat.FOOD, INVENTORY_FOOD - game.character.food)
+    loop.choose_home(game, interface)
+    return _after_boxes(INVENTORY_BOXES)
+
+
 def _pregenerated(game: Game, interface: Interface) -> None:
     options = tuple(game.content.pregenerated)
     creation.pregenerated(game, ask(interface, Choose(Topic.PREGENERATED, options)))
@@ -105,5 +132,12 @@ DRILLS = {
         "A pregenerated character with XP to spend: buy a Skill, raise one to Expert. The "
         "drill ends when nothing more can be bought.",
         _xp,
+    ),
+    "inventory": Drill(
+        "A pregenerated character with a backpack, things to wear and nearly full pockets: "
+        "hold, wear, leave and pick up items (i), take items a text gives by hand (k) until "
+        "there is no room, leave something in a box and come back to it, lose the backpack "
+        f"(j). The drill ends after {INVENTORY_BOXES} boxes.",
+        _inventory,
     ),
 }

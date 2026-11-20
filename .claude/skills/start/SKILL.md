@@ -19,7 +19,7 @@ The session to run: `$ARGUMENTS` if given, otherwise the first entry of the Plan
 
 ## 2. Check
 
-- `git status` and `git log`: on `main`, clean, up to date with `origin/main` (`git pull --ff-only`), and the previous session's PR merged (`gh pr list --state all --limit 3`). If not, say what is off and ask before going further.
+- The base branch (stacked branches, the user's rule of thumb, decided after E9): the previous session's PR (`gh pr list --state all --limit 3`). Merged: the base is `main`, up to date with `origin/main` (`git pull --ff-only`). Still open: the base is that PR's branch, up to date with its origin; say so in the summary, it is not a problem. Either way the working tree is clean (`git status`). If something else is off (uncommitted work, a closed unmerged PR, a branch behind or ahead of its origin), say what and ask before going further.
 - The session's "Depends on" are checked in the Readme.
 - The model and effort planned in NextSession against the model you run on. If they differ, say so plainly so the user can switch with `/model` before anything else.
 - Tests pass: `.venv/bin/pytest -q`.
@@ -50,4 +50,4 @@ Then stop and wait for the user's go.
 
 ## 4. Run
 
-Once the user says go: create the session's branch from `main` (a plain branch, not a worktree, unless another session runs at the same time), then follow the prompt template for the session's kind and the working rules of CLAUDE.md.
+Once the user says go: create the session's branch from the base branch found in step 2 (`main`, or the previous session's branch while its PR is open; a plain branch, not a worktree, unless another session runs at the same time), then follow the prompt template for the session's kind and the working rules of CLAUDE.md.

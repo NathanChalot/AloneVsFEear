@@ -6,19 +6,21 @@ state to show it, and changes it only through its answers. Input and output are 
 test plays the terminal with typed lines.
 """
 
+import itertools
+
 import pytest
 
 from alone_against_fear.content import Effect, load_content
 from alone_against_fear.dice import ScriptedDice
 from alone_against_fear.effect_targets import RollType
-from alone_against_fear.engine import Game, Position, book_mode, drills
+from alone_against_fear.engine import Game, Position, book_mode, carrying, drills
 from alone_against_fear.engine.creation import create
 from alone_against_fear.engine.loop import play
 from alone_against_fear.engine.protocol import End
-from alone_against_fear.engine.state import SkillLevel
+from alone_against_fear.engine.state import Item, Place, SkillLevel
 from alone_against_fear.engine.town import boxes_of
 from alone_against_fear.interface.screen_text import load_screen_text
-from alone_against_fear.interface.terminal import TerminalInterface, main
+from alone_against_fear.interface.terminal import SEPARATOR, TerminalInterface, main
 
 
 @pytest.fixture(scope="module")
@@ -146,6 +148,7 @@ def test_the_free_actions_have_letters(content):
     play(game, interface)
 
     assert "m) move  s) search  a) apply an effect  q) quit" in output
+    assert "i) inventory" in output  # on its own line
 
 
 # --- Resolving a box -------------------------------------------------------------------------
@@ -204,7 +207,9 @@ def test_a_table_not_copied_yet_points_to_its_source_and_asks_where_it_leads(con
     )
     assert output[explanation - 1] == output[explanation + 1] == ""
     assert output[explanation + 2] == "  Leads to: t) a table  e) a numbered event  d) nowhere else"
-    assert output[explanation + 3].startswith("  By hand:  g) gain  l) lose  v) roll vs L")
+    assert output[explanation + 3].startswith(
+        "  By hand:  g) gain  l) lose  k) take an item  v) roll vs L"
+    )
     assert "Your choice? " in interface._input.prompts
 
 
@@ -403,7 +408,7 @@ def test_marking_a_safe_house_takes_the_search_away(content):
     play(game, interface)
 
     assert "This box is a Safe House." in output
-    assert output[-2].startswith("m) move  a) apply an effect  q) quit")
+    assert "m) move  a) apply an effect  q) quit" in output[-5:]
 
 
 def test_search_with_no_notes_rolls_at_once(content):
@@ -477,13 +482,14 @@ def test_a_player_creates_a_character_in_the_terminal(content):
     assert "1) Agile (8 XP): Add +1 to your Defense rolls" in text
     assert "  1) Knife" in output
     # what was taken, and the character sheet at the first turn
-    assert "You take: Pistol (7)." in text
+    assert "You take: Pistol." in text
+    assert "You gain 7 bullets (bullets 7)." in text
     # Tough: 2 more Life (E7)
     assert (
         "Ann · Box 1 · Life 12/12 · Sanity 9/9 · Food 4 (next meal: box 5) · XP 0 · Clues 0" in text
     )
     assert "Skills: Agile, Tough" in text
-    assert "Items: Pistol (7), Knife, Rope, Small bell" in text
+    assert "Items: 3 of 10 slots · Ammo: 7 bullets" in text  # the bell is light
 
 
 # --- Creation screens (T2) ----------------------------------------------------------------
@@ -652,11 +658,13 @@ def test_a_recap_shows_the_character_once_made(content):
         "    - Agile",
         "    - Tough",
         "  Weapons:",
-        "    - Pistol (7)",
+        "    - Pistol",
         "    - Knife",
         "  Items:",
         "    - Rope",
         "    - Small bell",
+        "  Ammo:",
+        "    - 7 bullets",
         "  r) Show the descriptions",
     ]
     assert interface._input.prompts[-1] == "Press Enter to go on: "
@@ -876,3 +884,179 @@ def test_an_unknown_drill_is_refused_with_the_list(tmp_path, capsys):
     with pytest.raises(SystemExit):
         main(["--drill", "nothing", "--log-dir", str(tmp_path)], input_fn=Typist([]))
     assert "creation" in capsys.readouterr().err
+
+
+# --- The inventory (E9) -----------------------------------------------------------------------
+# The status shows one short line about items; the inventory, one item a line, is shown on
+# request: `i` in any menu. On the player's turn, `i` opens the inventory, an item by number,
+# then where it goes by letter.
+
+
+def at_home(content, *faces, food=3):
+    game = ready(content, *faces)
+    game.character.food = food
+    game.choose_home(Position(0, 0))
+    return game
+
+
+def test_a_count_shows_its_unit(content):
+    game = at_home(content)
+    interface, _ = terminal(game, [])
+    shown = [
+        interface._item(Item("item.holy_water", count=2)),
+        interface._item(Item("item.first_aid_kit", uses=5)),
+        interface._item(Item("item.garlic_heads", count=4)),
+        interface._item(Item("weapon.grenade", count=1)),
+    ]
+    assert shown == [
+        "Holy water (2 vials)",
+        "First aid kit (5 points)",
+        "Garlic heads (4)",
+        "Grenade (1)",
+    ]
+
+
+def test_the_player_holds_wears_and_leaves_items_in_the_terminal(content):
+    game = at_home(content)
+    game.add_item(Item("weapon.pistol"))
+    game.add_item(Item("item.leather_jacket"))
+    game.add_item(Item("item.rope"))
+    game.add_item(Item("item.rope"))
+    game.gain_ammo("bullets", 6)
+    # i: the pistol in hand (1, h), the jacket worn (2, w), a rope left (now 2, l), back, quit;
+    # the numbers follow the list shown each time: in hand, carried, worn
+    interface, output = terminal(game, ["i", "1", "h", "2", "w", "2", "l", "b", QUIT])
+
+    play(game, interface)
+
+    text = "\n".join(output)
+    assert "Inventory:" in output
+    assert (
+        "  Carried (4 of 10 slots):\n    1) Pistol\n    2) Leather jacket\n    3) Rope (x2)\n"
+        "  Ammo:\n    - 6 bullets" in text
+    )
+    assert "h) hold it  l) leave it here  b) back" in output
+    assert "h) hold it  w) wear it  l) leave it here  b) back" in output
+    assert "You hold Pistol." in output
+    assert "You wear Leather jacket." in output
+    assert "You leave Rope here." in output
+    # the status line, after: one short line
+    assert "Items: 1 of 10 slots · 1 in hand · 1 worn · Ammo: 6 bullets · 1 left here" in text
+
+
+def test_the_inventory_lists_one_item_a_line(content):
+    game = at_home(content)
+    game.add_item(Item("weapon.pistol"), Place.HANDS)
+    game.add_item(Item("item.rope"))
+    game.add_item(Item("item.leather_jacket"), Place.WORN)
+    interface, _ = terminal(game, [])
+    assert interface._inventory_lines() == [
+        "In hand:",
+        "  - Pistol",
+        "Carried (1 of 10 slots):",
+        "  - Rope",
+        "Worn:",
+        "  - Leather jacket",
+    ]
+
+
+def test_food_beyond_its_limit_is_listed_with_the_carried_items(content):
+    # 12 Food, 10 carried free: the 2 others take item slots
+    game = at_home(content, food=12)
+    interface, _ = terminal(game, [])
+    assert interface._inventory_lines() == [
+        "Carried (2 of 10 slots):",
+        "  - Food beyond the first 10 (2)",
+    ]
+
+
+def test_screens_are_separated_and_i_and_r_have_a_line_each(content):
+    # Home, a new box (book mode, a table with rules), done, then the turn
+    game = at_home(content, *EXPLORE)
+    interface, output = terminal(game, ["m", "1", RESOLVE, QUIT])
+
+    play(game, interface)
+
+    arrival = output.index("Box 2.")
+    assert output[arrival - 1] == SEPARATOR
+    turn = output.index("m) move  s) search  a) apply an effect  q) quit", arrival)
+    assert output[turn + 1 : turn + 4] == [
+        "",
+        "i) inventory",
+        "r) rules of the Town Exploration table",
+    ]
+    assert output[turn - 1].startswith("Box 2 · ")  # the status...
+    assert output[turn - 2] == SEPARATOR  # ...after a separator
+    assert "  i) inventory" in output[arrival:turn]  # book mode too
+    assert (SEPARATOR, SEPARATOR) not in itertools.pairwise(output)  # never two in a row
+
+
+def test_i_in_any_menu_shows_the_inventory_then_the_question_again(content):
+    # a new box whose text is not copied: book mode; i there, then done
+    game = at_home(content, *EXPLORE)
+    game.add_item(Item("item.rope"))
+    interface, output = terminal(game, ["m", "1", "i", RESOLVE, QUIT])
+
+    play(game, interface)
+
+    shown = output.index("Inventory:")
+    assert output[shown + 1 : shown + 4] == [
+        "  Carried (1 of 10 slots):",
+        "    - Rope",
+        SEPARATOR,
+    ]
+    # the options again, under the inventory, and the same question
+    options = [line for line in output[:shown] if line.startswith("  Leads to:")][-1]
+    assert options in output[shown:]
+    prompts = interface._input.prompts
+    assert prompts[3] == prompts[2]
+
+
+def test_no_room_offers_to_leave_an_item_hold_or_leave_the_new_one(content):
+    from alone_against_fear.engine import carrying
+
+    game = at_home(content)
+    for _ in range(10):
+        game.add_item(Item("item.rope"))
+    interface, output = terminal(game, ["h"])
+
+    carrying.take(game, interface, Item("weapon.pistol"))
+
+    assert output[:4] == [
+        "No room for Pistol: 10 of 10 slots taken.",
+        "  1) leave Rope here",
+        "  h) hold it",
+        "  l) leave it here",
+    ]
+    assert output[-1] == "You hold: Pistol."
+
+
+def test_the_player_takes_what_a_text_gives_by_hand(content):
+    # a new box whose text is not copied (the House): k, the holy water (its number), 2 vials
+    game = at_home(content, *EXPLORE)
+    numbers = {id_: str(n) for n, id_ in enumerate(carrying.takeable(game), start=1)}
+    interface, output = terminal(
+        game, ["m", "1", "k", numbers["item.holy_water"], "2", RESOLVE, QUIT]
+    )
+
+    play(game, interface)
+
+    assert "Which one does the text give? " in interface._input.prompts
+    assert "How many? " in interface._input.prompts
+    assert "You take: Holy water (2 vials)." in output
+    # the items are listed in columns
+    assert any(line.startswith("  1) ") and "  2) " in line for line in output)
+
+
+def test_items_left_here_are_rolled_for_on_return(content):
+    # the new box right of Home, a rope left there, back Home, then to it again: d6 2, gone
+    game = at_home(content, *EXPLORE, NO_ENCOUNTER, 2, NO_ENCOUNTER)
+    game.add_item(Item("item.rope"))
+    interface, output = terminal(
+        game, ["m", "1", RESOLVE, "i", "1", "l", "b", "m", "1", "m", "1", QUIT]
+    )
+
+    play(game, interface)
+
+    assert "The items you left here are gone. (d6: rolled 2)" in output
+    assert game.box_items() == []

@@ -35,9 +35,9 @@ def test_the_starting_life_and_sanity_are_the_max(game):
     assert game.character.name == "Ann"
 
 
-def test_food_xp_and_clues_have_no_max_here(game):
-    # the Food limit comes with the inventory (E9)
-    assert [game.max(stat) for stat in (Stat.FOOD, Stat.XP, Stat.CLUES)] == [None] * 3
+def test_xp_and_clues_have_no_max(game):
+    # Food's max is the room it may take (E9, test_inventory.py)
+    assert [game.max(stat) for stat in (Stat.XP, Stat.CLUES)] == [None] * 2
 
 
 @pytest.mark.parametrize("stat", [Stat.LIFE, Stat.SANITY])

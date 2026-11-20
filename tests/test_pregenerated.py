@@ -79,11 +79,13 @@ def test_a_pregenerated_character_is_made_as_printed():
         "skill.occultist": SkillLevel.BASIC,
     }
     assert anna.items == [
-        Item("weapon.pistol", count=6),
+        Item("weapon.pistol"),
         Item("weapon.hammer"),
         Item("item.wooden_stakes", count=3),
         Item("item.first_aid_kit", uses=3),
     ]
+    # her pistol's 6 bullets are ammo, kept per type (E9)
+    assert anna.ammo == {"bullets": 6}
 
 
 def test_an_unknown_pregenerated_character_is_refused():

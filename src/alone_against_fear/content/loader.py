@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +12,7 @@ import yaml
 from ..dice import DiceCode, DiceError
 from ..effect_targets import Parameter, RollType, Tag
 from .model import (
+    AMMO_TYPES,
     CatalogueEvent,
     CatalogueTable,
     Content,
@@ -43,11 +45,17 @@ _ENTRY_KEYS = {
     "count",
     "uses",
     "effects",
+    "slots",
+    "worn",
+    "unit",
+    "ammo",
 }
+_ITEM_DATA = ("slots", "worn", "unit", "effects")
+"""What every entry giving the same item must agree on."""
 _CATALOGUE_KEYS = {"id", "name", "dice", "source"}
 _CATALOGUE_EVENT_KEYS = {"id", "name", "source"}
 _WEAPONS_KEYS = {"name", "source", "weapons"}
-_WEAPON_KEYS = {"id", "name", "text", "variants"}
+_WEAPON_KEYS = {"id", "name", "text", "variants", "hands", "ammo"}
 _VARIANT_KEYS = {"id", "name", "extra"}
 _SKILL_KEYS = {"id", "name", "xp", "text", "expert", "starting_gear", "effects"}
 _TARGET_KEYS = {"roll", "tags", "parameter", "group"}
@@ -114,9 +122,12 @@ def load_content(root: Path | str | None = None) -> Content:
             entries[entry.id] = entry
             if entry.item is not None:
                 items.setdefault(entry.item, []).append(entry.id)
-    for item in items:
+    for item, given in items.items():
         if item in seen:
             raise ContentError(f"{item} is an item and is defined in {seen[item]}")
+        for key in _ITEM_DATA:
+            if len({getattr(entries[entry_id], key) for entry_id in given}) > 1:
+                raise ContentError(f"{item}: its entries disagree on {key}")
 
     return Content(
         tables=tables,
@@ -235,8 +246,15 @@ def _weapons(raw: dict, path: Path) -> list[Weapon]:
                     extra=extra,
                 )
             )
+        hands, ammo = item.get("hands", 1), item.get("ammo")
+        if hands not in (1, 2):
+            raise ContentError(f"{what}: hands are 1 or 2, got {hands!r}")
+        if ammo is not None:
+            _check_ammo(ammo, what)
+        named = [replace(weapon, hands=hands, ammo=ammo) for weapon in named]
         variants = tuple(variant.id for variant in named)
-        weapons += [Weapon(item["id"], item["name"], item["text"], raw["source"], variants), *named]
+        heading = Weapon(item["id"], item["name"], item["text"], raw["source"], variants)
+        weapons += [replace(heading, hands=hands, ammo=ammo), *named]
     return weapons
 
 
@@ -296,12 +314,8 @@ def _effect(raw: Any, what: str, has_expert: bool) -> Effect:
     _check_keys(raw, _EFFECT_KEYS, {"basic"}, what)
     if ("roll" in raw) == ("parameter" in raw):
         raise ContentError(f"{what}: an effect changes a roll or a parameter, got {raw}")
-    if "roll" not in raw:
-        for key in ("tags", "group"):
-            if key in raw:
-                raise ContentError(
-                    f"{what}: {'tags need' if key == 'tags' else 'a group needs'} a roll"
-                )
+    if "roll" not in raw and "tags" in raw:
+        raise ContentError(f"{what}: tags need a roll")
     if has_expert != ("expert" in raw):
         if has_expert:
             raise ContentError(
@@ -373,6 +387,18 @@ def _entry(raw: Any, table_id: str, path: Path) -> Entry:
     if item is not None and not str(item).startswith("item."):
         raise ContentError(f"{what}: an item ID starts with item., got {item!r}")
     refs = _strings(raw.get("refs"), f"{what} refs")
+    ammo = raw.get("ammo")
+    if ammo is not None:
+        _check_ammo(ammo, what)
+        if item is not None:
+            raise ContentError(f"{what}: an entry gives ammo or an item, not both")
+        if "count" not in raw:
+            raise ContentError(f"{what}: ammo needs a count")
+    if item is None:
+        for key in ("slots", "worn", "unit"):
+            if key in raw:
+                called = "a unit needs" if key == "unit" else "slots need"
+                raise ContentError(f"{what}: {called} an item")
     return Entry(
         id=id_,
         roll=roll,
@@ -385,7 +411,22 @@ def _entry(raw: Any, table_id: str, path: Path) -> Entry:
         count=_counts(raw.get("count"), {*refs, item}, what),
         uses=_uses(raw.get("uses"), item, what),
         effects=tuple(_entry_effect(effect, what) for effect in raw.get("effects") or []),
+        slots=_slots(raw.get("slots", 1), what),
+        worn=None if raw.get("worn") is None else _slots(raw["worn"], what),
+        unit=raw.get("unit"),
+        ammo=ammo,
     )
+
+
+def _slots(raw: Any, what: str) -> int:
+    if isinstance(raw, int) and not isinstance(raw, bool) and raw >= 0:
+        return raw
+    raise ContentError(f"{what}: slots are a whole number, 0 or more, got {raw!r}")
+
+
+def _check_ammo(raw: Any, what: str) -> None:
+    if raw not in AMMO_TYPES:
+        raise ContentError(f"{what}: unknown ammo type {raw!r}")
 
 
 def _uses(raw: Any, item: str | None, what: str) -> Count | None:

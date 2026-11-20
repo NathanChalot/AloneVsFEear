@@ -15,6 +15,7 @@ entries:
       religious symbol every time you visit a place of worship. Negligible
       weight.
     item: item.religious_symbol
+    slots: 0
   - roll: 13
     text: >-
       First Aid Kit. Contains d6+2 first aid points. Each point may be used to
@@ -24,6 +25,7 @@ entries:
       points per encounter, or 4 if you have Medic Skill (Expert).
     item: item.first_aid_kit
     uses: d6+2
+    unit: points
   - roll: 14
     text: Axe. See weapon summary table for rules.
     refs: [weapon.axe]
@@ -34,6 +36,7 @@ entries:
       vampire, you may NOT use garlic. Negligible weight.
     item: item.garlic_heads
     count: d6
+    slots: 0
   - roll: 16
     text: >-
       Salt (6 doses). 1 dose be sacrificed to avoid an attack when you are
@@ -42,6 +45,8 @@ entries:
       may decide that 1 such Food point is 1 dose of salt. Negligible weight.
     item: item.salt
     uses: 6
+    unit: doses
+    slots: 0
   - roll: 21
     text: Baseball bat. See weapons table.
     refs: [weapon.baseball_bat]
@@ -50,6 +55,7 @@ entries:
       Lighter. May be used to light a candle, a torch or a molotov cocktail.
       May also be useful in some rituals requiring fire. Negligible weight.
     item: item.lighter
+    slots: 0
   - roll: 23
     text: >-
       Bundle of d6 wooden stakes. May be used to slay vampires stopping their
@@ -70,6 +76,10 @@ entries:
     text: >-
       Backpack. You may carry 15 items instead of 10, and 15 Food points instead of 10.
     item: item.backpack
+    slots: 0
+    effects:
+      - {parameter: carry_limit, amount: 5, group: backpack}
+      - {parameter: food_limit, amount: 5, group: backpack}
   - roll: 31
     text: >-
       Flashlight. This is a source of light; it may be used as a ranged weapon
@@ -81,6 +91,7 @@ entries:
       Silver necklace. Negligible weight. You may turn it into d3 silver
       bullets if you find smelting equipment.
     item: item.silver_necklace
+    slots: 0
   - roll: 33
     text: >-
       d6 Food points. You may decide that 1 Food is 1 dose of salt instead.
@@ -92,6 +103,7 @@ entries:
       Damage.
     item: item.holy_water
     count: d3
+    unit: vials
   - roll: 35
     text: >-
       Spray Can. If you have a lighter, you may use this as an improvised
@@ -111,9 +123,11 @@ entries:
       4-6 a classic Halloween monster. They say certain monsters may not
       attack you if they cannot see your face. Negligible weight.
     item: item.rubber_mask
+    slots: 0
   - roll: 43
     text: Train ticket. Negligible weight.
     item: item.train_ticket
+    slots: 0
   - roll: 44
     text: >-
       d6+3 candles. Used for many spells and rituals. You need a lighter or other
@@ -131,7 +145,7 @@ entries:
     text: >-
       d6 shotgun shells. Ammo for a shotgun. You may turn one into a silver
       shell if you load it with a silver ring or silver necklace.
-    item: item.shotgun_shells
+    ammo: shells
     count: d6
   - roll: 51
     text: Rat poison. Useful if you venture in the sewers.
@@ -141,6 +155,7 @@ entries:
       Leather jacket with a flaming skull motif printed on the back.
       Negligible weight if worn, counts as 1 carried object otherwise.
     item: item.leather_jacket
+    worn: 0
   - roll: 53
     text: Insecticide. Useful against bug-like creatures.
     item: item.insecticide
@@ -156,6 +171,7 @@ entries:
       werewolves).
     item: item.dog_food
     count: d6
+    unit: cans
   - roll: 56
     text: Creepy looking doll.
     item: item.creepy_looking_doll
@@ -176,6 +192,7 @@ entries:
       you have smelting equipment. If worn, it gives you +1 to Escape rolls
       against werewolves.
     item: item.crescent_shaped_silver_amulet
+    worn: 0
   - roll: 64
     text: >-
       Box of nails. May be useful to nail shut a coffin and also for some
@@ -189,3 +206,4 @@ entries:
       Smelting equipment. Counts as 2 carried items. You may create silver
       bullets if you have any silver item.
     item: item.smelting_equipment
+    slots: 2

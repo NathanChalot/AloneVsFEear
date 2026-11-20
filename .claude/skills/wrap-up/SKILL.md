@@ -40,6 +40,6 @@ Run it with the Bash tool and `run_in_background: true`. Then give the user the 
 - Run the tests and the linter (`.venv/bin/pytest -q`, `.venv/bin/ruff check .`).
 - Commit the wrap-up (docs, log, transcript, feedback notes) in its own commit, in a command separate from the push.
 - Write the PR body to a scratchpad file: what the session did, the decisions, the test count, `Closes #N` if there is an issue.
-- `git push -u origin <branch>`, then `gh pr create --base main --title "<ID>: <title>" --body-file <file>`.
+- `git push -u origin <branch>`, then `gh pr create --base <base> --title "<ID>: <title>" --body-file <file>`, `<base>` being the branch the session started from: `main`, or the previous session's branch while its PR is still open (a stacked PR; GitHub retargets it to `main` once that PR is merged and its branch deleted). If the base PR was merged meanwhile, use `main`.
 - If auto mode refuses the push or the PR, do not work around it: give the user the two `!` commands to run.
 - End with the PR link, and the drills to play before the next session.

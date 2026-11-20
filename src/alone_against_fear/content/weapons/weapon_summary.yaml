@@ -11,6 +11,7 @@ weapons:
       Flail (Expert) and inflict 2 Damage on an Attack roll of 5 or 6.
   - id: weapon.axe
     name: Axe
+    hands: 2
     text: >-
       Two-handed. Damage 2. If you are Strong (Expert), you may use it
       one-handed.
@@ -27,23 +28,29 @@ weapons:
           the hearts of vampires.
   - id: weapon.bow
     name: Bow
+    hands: 2
+    ammo: arrows
     text: >-
       Requires two hands to use. Damage 1. Comes with 2d6+3 arrows. If
       unskilled, you attack at -1. With the Bow Skill you attack without
       modifier, or at +1 with Bow (Expert).
   - id: weapon.chainsaw
     name: Chainsaw
+    hands: 2
     text: >-
       Two handed. +1 to Attack rolls. Damage 2. At the end of any combat
       roll a 1 in 6 chance that the noise attracts d6 zombies (L3 Slow
       Undead).
   - id: weapon.chair
     name: Chair
+    hands: 2
     text: >-
       Two handed. -1 to Attack rolls. Damage 1. If the Attack roll is a
       1 or 2, it breaks.
   - id: weapon.crossbow
     name: Crossbow
+    hands: 2
+    ammo: bolts
     text: >-
       2 handed. No bonus. Damage 1. Comes with 2d6 bolts.
   - id: weapon.flashlight
@@ -64,6 +71,7 @@ weapons:
       grenades you used in this encounter).
   - id: weapon.hockey_stick_or_golf_club
     name: Hockey Stick/golf club
+    hands: 2
     text: >-
       Two handed. Damage 1, but Damage 2 on a roll of 6.
     variants:
@@ -104,22 +112,27 @@ weapons:
       against that foe unless he has another weapon).
   - id: weapon.pistol
     name: Pistol
+    ammo: bullets
     text: >-
       +1 to Attack rolls, Damage 1. Comes with 2d6 bullets.
   - id: weapon.pitchfork
     name: Pitchfork
+    hands: 2
     text: >-
       Two handed, Damage 1. If your opponent surprises you and his first
       attack misses and then your first attack hits, you have impaled
       the opponent for 3 Damage.
   - id: weapon.rifle
     name: Rifle
+    hands: 2
+    ammo: rifle_bullets
     text: >-
       Two handed. +2 to Attack rolls. Damage 2. May attack twice per
       turn but doing so uses 3 bullets. May be used as a club (-1 to
       hit, 1 Damage). Comes with 2d6 bullets.
   - id: weapon.scythe_or_shovel
     name: Scythe/shovel
+    hands: 2
     text: >-
       Two handed. -1 to Attack rolls because of its unwieldiness. Damage
       1. If you roll a natural 6, you decapitate the target, regardless
@@ -129,6 +142,7 @@ weapons:
       - {id: weapon.shovel, name: Shovel, extra: Useful to dig graves.}
   - id: weapon.shotgun
     name: Shotgun
+    ammo: shells
     text: >-
       +2 to Attack rolls. Damage 2. Comes with 2d6 shells.
   - id: weapon.samurai_sword_authentic

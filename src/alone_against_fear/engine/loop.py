@@ -8,7 +8,9 @@ and a 1 in 6 chance of a Random Encounter in a visited one; what is reached goes
 mode (E5a), whose actions follow the entry to other tables and events; the player applies what
 the engine cannot read with manual actions (E5b). Home is box 1 and rolls nothing. The free
 actions: move, Search while the box may be Searched, apply an effect (the manual actions about
-the character), spend XP while it can buy a Skill, attach a sheet once one is full, quit. With
+the character), spend XP while it can buy a Skill, the inventory once there is an item (E9),
+attach a sheet once one is full, quit. Coming back to a box where items were left rolls for
+them first (E9). With
 notes, the Search first asks the modifier they give.
 The loop ends at death (Life 0), insanity (Sanity 0) or when the player quits; a drill (T1)
 also ends it when its stop condition holds, checked after creation and before each turn.
@@ -20,7 +22,7 @@ import logging
 from collections.abc import Callable
 
 from ..dice import Chance
-from . import book_mode, creation, manual, moments
+from . import book_mode, carrying, creation, manual, moments
 from .game import Arrival, Game
 from .manual import Manual
 from .protocol import (
@@ -97,6 +99,8 @@ def _turns(game: Game, interface: Interface, stop: Stop) -> End:
                 manual.apply_effects(game, interface)
             case Action.SPEND_XP:
                 _spend_xp(game, interface)
+            case Action.INVENTORY:
+                _inventory(game, interface)
             case Action.SEARCH:
                 modifier = ask(interface, Number(Topic.MODIFIER)) if game.character.notes else 0
                 searched = game.search(modifier)
@@ -114,7 +118,7 @@ def _actions(game: Game) -> tuple[Action, ...]:
     search = (Action.SEARCH,) if game.may_search() else ()
     spend = (Action.SPEND_XP,) if game.purchases() else ()
     sheet = (Action.SHEET,) if game.new_sheets() else ()
-    return (Action.MOVE, *search, Action.APPLY, *spend, *sheet, Action.QUIT)
+    return (Action.MOVE, *search, Action.APPLY, *spend, Action.INVENTORY, *sheet, Action.QUIT)
 
 
 def _spend_xp(game: Game, interface: Interface) -> None:
@@ -124,6 +128,20 @@ def _spend_xp(game: Game, interface: Interface) -> None:
     if purchase is not Manual.BACK:
         game.buy(purchase)
         interface.tell(Bought(purchase))
+
+
+def _inventory(game: Game, interface: Interface) -> None:
+    """Move items between hands, carried, worn and the box, again and again until the player
+    goes back (E9). Only the moves the limits allow are offered."""
+    while True:
+        movable = tuple(at for at in carrying.items_at(game) if game.places_for(at.item, at.place))
+        at = ask(interface, Choose(Topic.INVENTORY, (*movable, Manual.BACK)))
+        if at is Manual.BACK:
+            return
+        places = game.places_for(at.item, at.place)
+        to = ask(interface, Choose(Topic.PLACE, (*places, Manual.BACK), about=at))
+        if to is not Manual.BACK:
+            carrying.move(game, interface, at, to)
 
 
 def _arrive(game: Game, interface: Interface, arrival: Arrival) -> None:
@@ -136,6 +154,7 @@ def _arrive(game: Game, interface: Interface, arrival: Arrival) -> None:
     if arrival.new:
         book_mode.resolve(game, interface, TOWN_EXPLORATION)
         return
+    carrying.come_back(game, interface)
     wandering = WANDERING.roll(game.dice)
     interface.tell(Wandering(wandering.face, wandering.success))
     if wandering.success:

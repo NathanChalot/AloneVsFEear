@@ -17,8 +17,8 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Protocol
 
-from .game import Arrival, GameError, Purchase, Rolled, RolledVsL, Searched
-from .state import End, Item, Lasting, Note, Position, Stat, Upkeep
+from .game import Arrival, GameError, LeftItems, Purchase, Rolled, RolledVsL, Searched
+from .state import End, Item, Lasting, Note, Place, Position, Stat, Upkeep
 
 log = logging.getLogger(__name__)
 
@@ -83,11 +83,26 @@ class Topic(StrEnum):
     """Which weapon the character takes, when the text gives a choice."""
     PURCHASE = "purchase"
     """What to spend XP on (a `game.Purchase`), or back."""
+    ROOM = "room"
+    """No room for what was found (E9): an item to leave here (an `ItemAt`), hold the new item
+    (`Place.HANDS`), or leave it (`Place.BOX`). `about` is the item, or `Stat.FOOD`."""
+    INVENTORY = "inventory"
+    """Which item to move (an `ItemAt`), or back (E9)."""
+    PLACE = "place"
+    """Where the item goes (a `Place`), or back; `about` is the `ItemAt`."""
+    ITEM = "item"
+    """Which item, weapon or ammo type a text gives, or which one it takes (E9)."""
+    COUNT = "count"
+    """How many objects an item taken by hand has: garlic heads, candles (a `Number`)."""
+    USES = "uses"
+    """How many uses an item taken by hand has left: a First Aid Kit's points (a `Number`)."""
+    AMMO = "ammo"
+    """How much ammo comes with a weapon taken by hand (a `Number`)."""
 
 
 class Action(StrEnum):
     """The free actions, once the box is resolved; moving or quitting ends the turn.
-    Inventory and aborting a mission come with their tasks."""
+    Aborting a mission comes with its task."""
 
     MOVE = "move"
     SEARCH = "search"
@@ -96,6 +111,8 @@ class Action(StrEnum):
     """Apply an effect: opens the manual actions about the character."""
     SPEND_XP = "spend_xp"
     """Buy a Skill or raise one to Expert; offered while the XP can buy one (E6)."""
+    INVENTORY = "inventory"
+    """Hold, stow, wear, take off, leave or pick up an item (E9); offered once there is one."""
     SHEET = "sheet"
     """Attach a new sheet; offered once a sheet is full."""
     QUIT = "quit"
@@ -230,9 +247,53 @@ class NoteRemoved:
 
 @dataclass(frozen=True)
 class ItemTaken:
-    """The character took an item or a weapon."""
+    """The character took an item or a weapon: carried, in hand or worn; or left it in the box
+    for want of room (E9)."""
 
     item: Item
+    place: Place = Place.CARRIED
+
+
+@dataclass(frozen=True)
+class ItemAt:
+    """An item and where it is: an option of the inventory (E9). Two ropes, one carried and
+    one left, are two options."""
+
+    item: Item
+    place: Place
+
+
+@dataclass(frozen=True)
+class ItemMoved:
+    """An item went from one place to another: held, stowed, worn, taken off, left, picked
+    up (E9)."""
+
+    item: Item
+    here: Place
+    to: Place
+
+
+@dataclass(frozen=True)
+class ItemLost:
+    """An item is gone: used up, broken, stolen (E9)."""
+
+    item: Item
+
+
+@dataclass(frozen=True)
+class AmmoChanged:
+    """Ammo of one type changed (E9): by how much, and how many now."""
+
+    ammo: str
+    amount: int
+    value: int
+
+
+@dataclass(frozen=True)
+class BackpackLost:
+    """The backpack was stolen or destroyed, and every carried item with it (E9)."""
+
+    lost: tuple[Item, ...]
 
 
 @dataclass(frozen=True)
@@ -302,6 +363,11 @@ type Event = (
     | NoteRemoved
     | Searched
     | ItemTaken
+    | ItemMoved
+    | ItemLost
+    | AmmoChanged
+    | BackpackLost
+    | LeftItems
     | Duplicate
     | StepStarted
     | Created

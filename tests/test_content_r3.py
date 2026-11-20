@@ -221,12 +221,13 @@ NOT_AN_ITEM = {
 
 
 @pytest.mark.parametrize("entry", [*OBJECTS.entries, *STUFF.entries], ids=lambda e: e.id)
-def test_every_item_entry_gives_an_item_or_a_weapon(entry):
+def test_every_item_entry_gives_an_item_a_weapon_or_ammo(entry):
     weapons = [ref for ref in entry.refs if ref.startswith("weapon.")]
+    given = [entry.item is not None, bool(weapons), entry.ammo is not None]
     if entry.id in NOT_AN_ITEM:
-        assert entry.item is None and not weapons
+        assert given == [False, False, False]
     else:
-        assert (entry.item is None) != (not weapons), entry.id
+        assert given.count(True) == 1, entry.id
 
 
 @pytest.mark.parametrize("entry", [*WEAPON.entries, *OBJECTS.entries, *STUFF.entries])

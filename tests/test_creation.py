@@ -20,6 +20,7 @@ from alone_against_fear.engine.creation import Points, create
 from alone_against_fear.engine.game import Rolled
 from alone_against_fear.engine.manual import Manual
 from alone_against_fear.engine.protocol import (
+    AmmoChanged,
     Book,
     Changed,
     Choose,
@@ -94,11 +95,13 @@ def test_a_character_is_created_from_the_rules(content):
     assert (game.max(Stat.LIFE), game.max(Stat.SANITY)) == (12, 9)
     assert character.skills == {"skill.agile": SkillLevel.BASIC, "skill.tough": SkillLevel.BASIC}
     assert character.items == [
-        Item("weapon.pistol", "table.random_weapon.5", count=7),
+        Item("weapon.pistol", "table.random_weapon.5"),
         Item("weapon.knife"),
         Item("item.rope", "table.random_objects.11"),
         Item("item.small_bell", "table.useful_stuff.13"),
     ]
+    # the pistol's 2d6 bullets are ammo, kept per type (E9)
+    assert character.ammo == {"bullets": 7}
     assert (character.food, character.xp, character.clues) == (FOOD, 0, 0)
 
 
@@ -221,7 +224,7 @@ def test_the_3_points_traded_for_a_third_skill(content):
 @pytest.mark.parametrize(
     ("points", "dice", "extra"),
     [
-        (Points.WEAPON, (6, 1, 1), Item("weapon.rifle", "table.random_weapon.6", count=2)),
+        (Points.WEAPON, (6, 1, 1), Item("weapon.rifle", "table.random_weapon.6")),
         (Points.OBJECT, (2, 2), Item("item.lighter", "table.random_objects.22")),
         (Points.USEFUL, (1, 2), Item("item.flower_bunch_or_present", "table.useful_stuff.12")),
     ],
@@ -273,7 +276,8 @@ def test_the_bow_comes_with_its_arrows(content):
     game, _ = created(
         content, [3, 2, 2, *ROPE, *BELL, FOOD], [*basics(), "weapon.bow", "weapon.knife"]
     )
-    assert game.character.items[0] == Item("weapon.bow", "table.random_weapon.3", count=7)
+    assert game.character.items[0] == Item("weapon.bow", "table.random_weapon.3")
+    assert game.character.ammo == {"arrows": 7}
 
 
 def test_the_grenade_is_one(content):
@@ -384,6 +388,13 @@ def test_counts_are_rolled(content):
     assert Item("item.liquor", "table.useful_stuff.35", count=3) in game.character.items
 
 
+def test_shotgun_shells_are_ammo(content):
+    # Random Objects 46: d6 shotgun shells (4), with no shotgun: kept (rulings, Inventory)
+    game, interface = created(content, [*PISTOL, 4, 6, 4, *BELL, FOOD], [*basics(), "weapon.knife"])
+    assert game.character.ammo == {"bullets": 7, "shells": 4}
+    assert AmmoChanged("shells", 4, 4) in interface.told
+
+
 def test_uses_are_rolled(content):
     # a First Aid Kit (Random Objects 13) with d6+2 uses (4: 6)
     game, _ = created(content, [*PISTOL, 1, 3, 4, *BELL, FOOD], [*basics(), "weapon.knife"])
@@ -400,9 +411,11 @@ def test_bow_gives_a_bow_and_arrows_at_creation(content):
         [2, *PISTOL, *ROPE, *BELL, FOOD],
         [*basics("skill.bow", "skill.agile"), "weapon.knife"],
     )
-    bow = Item("weapon.bow", "skill.bow", count=5)
+    bow = Item("weapon.bow", "skill.bow")
     assert game.character.items[0] == bow
     assert ItemTaken(bow) in interface.told
+    assert AmmoChanged("arrows", 5, 5) in interface.told
+    assert game.character.ammo == {"arrows": 5, "bullets": 7}
 
 
 def test_faith_gives_the_religious_symbol_at_creation(content):

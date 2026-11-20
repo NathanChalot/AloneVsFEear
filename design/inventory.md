@@ -11,20 +11,21 @@ flowchart LR
     char --- carried[Carried items<br/>limit: 10 + backpack 5 + Strong 3/5, max 20]
     char --- food[Food<br/>limit 10, 15 with backpack]
     char --- light[Light items<br/>no limit]
-    char --- ammo[Ammo<br/>per weapon, not an item]
-    char --- worn[Worn<br/>body armor counts as 2 items,<br/>backpack counts as 0]
+    char --- ammo[Ammo<br/>per ammo type, not an item]
+    char --- worn[Worn<br/>body armor counts as 2 items,<br/>the others as 0]
     food -. overflow takes .-> carried
-    safe[(Safe House stash<br/>one per Safe House, no limit)]
-    char <-. stash / retrieve .-> safe
-    box[(Box)]
-    char <-. pick up / discard .-> box
+    box[(Items left in a box<br/>a stash in a Safe House, no limit)]
+    char <-. leave / pick up .-> box
 ```
 
 - **Hands** hold what is ready to use: usually the weapon. Changing weapons is free before a combat, 1 Action during it.
 - **Carried items** count against the carry limit. Bundles count as one item: d6 jars of cat food, several stakes or candles, medical supplies, grenades on a bandolier.
 - **Food** has its own limit. Extra Food beyond it takes 1 item slot per point.
 - **Light items** (negligible weight) never count: small bell, holy symbol, scarab.
-- **Ammo** belongs to a weapon type (pistol bullets, rifle bullets, bolts, arrows, shells). Not shared between different weapons, not an item.
+- **Ammo** is counted per ammo type (bullets, rifle bullets, bolts, arrows, shells), each used by its weapon kind: two pistols share bullets, a pistol and a rifle do not. Not an item, no slot.
+- **Worn** items are the ones whose text says they can be worn (clothes, helmet, gas mask, leather jacket, amulets, body armor); worn, most take no slot (body armor 2). One set of clothes at a time. The backpack is carried but takes no slot.
+
+Every item takes 1 slot unless its text says otherwise; a bundle (d6 jars of cat food) takes its slots once, whatever its count.
 
 ## Picking something up
 
@@ -41,7 +42,8 @@ flowchart TD
     kind -- item --> room{Room under the carry limit?}
     room -- yes --> take
     room -- no --> choose{Discard something?}
-    choose -- yes --> drop[Discard an item<br/>or leave it in a Safe House stash] --> take
+    room -- no, a hand is free --> hold([Hold it])
+    choose -- yes --> drop[Leave an item in the box] --> take
     choose -- no --> leave([Leave it])
 ```
 
@@ -49,7 +51,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    lost([Backpack stolen or destroyed]) --> drop[Lose ALL carried items<br/>except what is in hands]
+    lost([Backpack stolen or destroyed]) --> drop[Lose ALL carried items, light ones too<br/>keep hands, worn, ammo]
     drop --> limit[Carry limit and Food limit drop by 5]
     limit --> over{Food over the limit?}
     over -- yes --> excess[Excess Food takes item slots,<br/>or is lost]
@@ -57,11 +59,12 @@ flowchart TD
     excess --> done
 ```
 
-## Stash
+## Leaving items
 
-- Items can be left in any Safe House, any number, and retrieved on a later visit. They are safe as long as the box stays a Safe House.
+- Items can be left in any box and picked up on a later visit. In a box that is not a Safe House, they roll d6 on every return: on 1-3 they are all gone.
+- In a Safe House they are a stash, any number, safe as long as the box stays a Safe House.
 - When it stops being one, the stash may be stolen: see [Safe Houses](safe-houses.md).
-- When the character dies, every stash is lost.
+- When the character dies, every item left anywhere is lost.
 
 ## Items are effects too
 
@@ -74,4 +77,4 @@ Items can also have their own Life (body armor 4, helmet 3) and their own traina
 
 ## Rulings
 
-Hand slots are extra, Strong does not raise the Food limit, discarded items may vanish (d6, 1-3), ammo without a weapon is kept. See [rulings](rulings.md).
+Hand slots are extra, Strong does not raise the Food limit, left items may vanish (d6, 1-3, on every return), ammo is kept per type and without a weapon, a lost backpack takes light items too, wearable items are the ones whose text says so. See [rulings](rulings.md#inventory).
